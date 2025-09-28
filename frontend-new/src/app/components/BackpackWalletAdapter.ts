@@ -1,6 +1,6 @@
 'use client';
 
-import { WalletAdapter, WalletAdapterNetwork, WalletName, WalletReadyState } from '@solana/wallet-adapter-base';
+import { WalletAdapter, WalletAdapterNetwork, WalletName, WalletReadyState, WalletAdapterEvents } from '@solana/wallet-adapter-base';
 import { PublicKey, Transaction } from '@solana/web3.js';
 
 export interface BackpackWallet {
@@ -205,7 +205,7 @@ export class BackpackWalletAdapter implements WalletAdapter {
     return 0;
   }
 
-  eventNames(): string[] {
+  eventNames(): (keyof WalletAdapterEvents)[] {
     return [];
   }
 
