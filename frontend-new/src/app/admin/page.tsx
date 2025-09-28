@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { ClientWalletProvider } from '../components/ClientWalletProvider';
 
 interface CollectionData {
   name: string;
@@ -369,9 +368,5 @@ function AdminPageContent() {
 }
 
 export default function AdminPage() {
-  return (
-    <ClientWalletProvider>
-      <AdminPageContent />
-    </ClientWalletProvider>
-  );
+  return <AdminPageContent />;
 }

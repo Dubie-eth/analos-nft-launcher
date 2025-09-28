@@ -4,7 +4,6 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ClientWalletProvider } from '../components/ClientWalletProvider';
 
 interface Collection {
   name: string;
@@ -146,9 +145,5 @@ function MintPageContent() {
 }
 
 export default function MintPage() {
-  return (
-    <ClientWalletProvider>
-      <MintPageContent />
-    </ClientWalletProvider>
-  );
+  return <MintPageContent />;
 }
