@@ -1,4 +1,4 @@
-import { Connection, Transaction, PublicKey } from '@solana/web3.js';
+import type { Connection, Transaction, PublicKey } from '@solana/web3.js';
 
 export interface TransactionResult {
   success: boolean;
@@ -102,11 +102,11 @@ export class TransactionService {
       }
 
       return data.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error submitting transaction:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -122,11 +122,11 @@ export class TransactionService {
       }
 
       return data.data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting transaction status:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -154,15 +154,13 @@ export class TransactionService {
         success: true,
         signature,
         confirmed: true,
-        slot: confirmation.value.slot,
-        blockTime: confirmation.value.blockTime,
         explorerUrl: `https://explorer.analos.io/tx/${signature}`,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error signing and submitting transaction:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -176,20 +174,31 @@ export class TransactionService {
       const signedTransaction = await wallet.signTransaction(transaction);
 
       // Get signatures
-      const signatures = signedTransaction.signatures.map(sig => 
-        sig.signature ? Buffer.from(sig.signature).toString('base64') : null
-      ).filter(Boolean);
+      const signatures = signedTransaction.signatures
+        .map((sig: any) => (sig?.signature ? uint8ToBase64(sig.signature) : null))
+        .filter((val: string | null): val is string => Boolean(val));
 
       // Submit through backend
       return await this.submitTransaction(transaction, signatures);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error signing and submitting transaction:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
 }
 
 export const transactionService = new TransactionService();
+
+// Helpers
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  // btoa is available in browser; on server, Next polyfills for Edge runtimes
+  // If not available, this will throw and be caught by callers.
+  return typeof btoa !== 'undefined' ? btoa(binary) : Buffer.from(bytes).toString('base64');
+}
