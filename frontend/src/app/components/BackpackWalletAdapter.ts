@@ -17,7 +17,6 @@ export class BackpackWalletAdapter implements WalletAdapter {
   private _connected = false;
   private _connecting = false;
   private _readyState: WalletReadyState = WalletReadyState.NotDetected;
-  private _autoConnect = false;
 
   constructor() {
     this.connect = this.connect.bind(this);
@@ -47,8 +46,9 @@ export class BackpackWalletAdapter implements WalletAdapter {
     return this._readyState;
   }
 
-  get autoConnect(): boolean {
-    return this._autoConnect;
+  async autoConnect(): Promise<void> {
+    // Auto-connect functionality - can be implemented later if needed
+    return Promise.resolve();
   }
 
   get name(): WalletName {
