@@ -111,7 +111,7 @@ function AdminPageContent() {
       };
 
       // Call backend API
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       console.log('Backend URL:', backendUrl);
       const response = await fetch(`${backendUrl}/api/collections/deploy`, {
         method: 'POST',
