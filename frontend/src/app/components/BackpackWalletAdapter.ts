@@ -16,6 +16,8 @@ export class BackpackWalletAdapter implements WalletAdapter {
   private _publicKey: PublicKey | null = null;
   private _connected = false;
   private _connecting = false;
+  private _readyState: 'Installed' | 'NotDetected' | 'Loadable' | 'Unsupported' = 'NotDetected';
+  private _autoConnect = false;
 
   constructor() {
     this.connect = this.connect.bind(this);
@@ -39,6 +41,14 @@ export class BackpackWalletAdapter implements WalletAdapter {
 
   get ready(): boolean {
     return typeof window !== 'undefined' && !!window.backpack;
+  }
+
+  get readyState(): 'Installed' | 'NotDetected' | 'Loadable' | 'Unsupported' {
+    return this._readyState;
+  }
+
+  get autoConnect(): boolean {
+    return this._autoConnect;
   }
 
   get name(): WalletName {
@@ -89,6 +99,20 @@ export class BackpackWalletAdapter implements WalletAdapter {
     } finally {
       this._publicKey = null;
       this._connected = false;
+    }
+  }
+
+  async sendTransaction(transaction: Transaction, connection: any, options?: any): Promise<string> {
+    if (!this._connected || !this.ready) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      const wallet = window.backpack as BackpackWallet;
+      const signedTransaction = await wallet.signTransaction(transaction);
+      return connection.sendRawTransaction(signedTransaction.serialize(), options);
+    } catch (error) {
+      throw error;
     }
   }
 
