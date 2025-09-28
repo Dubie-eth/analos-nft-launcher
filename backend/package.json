@@ -1,0 +1,27 @@
+{
+  "name": "analos-nft-launcher-backend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/simple-server.ts",
+  "scripts": {
+    "dev": "ts-node src/simple-server.ts",
+    "build": "tsc",
+    "start": "node dist/simple-server.js"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.87.6",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}
