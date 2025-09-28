@@ -132,16 +132,19 @@ export class BackpackWalletAdapter implements WalletAdapter {
   }
 
   // Simple event emitter - just basic functionality
-  on(event: string, callback: Function): void {
+  on(event: string, callback: Function, context?: any): this {
     // Basic implementation - can be enhanced later if needed
+    return this;
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: Function, context?: any): this {
     // Basic implementation - can be enhanced later if needed
+    return this;
   }
 
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: any[]): boolean {
     // Basic implementation - can be enhanced later if needed
+    return true;
   }
 }
 
