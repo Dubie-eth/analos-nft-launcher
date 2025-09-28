@@ -105,7 +105,7 @@ export default function CollectionMintPage() {
       // For now, we'll simulate the process
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      setMintStatus(`Successfully minted ${mintQuantity} NFT(s) for ${totalCost} SOL!`);
+      setMintStatus(`Successfully minted ${mintQuantity} NFT(s) for ${totalCost} $LOS!`);
       
       // Refresh collection data
       const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/${collectionName}`);
@@ -207,7 +207,7 @@ export default function CollectionMintPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-white/80">Price:</span>
-                  <span className="text-white font-semibold">{collection.price} SOL</span>
+                  <span className="text-white font-semibold">{collection.price} $LOS</span>
                 </div>
               </div>
 
@@ -248,7 +248,7 @@ export default function CollectionMintPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-white/80">
                     <span>Price per NFT:</span>
-                    <span>{collection.price} SOL</span>
+                    <span>{collection.price} $LOS</span>
                   </div>
                   <div className="flex justify-between text-white/80">
                     <span>Quantity:</span>
@@ -256,20 +256,20 @@ export default function CollectionMintPage() {
                   </div>
                   <div className="flex justify-between text-white/80">
                     <span>Subtotal:</span>
-                    <span>{totalCost} SOL</span>
+                    <span>{totalCost} $LOS</span>
                   </div>
                   <div className="flex justify-between text-white/80">
                     <span>Platform Fee ({collection.feePercentage}%):</span>
-                    <span>{platformFee.toFixed(4)} SOL</span>
+                    <span>{platformFee.toFixed(2)} $LOS</span>
                   </div>
                   <div className="flex justify-between text-white/80">
                     <span>Creator Revenue:</span>
-                    <span>{creatorRevenue.toFixed(4)} SOL</span>
+                    <span>{creatorRevenue.toFixed(2)} $LOS</span>
                   </div>
                   <hr className="border-white/20" />
                   <div className="flex justify-between text-white font-semibold">
                     <span>Total Cost:</span>
-                    <span>{totalCost} SOL</span>
+                    <span>{totalCost} $LOS</span>
                   </div>
                 </div>
               </div>
@@ -283,7 +283,7 @@ export default function CollectionMintPage() {
                 {minting ? 'Minting...' : 
                  !collection.isActive ? 'Minting Inactive' :
                  remainingSupply === 0 ? 'Sold Out' :
-                 `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} SOL`}
+                 `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} $LOS`}
               </button>
 
               {mintStatus && (

@@ -121,7 +121,7 @@ export default function MintPage() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-white/80">Price:</span>
-                          <span className="text-white font-semibold">{collection.price} SOL</span>
+                          <span className="text-white font-semibold">{collection.price} $LOS</span>
                         </div>
                         
                         <div className="flex justify-between items-center">

@@ -24,7 +24,7 @@ export default function AdminPage() {
     name: '',
     description: '',
     image: null,
-    price: 0.1,
+    price: 100,
     maxSupply: 1000,
     feePercentage: 2.5,
     feeRecipient: '',
@@ -141,21 +141,21 @@ export default function AdminPage() {
             
             <div className="grid md:grid-cols-2 gap-8">
               {/* Left Column - Basic Info */}
-              <div className="space-y-6">
+            <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-white mb-4">Collection Details</h2>
                 
-                <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
                     Collection Name *
-                  </label>
-                  <input
-                    type="text"
+                </label>
+                <input
+                  type="text"
                     value={collectionData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Enter collection name"
-                  />
-                </div>
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter collection name"
+                />
+              </div>
 
                 <div>
                   <label className="block text-white/80 text-sm font-medium mb-2">
@@ -171,15 +171,15 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-white/80 text-sm font-medium mb-2">
-                    Description
-                  </label>
-                  <textarea
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Description
+                </label>
+                <textarea
                     value={collectionData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                  rows={4}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                     placeholder="Describe your collection"
                   />
                 </div>
@@ -235,7 +235,7 @@ export default function AdminPage() {
                 
                 <div>
                   <label className="block text-white/80 text-sm font-medium mb-2">
-                    Mint Price (SOL)
+                    Mint Price ($LOS)
                   </label>
                   <input
                     type="number"
@@ -244,7 +244,7 @@ export default function AdminPage() {
                     value={collectionData.price}
                     onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
                     className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="0.1"
+                    placeholder="100"
                   />
                 </div>
 
@@ -311,7 +311,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex justify-between text-white/80">
                       <span>Price:</span>
-                      <span>{collectionData.price} SOL</span>
+                      <span>{collectionData.price} $LOS</span>
                     </div>
                     <div className="flex justify-between text-white/80">
                       <span>Max Supply:</span>
@@ -323,7 +323,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex justify-between text-white/80">
                       <span>Creator Revenue:</span>
-                      <span>{((100 - collectionData.feePercentage) * collectionData.price / 100).toFixed(4)} SOL per mint</span>
+                      <span>{((100 - collectionData.feePercentage) * collectionData.price / 100).toFixed(2)} $LOS per mint</span>
                     </div>
                   </div>
                 </div>
@@ -332,20 +332,20 @@ export default function AdminPage() {
 
             {/* Deploy Button */}
             <div className="text-center mt-8">
-              <button
-                onClick={handleDeploy}
+                <button
+                  onClick={handleDeploy}
                 disabled={!connected || !collectionData.name.trim() || !collectionData.image || !collectionData.symbol.trim() || deploying}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-12 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-lg"
-              >
+                >
                 {deploying ? 'Deploying to Analos...' : 'Deploy Collection'}
-              </button>
-            </div>
-
-            {deployStatus && (
-              <div className="mt-6 p-4 bg-white/20 rounded-lg">
-                <p className="text-white text-center">{deployStatus}</p>
+                </button>
               </div>
-            )}
+
+              {deployStatus && (
+              <div className="mt-6 p-4 bg-white/20 rounded-lg">
+                  <p className="text-white text-center">{deployStatus}</p>
+                </div>
+              )}
           </div>
         </div>
       </div>
