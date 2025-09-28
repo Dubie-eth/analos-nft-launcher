@@ -35,7 +35,7 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
 
   // Prevent hydration mismatch by not rendering wallet components until mounted
   if (!mounted) {
-    return <div suppressHydrationWarning>{children}</div>;
+    return <div suppressHydrationWarning style={{ minHeight: '100vh' }}>{children}</div>;
   }
 
   return (
