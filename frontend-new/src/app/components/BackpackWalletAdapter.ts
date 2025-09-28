@@ -205,19 +205,19 @@ export class BackpackWalletAdapter implements WalletAdapter {
     return 0;
   }
 
-  eventNames(): (string | symbol)[] {
+  eventNames(): string[] {
     return [];
   }
 
-  prependListener(event: string, listener: Function): this {
+  prependListener(event: string, listener: (...args: any[]) => void): this {
     return this;
   }
 
-  prependOnceListener(event: string, listener: Function): this {
+  prependOnceListener(event: string, listener: (...args: any[]) => void): this {
     return this;
   }
 
-  once(event: string, listener: Function): this {
+  once(event: string, listener: (...args: any[]) => void): this {
     return this;
   }
 }
