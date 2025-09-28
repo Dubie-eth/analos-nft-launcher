@@ -10,8 +10,6 @@ export interface BackpackWallet {
   signTransaction(transaction: Transaction): Promise<Transaction>;
   signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
   signMessage(message: Uint8Array): Promise<Uint8Array>;
-  on?: (event: string, callback: Function) => void;
-  off?: (event: string, callback: Function) => void;
 }
 
 export class BackpackWalletAdapter implements WalletAdapter {
@@ -71,20 +69,8 @@ export class BackpackWalletAdapter implements WalletAdapter {
       this._publicKey = response.publicKey;
       this._connected = true;
 
-      // Listen for account changes (if wallet supports events)
-      if (wallet && typeof wallet.on === 'function') {
-        wallet.on('accountChanged', (publicKey: PublicKey | null) => {
-          this._publicKey = publicKey;
-          this._connected = !!publicKey;
-          this.emit('connect');
-        });
-
-        wallet.on('disconnect', () => {
-          this._publicKey = null;
-          this._connected = false;
-          this.emit('disconnect');
-        });
-      }
+      // Note: Event handling is optional and may not be supported by all wallet implementations
+      // The wallet adapter will work without these event listeners
 
     } catch (error) {
       this.emit('error', error);
