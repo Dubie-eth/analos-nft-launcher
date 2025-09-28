@@ -7,8 +7,7 @@ import {
   SolflareWalletAdapter, 
   PhantomWalletAdapter,
   TorusWalletAdapter,
-  LedgerWalletAdapter,
-  SlopeWalletAdapter
+  LedgerWalletAdapter
 } from '@solana/wallet-adapter-wallets';
 import { BackpackWalletAdapter } from './BackpackWalletAdapter';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
@@ -28,7 +27,6 @@ export function WalletContextProvider({ children }: { children: React.ReactNode 
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
       new TorusWalletAdapter(),
-      new SlopeWalletAdapter(),
       new LedgerWalletAdapter(),
     ],
     []

@@ -69,9 +69,6 @@ export class BackpackWalletAdapter implements WalletAdapter {
       this._publicKey = response.publicKey;
       this._connected = true;
 
-      // Note: Event handling is optional and may not be supported by all wallet implementations
-      // The wallet adapter will work without these event listeners
-
     } catch (error) {
       this.emit('error', error);
       throw error;
