@@ -1,8 +1,8 @@
 'use client';
 
-import React, { FC, ReactNode, useMemo } from 'react';
+import React, { FC, ReactNode, useMemo, useEffect, useState } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets';
 import {
   WalletModalProvider
 } from '@solana/wallet-adapter-react-ui';
@@ -15,6 +15,8 @@ interface Props {
 }
 
 export const WalletContextProvider: FC<Props> = ({ children }) => {
+  const [mounted, setMounted] = useState(false);
+  
   // You can also provide a custom RPC endpoint.
   const endpoint = 'https://rpc.analos.io';
 
@@ -27,11 +29,16 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     []
   );
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Always render the providers, but handle the mounting state
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
-          {children}
+          {mounted ? children : <div style={{ minHeight: '100vh' }}>{children}</div>}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
