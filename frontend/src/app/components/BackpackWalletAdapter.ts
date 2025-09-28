@@ -10,8 +10,8 @@ export interface BackpackWallet {
   signTransaction(transaction: Transaction): Promise<Transaction>;
   signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
   signMessage(message: Uint8Array): Promise<Uint8Array>;
-  on?(event: string, callback: Function): void;
-  off?(event: string, callback: Function): void;
+  on?: (event: string, callback: Function) => void;
+  off?: (event: string, callback: Function) => void;
 }
 
 export class BackpackWalletAdapter implements WalletAdapter {
@@ -72,7 +72,7 @@ export class BackpackWalletAdapter implements WalletAdapter {
       this._connected = true;
 
       // Listen for account changes (if wallet supports events)
-      if (wallet.on) {
+      if (wallet && typeof wallet.on === 'function') {
         wallet.on('accountChanged', (publicKey: PublicKey | null) => {
           this._publicKey = publicKey;
           this._connected = !!publicKey;
