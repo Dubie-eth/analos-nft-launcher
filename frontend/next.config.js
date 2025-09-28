@@ -8,10 +8,16 @@ const nextConfig = {
   },
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    
+    // Ensure the URL has a protocol
+    const fullBackendUrl = backendUrl.startsWith('http') 
+      ? backendUrl 
+      : `https://${backendUrl}`;
+    
     return [
       {
         source: '/api/:path*',
-        destination: `${backendUrl}/api/:path*`,
+        destination: `${fullBackendUrl}/api/:path*`,
       },
     ];
   },
