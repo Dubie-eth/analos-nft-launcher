@@ -111,7 +111,7 @@ function AdminPageContent() {
       };
 
       // Call backend API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/deploy`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app'}/api/collections/deploy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

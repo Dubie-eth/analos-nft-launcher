@@ -28,7 +28,7 @@ function MintPageContent() {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app'}/api/collections`);
       if (response.ok) {
         const data = await response.json();
         setCollections(data.collections || []);
