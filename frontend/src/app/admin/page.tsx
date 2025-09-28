@@ -1,9 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { transactionService } from '../services/TransactionService';
+
+const WalletMultiButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then((m) => m.WalletMultiButton),
+  { ssr: false }
+);
+
+type CollectionForm = { name: string; description: string; imageUrl: string; totalSupply: number; mintPrice: number; currency: string };
 
 export default function AdminPage() {
   const { publicKey, connected, signTransaction } = useWallet();
@@ -11,7 +19,7 @@ export default function AdminPage() {
   const [deployResult, setDeployResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const [collectionData, setCollectionData] = useState({
+  const [collectionData, setCollectionData] = useState<CollectionForm>({
     name: 'My Analos Collection',
     description: 'A unique NFT collection on the Analos blockchain',
     imageUrl: 'https://picsum.photos/500/500?random=1',
@@ -129,7 +137,7 @@ export default function AdminPage() {
                   <input
                     type="text"
                     value={collectionData.name}
-                    onChange={(e) => setCollectionData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setCollectionData((prev: CollectionForm) => ({ ...prev, name: e.target.value }))}
                     className="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                     placeholder="Enter collection name"
                     required
@@ -142,7 +150,7 @@ export default function AdminPage() {
                   </label>
                   <textarea
                     value={collectionData.description}
-                    onChange={(e) => setCollectionData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) => setCollectionData((prev: CollectionForm) => ({ ...prev, description: e.target.value }))}
                     rows={4}
                     className="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg resize-none"
                     placeholder="Describe your collection..."
@@ -157,7 +165,7 @@ export default function AdminPage() {
                     <input
                       type="number"
                       value={collectionData.totalSupply}
-                      onChange={(e) => setCollectionData(prev => ({ ...prev, totalSupply: parseInt(e.target.value) || 0 }))}
+                      onChange={(e) => setCollectionData((prev: CollectionForm) => ({ ...prev, totalSupply: parseInt(e.target.value) || 0 }))}
                       className="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                       placeholder="1000"
                       min="1"
@@ -171,7 +179,7 @@ export default function AdminPage() {
                     <input
                       type="number"
                       value={collectionData.mintPrice}
-                      onChange={(e) => setCollectionData(prev => ({ ...prev, mintPrice: parseInt(e.target.value) || 0 }))}
+                      onChange={(e) => setCollectionData((prev: CollectionForm) => ({ ...prev, mintPrice: parseInt(e.target.value) || 0 }))}
                       className="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                       placeholder="100"
                       min="1"
@@ -191,7 +199,7 @@ export default function AdminPage() {
                   <input
                     type="url"
                     value={collectionData.imageUrl}
-                    onChange={(e) => setCollectionData(prev => ({ ...prev, imageUrl: e.target.value }))}
+                    onChange={(e) => setCollectionData((prev: CollectionForm) => ({ ...prev, imageUrl: e.target.value }))}
                     className="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
                     placeholder="Enter image URL"
                   />
@@ -208,13 +216,12 @@ export default function AdminPage() {
                 {/* Image Preview */}
                 {collectionData.imageUrl && (
                   <div className="relative">
-                    <img
+                    <Image
                       src={collectionData.imageUrl}
                       alt="Collection preview"
+                      width={800}
+                      height={256}
                       className="w-full h-64 object-cover rounded-2xl border-2 border-white/20"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://picsum.photos/500/500?random=error';
-                      }}
                     />
                     <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">
                       Preview

@@ -1,15 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { useSearchParams } from 'next/navigation';
 import { transactionService } from '../services/TransactionService';
-import TransactionStatus from '../components/TransactionStatus';
+
+const WalletMultiButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then((m) => m.WalletMultiButton),
+  { ssr: false }
+);
+
+const TransactionStatus = dynamic(
+  () => import('../components/TransactionStatus'),
+  { ssr: false }
+);
 
 export default function MintPage() {
   const { publicKey, connected, signTransaction } = useWallet();
-  const { connection } = useConnection();
   const searchParams = useSearchParams();
   const collectionId = searchParams.get('id');
 
@@ -127,7 +136,7 @@ export default function MintPage() {
       };
 
       setMintResult(finalResult);
-      setTransactionSignature(result.signature);
+      setTransactionSignature(result.signature ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to mint NFT');
     } finally {
@@ -251,12 +260,14 @@ export default function MintPage() {
                 </label>
                 
                 {/* Collection Image */}
-                <div className="relative">
-                  <img
-                    src={collectionData.imageUrl}
-                    alt="Collection NFT"
-                    className="w-full h-64 object-cover rounded-2xl border-2 border-white/20"
-                  />
+              <div className="relative">
+                <Image
+                  src={collectionData.imageUrl}
+                  alt="Collection NFT"
+                  width={800}
+                  height={256}
+                  className="w-full h-64 object-cover rounded-2xl border-2 border-white/20"
+                />
                   <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">
                     {collectionData.name}
                   </div>
@@ -330,7 +341,7 @@ export default function MintPage() {
                 <div className="mb-6">
                   <TransactionStatus 
                     signature={transactionSignature}
-                    onComplete={(result) => {
+                    onComplete={(result: any) => {
                       console.log('Transaction completed:', result);
                     }}
                   />
@@ -372,9 +383,11 @@ export default function MintPage() {
                 </div>
 
                 <div className="flex items-center justify-center">
-                  <img
+                  <Image
                     src={mintResult.nft.image}
                     alt={mintResult.nft.name}
+                    width={192}
+                    height={192}
                     className="w-48 h-48 rounded-2xl object-cover border-2 border-white/20"
                   />
                 </div>
