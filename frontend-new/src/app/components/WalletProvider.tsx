@@ -33,12 +33,16 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     setMounted(true);
   }, []);
 
-  // Always render the providers, but handle the mounting state
+  // Prevent hydration mismatch by not rendering wallet components until mounted
+  if (!mounted) {
+    return <div suppressHydrationWarning>{children}</div>;
+  }
+
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
-          {mounted ? children : <div style={{ minHeight: '100vh' }}>{children}</div>}
+          {children}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
