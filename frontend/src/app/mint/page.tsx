@@ -1,18 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useSearchParams } from 'next/navigation';
+import { transactionService } from '../services/TransactionService';
+import TransactionStatus from '../components/TransactionStatus';
 
 export default function MintPage() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
+  const { connection } = useConnection();
   const searchParams = useSearchParams();
   const collectionId = searchParams.get('id');
 
   const [isMinting, setIsMinting] = useState(false);
   const [mintResult, setMintResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const [nftName, setNftName] = useState('Analos NFT');
   const [nftDescription, setNftDescription] = useState('A unique NFT minted on the Analos blockchain');
   const [collectionData, setCollectionData] = useState<any>(null);
@@ -61,7 +65,7 @@ export default function MintPage() {
   }, [collectionId]);
 
   const handleMint = async () => {
-    if (!connected || !publicKey) {
+    if (!connected || !publicKey || !signTransaction) {
       setError('Please connect your wallet first');
       return;
     }
@@ -81,30 +85,49 @@ export default function MintPage() {
     setMintResult(null);
 
     try {
-      const payload = {
-        name: nftName.trim(),
-        description: nftDescription.trim(),
-        walletAddress: publicKey.toString(),
-        imageUrl: collectionData.imageUrl,
+      // Step 1: Create the mint transaction
+      const transactionResult = await transactionService.createMintNftTransaction({
         collectionId: collectionData.id,
-      };
-
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-      const response = await fetch(`${backendUrl}/api/mint`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        nftName: nftName.trim(),
+        nftSymbol: 'NFT',
+        nftUri: collectionData.imageUrl,
+        userWallet: publicKey.toString(),
+        programId: collectionData.smartContract?.programId || '11111111111111111111111111111112'
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to mint NFT');
+      if (!transactionResult.success) {
+        throw new Error(transactionResult.error || 'Failed to create mint transaction');
       }
 
-      setMintResult(data.data);
+      // Step 2: Sign and submit the transaction
+      const transaction = transactionResult.data.transaction;
+      const result = await transactionService.signAndSubmitTransactionWithBackend(
+        transaction,
+        { signTransaction }
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to mint NFT');
+      }
+
+      // Step 3: Create the final result
+      const finalResult = {
+        mintAddress: transactionResult.data.accounts.nft,
+        metadataUri: collectionData.imageUrl,
+        transactionSignature: result.signature,
+        explorerUrl: result.explorerUrl,
+        estimatedCost: collectionData.mintPrice / 1000000000, // Convert lamports to SOL
+        currency: 'SOL',
+        nft: {
+          name: nftName.trim(),
+          description: nftDescription.trim(),
+          image: collectionData.imageUrl
+        },
+        smartContract: transactionResult.data.accounts
+      };
+
+      setMintResult(finalResult);
+      setTransactionSignature(result.signature);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to mint NFT');
     } finally {
@@ -301,6 +324,18 @@ export default function MintPage() {
               <h3 className="text-3xl font-semibold text-green-200 mb-6 text-center">
                 🎉 NFT Minted Successfully!
               </h3>
+              
+              {/* Transaction Status */}
+              {transactionSignature && (
+                <div className="mb-6">
+                  <TransactionStatus 
+                    signature={transactionSignature}
+                    onComplete={(result) => {
+                      console.log('Transaction completed:', result);
+                    }}
+                  />
+                </div>
+              )}
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">

@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { transactionService } from '../services/TransactionService';
 
 export default function AdminPage() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployResult, setDeployResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export default function AdminPage() {
   });
 
   const handleDeploy = async () => {
-    if (!connected || !publicKey) {
+    if (!connected || !publicKey || !signTransaction) {
       setError('Please connect your admin wallet first');
       return;
     }
@@ -30,32 +31,45 @@ export default function AdminPage() {
     setDeployResult(null);
 
     try {
-      const payload = {
-        name: collectionData.name.trim(),
-        description: collectionData.description.trim(),
-        imageUrl: collectionData.imageUrl.trim(),
-        totalSupply: Number(collectionData.totalSupply),
-        mintPrice: Number(collectionData.mintPrice),
-        currency: collectionData.currency.trim(),
-        adminWallet: publicKey.toString(),
-      };
-
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-      const response = await fetch(`${backendUrl}/api/admin/deploy-collection`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      // Step 1: Create the deployment transaction
+      const transactionResult = await transactionService.createDeployCollectionTransaction({
+        collectionName: collectionData.name.trim(),
+        collectionSymbol: 'COL',
+        collectionUri: collectionData.imageUrl.trim(),
+        maxSupply: Number(collectionData.totalSupply),
+        mintPrice: Number(collectionData.mintPrice) * 1000000000, // Convert to lamports
+        authorityWallet: publicKey.toString(),
+        programId: '11111111111111111111111111111112' // Placeholder - would be actual deployed program ID
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to deploy collection');
+      if (!transactionResult.success) {
+        throw new Error(transactionResult.error || 'Failed to create deployment transaction');
       }
 
-      setDeployResult(data.data);
+      // Step 2: Sign and submit the transaction
+      const transaction = transactionResult.data.transaction;
+      const result = await transactionService.signAndSubmitTransactionWithBackend(
+        transaction,
+        { signTransaction }
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to deploy collection');
+      }
+
+      // Step 3: Create the final result
+      const finalResult = {
+        collectionId: `AnalosCol${Date.now()}${Math.random().toString(36).substr(2, 9)}`,
+        mintPageUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://analos-nft-launcher-uz4a.vercel.app'}/mint/${collectionData.name.toLowerCase().replace(/\s+/g, '-')}?id=AnalosCol${Date.now()}`,
+        message: 'Collection deployed successfully!',
+        smartContract: transactionResult.data.accounts,
+        deploymentTransaction: result.signature,
+        deploymentCost: 0.5,
+        currency: 'SOL',
+        explorerUrl: result.explorerUrl
+      };
+
+      setDeployResult(finalResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to deploy collection');
     } finally {
