@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
@@ -19,6 +19,7 @@ interface CollectionData {
 function AdminPageContent() {
   const { publicKey, connected } = useWallet();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
   
   const [collectionData, setCollectionData] = useState<CollectionData>({
     name: '',
@@ -35,6 +36,18 @@ function AdminPageContent() {
   const [deploying, setDeploying] = useState(false);
   const [deployStatus, setDeployStatus] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string>('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   const handleInputChange = (field: keyof CollectionData, value: string | number | File | null) => {
     setCollectionData(prev => ({
