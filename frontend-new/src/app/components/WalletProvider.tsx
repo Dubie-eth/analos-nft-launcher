@@ -1,6 +1,6 @@
 'use client';
 
-import React, { FC, ReactNode, useMemo, useEffect, useState } from 'react';
+import React, { FC, ReactNode, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets';
 import {
@@ -15,8 +15,6 @@ interface Props {
 }
 
 export const WalletContextProvider: FC<Props> = ({ children }) => {
-  const [mounted, setMounted] = useState(false);
-  
   // You can also provide a custom RPC endpoint.
   const endpoint = 'https://rpc.analos.io';
 
@@ -28,15 +26,6 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     ],
     []
   );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Prevent hydration mismatch by not rendering wallet components until mounted
-  if (!mounted) {
-    return <div suppressHydrationWarning style={{ minHeight: '100vh' }}>{children}</div>;
-  }
 
   return (
     <ConnectionProvider endpoint={endpoint}>
