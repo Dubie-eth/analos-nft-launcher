@@ -2,7 +2,7 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { ClientWalletProvider } from '../../components/ClientWalletProvider';
 
@@ -29,13 +29,7 @@ function CollectionMintContent() {
   const [minting, setMinting] = useState(false);
   const [mintStatus, setMintStatus] = useState<string>('');
 
-  useEffect(() => {
-    if (collectionName) {
-      fetchCollectionInfo();
-    }
-  }, [collectionName, fetchCollectionInfo]);
-
-  const fetchCollectionInfo = async () => {
+  const fetchCollectionInfo = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/${encodeURIComponent(collectionName)}`);
       if (response.ok) {
@@ -50,7 +44,13 @@ function CollectionMintContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [collectionName]);
+
+  useEffect(() => {
+    if (collectionName) {
+      fetchCollectionInfo();
+    }
+  }, [collectionName, fetchCollectionInfo]);
 
   const handleMint = async () => {
     if (!connected || !publicKey) {
