@@ -178,7 +178,7 @@ class AnalosBlockchainService {
       // Create real transaction for NFT minting
       const transaction = await this.createRealTransaction(
         walletAddress,
-        'EmioyGerkTLmGST11cpboakmoE7Y5fraHCtosVu8xpcR', // Fee wallet
+        '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Fee wallet
         0.1 // 0.1 SOL fee
       );
       
@@ -209,7 +209,7 @@ class AnalosBlockchainService {
             collection: collectionId || 'default_collection',
             nft: mintAddress,
             user: walletAddress,
-            authority: 'EmioyGerkTLmGST11cpboakmoE7Y5fraHCtosVu8xpcR'
+            authority: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'
           }
         }
       };
@@ -233,7 +233,7 @@ class AnalosBlockchainService {
       // Create real transaction for collection deployment
       const transaction = await this.createRealTransaction(
         collectionData.adminWallet,
-        'EmioyGerkTLmGST11cpboakmoE7Y5fraHCtosVu8xpcR', // Fee wallet
+        '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Fee wallet
         0.5 // 0.5 SOL deployment fee
       );
       
@@ -476,7 +476,7 @@ class OpenMintService {
   private currency: string = 'SOL';
   private isMintingActive: boolean = true;
   private mintStartTime: string = new Date().toISOString();
-  private feeWalletAddress: string = 'EmioyGerkTLmGST11cpboakmoE7Y5fraHCtosVu8xpcR';
+  private feeWalletAddress: string = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW';
 
   setMintingActive(active: boolean): void {
     this.isMintingActive = active;
@@ -1042,5 +1042,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Analos NFT Launcher Backend running on port ${PORT}`);
   console.log(`🌐 Network: Analos (${ANALOS_RPC_URL})`);
   console.log(`📊 Collections loaded: ${collections.size}`);
-  console.log(`💰 Fee wallet: EmioyGerkTLmGST11cpboakmoE7Y5fraHCtosVu8xpcR`);
+  console.log(`💰 Fee wallet: 86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW`);
 });
