@@ -1,0 +1,14 @@
+{
+  "name": "analos-nft-launcher",
+  "version": "1.0.0",
+  "description": "NFT minting platform for Analos blockchain",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && npm run start",
+    "build": "cd backend && npm run build",
+    "install": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
