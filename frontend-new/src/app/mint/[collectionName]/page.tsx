@@ -33,7 +33,7 @@ function CollectionMintContent() {
     if (collectionName) {
       fetchCollectionInfo();
     }
-  }, [collectionName]);
+  }, [collectionName, fetchCollectionInfo]);
 
   const fetchCollectionInfo = async () => {
     try {
@@ -114,7 +114,7 @@ function CollectionMintContent() {
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Collection Not Found</h1>
-          <p className="text-white/80">The collection "{collectionName}" could not be found.</p>
+          <p className="text-white/80">The collection &quot;{collectionName}&quot; could not be found.</p>
         </div>
       </div>
     );
