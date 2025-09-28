@@ -117,7 +117,7 @@ class AnalosBlockchainService {
         network: 'Analos',
         rpcUrl: ANALOS_RPC_URL,
         connected: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -162,7 +162,7 @@ class AnalosBlockchainService {
       console.error('Error creating transaction:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -217,7 +217,7 @@ class AnalosBlockchainService {
       console.error('Error minting NFT:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -265,7 +265,7 @@ class AnalosBlockchainService {
       console.error('Error deploying collection:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -348,7 +348,7 @@ class TransactionService {
       console.error('Error creating mint transaction:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -404,7 +404,7 @@ class TransactionService {
       console.error('Error creating deployment transaction:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -435,7 +435,7 @@ class TransactionService {
       console.error('Error submitting transaction:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -459,7 +459,7 @@ class TransactionService {
       console.error('Error getting transaction status:', error);
       return {
         success: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -522,8 +522,8 @@ const openMintService = new OpenMintService();
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     network: 'Analos',
     rpc: ANALOS_RPC_URL
@@ -536,7 +536,7 @@ app.get('/api/network', async (req, res) => {
     const networkInfo = await blockchainService.getNetworkInfo();
     res.json({ success: true, data: networkInfo });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -547,7 +547,7 @@ app.get('/api/mint-status/:walletAddress', (req, res) => {
     const mintStatus = openMintService.getMintStatus();
     res.json({ success: true, data: mintStatus });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -557,16 +557,16 @@ app.post('/api/mint', async (req, res) => {
     const { name, description, walletAddress, imageUrl, collectionId } = req.body;
 
     if (!name || !walletAddress) {
-      return res.status(400).json({ 
+    return res.status(400).json({ 
         success: false, 
         error: 'Missing required fields: name and walletAddress are required' 
-      });
-    }
-
+    });
+  }
+  
     // Check if minting is active
     const mintStatus = openMintService.getMintStatus();
     if (!mintStatus.canMint) {
-      return res.status(400).json({ 
+    return res.status(400).json({ 
         success: false, 
         error: 'Minting is not currently active' 
       });
@@ -603,7 +603,7 @@ app.get('/api/admin/mint-stats', (req, res) => {
     const stats = openMintService.getMintStats();
     res.json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -611,13 +611,13 @@ app.post('/api/admin/toggle-minting', (req, res) => {
   try {
     const { active } = req.body;
     openMintService.setMintingActive(active);
-    res.json({ 
-      success: true, 
+  res.json({
+    success: true,
       message: `Minting ${active ? 'activated' : 'deactivated'}`,
       data: openMintService.getMintStatus()
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

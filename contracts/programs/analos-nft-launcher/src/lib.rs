@@ -47,7 +47,7 @@ pub mod analos_nft_launcher {
         
         // Check if collection is active
         require!(collection.is_active, ErrorCode::CollectionInactive);
-        
+
         // Check supply limit
         require!(
             collection.current_supply < collection.max_supply,
