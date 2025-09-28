@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-// import { ClientWalletProvider } from '../components/ClientWalletProvider';
+import { ClientWalletProvider } from '../components/ClientWalletProvider';
 
 interface CollectionData {
   name: string;
@@ -17,7 +17,7 @@ interface CollectionData {
   externalUrl: string;
 }
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { publicKey, connected } = useWallet();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -88,22 +88,36 @@ export default function AdminPage() {
     setDeployStatus('Deploying collection to Analos blockchain...');
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('name', collectionData.name);
-      formData.append('description', collectionData.description);
-      formData.append('price', collectionData.price.toString());
-      formData.append('maxSupply', collectionData.maxSupply.toString());
-      formData.append('feePercentage', collectionData.feePercentage.toString());
-      formData.append('feeRecipient', collectionData.feeRecipient || publicKey.toString());
-      formData.append('symbol', collectionData.symbol);
-      formData.append('externalUrl', collectionData.externalUrl);
-      formData.append('image', collectionData.image);
+      // Convert image to base64 for JSON payload
+      let imageBase64 = '';
+      if (collectionData.image) {
+        const reader = new FileReader();
+        imageBase64 = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(collectionData.image!);
+        });
+      }
+
+      // Create JSON payload
+      const payload = {
+        name: collectionData.name,
+        description: collectionData.description,
+        price: collectionData.price,
+        maxSupply: collectionData.maxSupply,
+        feePercentage: collectionData.feePercentage,
+        feeRecipient: collectionData.feeRecipient || publicKey.toString(),
+        symbol: collectionData.symbol,
+        externalUrl: collectionData.externalUrl,
+        image: imageBase64
+      };
 
       // Call backend API
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/deploy`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -123,40 +137,40 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
-              <h1 className="text-4xl font-bold text-white text-center mb-8">
-                NFT Collection Admin Panel
-              </h1>
-              
-              {/* Wallet Connection */}
-              <div className="text-center mb-8">
-                <WalletMultiButton className="!bg-purple-600 hover:!bg-purple-700" />
-                {connected && (
-                  <p className="text-white/60 mt-2">
-                    Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-                  </p>
-                )}
-              </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+            <h1 className="text-4xl font-bold text-white text-center mb-8">
+              NFT Collection Admin Panel
+            </h1>
+            
+            {/* Wallet Connection */}
+            <div className="text-center mb-8">
+              <WalletMultiButton className="!bg-purple-600 hover:!bg-purple-700" />
+              {connected && (
+                <p className="text-white/60 mt-2">
+                  Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+                </p>
+              )}
+            </div>
             
             <div className="grid md:grid-cols-2 gap-8">
               {/* Left Column - Basic Info */}
-            <div className="space-y-6">
+              <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-white mb-4">Collection Details</h2>
                 
-              <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
                     Collection Name *
-                </label>
-                <input
-                  type="text"
+                  </label>
+                  <input
+                    type="text"
                     value={collectionData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Enter collection name"
-                />
-              </div>
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Enter collection name"
+                  />
+                </div>
 
                 <div>
                   <label className="block text-white/80 text-sm font-medium mb-2">
@@ -172,15 +186,15 @@ export default function AdminPage() {
                   />
                 </div>
 
-              <div>
-                <label className="block text-white/80 text-sm font-medium mb-2">
-                  Description
-                </label>
-                <textarea
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Description
+                  </label>
+                  <textarea
                     value={collectionData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    rows={4}
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                     placeholder="Describe your collection"
                   />
                 </div>
@@ -333,24 +347,31 @@ export default function AdminPage() {
 
             {/* Deploy Button */}
             <div className="text-center mt-8">
-                <button
-                  onClick={handleDeploy}
+              <button
+                onClick={handleDeploy}
                 disabled={!connected || !collectionData.name.trim() || !collectionData.image || !collectionData.symbol.trim() || deploying}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-12 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-lg"
-                >
+              >
                 {deploying ? 'Deploying to Analos...' : 'Deploy Collection'}
-                </button>
-              </div>
-
-              {deployStatus && (
-                <div className="mt-6 p-4 bg-white/20 rounded-lg">
-                  <p className="text-white text-center">{deployStatus}</p>
-                </div>
-              )}
+              </button>
             </div>
+
+            {deployStatus && (
+              <div className="mt-6 p-4 bg-white/20 rounded-lg">
+                <p className="text-white text-center">{deployStatus}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <ClientWalletProvider>
+      <AdminPageContent />
+    </ClientWalletProvider>
   );
 }

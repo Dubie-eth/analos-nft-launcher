@@ -160,6 +160,7 @@ export class BackpackWalletAdapter implements WalletAdapter {
     }
   }
 
+  // EventEmitter methods
   on(event: string, callback?: Function, context?: any): this {
     return this;
   }
@@ -170,6 +171,54 @@ export class BackpackWalletAdapter implements WalletAdapter {
 
   emit(event: string, ...args: any[]): boolean {
     return true;
+  }
+
+  addListener(event: string, listener: Function): this {
+    return this;
+  }
+
+  removeListener(event: string, listener: Function): this {
+    return this;
+  }
+
+  removeAllListeners(event?: string): this {
+    return this;
+  }
+
+  setMaxListeners(n: number): this {
+    return this;
+  }
+
+  getMaxListeners(): number {
+    return 10;
+  }
+
+  listeners(event: string): Function[] {
+    return [];
+  }
+
+  rawListeners(event: string): Function[] {
+    return [];
+  }
+
+  listenerCount(event: string): number {
+    return 0;
+  }
+
+  eventNames(): (string | symbol)[] {
+    return [];
+  }
+
+  prependListener(event: string, listener: Function): this {
+    return this;
+  }
+
+  prependOnceListener(event: string, listener: Function): this {
+    return this;
+  }
+
+  once(event: string, listener: Function): this {
+    return this;
   }
 }
 

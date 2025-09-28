@@ -203,7 +203,7 @@ class AnalosBlockchainService {
           image: metadata.image
         },
         smartContract: {
-          programId: '11111111111111111111111111111112', // Placeholder - would be actual program ID
+          programId: 'AnalosNFTLauncher111111111111111111111111111', // Mock program ID for development
           instruction: 'mint_nft',
           accounts: {
             collection: collectionId || 'default_collection',
@@ -252,7 +252,7 @@ class AnalosBlockchainService {
         deploymentCost: 0.5,
         currency: 'SOL',
         smartContract: {
-          programId,
+          programId: 'AnalosNFTLauncher111111111111111111111111111', // Mock program ID for development
           instruction: 'initialize_collection',
           accounts: {
             collection: collectionMintAddress,
@@ -554,42 +554,92 @@ app.get('/api/mint-status/:walletAddress', (req, res) => {
 // Mint NFT endpoint
 app.post('/api/mint', async (req, res) => {
   try {
-    const { name, description, walletAddress, imageUrl, collectionId } = req.body;
+    const { collectionName, quantity, walletAddress } = req.body;
 
-    if (!name || !walletAddress) {
-    return res.status(400).json({ 
+    if (!collectionName || !walletAddress || !quantity) {
+      return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields: name and walletAddress are required' 
-    });
-  }
-  
+        error: 'Missing required fields: collectionName, quantity, and walletAddress are required' 
+      });
+    }
+
+    // Find the collection
+    const collection = Array.from(collections.values()).find(
+      col => col.name.toLowerCase() === collectionName.toLowerCase()
+    );
+
+    if (!collection) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Collection not found' 
+      });
+    }
+
+    // Check if collection is active
+    if (!collection.isActive) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection is not active' 
+      });
+    }
+
+    // Check supply limit
+    const requestedQuantity = parseInt(quantity);
+    if (collection.currentSupply + requestedQuantity > collection.totalSupply) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Not enough supply remaining' 
+      });
+    }
+
     // Check if minting is active
     const mintStatus = openMintService.getMintStatus();
     if (!mintStatus.canMint) {
-    return res.status(400).json({ 
+      return res.status(400).json({ 
         success: false, 
         error: 'Minting is not currently active' 
       });
     }
 
-    // Create NFT metadata
-    const metadata = {
-      name: name.trim(),
-      description: description?.trim() || 'A unique NFT minted on the Analos blockchain',
-      image: imageUrl || 'https://picsum.photos/500/500?random=' + Date.now()
-    };
+    // Create NFT metadata for each NFT to be minted
+    const mintResults = [];
+    for (let i = 0; i < requestedQuantity; i++) {
+      const nftNumber = collection.currentSupply + i + 1;
+      const metadata = {
+        name: `${collection.name} #${nftNumber}`,
+        description: collection.description || `A unique NFT from the ${collection.name} collection`,
+        image: collection.imageUrl || 'https://picsum.photos/500/500?random=' + Date.now()
+      };
 
-    // Mint NFT using real blockchain service
-    const mintResult = await blockchainService.mintRealNFT(metadata, walletAddress);
-
-    if (mintResult.success) {
-      // Record the mint
-      openMintService.recordMint();
+      // Mint NFT using real blockchain service
+      const mintResult = await blockchainService.mintRealNFT(metadata, walletAddress, collection.id);
       
-      res.json({ success: true, data: mintResult });
-    } else {
-      res.status(500).json({ success: false, error: mintResult.error });
+      if (mintResult.success) {
+        mintResults.push(mintResult);
+        // Record the mint
+        openMintService.recordMint();
+      } else {
+        return res.status(500).json({ success: false, error: mintResult.error });
+      }
     }
+
+    // Update collection supply
+    collection.currentSupply += requestedQuantity;
+    collections.set(collection.id, collection);
+    saveCollections();
+
+    // Generate a mock transaction signature for the batch
+    const transactionSignature = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    res.json({ 
+      success: true, 
+      transactionSignature,
+      quantity: requestedQuantity,
+      collection: collection.name,
+      totalCost: collection.mintPrice * requestedQuantity,
+      currency: collection.currency,
+      nfts: mintResults
+    });
 
   } catch (error) {
     console.error('Error in mint endpoint:', error);
@@ -621,7 +671,86 @@ app.post('/api/admin/toggle-minting', (req, res) => {
   }
 });
 
-// Deploy collection endpoint
+// Deploy collection endpoint (new endpoint for admin page)
+app.post('/api/collections/deploy', async (req, res) => {
+  try {
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image } = req.body;
+
+    if (!name || !price || !maxSupply || !symbol) {
+      return res.status(400).json({ success: false, error: 'Missing required fields: name, price, maxSupply, symbol are required' });
+    }
+
+    // Generate unique collection ID
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substr(2, 9);
+    const collectionId = `AnalosCol${timestamp}${randomSuffix}`;
+    
+    // Handle base64 image or use default
+    let imageUrl = 'https://picsum.photos/500/500?random=' + Date.now();
+    if (image && image.startsWith('data:image/')) {
+      // For now, we'll use the base64 data directly as the image URL
+      // In a real implementation, you'd upload this to IPFS or a CDN
+      imageUrl = image;
+    }
+
+    // For now, we'll create a mock deployment since we don't have the actual smart contract deployed
+    const collectionData = {
+      id: collectionId,
+      name: name.trim(),
+      description: description?.trim() || '',
+      imageUrl: imageUrl,
+      totalSupply: Number(maxSupply),
+      mintPrice: Number(price),
+      currency: 'LOS',
+      symbol: symbol.trim().toUpperCase(),
+      externalUrl: externalUrl || '',
+      feePercentage: Number(feePercentage) || 2.5,
+      feeRecipient: feeRecipient || '',
+      deployedAt: new Date().toISOString(),
+      isActive: true,
+      currentSupply: 0,
+      blockchainInfo: {
+        network: 'Analos',
+        rpcUrl: ANALOS_RPC_URL,
+        deployed: true,
+        verified: false
+      }
+    };
+
+    // Store collection data
+    collections.set(collectionId, collectionData);
+    saveCollections();
+
+    // Generate URL-friendly collection name
+    const urlFriendlyName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
+    // Generate mint page URL
+    const mintUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://analos-nft-launcher-uz4a.vercel.app'}/mint/${urlFriendlyName}`;
+
+    console.log(`🚀 Collection deployed: ${collectionData.name}`);
+    console.log(`📝 Collection ID: ${collectionId}`);
+    console.log(`🔗 Mint URL: ${mintUrl}`);
+
+    res.json({
+      success: true,
+      mintUrl,
+      collectionId,
+      message: 'Collection deployed successfully!',
+      data: collectionData
+    });
+
+  } catch (error) {
+    console.error('Error deploying collection:', error);
+    res.status(500).json({ success: false, error: 'Failed to deploy collection' });
+  }
+});
+
+// Deploy collection endpoint (legacy admin endpoint)
 app.post('/api/admin/deploy-collection', async (req, res) => {
   try {
     const { name, description, imageUrl, totalSupply, mintPrice, currency, adminWallet } = req.body;
@@ -714,7 +843,63 @@ app.post('/api/admin/deploy-collection', async (req, res) => {
   }
 });
 
-// Get collection data
+// Get all collections
+app.get('/api/collections', (req, res) => {
+  try {
+    const collectionsList = Array.from(collections.values()).map(collection => ({
+      name: collection.name,
+      description: collection.description || '',
+      image: collection.imageUrl || '',
+      price: collection.mintPrice,
+      maxSupply: collection.totalSupply,
+      currentSupply: collection.currentSupply || 0,
+      feePercentage: collection.feePercentage || 2.5,
+      symbol: collection.symbol || collection.name.substring(0, 4).toUpperCase(),
+      externalUrl: collection.externalUrl || ''
+    }));
+    
+    res.json({ success: true, collections: collectionsList });
+  } catch (error) {
+    console.error('Error getting collections:', error);
+    res.status(500).json({ success: false, error: 'Failed to get collections' });
+  }
+});
+
+// Get collection by name
+app.get('/api/collections/:collectionName', (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const decodedName = decodeURIComponent(collectionName);
+    
+    // Find collection by name (case-insensitive)
+    const collection = Array.from(collections.values()).find(
+      col => col.name.toLowerCase() === decodedName.toLowerCase()
+    );
+    
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    const collectionData = {
+      name: collection.name,
+      description: collection.description || '',
+      image: collection.imageUrl || '',
+      price: collection.mintPrice,
+      maxSupply: collection.totalSupply,
+      currentSupply: collection.currentSupply || 0,
+      feePercentage: collection.feePercentage || 2.5,
+      symbol: collection.symbol || collection.name.substring(0, 4).toUpperCase(),
+      externalUrl: collection.externalUrl || ''
+    };
+    
+    res.json({ success: true, collection: collectionData });
+  } catch (error) {
+    console.error('Error getting collection:', error);
+    res.status(500).json({ success: false, error: 'Failed to get collection' });
+  }
+});
+
+// Get collection data by ID (legacy endpoint)
 app.get('/api/collections/:collectionId', (req, res) => {
   try {
     const { collectionId } = req.params;

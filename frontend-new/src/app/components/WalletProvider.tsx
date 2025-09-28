@@ -6,7 +6,7 @@ import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter, Ledger
 import {
   WalletModalProvider
 } from '@solana/wallet-adapter-react-ui';
-import { BackpackWalletAdapter } from './BackpackWalletAdapter';
+// import { BackpackWalletAdapter } from './BackpackWalletAdapter';
 
 // Default styles that can be overridden by your app
 import '@solana/wallet-adapter-react-ui/styles.css';

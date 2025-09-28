@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-// import { ClientWalletProvider } from '../../components/ClientWalletProvider';
+import { ClientWalletProvider } from '../../components/ClientWalletProvider';
 
 interface CollectionInfo {
   name: string;
@@ -16,42 +16,41 @@ interface CollectionInfo {
   feePercentage: number;
   symbol: string;
   externalUrl: string;
-  isActive: boolean;
 }
 
-export default function CollectionMintPage() {
+function CollectionMintContent() {
   const { publicKey, connected } = useWallet();
   const params = useParams();
-  const collectionName = params.collectionName as string;
+  const collectionName = decodeURIComponent(params.collectionName as string);
   
   const [collection, setCollection] = useState<CollectionInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mintQuantity, setMintQuantity] = useState(1);
   const [minting, setMinting] = useState(false);
   const [mintStatus, setMintStatus] = useState<string>('');
-  const [mintQuantity, setMintQuantity] = useState(1);
 
   useEffect(() => {
-    const fetchCollection = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/${collectionName}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCollection(data);
-        } else {
-          setMintStatus('Collection not found');
-        }
-      } catch (error) {
-        setMintStatus('Failed to load collection');
-        console.error('Error fetching collection:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (collectionName) {
-      fetchCollection();
+      fetchCollectionInfo();
     }
   }, [collectionName]);
+
+  const fetchCollectionInfo = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/${encodeURIComponent(collectionName)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCollection(data.collection);
+      } else {
+        setMintStatus('Collection not found');
+      }
+    } catch (error) {
+      console.error('Failed to fetch collection:', error);
+      setMintStatus('Failed to load collection');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleMint = async () => {
     if (!connected || !publicKey) {
@@ -60,61 +59,40 @@ export default function CollectionMintPage() {
     }
 
     if (!collection) {
-      setMintStatus('Collection not loaded');
+      setMintStatus('Collection not found');
       return;
     }
 
-    if (!collection.isActive) {
-      setMintStatus('Minting is not active for this collection');
-      return;
-    }
-
-    if (collection.currentSupply >= collection.maxSupply) {
-      setMintStatus('Collection is sold out');
+    if (mintQuantity < 1 || mintQuantity > 10) {
+      setMintStatus('Please select 1-10 NFTs to mint');
       return;
     }
 
     setMinting(true);
-    setMintStatus('Preparing mint transaction...');
+    setMintStatus('Minting NFTs...');
 
     try {
-      // Calculate total cost
-      const totalCost = collection.price * mintQuantity;
-      
-      // Create mint transaction
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/mint`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          collectionName,
+          collectionName: collection.name,
           quantity: mintQuantity,
-          userWallet: publicKey.toString(),
+          walletAddress: publicKey.toString(),
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create mint transaction');
+        throw new Error('Minting failed');
       }
 
-      const { transaction } = await response.json();
+      const result = await response.json();
+      setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${result.transactionSignature}`);
       
-      setMintStatus('Please sign the transaction in your wallet...');
-      
-      // Here you would normally sign and send the transaction
-      // For now, we'll simulate the process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      setMintStatus(`Successfully minted ${mintQuantity} NFT(s) for ${totalCost} $LOS!`);
-      
-      // Refresh collection data
-      const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/collections/${collectionName}`);
-      if (refreshResponse.ok) {
-        const updatedCollection = await refreshResponse.json();
-        setCollection(updatedCollection);
-      }
-      
+      // Refresh collection info
+      fetchCollectionInfo();
     } catch (error) {
       setMintStatus('Minting failed. Please try again.');
       console.error('Minting error:', error);
@@ -134,7 +112,10 @@ export default function CollectionMintPage() {
   if (!collection) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-xl">Collection not found</div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Collection Not Found</h1>
+          <p className="text-white/80">The collection "{collectionName}" could not be found.</p>
+        </div>
       </div>
     );
   }
@@ -146,10 +127,10 @@ export default function CollectionMintPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Collection Info */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Collection Info */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <div className="text-center mb-6">
                 <img
@@ -166,13 +147,31 @@ export default function CollectionMintPage() {
                 </div>
               </div>
 
+              {/* Supply Progress */}
+              <div className="mb-6">
+                <div className="flex justify-between text-white/80 text-sm mb-2">
+                  <span>Minted</span>
+                  <span>{collection.currentSupply}/{collection.maxSupply}</span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-3">
+                  <div
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${(collection.currentSupply / collection.maxSupply) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-white/60 text-xs mt-1">
+                  <span>{((collection.currentSupply / collection.maxSupply) * 100).toFixed(1)}% minted</span>
+                  <span>{remainingSupply} remaining</span>
+                </div>
+              </div>
+
               {collection.externalUrl && (
                 <div className="text-center">
                   <a
                     href={collection.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-purple-400 hover:text-purple-300 underline"
+                    className="text-purple-400 hover:text-purple-300 text-sm underline"
                   >
                     View Collection Website
                   </a>
@@ -182,7 +181,7 @@ export default function CollectionMintPage() {
 
             {/* Minting Interface */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
-              <h2 className="text-2xl font-bold text-white mb-6">Mint NFT</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">Mint NFTs</h2>
               
               {/* Wallet Connection */}
               <div className="text-center mb-6">
@@ -194,49 +193,31 @@ export default function CollectionMintPage() {
                 )}
               </div>
 
-              {/* Collection Status */}
-              <div className="mb-6 p-4 bg-white/10 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-white/80">Status:</span>
-                  <span className={`font-semibold ${collection.isActive ? 'text-green-400' : 'text-red-400'}`}>
-                    {collection.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-white/80">Remaining:</span>
-                  <span className="text-white font-semibold">{remainingSupply}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-white/80">Price:</span>
-                  <span className="text-white font-semibold">{collection.price} $LOS</span>
-                </div>
-              </div>
-
               {/* Quantity Selection */}
               <div className="mb-6">
                 <label className="block text-white/80 text-sm font-medium mb-2">
-                  Quantity
+                  Quantity (1-10)
                 </label>
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={() => setMintQuantity(Math.max(1, mintQuantity - 1))}
                     disabled={mintQuantity <= 1}
-                    className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 bg-white/20 border border-white/30 rounded-lg text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     -
                   </button>
                   <input
                     type="number"
                     min="1"
-                    max={Math.min(10, remainingSupply)}
+                    max="10"
                     value={mintQuantity}
                     onChange={(e) => setMintQuantity(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
                     className="w-20 px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <button
-                    onClick={() => setMintQuantity(Math.min(10, remainingSupply, mintQuantity + 1))}
-                    disabled={mintQuantity >= Math.min(10, remainingSupply)}
-                    className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setMintQuantity(Math.min(10, mintQuantity + 1))}
+                    disabled={mintQuantity >= 10}
+                    className="w-10 h-10 bg-white/20 border border-white/30 rounded-lg text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     +
                   </button>
@@ -244,7 +225,7 @@ export default function CollectionMintPage() {
               </div>
 
               {/* Cost Breakdown */}
-              <div className="mb-6 p-4 bg-white/10 rounded-lg">
+              <div className="bg-white/10 rounded-lg p-4 mb-6">
                 <h3 className="text-lg font-semibold text-white mb-3">Cost Breakdown</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-white/80">
@@ -278,14 +259,17 @@ export default function CollectionMintPage() {
               {/* Mint Button */}
               <button
                 onClick={handleMint}
-                disabled={!connected || !collection.isActive || remainingSupply === 0 || minting}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
+                disabled={!connected || minting || remainingSupply < mintQuantity}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
               >
-                {minting ? 'Minting...' : 
-                 !collection.isActive ? 'Minting Inactive' :
-                 remainingSupply === 0 ? 'Sold Out' :
-                 `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} $LOS`}
+                {minting ? 'Minting...' : `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} $LOS`}
               </button>
+
+              {remainingSupply < mintQuantity && (
+                <p className="text-red-400 text-sm mt-2 text-center">
+                  Not enough supply remaining
+                </p>
+              )}
 
               {mintStatus && (
                 <div className="mt-6 p-4 bg-white/20 rounded-lg">
@@ -297,5 +281,13 @@ export default function CollectionMintPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CollectionMintPage() {
+  return (
+    <ClientWalletProvider>
+      <CollectionMintContent />
+    </ClientWalletProvider>
   );
 }
