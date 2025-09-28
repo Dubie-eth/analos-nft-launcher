@@ -1,6 +1,5 @@
 import { WalletAdapter, WalletAdapterNetwork, WalletName } from '@solana/wallet-adapter-base';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { EventEmitter } from 'eventemitter3';
 
 export interface BackpackWallet {
   isBackpack?: boolean;
@@ -13,13 +12,12 @@ export interface BackpackWallet {
   signMessage(message: Uint8Array): Promise<Uint8Array>;
 }
 
-export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter {
+export class BackpackWalletAdapter implements WalletAdapter {
   private _publicKey: PublicKey | null = null;
   private _connected = false;
   private _connecting = false;
 
   constructor() {
-    super();
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
     this.signTransaction = this.signTransaction.bind(this);
@@ -72,7 +70,6 @@ export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter
       this._connected = true;
 
     } catch (error) {
-      this.emit('error', error);
       throw error;
     } finally {
       this._connecting = false;
@@ -88,7 +85,6 @@ export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter
         await wallet.disconnect();
       }
     } catch (error) {
-      this.emit('error', error);
       throw error;
     } finally {
       this._publicKey = null;
@@ -105,7 +101,6 @@ export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter
       const wallet = window.backpack as BackpackWallet;
       return await wallet.signTransaction(transaction);
     } catch (error) {
-      this.emit('error', error);
       throw error;
     }
   }
@@ -119,7 +114,6 @@ export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter
       const wallet = window.backpack as BackpackWallet;
       return await wallet.signAllTransactions(transactions);
     } catch (error) {
-      this.emit('error', error);
       throw error;
     }
   }
@@ -133,11 +127,22 @@ export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter
       const wallet = window.backpack as BackpackWallet;
       return await wallet.signMessage(message);
     } catch (error) {
-      this.emit('error', error);
       throw error;
     }
   }
 
+  // Simple event emitter - just basic functionality
+  on(event: string, callback: Function): void {
+    // Basic implementation - can be enhanced later if needed
+  }
+
+  off(event: string, callback: Function): void {
+    // Basic implementation - can be enhanced later if needed
+  }
+
+  emit(event: string, ...args: any[]): void {
+    // Basic implementation - can be enhanced later if needed
+  }
 }
 
 // Extend the Window interface to include backpack
