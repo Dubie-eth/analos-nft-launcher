@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+// import { ClientWalletProvider } from '../components/ClientWalletProvider';
 
 interface Collection {
   name: string;
@@ -49,27 +50,27 @@ export default function MintPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Available NFT Collections
-            </h1>
-            <p className="text-white/80 mb-6">
-              Choose a collection to mint NFTs on the Analos blockchain
-            </p>
-            
-            <div className="mb-8">
-              <WalletMultiButton className="!bg-purple-600 hover:!bg-purple-700" />
-              {connected && (
-                <p className="text-white/60 mt-2">
-                  Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-                </p>
-              )}
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-4">
+                Available NFT Collections
+              </h1>
+              <p className="text-white/80 mb-6">
+                Choose a collection to mint NFTs on the Analos blockchain
+              </p>
+              
+              <div className="mb-8">
+                <WalletMultiButton className="!bg-purple-600 hover:!bg-purple-700" />
+                {connected && (
+                  <p className="text-white/60 mt-2">
+                    Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
 
-          {collections.length === 0 ? (
+            {collections.length === 0 ? (
             <div className="text-center">
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
                 <h2 className="text-2xl font-bold text-white mb-4">No Collections Available</h2>

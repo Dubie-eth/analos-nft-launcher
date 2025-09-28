@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+// import { ClientWalletProvider } from '../../components/ClientWalletProvider';
 
 interface CollectionInfo {
   name: string;
@@ -145,10 +146,10 @@ export default function CollectionMintPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Collection Info */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Collection Info */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <div className="text-center mb-6">
                 <img
