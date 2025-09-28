@@ -1,5 +1,6 @@
 import { WalletAdapter, WalletAdapterNetwork, WalletName } from '@solana/wallet-adapter-base';
 import { PublicKey, Transaction } from '@solana/web3.js';
+import { EventEmitter } from 'eventemitter3';
 
 export interface BackpackWallet {
   isBackpack?: boolean;
@@ -12,12 +13,13 @@ export interface BackpackWallet {
   signMessage(message: Uint8Array): Promise<Uint8Array>;
 }
 
-export class BackpackWalletAdapter implements WalletAdapter {
+export class BackpackWalletAdapter extends EventEmitter implements WalletAdapter {
   private _publicKey: PublicKey | null = null;
   private _connected = false;
   private _connecting = false;
 
   constructor() {
+    super();
     this.connect = this.connect.bind(this);
     this.disconnect = this.disconnect.bind(this);
     this.signTransaction = this.signTransaction.bind(this);
@@ -136,25 +138,6 @@ export class BackpackWalletAdapter implements WalletAdapter {
     }
   }
 
-  // Event emitter functionality
-  private listeners: { [key: string]: Function[] } = {};
-
-  on(event: string, callback: Function): void {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
-    }
-    this.listeners[event].push(callback);
-  }
-
-  off(event: string, callback: Function): void {
-    if (!this.listeners[event]) return;
-    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-  }
-
-  private emit(event: string, ...args: any[]): void {
-    if (!this.listeners[event]) return;
-    this.listeners[event].forEach(callback => callback(...args));
-  }
 }
 
 // Extend the Window interface to include backpack
