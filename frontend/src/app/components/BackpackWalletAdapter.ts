@@ -1,4 +1,4 @@
-import { WalletAdapter, WalletAdapterNetwork, WalletName } from '@solana/wallet-adapter-base';
+import { WalletAdapter, WalletAdapterNetwork, WalletName, WalletReadyState } from '@solana/wallet-adapter-base';
 import { PublicKey, Transaction } from '@solana/web3.js';
 
 export interface BackpackWallet {
@@ -16,7 +16,7 @@ export class BackpackWalletAdapter implements WalletAdapter {
   private _publicKey: PublicKey | null = null;
   private _connected = false;
   private _connecting = false;
-  private _readyState: 'Installed' | 'NotDetected' | 'Loadable' | 'Unsupported' = 'NotDetected';
+  private _readyState: WalletReadyState = WalletReadyState.NotDetected;
   private _autoConnect = false;
 
   constructor() {
@@ -43,7 +43,7 @@ export class BackpackWalletAdapter implements WalletAdapter {
     return typeof window !== 'undefined' && !!window.backpack;
   }
 
-  get readyState(): 'Installed' | 'NotDetected' | 'Loadable' | 'Unsupported' {
+  get readyState(): WalletReadyState {
     return this._readyState;
   }
 
