@@ -9,7 +9,7 @@ import {
   TorusWalletAdapter,
   LedgerWalletAdapter
 } from '@solana/wallet-adapter-wallets';
-import { BackpackWalletAdapter } from './BackpackWalletAdapter';
+// import { BackpackWalletAdapter } from './BackpackWalletAdapter';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
 
@@ -23,7 +23,6 @@ export function WalletContextProvider({ children }: { children: React.ReactNode 
 
   const wallets = useMemo(
     () => [
-      new BackpackWalletAdapter(),
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
       new TorusWalletAdapter(),
