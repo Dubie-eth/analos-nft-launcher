@@ -124,6 +124,40 @@ app.get('/api/collections/:collectionName', (req, res) => {
   });
 });
 
+// Mock mint endpoint
+app.post('/api/mint', (req, res) => {
+  try {
+    const { collectionName, quantity, walletAddress } = req.body;
+    
+    console.log('🎯 Mint request:', { collectionName, quantity, walletAddress });
+    
+    // Return mock mint success
+    res.json({
+      success: true,
+      message: 'NFT minted successfully (mock)',
+      transactionSignature: 'mock_tx_' + Date.now(),
+      explorerUrl: 'https://explorer.analos.io/tx/mock_tx_' + Date.now(),
+      quantity: quantity || 1,
+      collection: collectionName,
+      totalCost: 4200.69 * (quantity || 1),
+      currency: '$LOS',
+      nftData: {
+        mintAddress: 'mock_mint_' + Date.now(),
+        tokenId: 1,
+        name: `${collectionName} #1`,
+        description: `Mock NFT from ${collectionName}`,
+        image: 'https://picsum.photos/500/500?random=nft'
+      }
+    });
+  } catch (error) {
+    console.error('Error minting NFT:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to mint NFT'
+    });
+  }
+});
+
 // Mock collection deploy endpoint
 app.post('/api/collections/deploy', (req, res) => {
   try {
