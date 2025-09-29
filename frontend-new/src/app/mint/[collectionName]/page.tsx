@@ -5,6 +5,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 interface CollectionInfo {
   name: string;
@@ -16,10 +17,11 @@ interface CollectionInfo {
   feePercentage: number;
   symbol: string;
   externalUrl: string;
+  feeRecipient: string;
 }
 
 function CollectionMintContent() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
   const params = useParams();
   const collectionName = decodeURIComponent(params.collectionName as string);
   
@@ -59,7 +61,7 @@ function CollectionMintContent() {
   }, [collectionName, fetchCollectionInfo]);
 
   const handleMint = async () => {
-    if (!connected || !publicKey) {
+    if (!connected || !publicKey || !signTransaction) {
       setMintStatus('Please connect your wallet first');
       return;
     }
@@ -75,14 +77,59 @@ function CollectionMintContent() {
     }
 
     setMinting(true);
-    setMintStatus('Minting NFTs...');
+    setMintStatus('Creating blockchain transaction...');
 
     try {
-      // Fixed backend URL for minting - v3.3.0 - bypassing env vars
+      // Create real Analos blockchain transaction
+      const connection = new Connection('https://rpc.analos.io', 'confirmed');
+      
+      // Calculate total cost in lamports (1 LOS = 1,000,000,000 lamports)
+      const totalCostLamports = Math.floor(collection.mintPrice * LAMPORTS_PER_SOL * mintQuantity);
+      
+      // Get recent blockhash
+      const { blockhash } = await connection.getLatestBlockhash();
+      
+      // Create transaction
+      const transaction = new Transaction({
+        recentBlockhash: blockhash,
+        feePayer: publicKey,
+      });
+
+      // Add LOS transfer instruction (from user to collection fee recipient)
+      const feeRecipientPubkey = new PublicKey(collection.feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+      
+      transaction.add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: feeRecipientPubkey,
+          lamports: totalCostLamports,
+        })
+      );
+
+      console.log('🔗 Creating real Analos transaction...');
+      console.log('💰 Total cost:', collection.mintPrice * mintQuantity, 'LOS');
+      console.log('💸 Lamports:', totalCostLamports);
+      console.log('📤 From:', publicKey.toString());
+      console.log('📥 To:', feeRecipientPubkey.toString());
+
+      setMintStatus('Please sign the transaction in your wallet...');
+
+      // Sign and send transaction
+      const signedTransaction = await signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      
+      console.log('✅ Transaction sent:', signature);
+      setMintStatus('Transaction sent! Confirming...');
+
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+      
+      console.log('✅ Transaction confirmed:', signature);
+      setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+
+      // Update collection supply on backend
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const mintUrl = `${backendUrl}/api/mint`;
-      console.log('Minting from:', mintUrl);
-      const response = await fetch(mintUrl, {
+      await fetch(`${backendUrl}/api/mint/confirm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,30 +137,21 @@ function CollectionMintContent() {
         body: JSON.stringify({
           collectionName: collection.name,
           quantity: mintQuantity,
+          transactionSignature: signature,
           walletAddress: publicKey.toString(),
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to mint NFT');
-      }
+      // Refresh collection info to update supply
+      fetchCollectionInfo();
 
-      const result = await response.json();
-      
-      if (result.success) {
-        if (result.requiresWalletSigning) {
-          setMintStatus(`⚠️ Simulated mint successful! ${result.message} Transaction: ${result.transactionSignature}`);
-        } else {
-          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${result.transactionSignature}`);
-        }
-        // Refresh collection info to update supply
-        fetchCollectionInfo();
-      } else {
-        setMintStatus(`Minting failed: ${result.error}`);
-      }
     } catch (error) {
       console.error('Minting error:', error);
-      setMintStatus('Minting failed. Please try again.');
+      if (error instanceof Error) {
+        setMintStatus(`Minting failed: ${error.message}`);
+      } else {
+        setMintStatus('Minting failed. Please try again.');
+      }
     } finally {
       setMinting(false);
     }

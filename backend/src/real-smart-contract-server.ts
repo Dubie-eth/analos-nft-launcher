@@ -394,6 +394,65 @@ app.post('/api/mint', async (req, res) => {
   }
 });
 
+// Confirm mint after successful blockchain transaction
+app.post('/api/mint/confirm', async (req, res) => {
+  try {
+    const { collectionName, quantity, transactionSignature, walletAddress } = req.body;
+
+    if (!collectionName || !quantity || !transactionSignature || !walletAddress) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: collectionName, quantity, transactionSignature, and walletAddress are required' 
+      });
+    }
+
+    // Find collection
+    const collection = Array.from(collections.values()).find(
+      col => col.urlFriendlyName?.toLowerCase() === collectionName.toLowerCase() || 
+             col.name.toLowerCase() === collectionName.toLowerCase()
+    );
+
+    if (!collection) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Collection not found' 
+      });
+    }
+
+    const requestedQuantity = Number(quantity);
+
+    console.log('✅ Confirming mint after successful blockchain transaction...');
+    console.log('📊 Collection:', collection.name);
+    console.log('📦 Quantity:', requestedQuantity);
+    console.log('🔗 Transaction:', transactionSignature);
+    console.log('💳 Wallet:', walletAddress);
+
+    // Update collection supply
+    collection.currentSupply += requestedQuantity;
+    collections.set(collection.id, collection);
+    openMintService.recordMint(requestedQuantity, collection.mintPrice * requestedQuantity);
+
+    console.log('✅ Collection supply updated successfully!');
+    console.log('📊 New supply:', collection.currentSupply, '/', collection.totalSupply);
+
+    res.json({
+      success: true,
+      message: 'Mint confirmed and collection supply updated',
+      collection: {
+        name: collection.name,
+        currentSupply: collection.currentSupply,
+        totalSupply: collection.totalSupply
+      },
+      transactionSignature,
+      quantity: requestedQuantity
+    });
+
+  } catch (error) {
+    console.error('Error confirming mint:', error);
+    res.status(500).json({ success: false, error: 'Failed to confirm mint' });
+  }
+});
+
 // Start server
 console.log('🚀 Starting REAL Smart Contract Analos NFT Launcher Backend...');
 console.log(`📡 Port: ${PORT}`);
