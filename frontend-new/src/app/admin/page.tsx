@@ -40,7 +40,9 @@ function AdminPageContent() {
   });
   
   const [deploying, setDeploying] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [deployStatus, setDeployStatus] = useState<string>('');
+  const [saveStatus, setSaveStatus] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string>('');
   
   // Image update modal state
@@ -226,6 +228,89 @@ function AdminPageContent() {
       setDeploying(false);
       // Refresh collections list after deployment
       fetchCollections();
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    console.log('💾 Save Changes button clicked!');
+    console.log('📊 Current collection data for save:', collectionData);
+    console.log('💰 Price value:', collectionData.price, 'Type:', typeof collectionData.price);
+    
+    if (!connected || !publicKey) {
+      setSaveStatus('Please connect your wallet first');
+      return;
+    }
+
+    if (!collectionData.name.trim()) {
+      setSaveStatus('Please enter a collection name');
+      return;
+    }
+
+    if (!collectionData.symbol.trim()) {
+      setSaveStatus('Please enter a collection symbol');
+      return;
+    }
+
+    if (collectionData.feePercentage < 0 || collectionData.feePercentage > 10) {
+      setSaveStatus('Fee percentage must be between 0% and 10%');
+      return;
+    }
+
+    setSaving(true);
+    setSaveStatus('Saving changes...');
+
+    try {
+      // Convert image to base64 if provided
+      let imageBase64 = '';
+      if (collectionData.image) {
+        imageBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(collectionData.image!);
+        });
+      }
+
+      // Create JSON payload for update
+      const payload = {
+        name: collectionData.name,
+        description: collectionData.description,
+        price: collectionData.price,
+        maxSupply: collectionData.maxSupply,
+        feePercentage: collectionData.feePercentage,
+        feeRecipient: collectionData.feeRecipient || publicKey.toString(),
+        symbol: collectionData.symbol,
+        externalUrl: collectionData.externalUrl,
+        image: imageBase64
+      };
+
+      console.log('💾 Saving collection with payload:', payload);
+      console.log('💰 Price being saved:', payload.price, 'Type:', typeof payload.price);
+
+      // Call backend API to update existing collection
+      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
+      const response = await fetch(`${backendUrl}/api/collections/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save collection changes');
+      }
+
+      const result = await response.json();
+      
+      setSaveStatus(`Collection "${collectionData.name}" updated successfully!`);
+      
+      // Refresh collections list after update
+      fetchCollections();
+    } catch (error) {
+      setSaveStatus('Failed to save changes. Please try again.');
+      console.error('Save error:', error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -440,8 +525,9 @@ function AdminPageContent() {
               </div>
             </div>
 
-            {/* Deploy Button */}
-            <div className="text-center mt-8">
+            {/* Deploy and Save Buttons */}
+            <div className="text-center mt-8 space-y-4">
+              {/* Deploy Button - for new collections */}
               <button
                 onClick={handleDeploy}
                 disabled={!connected || !collectionData.name.trim() || !collectionData.image || !collectionData.symbol.trim() || deploying}
@@ -449,11 +535,31 @@ function AdminPageContent() {
               >
                 {deploying ? 'Deploying to Analos...' : 'Deploy Collection'}
               </button>
+
+              {/* Save Changes Button - for updating existing collections */}
+              <div>
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={!connected || !collectionData.name.trim() || !collectionData.symbol.trim() || saving}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
+                >
+                  {saving ? 'Saving Changes...' : '💾 Save Changes'}
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Update existing collection with current form values
+                </p>
+              </div>
             </div>
 
             {deployStatus && (
               <div className="mt-6 p-4 bg-white/20 rounded-lg">
                 <p className="text-white text-center">{deployStatus}</p>
+              </div>
+            )}
+
+            {saveStatus && (
+              <div className="mt-6 p-4 bg-white/20 rounded-lg">
+                <p className="text-white text-center">{saveStatus}</p>
               </div>
             )}
           </div>
