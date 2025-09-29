@@ -78,7 +78,8 @@ export class AnalosBlockchainService {
 
   async sendTransaction(transaction: Transaction): Promise<string> {
     try {
-      const signature = await this.connection.sendTransaction(transaction, []);
+      // For already-signed transactions, use sendRawTransaction
+      const signature = await this.connection.sendRawTransaction(transaction.serialize());
       console.log('✅ Transaction sent:', signature);
       return signature;
     } catch (error) {
