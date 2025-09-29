@@ -1809,15 +1809,33 @@ app.post('/api/collections/:collectionName/migrate', async (req, res) => {
 // Start server
 // Health check endpoint
 app.get('/health', (req, res) => {
+  try {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '2.0.1',
+      endpoints: {
+        mintInstructions: '/api/mint/instructions',
+        mint: '/api/mint',
+        collections: '/api/collections'
+      }
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Simple root endpoint for basic health check
+app.get('/', (req, res) => {
   res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: '2.0.1',
-    endpoints: {
-      mintInstructions: '/api/mint/instructions',
-      mint: '/api/mint',
-      collections: '/api/collections'
-    }
+    message: 'Analos NFT Launcher Backend',
+    status: 'running',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -1828,11 +1846,25 @@ console.log(`📊 Collections loaded: ${collections.size}`);
 console.log(`💰 Fee wallet: 86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW`);
 console.log(`✅ Mint instructions endpoint: /api/mint/instructions`);
 
-app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`✅ Server started successfully on port ${PORT}`);
-  console.log(`🏥 Health check available at: http://0.0.0.0:${PORT}/health`);
-  console.log(`🎯 Ready to accept requests!`);
-}).on('error', (error) => {
-  console.error('❌ Server failed to start:', error);
-  process.exit(1);
+// Add process error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+try {
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`✅ Server started successfully on port ${PORT}`);
+    console.log(`🏥 Health check available at: http://0.0.0.0:${PORT}/health`);
+    console.log(`🎯 Ready to accept requests!`);
+  }).on('error', (error) => {
+    console.error('❌ Server failed to start:', error);
+    process.exit(1);
+  });
+} catch (error) {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
+}
