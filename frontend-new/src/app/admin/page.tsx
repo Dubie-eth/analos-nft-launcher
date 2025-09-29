@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import ImageUpdateModal from '../components/ImageUpdateModal';
+import NFTRevealModal from '../components/NFTRevealModal';
 
 interface CollectionData {
   name: string;
@@ -46,6 +47,9 @@ function AdminPageContent() {
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<any>(null);
   const [collections, setCollections] = useState<any[]>([]);
+  
+  // Reveal modal state
+  const [showRevealModal, setShowRevealModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -73,6 +77,17 @@ function AdminPageContent() {
   const handleImageUpdated = () => {
     fetchCollections(); // Refresh collections list
     setShowImageModal(false);
+    setSelectedCollection(null);
+  };
+
+  const handleRevealNFTs = (collection: any) => {
+    setSelectedCollection(collection);
+    setShowRevealModal(true);
+  };
+
+  const handleRevealComplete = () => {
+    fetchCollections(); // Refresh collections list
+    setShowRevealModal(false);
     setSelectedCollection(null);
   };
 
@@ -462,12 +477,23 @@ function AdminPageContent() {
                       </div>
                     </div>
                     
-                    <button
-                      onClick={() => handleUpdateImage(collection)}
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                      📸 Update Image
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleUpdateImage(collection)}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        📸 Update Image
+                      </button>
+                      
+                      {collection.currentSupply > 0 && (
+                        <button
+                          onClick={() => handleRevealNFTs(collection)}
+                          className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          🎭 Reveal NFTs ({collection.currentSupply})
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -488,6 +514,19 @@ function AdminPageContent() {
       collectionName={selectedCollection?.name || ''}
       currentImage={selectedCollection?.imageUrl || ''}
       onImageUpdated={handleImageUpdated}
+    />
+
+    {/* NFT Reveal Modal */}
+    <NFTRevealModal
+      isOpen={showRevealModal}
+      onClose={() => {
+        setShowRevealModal(false);
+        setSelectedCollection(null);
+      }}
+      collectionId={selectedCollection?.id || ''}
+      collectionName={selectedCollection?.name || ''}
+      currentSupply={selectedCollection?.currentSupply || 0}
+      onRevealComplete={handleRevealComplete}
     />
   );
 }

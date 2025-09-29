@@ -547,6 +547,238 @@ const openMintService = new OpenMintService();
 
 // API Routes
 
+// Generate marketplace-compatible metadata endpoint
+app.post('/api/collections/:collectionId/metadata', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { nftData, traits } = req.body;
+    
+    if (!collectionId || !nftData) {
+      return res.status(400).json({ success: false, error: 'Collection ID and NFT data are required' });
+    }
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Generate marketplace-compatible metadata JSON
+    const metadata = {
+      name: nftData.name || `${collection.name} #${nftData.tokenId}`,
+      symbol: collection.symbol || collection.name,
+      description: nftData.description || collection.description,
+      image: nftData.image,
+      external_url: collection.externalUrl || `https://analos-nft-launcher-production-f3da.up.railway.app/explorer`,
+      attributes: traits || [],
+      properties: {
+        files: [
+          {
+            uri: nftData.image,
+            type: "image/png"
+          }
+        ],
+        category: "image",
+        creators: [
+          {
+            address: collection.feeRecipient,
+            share: 100
+          }
+        ]
+      },
+      collection: {
+        name: collection.name,
+        family: collection.name
+      }
+    };
+    
+    // Store metadata (in production, this would be uploaded to IPFS/Arweave)
+    const metadataUrl = `https://analos-nft-launcher-production-f3da.up.railway.app/api/metadata/${collectionId}/${nftData.tokenId}`;
+    
+    res.json({
+      success: true,
+      metadata: metadata,
+      metadataUrl: metadataUrl,
+      marketplaceCompatible: true,
+      standards: ['Metaplex', 'OpenSea', 'Magic Eden', 'Tensor']
+    });
+    
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate metadata' 
+    });
+  }
+});
+
+// Serve metadata JSON for marketplaces
+app.get('/api/metadata/:collectionId/:tokenId', (req, res) => {
+  try {
+    const { collectionId, tokenId } = req.params;
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Find the specific NFT
+    const nft = Array.from(allNFTs.values()).find(n => 
+      n.collection === collection.name && n.tokenId === parseInt(tokenId)
+    );
+    
+    if (!nft) {
+      return res.status(404).json({ success: false, error: 'NFT not found' });
+    }
+    
+    // Generate marketplace-compatible metadata
+    const metadata = {
+      name: nft.name,
+      symbol: collection.symbol || collection.name,
+      description: nft.description || collection.description,
+      image: nft.image,
+      external_url: collection.externalUrl || `https://analos-nft-launcher-production-f3da.up.railway.app/explorer`,
+      attributes: nft.attributes || [],
+      properties: {
+        files: [
+          {
+            uri: nft.image,
+            type: "image/png"
+          }
+        ],
+        category: "image",
+        creators: [
+          {
+            address: collection.feeRecipient,
+            share: 100
+          }
+        ]
+      },
+      collection: {
+        name: collection.name,
+        family: collection.name
+      }
+    };
+    
+    // Set proper headers for marketplace compatibility
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    
+    res.json(metadata);
+    
+  } catch (error) {
+    console.error('Error serving metadata:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to serve metadata' 
+    });
+  }
+});
+
+// Batch update NFT images endpoint (for reveal functionality)
+app.put('/api/collections/:collectionId/reveal', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { images, revealType } = req.body;
+    
+    if (!collectionId) {
+      return res.status(400).json({ success: false, error: 'Collection ID is required' });
+    }
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    if (!images || !Array.isArray(images)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Images array is required for reveal' 
+      });
+    }
+    
+    console.log(`🎭 Starting reveal for collection ${collectionId} with ${images.length} images`);
+    
+    let updatedNFTs = 0;
+    const nftUpdates: any[] = [];
+    
+    // Update NFTs with new images based on reveal type
+    allNFTs.forEach(nft => {
+      if (nft.collection === collection.name) {
+        let newImage;
+        
+        if (revealType === 'sequential') {
+          // Assign images sequentially (1st NFT gets 1st image, etc.)
+          newImage = images[nft.tokenId - 1] || images[images.length - 1];
+        } else if (revealType === 'random') {
+          // Assign images randomly
+          newImage = images[Math.floor(Math.random() * images.length)];
+        } else {
+          // Default: use first image for all
+          newImage = images[0];
+        }
+        
+        nft.image = newImage;
+        nft.revealedAt = new Date().toISOString();
+        nft.revealType = revealType;
+        
+        // Update metadata URI for marketplace compatibility
+        nft.metadataUri = `https://analos-nft-launcher-production-f3da.up.railway.app/api/metadata/${collectionId}/${nft.tokenId}`;
+        
+        // Generate traits based on reveal type for marketplace compatibility
+        nft.attributes = [
+          { trait_type: "Collection", value: collection.name },
+          { trait_type: "Reveal Type", value: revealType },
+          { trait_type: "Revealed At", value: new Date().toLocaleDateString() },
+          { trait_type: "Token ID", value: nft.tokenId.toString() }
+        ];
+        
+        updatedNFTs++;
+        
+        nftUpdates.push({
+          mintAddress: nft.mintAddress,
+          tokenId: nft.tokenId,
+          newImage: newImage,
+          metadataUri: nft.metadataUri,
+          attributes: nft.attributes,
+          revealedAt: nft.revealedAt
+        });
+      }
+    });
+    
+    // Update collection metadata
+    collection.imageUrl = images[0]; // Set collection image to first revealed image
+    collection.revealedAt = new Date().toISOString();
+    collection.revealType = revealType;
+    collection.revealImages = images;
+    collection.updatedAt = new Date().toISOString();
+    collections.set(collectionId, collection);
+    
+    console.log(`✅ Revealed ${updatedNFTs} NFTs with ${revealType} distribution`);
+    
+    res.json({
+      success: true,
+      message: `Successfully revealed ${updatedNFTs} NFTs with ${revealType} image distribution`,
+      collection: {
+        id: collectionId,
+        name: collection.name,
+        revealedAt: collection.revealedAt,
+        revealType: collection.revealType,
+        totalImages: images.length,
+        updatedNFTs: updatedNFTs
+      },
+      nftUpdates: nftUpdates
+    });
+    
+  } catch (error) {
+    console.error('Error during NFT reveal:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to reveal NFTs' 
+    });
+  }
+});
+
 // Update collection image endpoint
 app.put('/api/collections/:collectionId/image', (req, res) => {
   try {
