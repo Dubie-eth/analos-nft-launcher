@@ -31,9 +31,11 @@ function CollectionMintContent() {
 
   const fetchCollectionInfo = useCallback(async () => {
     try {
-      // Fixed backend URL for collection lookup
+      // Fixed backend URL for collection lookup - v2.0
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/collections/${encodeURIComponent(collectionName)}`);
+      const fullUrl = `${backendUrl}/api/collections/${encodeURIComponent(collectionName)}`;
+      console.log('Fetching collection from:', fullUrl);
+      const response = await fetch(fullUrl);
       if (response.ok) {
         const data = await response.json();
         setCollection(data.collection);
@@ -75,9 +77,11 @@ function CollectionMintContent() {
     setMintStatus('Minting NFTs...');
 
     try {
-      // Fixed backend URL for minting
+      // Fixed backend URL for minting - v2.0
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/mint`, {
+      const mintUrl = `${backendUrl}/api/mint`;
+      console.log('Minting from:', mintUrl);
+      const response = await fetch(mintUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

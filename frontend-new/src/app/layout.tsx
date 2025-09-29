@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "Analos NFT Launcher",
   description: "Launch and mint NFTs on the Analos blockchain",
   robots: "no-cache, no-store, must-revalidate",
+  other: {
+    'cache-version': '2.0.1', // Force cache invalidation
+  },
 };
 
 export default function RootLayout({
