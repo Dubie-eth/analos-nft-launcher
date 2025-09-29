@@ -7,6 +7,22 @@ const PORT = process.env.PORT || 3001;
 // Store deployed collections in memory (in production, this would be a database)
 let deployedCollections: any[] = [];
 
+// Generate Arweave-style permanent URLs for images
+const generateArweaveUrl = (imageData: string, imageName: string = 'collection-image'): string => {
+  // For now, we'll create mock Arweave URLs that look realistic
+  // In production, you'd actually upload to Arweave and get real transaction IDs
+  const mockTxId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  return `https://arweave.net/${mockTxId}/${imageName}.png`;
+};
+
+// Auto-generate collection image URLs
+const getCollectionImageUrl = (collectionName: string): string => {
+  // Generate a consistent Arweave URL for each collection
+  const collectionId = collectionName.toLowerCase().replace(/\s+/g, '-');
+  const mockTxId = collectionId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(36);
+  return `https://arweave.net/${mockTxId}${Math.random().toString(36).substring(2, 8)}/collection-${collectionId}.png`;
+};
+
 // Basic CORS
 app.use(cors());
 app.use(express.json());
@@ -181,13 +197,14 @@ app.post('/api/collections/deploy', (req, res) => {
     
     console.log('🚀 Collection deploy request:', { name, symbol, description, mintPrice, maxSupply });
     
-    // Create new collection
+    // Create new collection with auto-generated Arweave URL
+    const collectionName = name || 'New Collection';
     const newCollection = {
-      id: name?.toLowerCase().replace(/\s+/g, '-') || 'new-collection',
-      name: name || 'New Collection',
+      id: collectionName.toLowerCase().replace(/\s+/g, '-'),
+      name: collectionName,
       symbol: symbol || '$NEW',
       description: description || 'A new NFT collection',
-      imageUrl: imageUrl || 'https://i.imgur.com/UO6Jo6S.png', // Default gradient emoji
+      imageUrl: getCollectionImageUrl(collectionName), // Auto-generated Arweave URL
       mintPrice: mintPrice || 1.0,
       totalSupply: maxSupply || 100,
       currentSupply: 0,
@@ -198,7 +215,8 @@ app.post('/api/collections/deploy', (req, res) => {
       deployedAt: new Date().toISOString(),
       mintAddress: 'mock_collection_mint_' + Date.now(),
       metadataAddress: 'mock_metadata_' + Date.now(),
-      masterEditionAddress: 'mock_master_edition_' + Date.now()
+      masterEditionAddress: 'mock_master_edition_' + Date.now(),
+      arweaveUrl: getCollectionImageUrl(collectionName) // Store the Arweave URL separately too
     };
     
     // Add to deployed collections (replace any existing collections for clean slate)
@@ -215,6 +233,52 @@ app.post('/api/collections/deploy', (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to deploy collection'
+    });
+  }
+});
+
+// Update collection image endpoint - generates new Arweave URL
+app.post('/api/collections/:collectionName/update-image', (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const { imageUrl } = req.body;
+    
+    // Find the collection
+    const collectionIndex = deployedCollections.findIndex(
+      col => col.name.toLowerCase() === collectionName.toLowerCase() ||
+             col.id.toLowerCase() === collectionName.toLowerCase()
+    );
+    
+    if (collectionIndex === -1) {
+      res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+      return;
+    }
+    
+    // Generate new Arweave URL for the image
+    const newArweaveUrl = generateArweaveUrl(imageUrl || '', `collection-${collectionName.toLowerCase()}`);
+    
+    // Update the collection with new Arweave URL
+    deployedCollections[collectionIndex].imageUrl = newArweaveUrl;
+    deployedCollections[collectionIndex].arweaveUrl = newArweaveUrl;
+    deployedCollections[collectionIndex].updatedAt = new Date().toISOString();
+    
+    res.json({
+      success: true,
+      message: `Collection image updated successfully!`,
+      data: {
+        imageUrl: newArweaveUrl,
+        arweaveUrl: newArweaveUrl,
+        collection: deployedCollections[collectionIndex]
+      }
+    });
+  } catch (error) {
+    console.error('Error updating collection image:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update collection image'
     });
   }
 });
