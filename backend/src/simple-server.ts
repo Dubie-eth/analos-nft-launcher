@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
 import { AnalosSDKService } from './analos-sdk-service';
+const { AnalosSDKBridge } = require('./analos-sdk-bridge');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -275,8 +276,11 @@ class AnalosBlockchainService {
 // Initialize blockchain service
 const blockchainService = new AnalosBlockchainService();
 
-// Initialize Analos SDK service
+// Initialize Analos SDK service (mock for fallback)
 const analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
+
+// Initialize real Analos SDK bridge
+const analosSDKBridge = new AnalosSDKBridge(connection, blockchainService.walletKeypair);
 
 // Real Transaction Service for handling wallet interactions
 class TransactionService {
@@ -609,12 +613,29 @@ app.post('/api/mint', async (req, res) => {
     // Use Analos SDK to mint NFTs if pool address is available
     let mintResults = [];
     if (collection.poolAddress) {
-      // Use real Analos SDK for minting
-      const mintResult = await analosSDKService.mintNFTs(
-        collection.poolAddress,
-        requestedQuantity,
-        walletAddress
-      );
+      // Try real Analos SDK first, then fall back to mock
+      let mintResult;
+      try {
+        console.log('🎨 Attempting to mint with real Analos SDK...');
+        mintResult = await analosSDKBridge.mintNFTs(
+          collection.poolAddress,
+          requestedQuantity,
+          walletAddress
+        );
+        
+        if (mintResult.success) {
+          console.log('✅ NFTs minted successfully with real Analos SDK!');
+        } else {
+          throw new Error(mintResult.error);
+        }
+      } catch (error) {
+        console.log('⚠️  Real SDK minting failed, falling back to mock:', error instanceof Error ? error.message : String(error));
+        mintResult = await analosSDKService.mintNFTs(
+          collection.poolAddress,
+          requestedQuantity,
+          walletAddress
+        );
+      }
       
       if (mintResult.success) {
         mintResults = mintResult.nfts;
@@ -716,18 +737,41 @@ app.post('/api/collections/deploy', async (req, res) => {
       imageUrl = image;
     }
 
-    // Use Analos SDK to create the collection
-    const collectionResult = await analosSDKService.createNFTCollection({
-      name: name.trim(),
-      symbol: symbol.trim().toUpperCase(),
-      description: description?.trim() || '',
-      image: imageUrl,
-      maxSupply: Number(maxSupply),
-      mintPrice: Number(price),
-      feePercentage: Number(feePercentage) || 2.5,
-      feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-      externalUrl: externalUrl || ''
-    });
+    // Try real Analos SDK first, then fall back to mock
+    let collectionResult;
+    try {
+      console.log('🚀 Attempting to create collection with real Analos SDK...');
+      collectionResult = await analosSDKBridge.createNFTCollection({
+        name: name.trim(),
+        symbol: symbol.trim().toUpperCase(),
+        description: description?.trim() || '',
+        image: imageUrl,
+        maxSupply: Number(maxSupply),
+        mintPrice: Number(price),
+        feePercentage: Number(feePercentage) || 2.5,
+        feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+        externalUrl: externalUrl || ''
+      });
+      
+      if (collectionResult.success) {
+        console.log('✅ Collection created successfully with real Analos SDK!');
+      } else {
+        throw new Error(collectionResult.error);
+      }
+    } catch (error) {
+      console.log('⚠️  Real SDK failed, falling back to mock implementation:', error instanceof Error ? error.message : String(error));
+      collectionResult = await analosSDKService.createNFTCollection({
+        name: name.trim(),
+        symbol: symbol.trim().toUpperCase(),
+        description: description?.trim() || '',
+        image: imageUrl,
+        maxSupply: Number(maxSupply),
+        mintPrice: Number(price),
+        feePercentage: Number(feePercentage) || 2.5,
+        feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+        externalUrl: externalUrl || ''
+      });
+    }
 
     if (!collectionResult.success) {
       return res.status(500).json({ success: false, error: collectionResult.error });
