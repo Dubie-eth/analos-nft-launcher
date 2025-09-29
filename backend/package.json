@@ -1,6 +1,6 @@
 {
   "name": "analos-nft-launcher-backend",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "private": true,
   "main": "src/real-smart-contract-server.ts",
   "scripts": {
@@ -9,7 +9,7 @@
     "dev-working": "ts-node src/working-server.ts",
     "dev-real": "ts-node src/real-smart-contract-server.ts",
     "build": "tsc",
-    "start": "node dist/real-smart-contract-server.js",
+    "start": "node dist/simple-server.js",
     "start-minimal": "node dist/minimal-server.js",
     "start-working": "node dist/working-server.js",
     "start-full": "node dist/simple-server.js"
