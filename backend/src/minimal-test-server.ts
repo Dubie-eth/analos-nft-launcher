@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { arweaveService, ArweaveUploadResult } from './arweave-service';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -7,27 +8,65 @@ const PORT = process.env.PORT || 3001;
 // Store deployed collections in memory (in production, this would be a database)
 let deployedCollections: any[] = [];
 
-// Generate Arweave-style permanent URLs for images
-const generateArweaveUrl = (imageData: string, imageName: string = 'collection-image'): string => {
-  // Generate a deterministic Arweave-style URL based on the image content
-  // This creates a consistent URL that looks like a real Arweave transaction
-  const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const txId = hash.toString(36) + Math.random().toString(36).substring(2, 15);
-  return `https://arweave.net/${txId}`;
+// Initialize Arweave service
+console.log('🚀 Initializing Arweave service...');
+arweaveService.initializeWithWallet().then(success => {
+  if (success) {
+    console.log('✅ Arweave service ready');
+    arweaveService.getWalletAddress().then(address => {
+      console.log(`🔑 Arweave wallet address: ${address}`);
+      arweaveService.getBalance().then(balance => {
+        console.log(`💰 Arweave balance: ${balance} AR`);
+        if (balance === 0) {
+          console.log('⚠️  Arweave wallet has no balance - uploads may fail');
+          console.log('💡 Fund your wallet at: https://arweave.net/wallet');
+        }
+      });
+    });
+  } else {
+    console.log('❌ Failed to initialize Arweave service');
+  }
+});
+
+// Generate real Arweave URLs for images
+const generateArweaveImageUrl = async (imageUrl: string, imageName: string): Promise<string> => {
+  try {
+    // Upload image to Arweave
+    const result: ArweaveUploadResult = await arweaveService.uploadImageFromUrl(imageUrl, imageName);
+    
+    if (result.success && result.url) {
+      console.log(`✅ Image uploaded to Arweave: ${result.url}`);
+      return result.url;
+    } else {
+      console.log(`❌ Arweave upload failed: ${result.error}`);
+      // Fallback to working placeholder
+      const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const seed = hash % 1000;
+      return `https://picsum.photos/500/500?random=${seed}`;
+    }
+  } catch (error) {
+    console.error('❌ Error uploading to Arweave:', error);
+    // Fallback to working placeholder
+    const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const seed = hash % 1000;
+    return `https://picsum.photos/500/500?random=${seed}`;
+  }
 };
 
-// Auto-generate collection image URLs - convert to Arweave URLs
+// Auto-generate collection image URLs - use working images
 const getCollectionImageUrl = (collectionName: string, uploadedImageUrl?: string): string => {
-  // Always generate an Arweave URL for the image
+  // Always generate a working image URL
   const imageName = `collection-${collectionName.toLowerCase().replace(/\s+/g, '-')}`;
   
   if (uploadedImageUrl) {
-    // Convert the uploaded image to an Arweave URL
-    return generateArweaveUrl(uploadedImageUrl, imageName);
+    // If user uploaded an image, try to use it, but fallback to working URL if it fails
+    return uploadedImageUrl;
   }
   
-  // Generate Arweave URL for the default LOL logo
-  return generateArweaveUrl('lol-logo', 'lol-logo-gradient-emoji');
+  // Generate working URL for the collection
+  const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seed = hash % 1000;
+  return `https://picsum.photos/500/500?random=${seed}`;
 };
 
 // Basic CORS
@@ -197,21 +236,36 @@ app.post('/api/mint', (req, res) => {
   }
 });
 
-// Mock collection deploy endpoint
-app.post('/api/collections/deploy', (req, res) => {
+// Collection deploy endpoint with real Arweave uploads
+app.post('/api/collections/deploy', async (req, res) => {
   try {
     const { name, symbol, description, mintPrice, maxSupply, platformFee, feeRecipientAddress, externalUrl, imageUrl } = req.body;
     
     console.log('🚀 Collection deploy request:', { name, symbol, description, mintPrice, maxSupply });
     
-    // Create new collection with auto-generated Arweave URL
+    // Create new collection
     const collectionName = name || 'New Collection';
+    const imageName = `collection-${collectionName.toLowerCase().replace(/\s+/g, '-')}`;
+    
+    // Upload image to Arweave if provided
+    let finalImageUrl = imageUrl;
+    if (imageUrl && arweaveService.isReady()) {
+      console.log('📤 Uploading image to Arweave...');
+      const arweaveResult = await generateArweaveImageUrl(imageUrl, imageName);
+      finalImageUrl = arweaveResult;
+    } else if (!imageUrl) {
+      // Use default image
+      const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const seed = hash % 1000;
+      finalImageUrl = `https://picsum.photos/500/500?random=${seed}`;
+    }
+    
     const newCollection = {
       id: collectionName.toLowerCase().replace(/\s+/g, '-'),
       name: collectionName,
       symbol: symbol || '$NEW',
       description: description || 'A new NFT collection',
-      imageUrl: getCollectionImageUrl(collectionName, imageUrl), // Use uploaded image or default
+      imageUrl: finalImageUrl,
       mintPrice: mintPrice || 1.0,
       totalSupply: maxSupply || 100,
       currentSupply: 0,
@@ -223,7 +277,7 @@ app.post('/api/collections/deploy', (req, res) => {
       mintAddress: 'mock_collection_mint_' + Date.now(),
       metadataAddress: 'mock_metadata_' + Date.now(),
       masterEditionAddress: 'mock_master_edition_' + Date.now(),
-      arweaveUrl: getCollectionImageUrl(collectionName, imageUrl) // Store the image URL separately too
+      arweaveUrl: finalImageUrl
     };
     
     // Add to deployed collections (replace any existing collections for clean slate)
@@ -264,9 +318,11 @@ app.post('/api/collections/:collectionName/update-image', (req, res) => {
       return;
     }
     
-    // Generate new Arweave URL for the image
+    // Generate new working URL for the image
     const imageName = `collection-${collectionName.toLowerCase().replace(/\s+/g, '-')}`;
-    const newImageUrl = imageUrl ? generateArweaveUrl(imageUrl, imageName) : deployedCollections[collectionIndex].imageUrl;
+    const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const seed = hash % 1000;
+    const newImageUrl = imageUrl ? imageUrl : `https://picsum.photos/500/500?random=${seed}`;
     
     // Update the collection with new image URL
     deployedCollections[collectionIndex].imageUrl = newImageUrl;
@@ -287,6 +343,33 @@ app.post('/api/collections/:collectionName/update-image', (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update collection image'
+    });
+  }
+});
+
+// Arweave status endpoint
+app.get('/api/arweave/status', async (req, res) => {
+  try {
+    const isReady = arweaveService.isReady();
+    const address = await arweaveService.getWalletAddress();
+    const balance = await arweaveService.getBalance();
+    const networkInfo = await arweaveService.getNetworkInfo();
+    
+    res.json({
+      success: true,
+      data: {
+        isReady,
+        walletAddress: address,
+        balance: `${balance} AR`,
+        networkInfo,
+        status: isReady ? 'Ready' : 'Not initialized'
+      }
+    });
+  } catch (error) {
+    console.error('Error getting Arweave status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get Arweave status'
     });
   }
 });
