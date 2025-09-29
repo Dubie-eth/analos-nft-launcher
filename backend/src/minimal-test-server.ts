@@ -15,11 +15,15 @@ const generateArweaveUrl = (imageData: string, imageName: string = 'collection-i
   return `https://arweave.net/${mockTxId}/${imageName}.png`;
 };
 
-// Auto-generate collection image URLs - use working placeholder for now
-const getCollectionImageUrl = (collectionName: string): string => {
-  // Use a working placeholder image service until real Arweave integration
-  // This ensures images always load properly
-  return 'https://picsum.photos/500/500?random=' + collectionName.toLowerCase().replace(/\s+/g, '');
+// Auto-generate collection image URLs - use actual uploaded images
+const getCollectionImageUrl = (collectionName: string, uploadedImageUrl?: string): string => {
+  // If user uploaded an image, use that - otherwise use a gradient emoji
+  if (uploadedImageUrl) {
+    return uploadedImageUrl;
+  }
+  
+  // Default to a nice gradient emoji for collections without uploaded images
+  return 'https://i.imgur.com/UO6Jo6S.png'; // Your LOL logo
 };
 
 // Basic CORS
@@ -203,7 +207,7 @@ app.post('/api/collections/deploy', (req, res) => {
       name: collectionName,
       symbol: symbol || '$NEW',
       description: description || 'A new NFT collection',
-      imageUrl: getCollectionImageUrl(collectionName), // Auto-generated Arweave URL
+      imageUrl: getCollectionImageUrl(collectionName, imageUrl), // Use uploaded image or default
       mintPrice: mintPrice || 1.0,
       totalSupply: maxSupply || 100,
       currentSupply: 0,
@@ -215,7 +219,7 @@ app.post('/api/collections/deploy', (req, res) => {
       mintAddress: 'mock_collection_mint_' + Date.now(),
       metadataAddress: 'mock_metadata_' + Date.now(),
       masterEditionAddress: 'mock_master_edition_' + Date.now(),
-      arweaveUrl: getCollectionImageUrl(collectionName) // Store the Arweave URL separately too
+      arweaveUrl: getCollectionImageUrl(collectionName, imageUrl) // Store the image URL separately too
     };
     
     // Add to deployed collections (replace any existing collections for clean slate)
@@ -256,8 +260,8 @@ app.post('/api/collections/:collectionName/update-image', (req, res) => {
       return;
     }
     
-    // Generate new working URL for the image
-    const newImageUrl = imageUrl || `https://picsum.photos/500/500?random=${collectionName.toLowerCase().replace(/\s+/g, '')}-${Date.now()}`;
+    // Use the uploaded image URL or keep the existing one
+    const newImageUrl = imageUrl || deployedCollections[collectionIndex].imageUrl || 'https://i.imgur.com/UO6Jo6S.png';
     
     // Update the collection with new image URL
     deployedCollections[collectionIndex].imageUrl = newImageUrl;
