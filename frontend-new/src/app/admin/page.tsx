@@ -18,6 +18,10 @@ interface CollectionData {
 
 function AdminPageContent() {
   const { publicKey, connected } = useWallet();
+  
+  // Admin page is now locked - only allow specific wallet
+  const ADMIN_WALLET = "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW";
+  const isAdmin = connected && publicKey?.toString() === ADMIN_WALLET;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
   
@@ -45,6 +49,22 @@ function AdminPageContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Admin access check
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white mb-6">🔒 Admin Access Required</h1>
+          <p className="text-white/80 mb-6">This page is restricted to authorized administrators only.</p>
+          <div className="space-y-4">
+            <WalletMultiButton />
+            <p className="text-white/60 text-sm">Connect with the authorized wallet to access admin features.</p>
+          </div>
+        </div>
       </div>
     );
   }
