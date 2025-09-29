@@ -77,70 +77,13 @@ function CollectionMintContent() {
     }
 
     setMinting(true);
-    setMintStatus('Creating blockchain transaction...');
+    setMintStatus('Creating NFT minting transaction...');
 
     try {
-      // Create real Analos blockchain transaction
-      const connection = new Connection('https://rpc.analos.io', {
-        commitment: 'confirmed',
-        wsEndpoint: undefined, // Disable WebSocket to avoid connection issues
-      });
-      
-      // Calculate total cost in lamports (1 LOS = 1,000,000,000 lamports)
-      const totalCostLamports = Math.floor(collection.mintPrice * LAMPORTS_PER_SOL * mintQuantity);
-      
-      // Get recent blockhash
-      const { blockhash } = await connection.getLatestBlockhash();
-      
-      // Create transaction
-      const transaction = new Transaction({
-        recentBlockhash: blockhash,
-        feePayer: publicKey,
-      });
-
-      // Add LOS transfer instruction (from user to collection fee recipient)
-      const feeRecipientPubkey = new PublicKey(collection.feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
-      
-      transaction.add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: feeRecipientPubkey,
-          lamports: totalCostLamports,
-        })
-      );
-
-      console.log('🔗 Creating real Analos transaction...');
-      console.log('💰 Total cost:', collection.mintPrice * mintQuantity, 'LOS');
-      console.log('💸 Lamports:', totalCostLamports);
-      console.log('📤 From:', publicKey.toString());
-      console.log('📥 To:', feeRecipientPubkey.toString());
-
-      setMintStatus('Please sign the transaction in your wallet...');
-
-      // Sign and send transaction
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-      
-      console.log('✅ Transaction sent:', signature);
-      setMintStatus('Transaction sent! Confirming...');
-
-      // Wait for confirmation with longer timeout
-      try {
-        // Try confirmation with a longer timeout
-        const confirmationResult = await connection.confirmTransaction(signature, 'confirmed');
-        console.log('✅ Transaction confirmed:', signature);
-        setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
-      } catch (confirmError) {
-        console.log('⚠️ Confirmation timeout, but transaction was sent:', signature);
-        setMintStatus(`Transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
-        
-        // Still proceed with backend confirmation since transaction was sent
-        console.log('🔄 Proceeding with backend confirmation despite timeout...');
-      }
-
-      // Update collection supply on backend
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      await fetch(`${backendUrl}/api/mint/confirm`, {
+      
+      // Call backend to create the NFT minting transaction
+      const mintResponse = await fetch(`${backendUrl}/api/mint`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,10 +91,75 @@ function CollectionMintContent() {
         body: JSON.stringify({
           collectionName: collection.name,
           quantity: mintQuantity,
-          transactionSignature: signature,
           walletAddress: publicKey.toString(),
         }),
       });
+
+      if (!mintResponse.ok) {
+        const errorData = await mintResponse.json();
+        throw new Error(errorData.error || 'Failed to create minting transaction');
+      }
+
+      const mintData = await mintResponse.json();
+      
+      if (!mintData.success) {
+        throw new Error(mintData.error || 'Minting failed');
+      }
+
+      console.log('🎯 Backend minting response:', mintData);
+
+      // Check if we need to sign a transaction
+      if (mintData.requiresWalletSigning && mintData.transaction) {
+        setMintStatus('Please sign the NFT minting transaction in your wallet...');
+        
+        // Create connection for transaction handling
+        const connection = new Connection('https://rpc.analos.io', {
+          commitment: 'confirmed',
+          wsEndpoint: undefined,
+        });
+
+        // Parse the transaction from the backend
+        const transaction = Transaction.from(Buffer.from(mintData.transaction, 'base64'));
+        
+        console.log('🔗 Signing NFT minting transaction...');
+        console.log('💰 Total cost:', mintData.totalCost, 'LOS');
+        console.log('📦 Quantity:', mintQuantity);
+
+        // Sign and send the NFT minting transaction
+        const signedTransaction = await signTransaction(transaction);
+        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+        
+        console.log('✅ NFT minting transaction sent:', signature);
+        setMintStatus('NFT minting transaction sent! Confirming...');
+
+        // Wait for confirmation
+        try {
+          await connection.confirmTransaction(signature, 'confirmed');
+          console.log('✅ NFT minting transaction confirmed:', signature);
+          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+        } catch (confirmError) {
+          console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);
+          setMintStatus(`NFT minting transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
+        }
+
+        // Confirm the mint on the backend
+        await fetch(`${backendUrl}/api/mint/confirm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            collectionName: collection.name,
+            quantity: mintQuantity,
+            transactionSignature: signature,
+            walletAddress: publicKey.toString(),
+          }),
+        });
+
+      } else {
+        // Direct minting (no wallet signing required)
+        setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${mintData.transactionSignature}`);
+      }
 
       // Refresh collection info to update supply
       fetchCollectionInfo();

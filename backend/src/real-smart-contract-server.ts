@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
+import { AnalosSDKWrapper } from './analos-sdk-wrapper';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -148,6 +149,19 @@ class RealSmartContractService {
 // Initialize real smart contract service
 const smartContractService = new RealSmartContractService(connection);
 
+// Initialize Analos SDK wrapper
+let analosSDK: AnalosSDKWrapper;
+try {
+  analosSDK = new AnalosSDKWrapper(connection);
+  analosSDK.initialize().then(() => {
+    console.log('✅ Analos SDK wrapper initialized successfully');
+  }).catch((error: any) => {
+    console.error('❌ Failed to initialize Analos SDK wrapper:', error);
+  });
+} catch (error) {
+  console.error('❌ Failed to create Analos SDK wrapper:', error);
+}
+
 // Open Mint Service
 class OpenMintService {
   private mintedCount: number = 0;
@@ -281,18 +295,50 @@ app.post('/api/collections/deploy', async (req, res) => {
       .replace(/-+/g, '-')
       .trim();
 
-    // Deploy to REAL blockchain
-    const deploymentResult = await smartContractService.deployNFTCollection({
-      name: name.trim(),
-      symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
-      description: description?.trim() || '',
-      image: image || '',
-      maxSupply: Number(maxSupply),
-      mintPrice: Number(price),
-      feePercentage: Number(feePercentage) || 2.5,
-      feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-      externalUrl: externalUrl || ''
-    });
+    // Deploy to REAL blockchain using Analos SDKs
+    let deploymentResult;
+    try {
+      if (analosSDK) {
+        console.log('🎯 Using Analos SDKs for deployment...');
+        deploymentResult = await analosSDK.deployNFTCollection({
+          name: name.trim(),
+          symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
+          description: description?.trim() || '',
+          image: image || '',
+          maxSupply: Number(maxSupply),
+          price: Number(price),
+          feePercentage: Number(feePercentage) || 2.5,
+          feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+          externalUrl: externalUrl || ''
+        });
+      } else {
+        console.log('⚠️ Analos SDK not available, using fallback...');
+        deploymentResult = await smartContractService.deployNFTCollection({
+          name: name.trim(),
+          symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
+          description: description?.trim() || '',
+          image: image || '',
+          maxSupply: Number(maxSupply),
+          mintPrice: Number(price),
+          feePercentage: Number(feePercentage) || 2.5,
+          feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+          externalUrl: externalUrl || ''
+        });
+      }
+    } catch (sdkError) {
+      console.error('❌ SDK deployment failed, using fallback:', sdkError);
+      deploymentResult = await smartContractService.deployNFTCollection({
+        name: name.trim(),
+        symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
+        description: description?.trim() || '',
+        image: image || '',
+        maxSupply: Number(maxSupply),
+        mintPrice: Number(price),
+        feePercentage: Number(feePercentage) || 2.5,
+        feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+        externalUrl: externalUrl || ''
+      });
+    }
 
     if (!deploymentResult.success) {
       return res.status(500).json({ 
@@ -400,13 +446,34 @@ app.post('/api/mint', async (req, res) => {
     console.log('📦 Quantity:', requestedQuantity);
     console.log('💳 Wallet:', walletAddress);
 
-    // Mint from REAL smart contract
-    const mintResult = await smartContractService.mintNFT(
-      collection.poolAddress,
-      requestedQuantity,
-      walletAddress,
-      collection.mintPrice
-    );
+    // Mint from REAL smart contract using Analos SDKs
+    let mintResult;
+    try {
+      if (analosSDK && collection.collectionId) {
+        console.log('🎯 Using Analos SDKs for minting...');
+        mintResult = await analosSDK.mintNFT(
+          collection.collectionId,
+          requestedQuantity,
+          walletAddress
+        );
+      } else {
+        console.log('⚠️ Analos SDK not available, using fallback...');
+        mintResult = await smartContractService.mintNFT(
+          collection.poolAddress,
+          requestedQuantity,
+          walletAddress,
+          collection.mintPrice
+        );
+      }
+    } catch (sdkError) {
+      console.error('❌ SDK minting failed, using fallback:', sdkError);
+      mintResult = await smartContractService.mintNFT(
+        collection.poolAddress,
+        requestedQuantity,
+        walletAddress,
+        collection.mintPrice
+      );
+    }
 
     if (!mintResult.success) {
       return res.status(500).json({ 
