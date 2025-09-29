@@ -282,6 +282,14 @@ const analosSDKService = new AnalosSDKService(connection, blockchainService.wall
 // Initialize real Analos SDK bridge
 const analosSDKBridge = new AnalosSDKBridge(connection, blockchainService.walletKeypair);
 
+// Test real SDK initialization
+console.log('🔧 Testing real Analos SDK initialization...');
+analosSDKBridge.init().then(() => {
+  console.log('✅ Real Analos SDK initialized successfully!');
+}).catch((error: any) => {
+  console.log('❌ Real Analos SDK failed to initialize:', error);
+});
+
 // Real Transaction Service for handling wallet interactions
 class TransactionService {
   private connection: Connection;
@@ -617,6 +625,10 @@ app.post('/api/mint', async (req, res) => {
       let mintResult;
       try {
         console.log('🎨 Attempting to mint with real Analos SDK...');
+        console.log('📊 Collection pool address:', collection.poolAddress);
+        console.log('📊 Requested quantity:', requestedQuantity);
+        console.log('📊 Wallet address:', walletAddress);
+        
         mintResult = await analosSDKBridge.mintNFTs(
           collection.poolAddress,
           requestedQuantity,
@@ -625,11 +637,15 @@ app.post('/api/mint', async (req, res) => {
         
         if (mintResult.success) {
           console.log('✅ NFTs minted successfully with real Analos SDK!');
+          console.log('📊 Mint result:', JSON.stringify(mintResult, null, 2));
         } else {
+          console.log('❌ Real SDK minting failed:', mintResult.error);
           throw new Error(mintResult.error);
         }
       } catch (error) {
-        console.log('⚠️  Real SDK minting failed, falling back to mock:', error instanceof Error ? error.message : String(error));
+        console.log('⚠️  Real SDK minting failed, falling back to mock:');
+        console.log('❌ Error details:', error instanceof Error ? error.message : String(error));
+        console.log('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         mintResult = await analosSDKService.mintNFTs(
           collection.poolAddress,
           requestedQuantity,
