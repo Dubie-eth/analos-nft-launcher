@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { AnalosNFTSDK } from '../../../analos-nft-sdk/src/sdk';
+import { AnalosNFTSDK } from '../../lib/sdk';
 
 interface RealMintButtonProps {
   collectionName: string;

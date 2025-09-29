@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import RealMintButton from '../../components/RealMintButton';
 
 interface CollectionInfo {
   name: string;
@@ -332,14 +333,20 @@ function CollectionMintContent() {
                     </div>
                   </div>
 
-                  {/* Mint Button */}
-                  <button
-                    onClick={handleMint}
-                    disabled={minting || !connected || remainingSupply < mintQuantity}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
-                  >
-                    {minting ? 'Minting...' : `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} $LOS`}
-                  </button>
+                  {/* Real Blockchain Mint Button */}
+                  <RealMintButton
+                    collectionName={collection.name}
+                    quantity={mintQuantity}
+                    totalCost={totalCost}
+                    currency="$LOS"
+                    onMintSuccess={(result) => {
+                      setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+                      fetchCollectionInfo(); // Refresh collection info
+                    }}
+                    onMintError={(error) => {
+                      setMintStatus(`Minting failed: ${error}`);
+                    }}
+                  />
 
                   {mintStatus && (
                     <div className="mt-4 p-3 bg-white/10 rounded-lg">
