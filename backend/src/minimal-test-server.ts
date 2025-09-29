@@ -41,23 +41,36 @@ app.post('/api/mint/instructions', (req, res) => {
     
     console.log('📝 Mint instructions request:', { collectionName, quantity, walletAddress });
     
-    // Return mock instructions for testing
+    // Generate valid base58 addresses for testing
+    const validBase58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    const generateBase58Address = () => {
+      let result = '';
+      for (let i = 0; i < 44; i++) {
+        result += validBase58Chars.charAt(Math.floor(Math.random() * validBase58Chars.length));
+      }
+      return result;
+    };
+    
+    // Return mock instructions with valid base58 addresses
     res.json({
       success: true,
       instructions: [
         {
           type: 'createMintAccount',
-          mintAddress: 'mock_mint_address_' + Date.now(),
+          mintAddress: generateBase58Address(),
           metadata: {
             name: `${collectionName} #1`,
             description: `Test NFT from ${collectionName}`,
             image: 'https://picsum.photos/500/500?random=1'
           },
-          mintKeypair: {}
+          mintKeypair: {
+            publicKey: generateBase58Address(),
+            secretKey: Array.from({length: 64}, () => Math.floor(Math.random() * 256))
+          }
         }
       ],
       nftData: [{
-        mintAddress: 'mock_mint_address_' + Date.now(),
+        mintAddress: generateBase58Address(),
         metadata: {
           name: `${collectionName} #1`,
           description: `Test NFT from ${collectionName}`,
