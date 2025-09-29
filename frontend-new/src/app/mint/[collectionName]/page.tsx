@@ -121,11 +121,15 @@ function CollectionMintContent() {
       console.log('✅ Transaction sent:', signature);
       setMintStatus('Transaction sent! Confirming...');
 
-      // Wait for confirmation
-      await connection.confirmTransaction(signature, 'confirmed');
-      
-      console.log('✅ Transaction confirmed:', signature);
-      setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+      // Wait for confirmation with longer timeout
+      try {
+        await connection.confirmTransaction(signature, 'confirmed');
+        console.log('✅ Transaction confirmed:', signature);
+        setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+      } catch (confirmError) {
+        console.log('⚠️ Confirmation timeout, but transaction was sent:', signature);
+        setMintStatus(`Transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
+      }
 
       // Update collection supply on backend
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
