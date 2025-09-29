@@ -501,10 +501,9 @@ function AdminPageContent() {
           </div>
         </div>
       </div>
-    </div>
 
-    {/* Image Update Modal */}
-    <ImageUpdateModal
+      {/* Image Update Modal */}
+      <ImageUpdateModal
       isOpen={showImageModal}
       onClose={() => {
         setShowImageModal(false);
@@ -516,8 +515,8 @@ function AdminPageContent() {
       onImageUpdated={handleImageUpdated}
     />
 
-    {/* NFT Reveal Modal */}
-    <NFTRevealModal
+      {/* NFT Reveal Modal */}
+      <NFTRevealModal
       isOpen={showRevealModal}
       onClose={() => {
         setShowRevealModal(false);
@@ -527,7 +526,8 @@ function AdminPageContent() {
       collectionName={selectedCollection?.name || ''}
       currentSupply={selectedCollection?.currentSupply || 0}
       onRevealComplete={handleRevealComplete}
-    />
+      />
+    </div>
   );
 }
 
