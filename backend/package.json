@@ -2,12 +2,14 @@
   "name": "analos-nft-launcher-backend",
   "version": "1.0.0",
   "private": true,
-  "main": "src/minimal-server.ts",
+  "main": "src/working-server.ts",
   "scripts": {
     "dev": "ts-node src/simple-server.ts",
     "dev-minimal": "ts-node src/minimal-server.ts",
+    "dev-working": "ts-node src/working-server.ts",
     "build": "tsc",
-    "start": "node dist/minimal-server.js",
+    "start": "node dist/working-server.js",
+    "start-minimal": "node dist/minimal-server.js",
     "start-full": "node dist/simple-server.js"
   },
   "dependencies": {
