@@ -114,7 +114,7 @@ app.get('/api/collections', (req, res) => {
         id: 'launch-on-los',
         name: 'Launch On LOS',
         description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-        imageUrl: 'https://picsum.photos/500/500?random=collection',
+        imageUrl: 'https://i.imgur.com/8K3vQ2J.jpg', // Use actual uploaded image
         mintPrice: 4200.69,
         totalSupply: 1111,
         currentSupply: 0,
@@ -137,7 +137,7 @@ app.get('/api/collections/:collectionName', (req, res) => {
       id: 'launch-on-los',
       name: 'Launch On LOS',
       description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-      imageUrl: 'https://picsum.photos/500/500?random=collection',
+        imageUrl: 'https://i.imgur.com/8K3vQ2J.jpg', // Use actual uploaded image
       mintPrice: 4200.69,
       totalSupply: 1111,
       currentSupply: 0,
@@ -200,7 +200,7 @@ app.post('/api/collections/deploy', (req, res) => {
         name: name || 'Launch On LOS',
         symbol: symbol || '$LOL',
         description: description || 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-        imageUrl: imageUrl || 'https://picsum.photos/500/500?random=collection',
+              imageUrl: imageUrl || 'https://i.imgur.com/8K3vQ2J.jpg', // Use actual uploaded image
         mintPrice: mintPrice || 4200.69,
         totalSupply: maxSupply || 1111,
         currentSupply: 0,
