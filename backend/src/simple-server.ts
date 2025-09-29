@@ -884,6 +884,55 @@ app.put('/api/collections/:collectionId/image', (req, res) => {
   }
 });
 
+// Update collection price endpoint (admin only)
+app.put('/api/admin/update-price/:collectionId', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { price } = req.body;
+    
+    console.log(`💰 Updating price for collection ${collectionId} to ${price}`);
+    
+    if (!price || typeof price !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid price is required'
+      });
+    }
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+    }
+    
+    // Update the price
+    collection.mintPrice = price;
+    
+    // Save to file
+    saveCollections();
+    
+    console.log(`✅ Updated ${collectionId} price to ${price}`);
+    
+    res.json({
+      success: true,
+      message: `Collection price updated to ${price} $LOS`,
+      collection: {
+        id: collection.id,
+        name: collection.name,
+        mintPrice: collection.mintPrice
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error updating collection price:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Clear all collections endpoint (admin only)
 app.delete('/api/admin/clear-collections', (req, res) => {
   try {
