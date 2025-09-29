@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Analos NFT Launcher v3.0.0 - REAL SMART CONTRACTS",
+  title: "Analos NFT Launcher v3.2.0 - TYPESCRIPT FIXED",
   description: "Launch and mint NFTs on the Analos blockchain with real smart contracts",
   robots: "no-cache, no-store, must-revalidate",
   other: {
-    'cache-version': '3.0.0', // Force cache invalidation
+    'cache-version': '3.2.0', // Force cache invalidation
     'build-timestamp': Date.now().toString(), // Dynamic timestamp
   },
 };
