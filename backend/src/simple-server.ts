@@ -949,6 +949,97 @@ app.get('/api/mint-status/:walletAddress', (req, res) => {
   }
 });
 
+// Create NFT minting transaction instructions for frontend signing
+app.post('/api/mint/instructions', async (req, res) => {
+  try {
+    const { collectionName, quantity, walletAddress } = req.body;
+
+    if (!collectionName || !walletAddress || !quantity) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: collectionName, quantity, and walletAddress are required' 
+      });
+    }
+
+    // Find the collection
+    const collection = Array.from(collections.values()).find(
+      col => col.urlFriendlyName?.toLowerCase() === collectionName.toLowerCase() || 
+             col.name.toLowerCase() === collectionName.toLowerCase()
+    );
+
+    if (!collection) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Collection not found' 
+      });
+    }
+
+    // Check if collection is active
+    if (!collection.isActive) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection is not active' 
+      });
+    }
+
+    // Check supply limit
+    const requestedQuantity = parseInt(quantity);
+    if (collection.currentSupply + requestedQuantity > collection.totalSupply) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Not enough supply remaining' 
+      });
+    }
+
+    // Create transaction instructions for the frontend to sign
+    const instructions = [];
+    const nftData = [];
+
+    for (let i = 0; i < requestedQuantity; i++) {
+      const nftNumber = collection.currentSupply + i + 1;
+      const mintKeypair = Keypair.generate();
+      const mintAddress = mintKeypair.publicKey.toBase58();
+      
+      // Create metadata
+      const metadata = {
+        name: `${collection.name} #${nftNumber}`,
+        description: collection.description || `A unique NFT from the ${collection.name} collection`,
+        image: collection.imageUrl || 'https://picsum.photos/500/500?random=' + Date.now(),
+        symbol: collection.symbol,
+        tokenId: nftNumber
+      };
+
+      // Create instruction for minting this NFT
+      instructions.push({
+        type: 'createMintAccount',
+        mintAddress: mintAddress,
+        metadata: metadata,
+        mintKeypair: mintKeypair
+      });
+
+      nftData.push({
+        mintAddress,
+        metadata,
+        tokenId: nftNumber
+      });
+    }
+
+    res.json({
+      success: true,
+      instructions,
+      nftData,
+      totalCost: collection.mintPrice * requestedQuantity,
+      currency: collection.currency,
+      collection: collection.name,
+      message: 'Transaction instructions created. Please sign with your wallet to complete minting.'
+    });
+
+  } catch (error) {
+    console.error('Error creating mint instructions:', error);
+    res.status(500).json({ success: false, error: 'Failed to create mint instructions' });
+  }
+});
+
 // Mint NFT endpoint
 app.post('/api/mint', async (req, res) => {
   try {

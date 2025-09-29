@@ -143,4 +143,29 @@ export class AnalosNFTClient {
     const endpoint = '/api/network';
     return this.makeRequest<any>(endpoint);
   }
+
+  // Minting Methods
+  async createMintInstructions(collectionName: string, quantity: number, walletAddress: string): Promise<any> {
+    const endpoint = '/api/mint/instructions';
+    return this.makeRequest<any>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        collectionName,
+        quantity,
+        walletAddress
+      })
+    });
+  }
+
+  async mintNFT(collectionName: string, quantity: number, walletAddress: string): Promise<any> {
+    const endpoint = '/api/mint';
+    return this.makeRequest<any>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({
+        collectionName,
+        quantity,
+        walletAddress
+      })
+    });
+  }
 }

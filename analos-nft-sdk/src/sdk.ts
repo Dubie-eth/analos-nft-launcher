@@ -12,16 +12,20 @@ import {
 } from './types';
 import { AnalosNFTClient } from './client';
 import { AnalosExplorerIntegration } from './explorer';
+import { AnalosBlockchainService, AnalosTransaction } from './blockchain';
+import { Transaction } from '@solana/web3.js';
 
 export class AnalosNFTSDK {
   private client: AnalosNFTClient;
   private explorer: AnalosExplorerIntegration;
+  private blockchain: AnalosBlockchainService;
   private config: ExplorerConfig;
 
   constructor(options: SDKOptions) {
     this.config = options.config;
     this.client = new AnalosNFTClient(options);
     this.explorer = new AnalosExplorerIntegration(this.client);
+    this.blockchain = new AnalosBlockchainService(options.config.rpcUrl || 'https://rpc.analos.io');
   }
 
   // Client methods (direct API access)
@@ -32,6 +36,11 @@ export class AnalosNFTSDK {
   // Explorer integration methods
   get explorer() {
     return this.explorer;
+  }
+
+  // Blockchain methods
+  get blockchain() {
+    return this.blockchain;
   }
 
   // High-level convenience methods
@@ -78,6 +87,69 @@ export class AnalosNFTSDK {
 
   async getCollectionStats(collectionId: string): Promise<any> {
     return this.client.getCollectionStats(collectionId);
+  }
+
+  // Minting methods with real blockchain transactions
+  async createMintTransaction(
+    collectionName: string, 
+    quantity: number, 
+    walletAddress: string
+  ): Promise<AnalosTransaction> {
+    // Get mint instructions from backend
+    const instructions = await this.client.createMintInstructions(collectionName, quantity, walletAddress);
+    
+    // Create blockchain transaction
+    const transaction = await this.blockchain.createMintTransaction(walletAddress, instructions.instructions);
+    
+    return transaction;
+  }
+
+  async mintNFTWithWallet(
+    collectionName: string,
+    quantity: number,
+    walletAddress: string,
+    signTransaction: (transaction: Transaction) => Promise<Transaction>
+  ): Promise<{ success: boolean; signature?: string; error?: string }> {
+    try {
+      // Create transaction
+      const transactionData = await this.createMintTransaction(collectionName, quantity, walletAddress);
+      
+      // Create Solana transaction
+      const transaction = new Transaction();
+      transaction.feePayer = transactionData.feePayer;
+      transaction.recentBlockhash = transactionData.recentBlockhash;
+      
+      // Add instructions
+      transactionData.instructions.forEach(instruction => {
+        transaction.add(instruction);
+      });
+      
+      // Sign with wallet
+      const signedTransaction = await signTransaction(transaction);
+      
+      // Send to blockchain
+      const signature = await this.blockchain.sendTransaction(signedTransaction);
+      
+      // Confirm transaction
+      const confirmed = await this.blockchain.confirmTransaction(signature);
+      
+      if (confirmed) {
+        return { 
+          success: true, 
+          signature,
+          explorerUrl: this.blockchain.getExplorerUrl(signature)
+        };
+      } else {
+        return { success: false, error: 'Transaction failed to confirm' };
+      }
+      
+    } catch (error) {
+      console.error('Error minting NFT:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
   }
 
   // Health and status
