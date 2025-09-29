@@ -474,13 +474,55 @@ function AdminPageContent() {
                     <div className="space-y-2 mb-4">
                       <h3 className="text-xl font-bold text-white">{collection.name}</h3>
                       <p className="text-white/70 text-sm">{collection.description}</p>
-                      <div className="flex justify-between text-sm text-white/60">
-                        <span>Supply: {collection.currentSupply || 0}/{collection.maxSupply}</span>
-                        <span>Price: {collection.price} $LOS</span>
+                      <div className="space-y-1 text-sm text-white/60">
+                        <div className="flex justify-between">
+                          <span>Supply:</span>
+                          <span>{collection.currentSupply || 0}/{collection.maxSupply}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Price:</span>
+                          <span>{collection.price} $LOS</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Symbol:</span>
+                          <span>{collection.symbol}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Fee:</span>
+                          <span>{collection.feePercentage}%</span>
+                        </div>
+                      </div>
+                      
+                      {/* Mint URL */}
+                      <div className="mt-3 p-2 bg-white/10 rounded-lg">
+                        <div className="text-xs text-white/60 mb-1">Mint URL:</div>
+                        <div className="text-xs text-white/80 break-all">
+                          {`https://analos-nft-launcher-9cxc.vercel.app/mint/${collection.name?.toLowerCase().replace(/\s+/g, '-')}`}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const url = `https://analos-nft-launcher-9cxc.vercel.app/mint/${collection.name?.toLowerCase().replace(/\s+/g, '-')}`;
+                            navigator.clipboard.writeText(url);
+                            alert('Mint URL copied to clipboard!');
+                          }}
+                          className="mt-1 text-xs bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded transition-colors"
+                        >
+                          📋 Copy URL
+                        </button>
                       </div>
                     </div>
                     
                     <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          const url = `https://analos-nft-launcher-9cxc.vercel.app/mint/${collection.name?.toLowerCase().replace(/\s+/g, '-')}`;
+                          window.open(url, '_blank');
+                        }}
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        🔗 View Mint Page
+                      </button>
+                      
                       <button
                         onClick={() => handleUpdateImage(collection)}
                         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
