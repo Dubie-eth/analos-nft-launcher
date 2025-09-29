@@ -40,8 +40,7 @@ const generatePinataImageUrl = (imageUrl: string, imageName: string): string => 
   }
   
   // Use your Pinata IPFS URL for the LOL logo
-  // Replace this hash with your actual Pinata IPFS hash once you upload your logo
-  const pinataLOLHash = 'QmYourPinataHashHere'; // Replace with your actual Pinata hash
+  const pinataLOLHash = 'bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm';
   return `https://gateway.pinata.cloud/ipfs/${pinataLOLHash}`;
 };
 
