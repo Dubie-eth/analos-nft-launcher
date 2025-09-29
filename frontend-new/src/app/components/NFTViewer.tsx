@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import Link from 'next/link';
 
 interface NFT {
   mintAddress: string;
@@ -172,12 +173,12 @@ function NFTViewerContent() {
                     : `No NFTs found in the ${selectedCollection} collection.`
                   }
                 </p>
-                <a
+                <Link
                   href="/mint"
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
                   Mint NFTs
-                </a>
+                </Link>
               </div>
             </div>
           ) : (
