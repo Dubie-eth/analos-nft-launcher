@@ -130,11 +130,14 @@ export class AnalosSDKWrapper {
       });
 
       console.log('✅ NFT minted successfully:', mintResult);
+      
+      // Return transaction for wallet signing
       return {
         success: true,
-        nfts: mintResult.nfts,
-        transactionSignature: mintResult.signature,
-        totalCost: mintResult.totalCost
+        requiresWalletSigning: true,
+        transaction: mintResult.transaction, // Base64 encoded transaction
+        totalCost: mintResult.totalCost,
+        nfts: mintResult.nfts
       };
     } catch (error) {
       console.error('❌ Failed to mint NFT:', error);

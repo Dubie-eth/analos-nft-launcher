@@ -449,6 +449,11 @@ app.post('/api/mint', async (req, res) => {
     // Mint from REAL smart contract using Analos SDKs
     let mintResult;
     try {
+      console.log('🔍 Debug: Checking SDK availability...');
+      console.log('🔍 analosSDK available:', !!analosSDK);
+      console.log('🔍 collection.collectionId:', collection.collectionId);
+      console.log('🔍 collection.poolAddress:', collection.poolAddress);
+      
       if (analosSDK && collection.collectionId) {
         console.log('🎯 Using Analos SDKs for minting...');
         mintResult = await analosSDK.mintNFT(
@@ -458,6 +463,7 @@ app.post('/api/mint', async (req, res) => {
         );
       } else {
         console.log('⚠️ Analos SDK not available, using fallback...');
+        console.log('⚠️ Reason: analosSDK =', !!analosSDK, ', collectionId =', collection.collectionId);
         mintResult = await smartContractService.mintNFT(
           collection.poolAddress,
           requestedQuantity,
@@ -490,20 +496,36 @@ app.post('/api/mint', async (req, res) => {
     console.log('💰 Total cost:', mintResult.totalCost, 'LOS');
     console.log('🔗 Explorer URL:', mintResult.explorerUrl);
 
-    res.json({
-      success: true,
-      transactionSignature: mintResult.transactionSignature,
-      explorerUrl: mintResult.explorerUrl,
-      quantity: requestedQuantity,
-      collection: collection.name,
-      totalCost: mintResult.totalCost,
-      currency: 'LOS',
-      nfts: mintResult.nfts,
-      realSmartContract: true,
-      poolAddress: collection.poolAddress,
-      requiresWalletSigning: true,
-      message: '⚠️ This is a simulated transaction. Real blockchain integration requires wallet signing and actual LOS transfer.'
-    });
+    // Check if this is a real transaction that needs wallet signing
+    if (mintResult.transaction && mintResult.requiresWalletSigning) {
+      // Real transaction - return it for wallet signing
+      res.json({
+        success: true,
+        requiresWalletSigning: true,
+        transaction: mintResult.transaction, // Base64 encoded transaction
+        totalCost: mintResult.totalCost,
+        quantity: requestedQuantity,
+        collection: collection.name,
+        currency: 'LOS',
+        message: 'Please sign the transaction in your wallet to mint the NFT'
+      });
+    } else {
+      // Simulated transaction - return mock response
+      res.json({
+        success: true,
+        transactionSignature: mintResult.transactionSignature,
+        explorerUrl: mintResult.explorerUrl,
+        quantity: requestedQuantity,
+        collection: collection.name,
+        totalCost: mintResult.totalCost,
+        currency: 'LOS',
+        nfts: mintResult.nfts,
+        realSmartContract: false,
+        poolAddress: collection.poolAddress,
+        requiresWalletSigning: false,
+        message: '⚠️ This is a simulated transaction. Real blockchain integration requires wallet signing and actual LOS transfer.'
+      });
+    }
 
   } catch (error) {
     console.error('Error minting from smart contract:', error);
