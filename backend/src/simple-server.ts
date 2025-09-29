@@ -567,9 +567,10 @@ app.post('/api/mint', async (req, res) => {
       });
     }
 
-    // Find the collection
+    // Find the collection by URL-friendly name or original name
     const collection = Array.from(collections.values()).find(
-      col => col.name.toLowerCase() === collectionName.toLowerCase()
+      col => col.urlFriendlyName?.toLowerCase() === collectionName.toLowerCase() || 
+             col.name.toLowerCase() === collectionName.toLowerCase()
     );
 
     if (!collection) {
@@ -732,9 +733,18 @@ app.post('/api/collections/deploy', async (req, res) => {
       return res.status(500).json({ success: false, error: collectionResult.error });
     }
 
+    // Generate URL-friendly collection name
+    const urlFriendlyName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
     const collectionData = {
       id: collectionId,
       name: name.trim(),
+      urlFriendlyName: urlFriendlyName,
       description: description?.trim() || '',
       imageUrl: imageUrl,
       totalSupply: Number(maxSupply),
@@ -764,14 +774,6 @@ app.post('/api/collections/deploy', async (req, res) => {
     // Store collection data
     collections.set(collectionId, collectionData);
     saveCollections();
-
-    // Generate URL-friendly collection name
-    const urlFriendlyName = name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
 
     // Generate mint page URL
     const mintUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://analos-nft-launcher-uz4a.vercel.app'}/mint/${urlFriendlyName}`;
@@ -916,9 +918,10 @@ app.get('/api/collections/:collectionName', async (req, res) => {
     const { collectionName } = req.params;
     const decodedName = decodeURIComponent(collectionName);
     
-    // Find collection by name (case-insensitive)
+    // Find collection by URL-friendly name or original name (case-insensitive)
     const collection = Array.from(collections.values()).find(
-      col => col.name.toLowerCase() === decodedName.toLowerCase()
+      col => col.urlFriendlyName?.toLowerCase() === decodedName.toLowerCase() || 
+             col.name.toLowerCase() === decodedName.toLowerCase()
     );
     
     if (!collection) {
@@ -1106,9 +1109,10 @@ app.get('/api/collections/:collectionName/migration-status', async (req, res) =>
     const { collectionName } = req.params;
     const decodedName = decodeURIComponent(collectionName);
     
-    // Find collection by name (case-insensitive)
+    // Find collection by URL-friendly name or original name (case-insensitive)
     const collection = Array.from(collections.values()).find(
-      col => col.name.toLowerCase() === decodedName.toLowerCase()
+      col => col.urlFriendlyName?.toLowerCase() === decodedName.toLowerCase() || 
+             col.name.toLowerCase() === decodedName.toLowerCase()
     );
     
     if (!collection) {
@@ -1139,9 +1143,10 @@ app.post('/api/collections/:collectionName/migrate', async (req, res) => {
     const { collectionName } = req.params;
     const decodedName = decodeURIComponent(collectionName);
     
-    // Find collection by name (case-insensitive)
+    // Find collection by URL-friendly name or original name (case-insensitive)
     const collection = Array.from(collections.values()).find(
-      col => col.name.toLowerCase() === decodedName.toLowerCase()
+      col => col.urlFriendlyName?.toLowerCase() === decodedName.toLowerCase() || 
+             col.name.toLowerCase() === decodedName.toLowerCase()
     );
     
     if (!collection) {
