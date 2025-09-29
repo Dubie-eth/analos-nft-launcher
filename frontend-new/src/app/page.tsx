@@ -5,9 +5,9 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-6xl font-bold text-white mb-6">
-            Analos NFT Launcher v3.0.0 - REAL SMART CONTRACTS LIVE!
-          </h1>
+                <h1 className="text-6xl font-bold text-white mb-6">
+                  Analos NFT Launcher v3.1.0 - BACKEND FIXED & LIVE!
+                </h1>
           <p className="text-xl text-white/80 mb-12">
             Launch and mint NFTs on the Analos blockchain using $LOS
           </p>
