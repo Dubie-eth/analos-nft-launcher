@@ -83,7 +83,7 @@ app.post('/api/mint/instructions', (req, res) => {
 app.get('/api/collections', (req, res) => {
   res.json({
     success: true,
-    data: [
+    collections: [
       {
         id: 'launch-on-los',
         name: 'Launch On LOS',
@@ -93,9 +93,34 @@ app.get('/api/collections', (req, res) => {
         totalSupply: 1111,
         currentSupply: 0,
         isActive: true,
-        symbol: '$LOL'
+        symbol: '$LOL',
+        feePercentage: 2.5,
+        externalUrl: 'https://launchonlos.fun/'
       }
     ]
+  });
+});
+
+// Mock individual collection endpoint
+app.get('/api/collections/:collectionName', (req, res) => {
+  const { collectionName } = req.params;
+  
+  res.json({
+    success: true,
+    collection: {
+      id: 'launch-on-los',
+      name: 'Launch On LOS',
+      description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+      imageUrl: 'https://picsum.photos/500/500?random=collection',
+      mintPrice: 4200.69,
+      totalSupply: 1111,
+      currentSupply: 0,
+      isActive: true,
+      symbol: '$LOL',
+      feePercentage: 2.5,
+      externalUrl: 'https://launchonlos.fun/',
+      feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'
+    }
   });
 });
 
