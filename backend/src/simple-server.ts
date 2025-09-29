@@ -45,7 +45,9 @@ const upload = multer({
 
 // Persistent collection storage
 const collections = new Map<string, any>();
+const allNFTs = new Map<string, any>();
 const COLLECTIONS_FILE = 'collections.json';
+const NFTS_FILE = 'nfts.json';
 
 // Load collections from file on startup
 const loadCollections = () => {
@@ -63,6 +65,22 @@ const loadCollections = () => {
   }
 };
 
+// Load NFTs from file on startup
+const loadNFTs = () => {
+  try {
+    if (fs.existsSync(NFTS_FILE)) {
+      const data = fs.readFileSync(NFTS_FILE, 'utf8');
+      const nftsData = JSON.parse(data);
+      Object.entries(nftsData).forEach(([id, nft]) => {
+        allNFTs.set(id, nft);
+      });
+      console.log(`🎨 Loaded ${allNFTs.size} NFTs from storage`);
+    }
+  } catch (error) {
+    console.error('Error loading NFTs:', error);
+  }
+};
+
 // Save collections to file
 const saveCollections = () => {
   try {
@@ -74,8 +92,20 @@ const saveCollections = () => {
   }
 };
 
-// Load collections on startup
+// Save NFTs to file
+const saveNFTs = () => {
+  try {
+    const nftsData = Object.fromEntries(allNFTs);
+    fs.writeFileSync(NFTS_FILE, JSON.stringify(nftsData, null, 2));
+    console.log(`💾 Saved ${allNFTs.size} NFTs to storage`);
+  } catch (error) {
+    console.error('Error saving NFTs:', error);
+  }
+};
+
+// Load data on startup
 loadCollections();
+loadNFTs();
 
 // Real Analos Blockchain Service
 class AnalosBlockchainService {
@@ -622,7 +652,7 @@ app.get('/api/metadata/:collectionId/:tokenId', (req, res) => {
     }
     
     // Find the specific NFT
-    const nft = Array.from(allNFTs.values()).find(n => 
+    const nft = Array.from(allNFTs.values()).find((n: any) => 
       n.collection === collection.name && n.tokenId === parseInt(tokenId)
     );
     
@@ -703,7 +733,7 @@ app.put('/api/collections/:collectionId/reveal', (req, res) => {
     const nftUpdates: any[] = [];
     
     // Update NFTs with new images based on reveal type
-    allNFTs.forEach(nft => {
+    allNFTs.forEach((nft: any) => {
       if (nft.collection === collection.name) {
         let newImage;
         
@@ -821,7 +851,7 @@ app.put('/api/collections/:collectionId/image', (req, res) => {
     
     // Update metadata for existing NFTs in this collection
     let updatedNFTs = 0;
-    allNFTs.forEach(nft => {
+    allNFTs.forEach((nft: any) => {
       if (nft.collection === collection.name) {
         nft.image = newImageUrl;
         updatedNFTs++;
@@ -877,37 +907,14 @@ app.get('/health', (req, res) => {
 // NFT Explorer endpoint
 app.get('/api/nfts', (req, res) => {
   try {
-    // Generate mock NFT data for demonstration
-    // In a real implementation, this would query the blockchain for actual NFT data
-    const mockNFTs: any[] = [];
-    
-    // Get all collections and generate NFTs for them
-    const allCollections = Array.from(collections.values());
-    
-    allCollections.forEach(collection => {
-      for (let i = 1; i <= collection.currentSupply; i++) {
-        mockNFTs.push({
-          mintAddress: `${collection.mintAddress || 'mock_mint'}_${i}`,
-          tokenId: i,
-          name: `${collection.name} #${i}`,
-          description: collection.description || `A unique NFT from the ${collection.name} collection`,
-          image: collection.imageUrl,
-          collection: collection.name,
-          owner: `owner_${Math.random().toString(36).substr(2, 9)}`,
-          metadata: collection.metadataAddress,
-          masterEdition: collection.masterEditionAddress,
-          transactionSignature: `mock_tx_${Date.now()}_${i}`,
-          explorerUrl: `https://explorer.analos.io/tx/mock_tx_${Date.now()}_${i}`,
-          mintedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString() // Random date within last 30 days
-        });
-      }
-    });
+    // Get all NFTs from our database
+    const allNFTsList = Array.from(allNFTs.values());
     
     res.json({
       success: true,
-      nfts: mockNFTs,
-      total: mockNFTs.length,
-      collections: allCollections.length
+      nfts: allNFTsList,
+      total: allNFTsList.length,
+      collections: collections.size
     });
   } catch (error) {
     console.error('Error fetching NFTs:', error);
@@ -1082,6 +1089,29 @@ app.post('/api/mint', async (req, res) => {
         
         if (mintResult.success) {
           mintResults.push(mintResult);
+          
+          // Create and store NFT in our database
+          const nftId = `${collection.id}_${nftNumber}`;
+          const nft = {
+            id: nftId,
+            collection: collection.name,
+            tokenId: nftNumber,
+            name: metadata.name,
+            description: metadata.description,
+            image: metadata.image,
+            owner: walletAddress,
+            mintAddress: mintResult.mintAddress || `mock_mint_${nftId}`,
+            transactionSignature: mintResult.transactionSignature,
+            mintedAt: new Date().toISOString(),
+            metadataUri: `https://analos-nft-launcher-production-f3da.up.railway.app/api/metadata/${collection.id}/${nftNumber}`,
+            attributes: [
+              { trait_type: "Collection", value: collection.name },
+              { trait_type: "Token ID", value: nftNumber.toString() }
+            ]
+          };
+          
+          allNFTs.set(nftId, nft);
+          
           // Record the mint
           openMintService.recordMint();
         } else {
@@ -1094,6 +1124,7 @@ app.post('/api/mint', async (req, res) => {
     collection.currentSupply += requestedQuantity;
     collections.set(collection.id, collection);
     saveCollections();
+    saveNFTs();
 
     // Generate transaction signature based on collection type
     let transactionSignature;
