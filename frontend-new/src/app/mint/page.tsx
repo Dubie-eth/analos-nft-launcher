@@ -26,6 +26,13 @@ function MintPageContent() {
   useEffect(() => {
     setMounted(true);
     fetchCollections();
+    
+    // Set up real-time updates every 5 seconds
+    const interval = setInterval(() => {
+      fetchCollections();
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchCollections = async () => {
@@ -115,7 +122,7 @@ function MintPageContent() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-white/80 text-sm">
                           <span>Price:</span>
-                          <span className="font-semibold">{collection.mintPrice} $LOS</span>
+                          <span className="font-semibold">{collection.mintPrice?.toFixed(2) || '0.00'} $LOS</span>
                         </div>
                         
                         <div className="flex justify-between text-white/80 text-sm">

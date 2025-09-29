@@ -58,6 +58,13 @@ function CollectionMintContent() {
     setMounted(true);
     if (collectionName) {
       fetchCollectionInfo();
+      
+      // Set up real-time updates every 5 seconds
+      const interval = setInterval(() => {
+        fetchCollectionInfo();
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, [collectionName, fetchCollectionInfo]);
 
@@ -307,7 +314,7 @@ function CollectionMintContent() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-white/80">
                         <span>Price per NFT:</span>
-                        <span>{collection.mintPrice} $LOS</span>
+                        <span>{collection.mintPrice?.toFixed(2) || '0.00'} $LOS</span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Quantity:</span>
@@ -315,20 +322,20 @@ function CollectionMintContent() {
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Subtotal:</span>
-                        <span>{totalCost} $LOS</span>
+                        <span>{totalCost?.toFixed(2) || '0.00'} $LOS</span>
                       </div>
                       <div className="flex justify-between text-white/80">
-                        <span>Platform Fee ({collection.feePercentage}%):</span>
-                        <span>{platformFee.toFixed(2)} $LOS</span>
+                        <span>Platform Fee ({collection.feePercentage || 0}%):</span>
+                        <span>{platformFee?.toFixed(2) || '0.00'} $LOS</span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Creator Revenue:</span>
-                        <span>{creatorRevenue.toFixed(2)} $LOS</span>
+                        <span>{creatorRevenue?.toFixed(2) || '0.00'} $LOS</span>
                       </div>
                       <hr className="border-white/20" />
                       <div className="flex justify-between text-white font-semibold">
                         <span>Total Cost:</span>
-                        <span>{totalCost} $LOS</span>
+                        <span>{totalCost?.toFixed(2) || '0.00'} $LOS</span>
                       </div>
                     </div>
                   </div>
