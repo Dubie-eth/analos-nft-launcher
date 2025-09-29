@@ -189,6 +189,9 @@ function AdminPageContent() {
         image: imageBase64
       };
 
+      console.log('🚀 Deploying collection with payload:', payload);
+      console.log('💰 Price being sent:', payload.price, 'Type:', typeof payload.price);
+
       // Call backend API
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       console.log('Backend URL:', backendUrl);
