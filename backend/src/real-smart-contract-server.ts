@@ -152,11 +152,14 @@ const smartContractService = new RealSmartContractService(connection);
 // Initialize Analos SDK wrapper
 let analosSDK: AnalosSDKWrapper;
 try {
+  console.log('🚀 Initializing Analos SDK wrapper...');
   analosSDK = new AnalosSDKWrapper(connection);
   analosSDK.initialize().then(() => {
     console.log('✅ Analos SDK wrapper initialized successfully');
   }).catch((error: any) => {
     console.error('❌ Failed to initialize Analos SDK wrapper:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
   });
 } catch (error) {
   console.error('❌ Failed to create Analos SDK wrapper:', error);
@@ -365,6 +368,7 @@ app.post('/api/collections/deploy', async (req, res) => {
       isActive: true,
       currentSupply: 0,
       // REAL blockchain data
+      collectionId: deploymentResult.collectionId, // Add collectionId for SDK minting
       configKey: deploymentResult.configKey,
       poolAddress: deploymentResult.poolAddress,
       transactionSignature: deploymentResult.transactionSignature,
@@ -454,16 +458,20 @@ app.post('/api/mint', async (req, res) => {
       console.log('🔍 collection.collectionId:', collection.collectionId);
       console.log('🔍 collection.poolAddress:', collection.poolAddress);
       
-      if (analosSDK && collection.collectionId) {
+      // Use collectionId if available, otherwise fall back to poolAddress
+      const identifier = collection.collectionId || collection.poolAddress;
+      
+      if (analosSDK && identifier) {
         console.log('🎯 Using Analos SDKs for minting...');
+        console.log('🎯 Using identifier:', identifier);
         mintResult = await analosSDK.mintNFT(
-          collection.collectionId,
+          identifier,
           requestedQuantity,
           walletAddress
         );
       } else {
         console.log('⚠️ Analos SDK not available, using fallback...');
-        console.log('⚠️ Reason: analosSDK =', !!analosSDK, ', collectionId =', collection.collectionId);
+        console.log('⚠️ Reason: analosSDK =', !!analosSDK, ', identifier =', identifier);
         mintResult = await smartContractService.mintNFT(
           collection.poolAddress,
           requestedQuantity,
