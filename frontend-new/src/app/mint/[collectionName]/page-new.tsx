@@ -31,7 +31,7 @@ function CollectionMintContent() {
 
   const fetchCollectionInfo = useCallback(async () => {
     try {
-      // Fixed backend URL for collection lookup - v2.1 - bypassing env vars
+      // Fixed backend URL for collection lookup - v3.2.0 - bypassing env vars
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       const fullUrl = `${backendUrl}/api/collections/${encodeURIComponent(collectionName)}`;
       console.log('Fetching collection from:', fullUrl);
@@ -69,7 +69,7 @@ function CollectionMintContent() {
     }
 
     if (mintQuantity < 1 || mintQuantity > 10) {
-      setMintStatus('Please select 1-10 NFTs to mint');
+      setMintStatus('Quantity must be between 1 and 10');
       return;
     }
 
@@ -77,7 +77,7 @@ function CollectionMintContent() {
     setMintStatus('Minting NFTs...');
 
     try {
-      // Fixed backend URL for minting - v2.1 - bypassing env vars
+      // Fixed backend URL for minting - v3.2.0 - bypassing env vars
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       const mintUrl = `${backendUrl}/api/mint`;
       console.log('Minting from:', mintUrl);
@@ -94,17 +94,21 @@ function CollectionMintContent() {
       });
 
       if (!response.ok) {
-        throw new Error('Minting failed');
+        throw new Error('Failed to mint NFT');
       }
 
       const result = await response.json();
-      setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${result.transactionSignature}`);
       
-      // Refresh collection info
-      fetchCollectionInfo();
+      if (result.success) {
+        setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+        // Refresh collection info to update supply
+        fetchCollectionInfo();
+      } else {
+        setMintStatus(`Minting failed: ${result.error}`);
+      }
     } catch (error) {
-      setMintStatus('Minting failed. Please try again.');
       console.error('Minting error:', error);
+      setMintStatus('Minting failed. Please try again.');
     } finally {
       setMinting(false);
     }
@@ -122,8 +126,14 @@ function CollectionMintContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Collection Not Found</h1>
-          <p className="text-white/80">The collection &quot;{collectionName}&quot; could not be found.</p>
+          <h1 className="text-3xl font-bold text-white mb-4">Collection Not Found</h1>
+          <p className="text-white/80 mb-6">{mintStatus}</p>
+          <a 
+            href="/mint" 
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            Back to Collections
+          </a>
         </div>
       </div>
     );
@@ -138,6 +148,12 @@ function CollectionMintContent() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold text-white">Mint NFTs</h1>
+            <WalletMultiButton />
+          </div>
+
           <div className="grid md:grid-cols-2 gap-8">
             {/* Collection Info */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
@@ -180,7 +196,7 @@ function CollectionMintContent() {
                     href={collection.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-purple-400 hover:text-purple-300 text-sm underline"
+                    className="text-purple-400 hover:text-purple-300 transition-colors"
                   >
                     View Collection Website
                   </a>
@@ -188,101 +204,91 @@ function CollectionMintContent() {
               )}
             </div>
 
-            {/* Minting Interface */}
+            {/* Mint Interface */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <h2 className="text-2xl font-bold text-white mb-6">Mint NFTs</h2>
               
-              {/* Wallet Connection */}
-              <div className="text-center mb-6">
-                <WalletMultiButton className="!bg-purple-600 hover:!bg-purple-700" />
-                {connected && (
-                  <p className="text-white/60 mt-2 text-sm">
-                    Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-                  </p>
-                )}
-              </div>
+              {connected ? (
+                <div>
+                  <div className="mb-6">
+                    <p className="text-white/80 text-sm mb-2">Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}</p>
+                  </div>
 
-              {/* Quantity Selection */}
-              <div className="mb-6">
-                <label className="block text-white/80 text-sm font-medium mb-2">
-                  Quantity (1-10)
-                </label>
-                <div className="flex items-center space-x-4">
+                  {/* Quantity Selector */}
+                  <div className="mb-6">
+                    <label className="block text-white/80 text-sm mb-2">Quantity (1-10)</label>
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => setMintQuantity(Math.max(1, mintQuantity - 1))}
+                        className="bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-lg transition-colors"
+                        disabled={mintQuantity <= 1}
+                      >
+                        -
+                      </button>
+                      <span className="text-white text-xl font-semibold min-w-[3rem] text-center">
+                        {mintQuantity}
+                      </span>
+                      <button
+                        onClick={() => setMintQuantity(Math.min(10, mintQuantity + 1))}
+                        className="bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-lg transition-colors"
+                        disabled={mintQuantity >= 10}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cost Breakdown */}
+                  <div className="bg-white/10 rounded-lg p-4 mb-6">
+                    <h3 className="text-lg font-semibold text-white mb-3">Cost Breakdown</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between text-white/80">
+                        <span>Price per NFT:</span>
+                        <span>{collection.mintPrice} $LOS</span>
+                      </div>
+                      <div className="flex justify-between text-white/80">
+                        <span>Quantity:</span>
+                        <span>{mintQuantity}</span>
+                      </div>
+                      <div className="flex justify-between text-white/80">
+                        <span>Subtotal:</span>
+                        <span>{totalCost} $LOS</span>
+                      </div>
+                      <div className="flex justify-between text-white/80">
+                        <span>Platform Fee ({collection.feePercentage}%):</span>
+                        <span>{platformFee.toFixed(2)} $LOS</span>
+                      </div>
+                      <div className="flex justify-between text-white/80">
+                        <span>Creator Revenue:</span>
+                        <span>{creatorRevenue.toFixed(2)} $LOS</span>
+                      </div>
+                      <hr className="border-white/20" />
+                      <div className="flex justify-between text-white font-semibold">
+                        <span>Total Cost:</span>
+                        <span>{totalCost} $LOS</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mint Button */}
                   <button
-                    onClick={() => setMintQuantity(Math.max(1, mintQuantity - 1))}
-                    disabled={mintQuantity <= 1}
-                    className="w-10 h-10 bg-white/20 border border-white/30 rounded-lg text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    onClick={handleMint}
+                    disabled={minting || !connected || remainingSupply < mintQuantity}
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
                   >
-                    -
+                    {minting ? 'Minting...' : `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} $LOS`}
                   </button>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={mintQuantity}
-                    onChange={(e) => setMintQuantity(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-                    className="w-20 px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button
-                    onClick={() => setMintQuantity(Math.min(10, mintQuantity + 1))}
-                    disabled={mintQuantity >= 10}
-                    className="w-10 h-10 bg-white/20 border border-white/30 rounded-lg text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    +
-                  </button>
+
+                  {mintStatus && (
+                    <div className="mt-4 p-3 bg-white/10 rounded-lg">
+                      <p className="text-white text-sm">{mintStatus}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Cost Breakdown */}
-              <div className="bg-white/10 rounded-lg p-4 mb-6">
-                <h3 className="text-lg font-semibold text-white mb-3">Cost Breakdown</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-white/80">
-                    <span>Price per NFT:</span>
-                    <span>{collection.mintPrice} $LOS</span>
-                  </div>
-                  <div className="flex justify-between text-white/80">
-                    <span>Quantity:</span>
-                    <span>{mintQuantity}</span>
-                  </div>
-                  <div className="flex justify-between text-white/80">
-                    <span>Subtotal:</span>
-                    <span>{totalCost} $LOS</span>
-                  </div>
-                  <div className="flex justify-between text-white/80">
-                    <span>Platform Fee ({collection.feePercentage}%):</span>
-                    <span>{platformFee.toFixed(2)} $LOS</span>
-                  </div>
-                  <div className="flex justify-between text-white/80">
-                    <span>Creator Revenue:</span>
-                    <span>{creatorRevenue.toFixed(2)} $LOS</span>
-                  </div>
-                  <hr className="border-white/20" />
-                  <div className="flex justify-between text-white font-semibold">
-                    <span>Total Cost:</span>
-                    <span>{totalCost} $LOS</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mint Button */}
-              <button
-                onClick={handleMint}
-                disabled={!connected || minting || remainingSupply < mintQuantity}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
-              >
-                {minting ? 'Minting...' : `Mint ${mintQuantity} NFT${mintQuantity > 1 ? 's' : ''} for ${totalCost} $LOS`}
-              </button>
-
-              {remainingSupply < mintQuantity && (
-                <p className="text-red-400 text-sm mt-2 text-center">
-                  Not enough supply remaining
-                </p>
-              )}
-
-              {mintStatus && (
-                <div className="mt-6 p-4 bg-white/20 rounded-lg">
-                  <p className="text-white text-center">{mintStatus}</p>
+              ) : (
+                <div className="text-center">
+                  <p className="text-white/80 mb-6">Connect your wallet to mint NFTs</p>
+                  <WalletMultiButton />
                 </div>
               )}
             </div>
