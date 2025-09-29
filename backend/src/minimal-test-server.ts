@@ -105,25 +105,11 @@ app.post('/api/mint/instructions', (req, res) => {
   }
 });
 
-// Mock collections endpoint
+// Mock collections endpoint - Clean slate, no collections yet
 app.get('/api/collections', (req, res) => {
   res.json({
     success: true,
-    collections: [
-      {
-        id: 'launch-on-los',
-        name: 'Launch On LOS',
-        description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-        imageUrl: 'https://i.imgur.com/UO6Jo6S.png', // LOL Logo from Imgur gallery (try .png)
-        mintPrice: 4200.69,
-        totalSupply: 1111,
-        currentSupply: 1, // Updated to reflect minted NFT
-        isActive: true,
-        symbol: '$LOL',
-        feePercentage: 2.5,
-        externalUrl: 'https://launchonlos.fun/'
-      }
-    ]
+    collections: [] // Empty array - clean slate for new collection
   });
 });
 
@@ -131,22 +117,10 @@ app.get('/api/collections', (req, res) => {
 app.get('/api/collections/:collectionName', (req, res) => {
   const { collectionName } = req.params;
   
-  res.json({
-    success: true,
-    collection: {
-      id: 'launch-on-los',
-      name: 'Launch On LOS',
-      description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-        imageUrl: 'https://i.imgur.com/UO6Jo6S.png', // LOL Logo from Imgur gallery (try .png)
-      mintPrice: 4200.69,
-      totalSupply: 1111,
-      currentSupply: 0,
-      isActive: true,
-      symbol: '$LOL',
-      feePercentage: 2.5,
-      externalUrl: 'https://launchonlos.fun/',
-      feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'
-    }
+  // Return 404 since we're starting with a clean slate
+  res.status(404).json({
+    success: false,
+    error: 'Collection not found - clean slate, no collections deployed yet'
   });
 });
 
