@@ -51,26 +51,39 @@ app.post('/api/mint/instructions', (req, res) => {
       return result;
     };
     
-    // Return mock instructions with valid base58 addresses
+    // Use known valid Solana public keys for testing
+    const validSolanaKeys = [
+      '11111111111111111111111111111112', // System Program
+      'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', // Token Program
+      'So11111111111111111111111111111111111111112', // Wrapped SOL
+      'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+      'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', // USDT
+    ];
+    
+    const getValidSolanaKey = () => {
+      return validSolanaKeys[Math.floor(Math.random() * validSolanaKeys.length)];
+    };
+    
+    // Return mock instructions in the exact format the SDK expects
     res.json({
       success: true,
       instructions: [
         {
           type: 'createMintAccount',
-          mintAddress: generateBase58Address(),
+          mintAddress: getValidSolanaKey(),
           metadata: {
             name: `${collectionName} #1`,
             description: `Test NFT from ${collectionName}`,
             image: 'https://picsum.photos/500/500?random=1'
           },
           mintKeypair: {
-            publicKey: generateBase58Address(),
+            publicKey: getValidSolanaKey(),
             secretKey: Array.from({length: 64}, () => Math.floor(Math.random() * 256))
           }
         }
       ],
       nftData: [{
-        mintAddress: generateBase58Address(),
+        mintAddress: getValidSolanaKey(),
         metadata: {
           name: `${collectionName} #1`,
           description: `Test NFT from ${collectionName}`,
