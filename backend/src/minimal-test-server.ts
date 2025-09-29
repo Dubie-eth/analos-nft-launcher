@@ -4,6 +4,9 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Store deployed collections in memory (in production, this would be a database)
+let deployedCollections: any[] = [];
+
 // Basic CORS
 app.use(cors());
 app.use(express.json());
@@ -105,22 +108,35 @@ app.post('/api/mint/instructions', (req, res) => {
   }
 });
 
-// Mock collections endpoint - Clean slate, no collections yet
+// Collections endpoint - returns deployed collections
 app.get('/api/collections', (req, res) => {
   res.json({
     success: true,
-    collections: [] // Empty array - clean slate for new collection
+    collections: deployedCollections // Return actually deployed collections
   });
 });
 
-// Mock individual collection endpoint
+// Individual collection endpoint
 app.get('/api/collections/:collectionName', (req, res) => {
   const { collectionName } = req.params;
   
-  // Return 404 since we're starting with a clean slate
-  res.status(404).json({
-    success: false,
-    error: 'Collection not found - clean slate, no collections deployed yet'
+  // Find the collection by name (case insensitive)
+  const collection = deployedCollections.find(
+    col => col.name.toLowerCase() === collectionName.toLowerCase() ||
+           col.id.toLowerCase() === collectionName.toLowerCase()
+  );
+  
+  if (!collection) {
+    res.status(404).json({
+      success: false,
+      error: 'Collection not found'
+    });
+    return;
+  }
+  
+  res.json({
+    success: true,
+    collection: collection
   });
 });
 
@@ -165,28 +181,34 @@ app.post('/api/collections/deploy', (req, res) => {
     
     console.log('🚀 Collection deploy request:', { name, symbol, description, mintPrice, maxSupply });
     
-    // Return mock deployment success
+    // Create new collection
+    const newCollection = {
+      id: name?.toLowerCase().replace(/\s+/g, '-') || 'new-collection',
+      name: name || 'New Collection',
+      symbol: symbol || '$NEW',
+      description: description || 'A new NFT collection',
+      imageUrl: imageUrl || 'https://i.imgur.com/UO6Jo6S.png', // Default gradient emoji
+      mintPrice: mintPrice || 1.0,
+      totalSupply: maxSupply || 100,
+      currentSupply: 0,
+      isActive: true,
+      feePercentage: platformFee || 2.5,
+      externalUrl: externalUrl || '',
+      feeRecipient: feeRecipientAddress || '',
+      deployedAt: new Date().toISOString(),
+      mintAddress: 'mock_collection_mint_' + Date.now(),
+      metadataAddress: 'mock_metadata_' + Date.now(),
+      masterEditionAddress: 'mock_master_edition_' + Date.now()
+    };
+    
+    // Add to deployed collections (replace any existing collections for clean slate)
+    deployedCollections = [newCollection];
+    
+    // Return deployment success
     res.json({
       success: true,
-      message: 'Collection deployed successfully (mock)',
-      data: {
-        id: 'launch-on-los',
-        name: name || 'Launch On LOS',
-        symbol: symbol || '$LOL',
-        description: description || 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-              imageUrl: imageUrl || 'https://i.imgur.com/8K3vQ2J.jpg', // Use actual uploaded image
-        mintPrice: mintPrice || 4200.69,
-        totalSupply: maxSupply || 1111,
-        currentSupply: 1, // Updated to reflect minted NFT
-        isActive: true,
-        platformFee: platformFee || 2.5,
-        feeRecipientAddress: feeRecipientAddress || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-        externalUrl: externalUrl || 'https://launchonlos.fun/',
-        deployedAt: new Date().toISOString(),
-        mintAddress: 'mock_collection_mint_' + Date.now(),
-        metadataAddress: 'mock_metadata_' + Date.now(),
-        masterEditionAddress: 'mock_master_edition_' + Date.now()
-      }
+      message: `Collection '${newCollection.name}' deployed successfully!`,
+      data: newCollection
     });
   } catch (error) {
     console.error('Error deploying collection:', error);
