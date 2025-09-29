@@ -286,10 +286,12 @@ function AdminPageContent() {
       console.log('💾 Saving collection with payload:', payload);
       console.log('💰 Price being saved:', payload.price, 'Type:', typeof payload.price);
 
-      // Call backend API to update existing collection
+      // Call backend API to save collection data (not deploy to blockchain)
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/collections/update`, {
-        method: 'PUT',
+      
+      // Use the save endpoint to store collection data in backend
+      const response = await fetch(`${backendUrl}/api/collections/save`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -527,26 +529,31 @@ function AdminPageContent() {
 
             {/* Deploy and Save Buttons */}
             <div className="text-center mt-8 space-y-4">
-              {/* Deploy Button - for new collections */}
-              <button
-                onClick={handleDeploy}
-                disabled={!connected || !collectionData.name.trim() || !collectionData.image || !collectionData.symbol.trim() || deploying}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-12 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-lg"
-              >
-                {deploying ? 'Deploying to Analos...' : 'Deploy Collection'}
-              </button>
+              {/* Deploy Button - deploys to blockchain */}
+              <div>
+                <button
+                  onClick={handleDeploy}
+                  disabled={!connected || !collectionData.name.trim() || !collectionData.image || !collectionData.symbol.trim() || deploying}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-12 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-lg"
+                >
+                  {deploying ? 'Deploying to Blockchain...' : '🚀 Deploy to Blockchain'}
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Deploy collection to Analos blockchain for NFT minting
+                </p>
+              </div>
 
-              {/* Save Changes Button - for updating existing collections */}
+              {/* Save Changes Button - saves to backend storage */}
               <div>
                 <button
                   onClick={handleSaveChanges}
                   disabled={!connected || !collectionData.name.trim() || !collectionData.symbol.trim() || saving}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
                 >
-                  {saving ? 'Saving Changes...' : '💾 Save Changes'}
+                  {saving ? 'Saving to Backend...' : '💾 Save Collection Data'}
                 </button>
                 <p className="text-white/60 text-sm mt-2">
-                  Update existing collection with current form values
+                  Save collection data to backend (not deployed to blockchain yet)
                 </p>
               </div>
             </div>
