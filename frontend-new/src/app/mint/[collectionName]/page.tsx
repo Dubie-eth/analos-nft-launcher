@@ -8,9 +8,9 @@ import { useParams } from 'next/navigation';
 interface CollectionInfo {
   name: string;
   description: string;
-  image: string;
-  price: number;
-  maxSupply: number;
+  imageUrl: string;
+  mintPrice: number;
+  totalSupply: number;
   currentSupply: number;
   feePercentage: number;
   symbol: string;
@@ -143,7 +143,7 @@ function CollectionMintContent() {
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <div className="text-center mb-6">
                 <img
-                  src={collection.image}
+                  src={collection.imageUrl}
                   alt={collection.name}
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />

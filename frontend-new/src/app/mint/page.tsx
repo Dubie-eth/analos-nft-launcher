@@ -8,9 +8,9 @@ import Link from 'next/link';
 interface Collection {
   name: string;
   description: string;
-  image: string;
-  price: number;
-  maxSupply: number;
+  imageUrl: string;
+  mintPrice: number;
+  totalSupply: number;
   currentSupply: number;
   feePercentage: number;
   symbol: string;
@@ -91,8 +91,8 @@ function MintPageContent() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {collections.map((collection) => {
-                const remainingSupply = collection.maxSupply - collection.currentSupply;
-                const progressPercentage = (collection.currentSupply / collection.maxSupply) * 100;
+                const remainingSupply = collection.totalSupply - collection.currentSupply;
+                const progressPercentage = (collection.currentSupply / collection.totalSupply) * 100;
                 
                 return (
                   <Link
@@ -103,7 +103,7 @@ function MintPageContent() {
                     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
                       <div className="mb-4">
                         <img
-                          src={collection.image}
+                          src={collection.imageUrl}
                           alt={collection.name}
                           className="w-full h-48 object-cover rounded-lg"
                         />
@@ -115,12 +115,12 @@ function MintPageContent() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-white/80 text-sm">
                           <span>Price:</span>
-                          <span className="font-semibold">{collection.price} $LOS</span>
+                          <span className="font-semibold">{collection.mintPrice} $LOS</span>
                         </div>
                         
                         <div className="flex justify-between text-white/80 text-sm">
                           <span>Supply:</span>
-                          <span>{collection.currentSupply}/{collection.maxSupply}</span>
+                          <span>{collection.currentSupply}/{collection.totalSupply}</span>
                         </div>
                         
                         <div className="w-full bg-white/20 rounded-full h-2">
