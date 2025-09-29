@@ -4,6 +4,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
+import { AnalosSDKService } from './analos-sdk-service';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -77,7 +78,7 @@ loadCollections();
 // Real Analos Blockchain Service
 class AnalosBlockchainService {
   private connection: Connection;
-  private walletKeypair: Keypair;
+  public walletKeypair: Keypair;
 
   constructor() {
     this.connection = connection;
@@ -273,6 +274,9 @@ class AnalosBlockchainService {
 
 // Initialize blockchain service
 const blockchainService = new AnalosBlockchainService();
+
+// Initialize Analos SDK service
+const analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
 
 // Real Transaction Service for handling wallet interactions
 class TransactionService {
@@ -601,25 +605,43 @@ app.post('/api/mint', async (req, res) => {
       });
     }
 
-    // Create NFT metadata for each NFT to be minted
-    const mintResults = [];
-    for (let i = 0; i < requestedQuantity; i++) {
-      const nftNumber = collection.currentSupply + i + 1;
-      const metadata = {
-        name: `${collection.name} #${nftNumber}`,
-        description: collection.description || `A unique NFT from the ${collection.name} collection`,
-        image: collection.imageUrl || 'https://picsum.photos/500/500?random=' + Date.now()
-      };
-
-      // Mint NFT using real blockchain service
-      const mintResult = await blockchainService.mintRealNFT(metadata, walletAddress, collection.id);
+    // Use Analos SDK to mint NFTs if pool address is available
+    let mintResults = [];
+    if (collection.poolAddress) {
+      // Use real Analos SDK for minting
+      const mintResult = await analosSDKService.mintNFTs(
+        collection.poolAddress,
+        requestedQuantity,
+        walletAddress
+      );
       
       if (mintResult.success) {
-        mintResults.push(mintResult);
+        mintResults = mintResult.nfts;
         // Record the mint
         openMintService.recordMint();
       } else {
         return res.status(500).json({ success: false, error: mintResult.error });
+      }
+    } else {
+      // Fallback to mock minting for collections without pool address
+      for (let i = 0; i < requestedQuantity; i++) {
+        const nftNumber = collection.currentSupply + i + 1;
+        const metadata = {
+          name: `${collection.name} #${nftNumber}`,
+          description: collection.description || `A unique NFT from the ${collection.name} collection`,
+          image: collection.imageUrl || 'https://picsum.photos/500/500?random=' + Date.now()
+        };
+
+        // Mint NFT using real blockchain service
+        const mintResult = await blockchainService.mintRealNFT(metadata, walletAddress, collection.id);
+        
+        if (mintResult.success) {
+          mintResults.push(mintResult);
+          // Record the mint
+          openMintService.recordMint();
+        } else {
+          return res.status(500).json({ success: false, error: mintResult.error });
+        }
       }
     }
 
@@ -693,7 +715,23 @@ app.post('/api/collections/deploy', async (req, res) => {
       imageUrl = image;
     }
 
-    // For now, we'll create a mock deployment since we don't have the actual smart contract deployed
+    // Use Analos SDK to create the collection
+    const collectionResult = await analosSDKService.createNFTCollection({
+      name: name.trim(),
+      symbol: symbol.trim().toUpperCase(),
+      description: description?.trim() || '',
+      image: imageUrl,
+      maxSupply: Number(maxSupply),
+      mintPrice: Number(price),
+      feePercentage: Number(feePercentage) || 2.5,
+      feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+      externalUrl: externalUrl || ''
+    });
+
+    if (!collectionResult.success) {
+      return res.status(500).json({ success: false, error: collectionResult.error });
+    }
+
     const collectionData = {
       id: collectionId,
       name: name.trim(),
@@ -705,15 +743,21 @@ app.post('/api/collections/deploy', async (req, res) => {
       symbol: symbol.trim().toUpperCase(),
       externalUrl: externalUrl || '',
       feePercentage: Number(feePercentage) || 2.5,
-      feeRecipient: feeRecipient || '',
+      feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
       deployedAt: new Date().toISOString(),
       isActive: true,
       currentSupply: 0,
+      // Real blockchain data from Analos SDK
+      configKey: collectionResult.configKey,
+      poolAddress: collectionResult.poolAddress,
+      transactionSignature: collectionResult.transactionSignature,
+      explorerUrl: collectionResult.explorerUrl,
       blockchainInfo: {
         network: 'Analos',
         rpcUrl: ANALOS_RPC_URL,
         deployed: true,
-        verified: false
+        verified: true,
+        sdkUsed: true
       }
     };
 
@@ -732,15 +776,16 @@ app.post('/api/collections/deploy', async (req, res) => {
     // Generate mint page URL
     const mintUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://analos-nft-launcher-uz4a.vercel.app'}/mint/${urlFriendlyName}`;
 
-    console.log(`🚀 Collection deployed: ${collectionData.name}`);
+    console.log(`🚀 Collection deployed with Analos SDK: ${collectionData.name}`);
     console.log(`📝 Collection ID: ${collectionId}`);
+    console.log(`🏊 Pool Address: ${collectionResult.poolAddress}`);
     console.log(`🔗 Mint URL: ${mintUrl}`);
 
     res.json({
       success: true,
       mintUrl,
       collectionId,
-      message: 'Collection deployed successfully!',
+      message: 'Collection deployed successfully using Analos SDK!',
       data: collectionData
     });
 
@@ -866,7 +911,7 @@ app.get('/api/collections', (req, res) => {
 });
 
 // Get collection by name
-app.get('/api/collections/:collectionName', (req, res) => {
+app.get('/api/collections/:collectionName', async (req, res) => {
   try {
     const { collectionName } = req.params;
     const decodedName = decodeURIComponent(collectionName);
@@ -880,6 +925,19 @@ app.get('/api/collections/:collectionName', (req, res) => {
       return res.status(404).json({ success: false, error: 'Collection not found' });
     }
     
+    // Get real-time data from Analos SDK if pool address is available
+    let realTimeData = null;
+    if (collection.poolAddress) {
+      try {
+        const poolInfo = await analosSDKService.getCollectionInfo(collection.poolAddress);
+        if (poolInfo.success) {
+          realTimeData = poolInfo;
+        }
+      } catch (error) {
+        console.log('Could not fetch real-time pool data:', error);
+      }
+    }
+    
     const collectionData = {
       name: collection.name,
       description: collection.description || '',
@@ -889,7 +947,12 @@ app.get('/api/collections/:collectionName', (req, res) => {
       currentSupply: collection.currentSupply || 0,
       feePercentage: collection.feePercentage || 2.5,
       symbol: collection.symbol || collection.name.substring(0, 4).toUpperCase(),
-      externalUrl: collection.externalUrl || ''
+      externalUrl: collection.externalUrl || '',
+      // Real-time data from blockchain
+      realTimeData: realTimeData,
+      poolAddress: collection.poolAddress,
+      configKey: collection.configKey,
+      explorerUrl: collection.explorerUrl
     };
     
     res.json({ success: true, collection: collectionData });
@@ -1034,6 +1097,79 @@ app.get('/api/transactions/:signature/status', async (req, res) => {
   } catch (error) {
     console.error('Error getting transaction status:', error);
     res.status(500).json({ success: false, error: 'Failed to get transaction status' });
+  }
+});
+
+// Check migration status for a collection
+app.get('/api/collections/:collectionName/migration-status', async (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const decodedName = decodeURIComponent(collectionName);
+    
+    // Find collection by name (case-insensitive)
+    const collection = Array.from(collections.values()).find(
+      col => col.name.toLowerCase() === decodedName.toLowerCase()
+    );
+    
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+
+    if (!collection.poolAddress) {
+      return res.status(400).json({ success: false, error: 'Collection does not have a pool address' });
+    }
+
+    const migrationStatus = await analosSDKService.checkMigrationStatus(collection.poolAddress);
+
+    if (migrationStatus.success) {
+      res.json({ success: true, data: migrationStatus });
+    } else {
+      res.status(500).json({ success: false, error: migrationStatus.error });
+    }
+
+  } catch (error) {
+    console.error('Error checking migration status:', error);
+    res.status(500).json({ success: false, error: 'Failed to check migration status' });
+  }
+});
+
+// Migrate collection to DAMM
+app.post('/api/collections/:collectionName/migrate', async (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const decodedName = decodeURIComponent(collectionName);
+    
+    // Find collection by name (case-insensitive)
+    const collection = Array.from(collections.values()).find(
+      col => col.name.toLowerCase() === decodedName.toLowerCase()
+    );
+    
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+
+    if (!collection.poolAddress) {
+      return res.status(400).json({ success: false, error: 'Collection does not have a pool address' });
+    }
+
+    const migrationResult = await analosSDKService.migrateToDAMM(collection.poolAddress);
+
+    if (migrationResult.success) {
+      // Update collection with new pool address
+      collection.poolAddress = migrationResult.newPoolAddress;
+      collection.migratedToDAMM = true;
+      collection.migrationTransaction = migrationResult.transactionSignature;
+      collections.set(collection.id, collection);
+      saveCollections();
+
+      res.json({ success: true, data: migrationResult });
+    } else {
+      res.status(500).json({ success: false, error: migrationResult.error });
+    }
+
+  } catch (error) {
+    console.error('Error migrating collection:', error);
+    res.status(500).json({ success: false, error: 'Failed to migrate collection' });
   }
 });
 
