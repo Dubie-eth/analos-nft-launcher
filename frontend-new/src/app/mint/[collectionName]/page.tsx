@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface CollectionInfo {
   name: string;
@@ -128,12 +129,12 @@ function CollectionMintContent() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Collection Not Found</h1>
           <p className="text-white/80 mb-6">{mintStatus}</p>
-          <a 
+          <Link 
             href="/mint" 
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
           >
             Back to Collections
-          </a>
+          </Link>
         </div>
       </div>
     );
