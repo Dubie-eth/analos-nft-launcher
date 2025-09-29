@@ -884,6 +884,38 @@ app.put('/api/collections/:collectionId/image', (req, res) => {
   }
 });
 
+// Clear all collections endpoint (admin only)
+app.delete('/api/admin/clear-collections', (req, res) => {
+  try {
+    console.log('🗑️ Clearing all collections...');
+    
+    // Clear in-memory collections
+    collections.clear();
+    
+    // Clear NFTs
+    allNFTs.clear();
+    
+    // Clear files
+    fs.writeFileSync(COLLECTIONS_FILE, '{}');
+    fs.writeFileSync(NFTS_FILE, '{}');
+    
+    console.log('✅ All collections and NFTs cleared');
+    
+    res.json({
+      success: true,
+      message: 'All collections and NFTs have been cleared',
+      timestamp: new Date().toISOString(),
+      collectionsCleared: true
+    });
+  } catch (error) {
+    console.error('❌ Error clearing collections:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   try {
