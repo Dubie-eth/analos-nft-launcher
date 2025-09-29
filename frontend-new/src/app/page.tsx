@@ -12,12 +12,21 @@ export default function Home() {
             Launch and mint NFTs on the Analos blockchain using $LOS
           </p>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <Link href="/mint">
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <h2 className="text-2xl font-bold text-white mb-4">Mint NFTs</h2>
                 <p className="text-white/80">
                   Connect your wallet and mint NFTs from existing collections using $LOS
+                </p>
+              </div>
+            </Link>
+            
+            <Link href="/explorer">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                <h2 className="text-2xl font-bold text-white mb-4">NFT Explorer</h2>
+                <p className="text-white/80">
+                  Discover and explore NFTs minted on the Analos blockchain
                 </p>
               </div>
             </Link>
