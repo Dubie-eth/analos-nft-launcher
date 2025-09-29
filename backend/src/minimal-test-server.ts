@@ -15,12 +15,11 @@ const generateArweaveUrl = (imageData: string, imageName: string = 'collection-i
   return `https://arweave.net/${mockTxId}/${imageName}.png`;
 };
 
-// Auto-generate collection image URLs
+// Auto-generate collection image URLs - use working placeholder for now
 const getCollectionImageUrl = (collectionName: string): string => {
-  // Generate a consistent Arweave URL for each collection
-  const collectionId = collectionName.toLowerCase().replace(/\s+/g, '-');
-  const mockTxId = collectionId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(36);
-  return `https://arweave.net/${mockTxId}${Math.random().toString(36).substring(2, 8)}/collection-${collectionId}.png`;
+  // Use a working placeholder image service until real Arweave integration
+  // This ensures images always load properly
+  return 'https://picsum.photos/500/500?random=' + collectionName.toLowerCase().replace(/\s+/g, '');
 };
 
 // Basic CORS
@@ -257,20 +256,20 @@ app.post('/api/collections/:collectionName/update-image', (req, res) => {
       return;
     }
     
-    // Generate new Arweave URL for the image
-    const newArweaveUrl = generateArweaveUrl(imageUrl || '', `collection-${collectionName.toLowerCase()}`);
+    // Generate new working URL for the image
+    const newImageUrl = imageUrl || `https://picsum.photos/500/500?random=${collectionName.toLowerCase().replace(/\s+/g, '')}-${Date.now()}`;
     
-    // Update the collection with new Arweave URL
-    deployedCollections[collectionIndex].imageUrl = newArweaveUrl;
-    deployedCollections[collectionIndex].arweaveUrl = newArweaveUrl;
+    // Update the collection with new image URL
+    deployedCollections[collectionIndex].imageUrl = newImageUrl;
+    deployedCollections[collectionIndex].arweaveUrl = newImageUrl;
     deployedCollections[collectionIndex].updatedAt = new Date().toISOString();
     
     res.json({
       success: true,
       message: `Collection image updated successfully!`,
       data: {
-        imageUrl: newArweaveUrl,
-        arweaveUrl: newArweaveUrl,
+        imageUrl: newImageUrl,
+        arweaveUrl: newImageUrl,
         collection: deployedCollections[collectionIndex]
       }
     });
