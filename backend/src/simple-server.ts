@@ -11,6 +11,8 @@ const { AnalosSDKBridge } = require('./analos-sdk-bridge');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Force redeploy - mint instructions endpoint ready
+
 // Real Analos RPC connection
 const ANALOS_RPC_URL = 'https://rpc.analos.io';
 const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
