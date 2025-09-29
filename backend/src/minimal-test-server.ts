@@ -114,10 +114,10 @@ app.get('/api/collections', (req, res) => {
         id: 'launch-on-los',
         name: 'Launch On LOS',
         description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-        imageUrl: 'https://i.imgur.com/UO6Jo6S.jpg', // LOL Logo from Imgur gallery
+        imageUrl: 'https://i.imgur.com/UO6Jo6S.png', // LOL Logo from Imgur gallery (try .png)
         mintPrice: 4200.69,
         totalSupply: 1111,
-        currentSupply: 0,
+        currentSupply: 1, // Updated to reflect minted NFT
         isActive: true,
         symbol: '$LOL',
         feePercentage: 2.5,
@@ -137,7 +137,7 @@ app.get('/api/collections/:collectionName', (req, res) => {
       id: 'launch-on-los',
       name: 'Launch On LOS',
       description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
-        imageUrl: 'https://i.imgur.com/UO6Jo6S.jpg', // LOL Logo from Imgur gallery
+        imageUrl: 'https://i.imgur.com/UO6Jo6S.png', // LOL Logo from Imgur gallery (try .png)
       mintPrice: 4200.69,
       totalSupply: 1111,
       currentSupply: 0,
@@ -203,7 +203,7 @@ app.post('/api/collections/deploy', (req, res) => {
               imageUrl: imageUrl || 'https://i.imgur.com/8K3vQ2J.jpg', // Use actual uploaded image
         mintPrice: mintPrice || 4200.69,
         totalSupply: maxSupply || 1111,
-        currentSupply: 0,
+        currentSupply: 1, // Updated to reflect minted NFT
         isActive: true,
         platformFee: platformFee || 2.5,
         feeRecipientAddress: feeRecipientAddress || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
