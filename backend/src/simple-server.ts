@@ -274,10 +274,21 @@ class AnalosBlockchainService {
 }
 
 // Initialize blockchain service
-const blockchainService = new AnalosBlockchainService();
+let blockchainService: any;
+let analosSDKService: any;
 
-// Initialize Analos SDK service (mock for fallback)
-const analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
+try {
+  console.log('🔧 Initializing blockchain service...');
+  blockchainService = new AnalosBlockchainService();
+  console.log('✅ Blockchain service initialized');
+  
+  console.log('🔧 Initializing Analos SDK service...');
+  analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
+  console.log('✅ Analos SDK service initialized');
+} catch (error) {
+  console.error('❌ Failed to initialize services:', error);
+  console.log('⚠️  Server will continue with limited functionality');
+}
 
 // Skip SDK bridge initialization for now to prevent Railway crashes
 // We'll use direct smart contract integration instead
@@ -532,17 +543,33 @@ const openMintService = new OpenMintService();
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    network: 'Analos',
-    rpc: ANALOS_RPC_URL
-  });
+  try {
+    console.log('🏥 Health check requested');
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      network: 'Analos',
+      rpc: ANALOS_RPC_URL,
+      collections: collections.size,
+      uptime: process.uptime()
+    });
+    console.log('✅ Health check responded successfully');
+  } catch (error) {
+    console.error('❌ Health check failed:', error);
+    res.status(500).json({
+      status: 'unhealthy',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Get network information
 app.get('/api/network', async (req, res) => {
   try {
+    if (!blockchainService) {
+      return res.status(500).json({ success: false, error: 'Blockchain service not initialized' });
+    }
     const networkInfo = await blockchainService.getNetworkInfo();
     res.json({ success: true, data: networkInfo });
   } catch (error) {
@@ -773,6 +800,9 @@ app.post('/api/collections/deploy', async (req, res) => {
     // Use mock SDK for collection deployment (SDK bridge disabled for Railway stability)
     let collectionResult;
     try {
+      if (!analosSDKService) {
+        throw new Error('Analos SDK service not initialized');
+      }
       console.log('🚀 Creating collection with mock SDK (SDK bridge disabled for stability)...');
       collectionResult = await analosSDKService.createNFTCollection({
         name: name.trim(),
@@ -1245,9 +1275,17 @@ app.post('/api/collections/:collectionName/migrate', async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Analos NFT Launcher Backend running on port ${PORT}`);
-  console.log(`🌐 Network: Analos (${ANALOS_RPC_URL})`);
-  console.log(`📊 Collections loaded: ${collections.size}`);
-  console.log(`💰 Fee wallet: 86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW`);
+console.log('🚀 Starting Analos NFT Launcher Backend...');
+console.log(`📡 Port: ${PORT}`);
+console.log(`🌐 Network: Analos (${ANALOS_RPC_URL})`);
+console.log(`📊 Collections loaded: ${collections.size}`);
+console.log(`💰 Fee wallet: 86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW`);
+
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`✅ Server started successfully on port ${PORT}`);
+  console.log(`🏥 Health check available at: http://0.0.0.0:${PORT}/health`);
+  console.log(`🎯 Ready to accept requests!`);
+}).on('error', (error) => {
+  console.error('❌ Server failed to start:', error);
+  process.exit(1);
 });
