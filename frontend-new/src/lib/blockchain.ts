@@ -31,8 +31,15 @@ export class AnalosBlockchainService {
 
   constructor(rpcUrl: string = 'https://rpc.analos.io') {
     this.rpcUrl = rpcUrl;
-    this.connection = new Connection(rpcUrl, 'confirmed');
-    console.log('🔗 Connected to Analos RPC:', rpcUrl);
+    // Use HTTP-only connection to avoid WebSocket issues
+    this.connection = new Connection(rpcUrl, {
+      commitment: 'confirmed',
+      wsEndpoint: undefined, // Disable WebSocket
+      httpHeaders: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('🔗 Connected to Analos RPC (HTTP only):', rpcUrl);
   }
 
   async createMintTransaction(

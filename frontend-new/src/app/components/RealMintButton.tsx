@@ -23,6 +23,7 @@ export default function RealMintButton({
 }: RealMintButtonProps) {
   const { publicKey, signTransaction } = useWallet();
   const [minting, setMinting] = useState(false);
+  const [status, setStatus] = useState('');
 
   const handleMint = async () => {
     if (!publicKey || !signTransaction) {
@@ -56,9 +57,11 @@ export default function RealMintButton({
         quantity,
         publicKey.toBase58(),
         async (transaction) => {
+          setStatus('Requesting wallet signature...');
           console.log('📝 Transaction created, requesting wallet signature...');
           // This will prompt the user to sign the transaction
           const signedTransaction = await signTransaction(transaction);
+          setStatus('Transaction signed, sending to blockchain...');
           console.log('✅ Transaction signed by wallet');
           return signedTransaction;
         }
@@ -88,6 +91,7 @@ export default function RealMintButton({
       onMintError(error instanceof Error ? error.message : 'Unknown error occurred');
     } finally {
       setMinting(false);
+      setStatus('');
     }
   };
 
@@ -102,9 +106,14 @@ export default function RealMintButton({
       }`}
     >
       {minting ? (
-        <div className="flex items-center justify-center space-x-2">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          <span>Signing Transaction...</span>
+        <div className="flex flex-col items-center justify-center space-y-2">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            <span>Processing Mint...</span>
+          </div>
+          {status && (
+            <div className="text-sm text-white/80">{status}</div>
+          )}
         </div>
       ) : (
         `🎯 Mint ${quantity} NFT${quantity > 1 ? 's' : ''} for ${totalCost} ${currency}`

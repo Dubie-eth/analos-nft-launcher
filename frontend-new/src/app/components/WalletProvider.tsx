@@ -16,6 +16,7 @@ interface Props {
 
 export const WalletContextProvider: FC<Props> = ({ children }) => {
   // You can also provide a custom RPC endpoint.
+  // Use HTTP-only to avoid WebSocket connection issues
   const endpoint = 'https://rpc.analos.io';
 
   const wallets = useMemo(
