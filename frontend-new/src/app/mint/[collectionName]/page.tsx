@@ -129,8 +129,8 @@ function CollectionMintContent() {
     );
   }
 
-  const remainingSupply = collection.maxSupply - collection.currentSupply;
-  const totalCost = collection.price * mintQuantity;
+  const remainingSupply = collection.totalSupply - collection.currentSupply;
+  const totalCost = collection.mintPrice * mintQuantity;
   const platformFee = (totalCost * collection.feePercentage) / 100;
   const creatorRevenue = totalCost - platformFee;
 
@@ -152,7 +152,7 @@ function CollectionMintContent() {
                 <div className="flex justify-center space-x-4 text-sm text-white/60">
                   <span>Symbol: {collection.symbol}</span>
                   <span>•</span>
-                  <span>Supply: {collection.currentSupply}/{collection.maxSupply}</span>
+                  <span>Supply: {collection.currentSupply}/{collection.totalSupply}</span>
                 </div>
               </div>
 
@@ -160,16 +160,16 @@ function CollectionMintContent() {
               <div className="mb-6">
                 <div className="flex justify-between text-white/80 text-sm mb-2">
                   <span>Minted</span>
-                  <span>{collection.currentSupply}/{collection.maxSupply}</span>
+                  <span>{collection.currentSupply}/{collection.totalSupply}</span>
                 </div>
                 <div className="w-full bg-white/20 rounded-full h-3">
                   <div
                     className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(collection.currentSupply / collection.maxSupply) * 100}%` }}
+                    style={{ width: `${(collection.currentSupply / collection.totalSupply) * 100}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-white/60 text-xs mt-1">
-                  <span>{((collection.currentSupply / collection.maxSupply) * 100).toFixed(1)}% minted</span>
+                  <span>{((collection.currentSupply / collection.totalSupply) * 100).toFixed(1)}% minted</span>
                   <span>{remainingSupply} remaining</span>
                 </div>
               </div>
@@ -239,7 +239,7 @@ function CollectionMintContent() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-white/80">
                     <span>Price per NFT:</span>
-                    <span>{collection.price} $LOS</span>
+                    <span>{collection.mintPrice} $LOS</span>
                   </div>
                   <div className="flex justify-between text-white/80">
                     <span>Quantity:</span>
