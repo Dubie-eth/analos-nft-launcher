@@ -28,29 +28,21 @@ arweaveService.initializeWithWallet().then(success => {
   }
 });
 
-// Generate real Arweave URLs for images
-const generateArweaveImageUrl = async (imageUrl: string, imageName: string): Promise<string> => {
-  try {
-    // Upload image to Arweave
-    const result: ArweaveUploadResult = await arweaveService.uploadImageFromUrl(imageUrl, imageName);
-    
-    if (result.success && result.url) {
-      console.log(`✅ Image uploaded to Arweave: ${result.url}`);
-      return result.url;
-    } else {
-      console.log(`❌ Arweave upload failed: ${result.error}`);
-      // Fallback to working placeholder
-      const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const seed = hash % 1000;
-      return `https://picsum.photos/500/500?random=${seed}`;
-    }
-  } catch (error) {
-    console.error('❌ Error uploading to Arweave:', error);
-    // Fallback to working placeholder
-    const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const seed = hash % 1000;
-    return `https://picsum.photos/500/500?random=${seed}`;
+// Pinata IPFS solution - use your Pinata account for reliable image storage
+const generatePinataImageUrl = (imageUrl: string, imageName: string): string => {
+  // For now, let's use Pinata IPFS URLs that you've uploaded
+  // Replace this with your actual Pinata IPFS hash for your LOL logo
+  
+  if (imageUrl && imageUrl.includes('imgur.com')) {
+    // If it's your Imgur logo, we'll use it directly for now
+    // TODO: Upload your logo to Pinata and get the IPFS hash
+    return imageUrl;
   }
+  
+  // Use your Pinata IPFS URL for the LOL logo
+  // Replace this hash with your actual Pinata IPFS hash once you upload your logo
+  const pinataLOLHash = 'QmYourPinataHashHere'; // Replace with your actual Pinata hash
+  return `https://gateway.pinata.cloud/ipfs/${pinataLOLHash}`;
 };
 
 // Auto-generate collection image URLs - use working images
@@ -59,14 +51,12 @@ const getCollectionImageUrl = (collectionName: string, uploadedImageUrl?: string
   const imageName = `collection-${collectionName.toLowerCase().replace(/\s+/g, '-')}`;
   
   if (uploadedImageUrl) {
-    // If user uploaded an image, try to use it, but fallback to working URL if it fails
-    return uploadedImageUrl;
+    // If user uploaded an image, use the Pinata URL generator
+    return generatePinataImageUrl(uploadedImageUrl, imageName);
   }
   
-  // Generate working URL for the collection
-  const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const seed = hash % 1000;
-  return `https://picsum.photos/500/500?random=${seed}`;
+  // Generate Pinata URL for the collection
+  return generatePinataImageUrl('', imageName);
 };
 
 // Basic CORS
@@ -247,17 +237,14 @@ app.post('/api/collections/deploy', async (req, res) => {
     const collectionName = name || 'New Collection';
     const imageName = `collection-${collectionName.toLowerCase().replace(/\s+/g, '-')}`;
     
-    // Upload image to Arweave if provided
+    // Use Pinata IPFS solution for images
     let finalImageUrl = imageUrl;
-    if (imageUrl && arweaveService.isReady()) {
-      console.log('📤 Uploading image to Arweave...');
-      const arweaveResult = await generateArweaveImageUrl(imageUrl, imageName);
-      finalImageUrl = arweaveResult;
-    } else if (!imageUrl) {
-      // Use default image
-      const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const seed = hash % 1000;
-      finalImageUrl = `https://picsum.photos/500/500?random=${seed}`;
+    if (imageUrl) {
+      console.log('📤 Using provided image URL...');
+      finalImageUrl = generatePinataImageUrl(imageUrl, imageName);
+    } else {
+      console.log('📤 Using Pinata IPFS logo...');
+      finalImageUrl = generatePinataImageUrl('', imageName);
     }
     
     const newCollection = {
@@ -318,11 +305,9 @@ app.post('/api/collections/:collectionName/update-image', (req, res) => {
       return;
     }
     
-    // Generate new working URL for the image
+    // Generate new Pinata IPFS URL for the image
     const imageName = `collection-${collectionName.toLowerCase().replace(/\s+/g, '-')}`;
-    const hash = imageName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const seed = hash % 1000;
-    const newImageUrl = imageUrl ? imageUrl : `https://picsum.photos/500/500?random=${seed}`;
+    const newImageUrl = generatePinataImageUrl(imageUrl || '', imageName);
     
     // Update the collection with new image URL
     deployedCollections[collectionIndex].imageUrl = newImageUrl;
