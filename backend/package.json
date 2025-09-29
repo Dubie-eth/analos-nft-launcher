@@ -2,11 +2,13 @@
   "name": "analos-nft-launcher-backend",
   "version": "1.0.0",
   "private": true,
-  "main": "src/simple-server.ts",
+  "main": "src/minimal-server.ts",
   "scripts": {
     "dev": "ts-node src/simple-server.ts",
+    "dev-minimal": "ts-node src/minimal-server.ts",
     "build": "tsc",
-    "start": "node dist/simple-server.js"
+    "start": "node dist/minimal-server.js",
+    "start-full": "node dist/simple-server.js"
   },
   "dependencies": {
     "@analosfork/damm-sdk": "^1.0.0",
