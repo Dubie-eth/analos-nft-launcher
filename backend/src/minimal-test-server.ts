@@ -99,6 +99,45 @@ app.get('/api/collections', (req, res) => {
   });
 });
 
+// Mock collection deploy endpoint
+app.post('/api/collections/deploy', (req, res) => {
+  try {
+    const { name, symbol, description, mintPrice, maxSupply, platformFee, feeRecipientAddress, externalUrl, imageUrl } = req.body;
+    
+    console.log('🚀 Collection deploy request:', { name, symbol, description, mintPrice, maxSupply });
+    
+    // Return mock deployment success
+    res.json({
+      success: true,
+      message: 'Collection deployed successfully (mock)',
+      data: {
+        id: 'launch-on-los',
+        name: name || 'Launch On LOS',
+        symbol: symbol || '$LOL',
+        description: description || 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+        imageUrl: imageUrl || 'https://picsum.photos/500/500?random=collection',
+        mintPrice: mintPrice || 4200.69,
+        totalSupply: maxSupply || 1111,
+        currentSupply: 0,
+        isActive: true,
+        platformFee: platformFee || 2.5,
+        feeRecipientAddress: feeRecipientAddress || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+        externalUrl: externalUrl || 'https://launchonlos.fun/',
+        deployedAt: new Date().toISOString(),
+        mintAddress: 'mock_collection_mint_' + Date.now(),
+        metadataAddress: 'mock_metadata_' + Date.now(),
+        masterEditionAddress: 'mock_master_edition_' + Date.now()
+      }
+    });
+  } catch (error) {
+    console.error('Error deploying collection:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to deploy collection'
+    });
+  }
+});
+
 console.log('🚀 Starting Minimal Test Server...');
 console.log(`📡 Port: ${PORT}`);
 
