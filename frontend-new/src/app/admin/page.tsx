@@ -212,6 +212,8 @@ function AdminPageContent() {
       console.error('Deployment error:', error);
     } finally {
       setDeploying(false);
+      // Refresh collections list after deployment
+      fetchCollections();
     }
   };
 
