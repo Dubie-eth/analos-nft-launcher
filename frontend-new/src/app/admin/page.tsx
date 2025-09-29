@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import ImageUpdateModal from '../components/ImageUpdateModal';
 
 interface CollectionData {
   name: string;
@@ -40,10 +41,40 @@ function AdminPageContent() {
   const [deploying, setDeploying] = useState(false);
   const [deployStatus, setDeployStatus] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string>('');
+  
+  // Image update modal state
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<any>(null);
+  const [collections, setCollections] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    fetchCollections();
   }, []);
+
+  const fetchCollections = async () => {
+    try {
+      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
+      const response = await fetch(`${backendUrl}/api/collections`);
+      if (response.ok) {
+        const data = await response.json();
+        setCollections(data.collections || []);
+      }
+    } catch (error) {
+      console.error('Error fetching collections:', error);
+    }
+  };
+
+  const handleUpdateImage = (collection: any) => {
+    setSelectedCollection(collection);
+    setShowImageModal(true);
+  };
+
+  const handleImageUpdated = () => {
+    fetchCollections(); // Refresh collections list
+    setShowImageModal(false);
+    setSelectedCollection(null);
+  };
 
   if (!mounted) {
     return (
@@ -397,8 +428,67 @@ function AdminPageContent() {
             )}
           </div>
         </div>
+
+        {/* Collections Management Section */}
+        <div className="mt-12">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-3xl font-bold text-white mb-8 text-center">
+              📸 Manage Collection Images
+            </h2>
+            
+            {collections.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-white/80 text-lg mb-4">No collections deployed yet.</p>
+                <p className="text-white/60">Deploy your first collection above to manage its images.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {collections.map((collection) => (
+                  <div key={collection.id} className="bg-white/10 rounded-xl p-6">
+                    <div className="mb-4">
+                      <img
+                        src={collection.imageUrl || 'https://picsum.photos/300/300?random=' + collection.id}
+                        alt={collection.name}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <h3 className="text-xl font-bold text-white">{collection.name}</h3>
+                      <p className="text-white/70 text-sm">{collection.description}</p>
+                      <div className="flex justify-between text-sm text-white/60">
+                        <span>Supply: {collection.currentSupply || 0}/{collection.maxSupply}</span>
+                        <span>Price: {collection.price} $LOS</span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleUpdateImage(collection)}
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      📸 Update Image
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
+
+    {/* Image Update Modal */}
+    <ImageUpdateModal
+      isOpen={showImageModal}
+      onClose={() => {
+        setShowImageModal(false);
+        setSelectedCollection(null);
+      }}
+      collectionId={selectedCollection?.id || ''}
+      collectionName={selectedCollection?.name || ''}
+      currentImage={selectedCollection?.imageUrl || ''}
+      onImageUpdated={handleImageUpdated}
+    />
   );
 }
 

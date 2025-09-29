@@ -547,6 +547,78 @@ const openMintService = new OpenMintService();
 
 // API Routes
 
+// Update collection image endpoint
+app.put('/api/collections/:collectionId/image', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { image, imageUrl } = req.body;
+    
+    if (!collectionId) {
+      return res.status(400).json({ success: false, error: 'Collection ID is required' });
+    }
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    let newImageUrl = collection.imageUrl;
+    
+    // Handle base64 image upload
+    if (image && image.startsWith('data:image/')) {
+      // For now, store as base64. In production, upload to IPFS/CDN
+      newImageUrl = image;
+      console.log(`📸 Updated collection ${collectionId} with base64 image (${image.length} chars)`);
+    } 
+    // Handle direct URL
+    else if (imageUrl && imageUrl.startsWith('http')) {
+      newImageUrl = imageUrl;
+      console.log(`📸 Updated collection ${collectionId} with URL: ${imageUrl}`);
+    } 
+    else {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid image format. Provide base64 data URL or HTTP URL' 
+      });
+    }
+    
+    // Update the collection
+    collection.imageUrl = newImageUrl;
+    collection.updatedAt = new Date().toISOString();
+    collections.set(collectionId, collection);
+    
+    // Update metadata for existing NFTs in this collection
+    let updatedNFTs = 0;
+    allNFTs.forEach(nft => {
+      if (nft.collection === collection.name) {
+        nft.image = newImageUrl;
+        updatedNFTs++;
+      }
+    });
+    
+    console.log(`✅ Updated ${updatedNFTs} existing NFTs with new image`);
+    
+    res.json({
+      success: true,
+      message: `Collection image updated successfully. ${updatedNFTs} existing NFTs updated.`,
+      collection: {
+        id: collectionId,
+        name: collection.name,
+        imageUrl: newImageUrl,
+        updatedAt: collection.updatedAt
+      },
+      updatedNFTs
+    });
+    
+  } catch (error) {
+    console.error('Error updating collection image:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update collection image' 
+    });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   try {
