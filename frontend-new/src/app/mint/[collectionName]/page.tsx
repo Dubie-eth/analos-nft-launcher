@@ -81,7 +81,10 @@ function CollectionMintContent() {
 
     try {
       // Create real Analos blockchain transaction
-      const connection = new Connection('https://rpc.analos.io', 'confirmed');
+      const connection = new Connection('https://rpc.analos.io', {
+        commitment: 'confirmed',
+        wsEndpoint: undefined, // Disable WebSocket to avoid connection issues
+      });
       
       // Calculate total cost in lamports (1 LOS = 1,000,000,000 lamports)
       const totalCostLamports = Math.floor(collection.mintPrice * LAMPORTS_PER_SOL * mintQuantity);
@@ -123,12 +126,16 @@ function CollectionMintContent() {
 
       // Wait for confirmation with longer timeout
       try {
-        await connection.confirmTransaction(signature, 'confirmed');
+        // Try confirmation with a longer timeout
+        const confirmationResult = await connection.confirmTransaction(signature, 'confirmed');
         console.log('✅ Transaction confirmed:', signature);
         setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
       } catch (confirmError) {
         console.log('⚠️ Confirmation timeout, but transaction was sent:', signature);
         setMintStatus(`Transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
+        
+        // Still proceed with backend confirmation since transaction was sent
+        console.log('🔄 Proceeding with backend confirmation despite timeout...');
       }
 
       // Update collection supply on backend
