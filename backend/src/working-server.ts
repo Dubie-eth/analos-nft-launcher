@@ -136,7 +136,8 @@ app.post('/api/collections/deploy', async (req, res) => {
     res.json({ 
       success: true, 
       collection: collectionData,
-      message: 'Collection deployed successfully'
+      message: 'Collection deployed successfully',
+      mintUrl: `/mint/${urlFriendlyName}`
     });
 
   } catch (error) {
