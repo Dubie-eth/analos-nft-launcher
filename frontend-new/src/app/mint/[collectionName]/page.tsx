@@ -101,7 +101,11 @@ function CollectionMintContent() {
       const result = await response.json();
       
       if (result.success) {
-        setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+        if (result.requiresWalletSigning) {
+          setMintStatus(`⚠️ Simulated mint successful! ${result.message} Transaction: ${result.transactionSignature}`);
+        } else {
+          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+        }
         // Refresh collection info to update supply
         fetchCollectionInfo();
       } else {

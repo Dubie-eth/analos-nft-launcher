@@ -383,7 +383,9 @@ app.post('/api/mint', async (req, res) => {
       currency: 'LOS',
       nfts: mintResult.nfts,
       realSmartContract: true,
-      poolAddress: collection.poolAddress
+      poolAddress: collection.poolAddress,
+      requiresWalletSigning: true,
+      message: '⚠️ This is a simulated transaction. Real blockchain integration requires wallet signing and actual LOS transfer.'
     });
 
   } catch (error) {
