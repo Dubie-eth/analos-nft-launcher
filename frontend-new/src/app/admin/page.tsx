@@ -116,10 +116,15 @@ function AdminPageContent() {
   }
 
   const handleInputChange = (field: keyof CollectionData, value: string | number | File | null) => {
-    setCollectionData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    console.log(`📝 Updating ${field} to:`, value, 'Type:', typeof value);
+    setCollectionData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+      console.log('📊 New collection data:', newData);
+      return newData;
+    });
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,6 +142,10 @@ function AdminPageContent() {
   };
 
   const handleDeploy = async () => {
+    console.log('🚀 Deploy button clicked!');
+    console.log('📊 Current collection data before deploy:', collectionData);
+    console.log('💰 Price value:', collectionData.price, 'Type:', typeof collectionData.price);
+    
     if (!connected || !publicKey) {
       setDeployStatus('Please connect your wallet first');
       return;
