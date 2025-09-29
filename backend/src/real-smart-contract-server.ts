@@ -148,6 +148,56 @@ class RealSmartContractService {
 // Initialize real smart contract service
 const smartContractService = new RealSmartContractService(connection);
 
+// Open Mint Service
+class OpenMintService {
+  private mintedCount: number = 0;
+  private totalMinted: number = 0;
+  private mintPrice: number = 0.1; // 0.1 LOS
+  private currency: string = 'LOS';
+  private isMintingActive: boolean = true;
+  private mintStartTime: string = new Date().toISOString();
+  private feeWalletAddress: string = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW';
+
+  setMintingActive(active: boolean): void {
+    this.isMintingActive = active;
+  }
+
+  canMint(): boolean {
+    return this.isMintingActive;
+  }
+
+  recordMint(quantity: number = 1, totalCost: number = 0): void {
+    this.mintedCount += quantity;
+    this.totalMinted += quantity;
+  }
+
+  getMintStatus(): any {
+    return {
+      isOpenMint: true,
+      canMint: this.canMint(),
+      mintedCount: this.mintedCount,
+      totalMinted: this.totalMinted,
+      mintPrice: this.mintPrice,
+      currency: this.currency,
+      isMintingActive: this.isMintingActive,
+      mintStartTime: this.mintStartTime,
+      feeWalletAddress: this.feeWalletAddress
+    };
+  }
+
+  getMintStats(): any {
+    return {
+      totalMinted: this.totalMinted,
+      mintPrice: this.mintPrice,
+      currency: this.currency,
+      isMintingActive: this.isMintingActive,
+      feeWalletAddress: this.feeWalletAddress
+    };
+  }
+}
+
+const openMintService = new OpenMintService();
+
 // Health check
 app.get('/health', (req, res) => {
   try {
