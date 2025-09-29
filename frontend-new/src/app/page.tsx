@@ -6,7 +6,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-6xl font-bold text-white mb-6">
-            Analos NFT Launcher
+            Analos NFT Launcher v2.0.1
           </h1>
           <p className="text-xl text-white/80 mb-12">
             Launch and mint NFTs on the Analos blockchain using $LOS
