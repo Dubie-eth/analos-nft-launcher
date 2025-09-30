@@ -850,6 +850,17 @@ function AdminPageContent() {
                           🎭 Reveal NFTs ({collection.currentSupply})
                         </button>
                       )}
+                      
+                      <button
+                        onClick={() => {
+                          const blockchainService = new BlockchainCollectionService();
+                          blockchainService.hideCollection(collection.id);
+                          fetchCollections(); // Refresh the list
+                        }}
+                        className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        🔒 Hide Collection
+                      </button>
                     </div>
                   </div>
                 ))}

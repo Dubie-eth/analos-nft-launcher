@@ -119,8 +119,17 @@ export class BlockchainCollectionService {
         }
       ];
 
+      // Filter out hidden collections
+      const hiddenCollections = this.getHiddenCollections();
+      const visibleCollections = collections.filter(collection => 
+        !hiddenCollections.includes(collection.id)
+      );
+
       console.log('✅ Found collections on blockchain:', collections.length);
-      return collections;
+      console.log('🔒 Hidden collections:', hiddenCollections.length);
+      console.log('👁️ Visible collections:', visibleCollections.length);
+      
+      return visibleCollections;
 
     } catch (error) {
       console.error('❌ Error fetching collections from blockchain:', error);
@@ -152,6 +161,48 @@ export class BlockchainCollectionService {
     } catch (error) {
       console.error('❌ Error fetching collection by name from blockchain:', error);
       return null;
+    }
+  }
+
+  /**
+   * Hide a collection from the frontend display
+   */
+  hideCollection(collectionId: string): void {
+    try {
+      const hidden = this.getHiddenCollections();
+      if (!hidden.includes(collectionId)) {
+        hidden.push(collectionId);
+        localStorage.setItem('hidden_collections', JSON.stringify(hidden));
+        console.log(`🔒 Hidden collection: ${collectionId}`);
+      }
+    } catch (error) {
+      console.error('Error hiding collection:', error);
+    }
+  }
+
+  /**
+   * Show a previously hidden collection
+   */
+  showCollection(collectionId: string): void {
+    try {
+      const hidden = this.getHiddenCollections();
+      const updated = hidden.filter(id => id !== collectionId);
+      localStorage.setItem('hidden_collections', JSON.stringify(updated));
+      console.log(`👁️ Showed collection: ${collectionId}`);
+    } catch (error) {
+      console.error('Error showing collection:', error);
+    }
+  }
+
+  /**
+   * Get list of hidden collection IDs
+   */
+  private getHiddenCollections(): string[] {
+    try {
+      const hidden = localStorage.getItem('hidden_collections');
+      return hidden ? JSON.parse(hidden) : [];
+    } catch {
+      return [];
     }
   }
 
