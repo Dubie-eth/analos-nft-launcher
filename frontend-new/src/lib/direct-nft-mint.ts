@@ -15,6 +15,7 @@ import {
   MINT_SIZE,
   getMinimumBalanceForRentExemptMint,
 } from '@solana/spl-token';
+import { tokenIdTracker } from './token-id-tracker';
 
 export interface DirectNFTMintData {
   name: string;
@@ -105,9 +106,14 @@ export class DirectNFTMintService {
         transaction.add(createATAIx);
         transaction.add(mintToIx);
 
+        // Track the NFT in our token ID system
+        const collectionMint = `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`;
+        const tokenId = tokenIdTracker.addNFT(mintAddress.toBase58(), collectionName, collectionMint);
+
         console.log(`✅ Added REAL Token Program instructions for NFT #${nftNumber}`);
         console.log(`   Mint: ${mintAddress.toBase58()}`);
         console.log(`   ATA: ${associatedTokenAddress.toBase58()}`);
+        console.log(`   Collection: ${collectionName} #${tokenId}`);
       }
 
       // Set recent blockhash and fee payer

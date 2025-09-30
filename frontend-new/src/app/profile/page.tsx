@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { tokenIdTracker } from '../../lib/token-id-tracker';
 
 interface UserNFT {
   mint: string;
@@ -13,9 +14,10 @@ interface UserNFT {
   uiAmount: number;
   supply: string;
   isInitialized: boolean;
-  collectionName?: string;
-  image?: string;
-  name?: string;
+  collectionName: string;
+  tokenId: number;
+  image: string;
+  name: string;
 }
 
 export default function ProfilePage() {
@@ -84,21 +86,48 @@ export default function ProfilePage() {
           if (mintInfo.decimals === 0 && parsedInfo.tokenAmount.uiAmount === 1) {
             console.log('🎨 Found NFT:', mintAddress);
             
-            const nft: UserNFT = {
-              mint: mintAddress,
-              owner: parsedInfo.owner,
-              amount: parsedInfo.tokenAmount.amount,
-              decimals: mintInfo.decimals,
-              uiAmount: parsedInfo.tokenAmount.uiAmount,
-              supply: mintInfo.supply.toString(),
-              isInitialized: mintInfo.isInitialized,
-              collectionName: 'LOL NFT', // Default name, could be enhanced with metadata
-              image: `https://picsum.photos/300/300?random=${mintAddress.slice(0, 8)}`, // Dynamic placeholder with unique seed
-              name: `LOL NFT #${mintAddress.slice(0, 8)}`
-            };
+            // Get token info from tracker
+            const tokenInfo = tokenIdTracker.getTokenInfo(mintAddress);
             
-            nftList.push(nft);
-            collectionSet.add('LOL NFT');
+            if (tokenInfo) {
+              const nft: UserNFT = {
+                mint: mintAddress,
+                owner: parsedInfo.owner,
+                amount: parsedInfo.tokenAmount.amount,
+                decimals: mintInfo.decimals,
+                uiAmount: parsedInfo.tokenAmount.uiAmount,
+                supply: mintInfo.supply.toString(),
+                isInitialized: mintInfo.isInitialized,
+                collectionName: tokenInfo.collectionName,
+                tokenId: tokenInfo.tokenId,
+                image: `https://picsum.photos/300/300?random=${tokenInfo.tokenId}`, // Use token ID for consistent image
+                name: `${tokenInfo.collectionName} #${tokenInfo.tokenId}`
+              };
+              
+              nftList.push(nft);
+              collectionSet.add(tokenInfo.collectionName);
+            } else {
+              // Fallback for NFTs not in tracker (assign to default collection)
+              const fallbackCollection = 'LOL Genesis Collection';
+              const fallbackTokenId = nftList.length + 1;
+              
+              const nft: UserNFT = {
+                mint: mintAddress,
+                owner: parsedInfo.owner,
+                amount: parsedInfo.tokenAmount.amount,
+                decimals: mintInfo.decimals,
+                uiAmount: parsedInfo.tokenAmount.uiAmount,
+                supply: mintInfo.supply.toString(),
+                isInitialized: mintInfo.isInitialized,
+                collectionName: fallbackCollection,
+                tokenId: fallbackTokenId,
+                image: `https://picsum.photos/300/300?random=${fallbackTokenId}`,
+                name: `${fallbackCollection} #${fallbackTokenId}`
+              };
+              
+              nftList.push(nft);
+              collectionSet.add(fallbackCollection);
+            }
           }
         } catch (error) {
           console.log('⚠️ Error fetching mint info for:', mintAddress, error);
@@ -495,6 +524,10 @@ export default function ProfilePage() {
                     </div>
                     
                     <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 space-y-1 transition-colors duration-300">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500 dark:text-gray-300">Token ID:</span>
+                        <span className="font-bold text-purple-600 dark:text-purple-400">#{nft.tokenId}</span>
+                      </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-gray-500 dark:text-gray-300">Mint:</span>
                         <span className="font-mono text-gray-700 dark:text-gray-200">{nft.mint.slice(0, 8)}...</span>
