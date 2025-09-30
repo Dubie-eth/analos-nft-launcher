@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import WhitelistHolderManager from './WhitelistHolderManager';
 
 interface AdvancedMintingSettingsProps {
   onSettingsChange: (settings: any) => void;
@@ -33,7 +34,7 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
     maxMintsPerWallet: 5,
     price: 0,
     addresses: [] as string[],
-    isTokenBased: false,
+    phaseType: 'address', // 'address', 'token', or 'mixed'
     tokenRequirements: [] as Array<{
       tokenMint: string;
       minAmount: number;
@@ -471,6 +472,20 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
           </div>
         )}
       </div>
+
+      {/* Token Holder Whitelist Manager */}
+      <WhitelistHolderManager
+        onWhitelistGenerated={(addresses) => {
+          // Add generated addresses to the whitelist
+          const currentAddresses = settings.whitelist.addresses;
+          const newAddresses = [...new Set([...currentAddresses, ...addresses])];
+          handleSettingChange('whitelist.addresses', newAddresses);
+        }}
+        onSnapshotCreated={(snapshot) => {
+          console.log('📸 Snapshot created:', snapshot);
+          // Could save snapshots for later use
+        }}
+      />
     </div>
   );
 }

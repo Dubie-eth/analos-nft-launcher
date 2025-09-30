@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { tokenMetadataService } from '../../lib/token-metadata-service';
 
 interface PaymentToken {
   mint: string;
@@ -26,6 +27,7 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
     minBalanceForWhitelist: 0,
     accepted: true
   });
+  const [fetchingMetadata, setFetchingMetadata] = useState(false);
 
   const updateTokens = (newTokens: PaymentToken[]) => {
     setTokens(newTokens);
@@ -72,6 +74,43 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
     updateToken(index, { accepted: !tokens[index].accepted });
   };
 
+  const fetchTokenMetadata = async (mintAddress: string) => {
+    if (!mintAddress.trim()) return;
+    
+    setFetchingMetadata(true);
+    try {
+      const isValid = await tokenMetadataService.validateTokenAddress(mintAddress);
+      if (!isValid) {
+        alert('Invalid token contract address');
+        return;
+      }
+
+      const metadata = await tokenMetadataService.getTokenMetadata(mintAddress);
+      if (metadata) {
+        setNewToken(prev => ({
+          ...prev,
+          symbol: metadata.symbol,
+          decimals: metadata.decimals,
+          name: metadata.name
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching token metadata:', error);
+      alert('Failed to fetch token metadata. Please enter manually.');
+    } finally {
+      setFetchingMetadata(false);
+    }
+  };
+
+  const handleMintAddressChange = (value: string) => {
+    setNewToken(prev => ({ ...prev, mint: value }));
+    
+    // Auto-fetch metadata when a valid-looking address is entered
+    if (value.length > 32 && value.length < 50) {
+      fetchTokenMetadata(value);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -91,13 +130,29 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Token Contract Address
             </label>
-            <input
-              type="text"
-              value={newToken.mint}
-              onChange={(e) => setNewToken({ ...newToken, mint: e.target.value })}
-              placeholder="e.g., ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={newToken.mint}
+                onChange={(e) => handleMintAddressChange(e.target.value)}
+                placeholder="e.g., ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              />
+              {fetchingMetadata && (
+                <div className="absolute right-2 top-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+            </div>
+            {newToken.mint && (
+              <button
+                type="button"
+                onClick={() => fetchTokenMetadata(newToken.mint)}
+                className="mt-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                🔄 Fetch Token Info
+              </button>
+            )}
           </div>
           
           <div>
