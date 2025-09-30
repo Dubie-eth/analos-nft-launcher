@@ -56,13 +56,14 @@ export class AnalosTokenService {
       
       console.log(`✅ Token is ${isSPLToken ? 'SPL Token' : 'Token-2022'}`);
 
-      // Parse mint account data manually (mint account is 82 bytes)
-      if (accountInfo.data.length < 82) {
+      // Parse mint account data manually
+      // Token-2022 mint accounts can be larger than 82 bytes due to extensions
+      const data = accountInfo.data;
+      
+      if (data.length < 82) {
         console.warn(`⚠️ Invalid mint account data length: ${accountInfo.data.length}`);
         return null;
       }
-
-      const data = accountInfo.data;
       
       // Parse mint account structure:
       // - Supply (8 bytes, BigInt)
@@ -70,14 +71,27 @@ export class AnalosTokenService {
       // - IsInitialized (1 byte)
       // - MintAuthority (32 bytes, optional)
       // - FreezeAuthority (32 bytes, optional)
+      // - Token-2022 may have additional extensions
       
       const supply = data.readBigUInt64LE(0);
       const decimals = data.readUInt8(8);
       const isInitialized = data.readUInt8(9) === 1;
       
-      if (!isInitialized) {
-        console.warn(`⚠️ Mint account not initialized: ${mintAddress}`);
+      console.log(`📊 Mint account data:`, {
+        dataLength: data.length,
+        supply: supply.toString(),
+        decimals,
+        isInitialized,
+        isToken2022
+      });
+      
+      // For Token-2022, we'll be more lenient with initialization check
+      if (!isInitialized && isSPLToken) {
+        console.warn(`⚠️ SPL Token mint account not initialized: ${mintAddress}`);
         return null;
+      } else if (!isInitialized && isToken2022) {
+        console.warn(`⚠️ Token-2022 mint account appears uninitialized, but proceeding anyway: ${mintAddress}`);
+        // Continue with fallback values for Token-2022
       }
 
       // Get token metadata from known tokens or use fallbacks

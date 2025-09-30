@@ -66,6 +66,15 @@ function AdminPageContent() {
     fetchCollections();
   }, []);
 
+  // Auto-load the most recent collection for editing
+  useEffect(() => {
+    if (collections.length > 0 && !collectionData.name) {
+      const mostRecentCollection = collections[0]; // Assuming first is most recent
+      console.log('🔄 Auto-loading most recent collection for editing:', mostRecentCollection);
+      loadExistingCollection(mostRecentCollection);
+    }
+  }, [collections]);
+
   const fetchCollections = async () => {
     try {
       console.log('📡 Fetching collections from blockchain for admin panel...');
@@ -629,13 +638,25 @@ function AdminPageContent() {
 
               {/* Save Changes Button - saves to backend storage */}
               <div>
-                <button
-                  onClick={handleSaveChanges}
-                  disabled={!connected || !collectionData.name.trim() || !collectionData.symbol.trim() || saving}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
-                >
-                  {saving ? 'Saving to Backend...' : '💾 Save/Update Collection Data'}
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleSaveChanges}
+                    disabled={!connected || !collectionData.name.trim() || !collectionData.symbol.trim() || saving}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
+                  >
+                    {saving ? 'Saving to Backend...' : '💾 Save/Update Collection Data'}
+                  </button>
+                  
+                  {collections.length > 0 && (
+                    <button
+                      onClick={() => loadExistingCollection(collections[0])}
+                      disabled={!connected}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
+                    >
+                      📥 Load Last Collection
+                    </button>
+                  )}
+                </div>
                 <p className="text-white/60 text-sm mt-2">
                   Save new collection or update existing collection data (not deployed to blockchain yet)
                 </p>
