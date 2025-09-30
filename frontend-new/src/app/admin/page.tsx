@@ -289,13 +289,19 @@ function AdminPageContent() {
       // Call backend API to save collection data (not deploy to blockchain)
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       
-      // Use the save endpoint to store collection data in backend
-      const response = await fetch(`${backendUrl}/api/collections/save`, {
+      // For now, use the deploy endpoint but we'll modify it to just save data
+      // Add a flag to indicate this is just saving, not deploying
+      const savePayload = {
+        ...payload,
+        saveOnly: true // Flag to indicate this is just saving data
+      };
+      
+      const response = await fetch(`${backendUrl}/api/collections/deploy`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(savePayload),
       });
 
       if (!response.ok) {
