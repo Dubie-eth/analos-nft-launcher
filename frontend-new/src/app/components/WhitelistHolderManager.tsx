@@ -238,6 +238,7 @@ export default function WhitelistHolderManager({
           onClick={createSnapshot}
           disabled={!tokenMint.trim() || !snapshotName.trim() || holders.length === 0 || loading}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 transition-colors text-sm"
+          title={`Disabled because: ${!tokenMint.trim() ? 'No token address' : ''} ${!snapshotName.trim() ? 'No snapshot name' : ''} ${holders.length === 0 ? 'No holders found' : ''} ${loading ? 'Loading...' : ''}`}
         >
           📸 Create Snapshot
         </button>
@@ -249,6 +250,16 @@ export default function WhitelistHolderManager({
         >
           ⚡ Generate Whitelist from Current Holders
         </button>
+      </div>
+
+      {/* Debug Info */}
+      <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+        <p><strong>Debug Info:</strong></p>
+        <p>Token Mint: {tokenMint || 'Not set'}</p>
+        <p>Snapshot Name: {snapshotName || 'Not set'}</p>
+        <p>Holders Found: {holders.length}</p>
+        <p>Loading: {loading ? 'Yes' : 'No'}</p>
+        <p>Button Disabled: {(!tokenMint.trim() || !snapshotName.trim() || holders.length === 0 || loading) ? 'Yes' : 'No'}</p>
       </div>
 
       {/* Current Holders Display */}
