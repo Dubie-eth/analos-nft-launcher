@@ -9,7 +9,7 @@
     "dev-working": "ts-node src/working-server.ts",
     "dev-real": "ts-node src/real-smart-contract-server.ts",
     "build": "tsc",
-    "start": "node dist/simple-server.js",
+    "start": "echo 'Starting Simple Server with Real NFT Mint Instructions' && node dist/simple-server.js",
     "start-minimal-test": "node dist/minimal-test-server.js",
     "start-minimal": "node dist/minimal-server.js",
     "start-working": "node dist/working-server.js",
