@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AnalosNFTSDK } from '../../lib/sdk';
+import DirectNFTMintService from '../../lib/direct-nft-mint';
 
 interface RealMintButtonProps {
   collectionName: string;
@@ -34,38 +35,48 @@ export default function RealMintButton({
     setMinting(true);
 
     try {
-      // Initialize the Analos NFT SDK
-      const sdk = new AnalosNFTSDK({
-        config: {
-          rpcUrl: 'https://rpc.analos.io',
-          explorerUrl: 'https://explorer.analos.io',
-          apiUrl: 'https://analos-nft-launcher-production-f3da.up.railway.app',
-          network: 'mainnet',
-          cacheEnabled: true,
-          cacheTimeout: 300000
-        }
-      });
+      // Use direct NFT mint service to bypass backend issues
+      const directMintService = new DirectNFTMintService('https://rpc.analos.io');
 
-      console.log('🚀 Starting real blockchain minting...');
+      console.log('🚀 Starting REAL blockchain minting (direct frontend)...');
       console.log('📍 Collection:', collectionName);
       console.log('🔢 Quantity:', quantity);
       console.log('👛 Wallet:', publicKey.toBase58());
 
-      // Mint NFT using real blockchain transactions
-      const result = await sdk.mintNFTWithWallet(
+      // Create real NFT mint transaction with Token Program instructions
+      const transaction = await directMintService.createRealNFTMintTransaction(
         collectionName,
         quantity,
         publicKey.toBase58(),
-        async (transaction) => {
-          setStatus('Requesting wallet signature...');
-          console.log('📝 Transaction created, requesting wallet signature...');
-          // This will prompt the user to sign the transaction
-          const signedTransaction = await signTransaction(transaction);
-          setStatus('Transaction signed, sending to blockchain...');
-          console.log('✅ Transaction signed by wallet');
-          return signedTransaction;
+        {
+          name: collectionName,
+          symbol: '$LOL',
+          description: `A unique NFT from the ${collectionName} collection`,
+          image: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
         }
       );
+
+      setStatus('Requesting wallet signature...');
+      console.log('📝 REAL NFT transaction created with Token Program instructions, requesting wallet signature...');
+      
+      // Sign the transaction
+      const signedTransaction = await signTransaction(transaction);
+      setStatus('Transaction signed, sending to blockchain...');
+      console.log('✅ REAL NFT transaction signed by wallet');
+
+      // Send to blockchain
+      const connection = new (await import('@solana/web3.js')).Connection('https://rpc.analos.io', 'confirmed');
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      
+      console.log('🎉 REAL NFT transaction sent to blockchain!');
+      console.log('🔗 Transaction signature:', signature);
+
+      const result = {
+        success: true,
+        signature,
+        explorerUrl: directMintService.getExplorerUrl(signature),
+        message: 'REAL NFT minted with Token Program instructions!'
+      };
 
       if (result.success) {
         console.log('🎉 NFT minted successfully!');
