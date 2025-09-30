@@ -4,9 +4,9 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npm run start-minimal-test",
+    "startCommand": "npm run start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   },
-  "comment": "Using minimal test server to debug health check issues"
+  "comment": "Force redeploy to fix price sync issue - backend still serving old data"
 }

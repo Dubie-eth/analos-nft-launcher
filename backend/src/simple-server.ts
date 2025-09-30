@@ -884,6 +884,165 @@ app.put('/api/collections/:collectionId/image', (req, res) => {
   }
 });
 
+// Save collection data endpoint (admin only) - saves to backend storage without blockchain deployment
+app.post('/api/collections/save', async (req, res) => {
+  try {
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image } = req.body;
+
+    console.log('💾 Saving collection data:', { name, price, maxSupply, symbol });
+
+    if (!name || !price || !maxSupply || !symbol) {
+      return res.status(400).json({ success: false, error: 'Missing required fields: name, price, maxSupply, symbol are required' });
+    }
+
+    // Generate unique collection ID for saved data
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substr(2, 9);
+    const collectionId = `saved_collection_${timestamp}${randomSuffix}`;
+    
+    // Handle base64 image or use default
+    let imageUrl = 'https://picsum.photos/500/500?random=' + Date.now();
+    if (image && image.startsWith('data:image/')) {
+      imageUrl = image;
+    }
+
+    // Generate URL-friendly collection name
+    const urlFriendlyName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
+    const savedCollectionData = {
+      id: collectionId,
+      name: name.trim(),
+      urlFriendlyName: urlFriendlyName,
+      description: description?.trim() || '',
+      imageUrl: imageUrl,
+      totalSupply: Number(maxSupply),
+      mintPrice: Number(price),
+      currency: 'LOS',
+      symbol: symbol.trim().toUpperCase(),
+      externalUrl: externalUrl || '',
+      feePercentage: Number(feePercentage) || 2.5,
+      feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+      savedAt: new Date().toISOString(),
+      isActive: false, // Not deployed to blockchain yet
+      currentSupply: 0,
+      // These will be filled when deployed to blockchain
+      deployedAt: null,
+      mintAddress: null,
+      metadataAddress: null,
+      masterEditionAddress: null,
+      arweaveUrl: null
+    };
+
+    // Clear any existing saved collection and save the new one
+    collections.clear();
+    collections.set(collectionId, savedCollectionData);
+    
+    // Save to file
+    saveCollections();
+    
+    console.log(`✅ Saved collection data: ${savedCollectionData.name}`);
+    console.log(`💰 Price: ${savedCollectionData.mintPrice} $LOS`);
+    console.log(`📊 Supply: ${savedCollectionData.totalSupply}`);
+    console.log(`📝 Status: Saved to backend (not deployed to blockchain)`);
+
+    res.json({
+      success: true,
+      message: `Collection "${name}" saved successfully! Ready for blockchain deployment.`,
+      collection: {
+        id: savedCollectionData.id,
+        name: savedCollectionData.name,
+        urlFriendlyName: urlFriendlyName,
+        mintPrice: savedCollectionData.mintPrice,
+        totalSupply: savedCollectionData.totalSupply,
+        symbol: savedCollectionData.symbol,
+        isDeployed: false
+      },
+      nextStep: 'Click "Deploy Collection" to deploy to blockchain for minting'
+    });
+  } catch (error) {
+    console.error('❌ Error saving collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update existing collection endpoint (admin only)
+app.put('/api/collections/update', async (req, res) => {
+  try {
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image } = req.body;
+
+    console.log('💾 Updating collection with data:', { name, price, maxSupply, symbol });
+
+    if (!name || !price || !maxSupply || !symbol) {
+      return res.status(400).json({ success: false, error: 'Missing required fields: name, price, maxSupply, symbol are required' });
+    }
+
+    // Find existing collection by name (assuming there's only one collection for now)
+    const existingCollection = Array.from(collections.values())[0];
+    
+    if (!existingCollection) {
+      return res.status(404).json({ success: false, error: 'No existing collection found to update' });
+    }
+
+    // Update the collection data
+    existingCollection.name = name.trim();
+    existingCollection.description = description?.trim() || '';
+    existingCollection.mintPrice = Number(price);
+    existingCollection.totalSupply = Number(maxSupply);
+    existingCollection.feePercentage = Number(feePercentage) || 2.5;
+    existingCollection.feeRecipient = feeRecipient || existingCollection.feeRecipient;
+    existingCollection.symbol = symbol.trim().toUpperCase();
+    existingCollection.externalUrl = externalUrl || '';
+    
+    // Update image if provided
+    if (image && image.startsWith('data:image/')) {
+      existingCollection.imageUrl = image;
+    }
+
+    // Save to file
+    saveCollections();
+    
+    console.log(`✅ Updated collection: ${existingCollection.name}`);
+    console.log(`💰 New price: ${existingCollection.mintPrice} $LOS`);
+    console.log(`📊 New supply: ${existingCollection.totalSupply}`);
+
+    // Generate URL-friendly collection name
+    const urlFriendlyName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
+    res.json({
+      success: true,
+      message: `Collection "${name}" updated successfully!`,
+      collection: {
+        id: existingCollection.id,
+        name: existingCollection.name,
+        urlFriendlyName: urlFriendlyName,
+        mintPrice: existingCollection.mintPrice,
+        totalSupply: existingCollection.totalSupply,
+        symbol: existingCollection.symbol
+      },
+      mintUrl: `https://analos-nft-launcher-9cxc.vercel.app/mint/${urlFriendlyName}`
+    });
+  } catch (error) {
+    console.error('❌ Error updating collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Update collection price endpoint (admin only)
 app.put('/api/admin/update-price/:collectionId', (req, res) => {
   try {
@@ -1366,10 +1525,85 @@ app.post('/api/admin/toggle-minting', (req, res) => {
 // Deploy collection endpoint (new endpoint for admin page)
 app.post('/api/collections/deploy', async (req, res) => {
   try {
-    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image } = req.body;
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image, saveOnly } = req.body;
 
     if (!name || !price || !maxSupply || !symbol) {
       return res.status(400).json({ success: false, error: 'Missing required fields: name, price, maxSupply, symbol are required' });
+    }
+
+    // Check if this is just saving data (not deploying to blockchain)
+    if (saveOnly) {
+      console.log('💾 Save-only mode: Storing collection data without blockchain deployment');
+      
+      // Generate unique collection ID for saved data
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substr(2, 9);
+      const collectionId = `saved_collection_${timestamp}${randomSuffix}`;
+      
+      // Handle base64 image or use default
+      let imageUrl = 'https://picsum.photos/500/500?random=' + Date.now();
+      if (image && image.startsWith('data:image/')) {
+        imageUrl = image;
+      }
+
+      // Generate URL-friendly collection name
+      const urlFriendlyName = name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+
+      const savedCollectionData = {
+        id: collectionId,
+        name: name.trim(),
+        urlFriendlyName: urlFriendlyName,
+        description: description?.trim() || '',
+        imageUrl: imageUrl,
+        totalSupply: Number(maxSupply),
+        mintPrice: Number(price),
+        currency: 'LOS',
+        symbol: symbol.trim().toUpperCase(),
+        externalUrl: externalUrl || '',
+        feePercentage: Number(feePercentage) || 2.5,
+        feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+        savedAt: new Date().toISOString(),
+        isActive: false, // Not deployed to blockchain yet
+        currentSupply: 0,
+        // These will be filled when deployed to blockchain
+        deployedAt: null,
+        mintAddress: null,
+        metadataAddress: null,
+        masterEditionAddress: null,
+        arweaveUrl: null
+      };
+
+      // Clear any existing saved collection and save the new one
+      collections.clear();
+      collections.set(collectionId, savedCollectionData);
+      
+      // Save to file
+      saveCollections();
+      
+      console.log(`✅ Saved collection data: ${savedCollectionData.name}`);
+      console.log(`💰 Price: ${savedCollectionData.mintPrice} $LOS`);
+      console.log(`📊 Supply: ${savedCollectionData.totalSupply}`);
+      console.log(`📝 Status: Saved to backend (not deployed to blockchain)`);
+
+      return res.json({
+        success: true,
+        message: `Collection "${name}" saved successfully! Ready for blockchain deployment.`,
+        collection: {
+          id: savedCollectionData.id,
+          name: savedCollectionData.name,
+          urlFriendlyName: urlFriendlyName,
+          mintPrice: savedCollectionData.mintPrice,
+          totalSupply: savedCollectionData.totalSupply,
+          symbol: savedCollectionData.symbol,
+          isDeployed: false
+        },
+        nextStep: 'Click "Deploy to Blockchain" to deploy for minting'
+      });
     }
 
     // Generate unique collection ID
