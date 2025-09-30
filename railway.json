@@ -8,5 +8,5 @@
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   },
-  "comment": "Force redeploy - backend still running minimal server instead of simple server with real NFT instructions"
+  "comment": "Force redeploy - backend should run simple-server.js with real NFT mint instructions"
 }
