@@ -71,13 +71,13 @@ export default function ProfilePage() {
               uiAmount: parsedInfo.tokenAmount.uiAmount,
               supply: mintInfo.supply.toString(),
               isInitialized: mintInfo.isInitialized,
-              collectionName: 'Analos NFT', // Default name, could be enhanced with metadata
+              collectionName: 'LOL NFT', // Default name, could be enhanced with metadata
               image: `https://picsum.photos/300/300?random=${mintAddress.slice(0, 8)}`, // Dynamic placeholder with unique seed
-              name: `Analos NFT #${mintAddress.slice(0, 8)}`
+              name: `LOL NFT #${mintAddress.slice(0, 8)}`
             };
             
             nftList.push(nft);
-            collectionSet.add('Analos NFT');
+            collectionSet.add('LOL NFT');
           }
         } catch (error) {
           console.log('⚠️ Error fetching mint info for:', mintAddress, error);
@@ -155,9 +155,10 @@ export default function ProfilePage() {
             <div className="hidden md:flex items-center space-x-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-2 shadow-lg">
-                  <span className="text-white font-bold text-2xl">A</span>
+                  <span className="text-white font-bold text-xl">LOL</span>
                 </div>
-                <p className="text-xs font-semibold text-gray-600">Analos NFT</p>
+                <p className="text-xs font-semibold text-gray-600">Launch On LOS</p>
+                <p className="text-xs text-gray-500">NFT Platform</p>
               </div>
               
               <div className="flex space-x-4">
@@ -222,11 +223,11 @@ export default function ProfilePage() {
           <div className="md:hidden mt-6">
             <div className="flex items-center justify-center space-x-4 mb-4">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">A</span>
+                <span className="text-white font-bold text-sm">LOL</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Analos NFT</p>
-                <p className="text-xs text-gray-500">Official Token</p>
+                <p className="text-sm font-semibold text-gray-900">Launch On LOS</p>
+                <p className="text-xs text-gray-500">NFT Platform</p>
               </div>
             </div>
             
@@ -279,6 +280,45 @@ export default function ProfilePage() {
                 Telegram
               </a>
             </div>
+          </div>
+        </div>
+
+        {/* Token Information */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-8 border border-blue-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">🔥 LOL Token Economics</h2>
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+              ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-4 bg-white/80 rounded-xl">
+              <div className="text-3xl mb-2">🔥</div>
+              <h3 className="font-bold text-gray-900 mb-2">First 3 Months</h3>
+              <p className="text-2xl font-bold text-green-600 mb-1">75%</p>
+              <p className="text-sm text-gray-600">Revenue → Buyback & Burn</p>
+            </div>
+            
+            <div className="text-center p-4 bg-white/80 rounded-xl">
+              <div className="text-3xl mb-2">⚡</div>
+              <h3 className="font-bold text-gray-900 mb-2">Months 4-6</h3>
+              <p className="text-2xl font-bold text-blue-600 mb-1">65%</p>
+              <p className="text-sm text-gray-600">Revenue → Buyback & Burn</p>
+            </div>
+            
+            <div className="text-center p-4 bg-white/80 rounded-xl">
+              <div className="text-3xl mb-2">💎</div>
+              <h3 className="font-bold text-gray-900 mb-2">Month 7+</h3>
+              <p className="text-2xl font-bold text-purple-600 mb-1">50%</p>
+              <p className="text-sm text-gray-600">Revenue → Buyback & Burn</p>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              <span className="font-semibold text-gray-900">Strategy:</span> Aggressive token buyback and burn program to create deflationary pressure and increase token value over time.
+            </p>
           </div>
         </div>
 
