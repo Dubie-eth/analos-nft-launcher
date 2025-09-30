@@ -27,6 +27,27 @@ export default function ProfilePage() {
     collectionsOwned: 0,
     totalValue: 0
   });
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Load dark mode preference from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const ANALOS_RPC_URL = 'https://rpc.analos.io';
   const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
@@ -129,7 +150,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100 p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-8 relative overflow-hidden transition-colors duration-300">
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-2 h-2 bg-purple-300 rounded-full animate-pulse opacity-60"></div>
@@ -144,9 +165,26 @@ export default function ProfilePage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
-              <p className="text-gray-600">Welcome back! Here's your NFT collection.</p>
-              <div className="mt-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 mb-2">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                  title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                >
+                  {darkMode ? (
+                    <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300">Welcome back! Here's your NFT collection.</p>
+              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                 Wallet: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
               </div>
             </div>
@@ -284,47 +322,47 @@ export default function ProfilePage() {
         </div>
 
         {/* Token Information */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-8 border border-blue-200">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 mb-8 border border-blue-200 dark:border-gray-600 transition-colors duration-300">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">🔥 LOL Token Economics</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🔥 LOL Token Economics</h2>
             <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
               ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6
             </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-white/80 rounded-xl">
+            <div className="text-center p-4 bg-white/80 dark:bg-gray-700/80 rounded-xl transition-colors duration-300">
               <div className="text-3xl mb-2">🔥</div>
-              <h3 className="font-bold text-gray-900 mb-2">First 3 Months</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white mb-2">First 3 Months</h3>
               <p className="text-2xl font-bold text-green-600 mb-1">75%</p>
-              <p className="text-sm text-gray-600">Revenue → Buyback & Burn</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Revenue → Buyback & Burn</p>
             </div>
             
-            <div className="text-center p-4 bg-white/80 rounded-xl">
+            <div className="text-center p-4 bg-white/80 dark:bg-gray-700/80 rounded-xl transition-colors duration-300">
               <div className="text-3xl mb-2">⚡</div>
-              <h3 className="font-bold text-gray-900 mb-2">Months 4-6</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Months 4-6</h3>
               <p className="text-2xl font-bold text-blue-600 mb-1">65%</p>
-              <p className="text-sm text-gray-600">Revenue → Buyback & Burn</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Revenue → Buyback & Burn</p>
             </div>
             
-            <div className="text-center p-4 bg-white/80 rounded-xl">
+            <div className="text-center p-4 bg-white/80 dark:bg-gray-700/80 rounded-xl transition-colors duration-300">
               <div className="text-3xl mb-2">💎</div>
-              <h3 className="font-bold text-gray-900 mb-2">Month 7+</h3>
+              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Month 7+</h3>
               <p className="text-2xl font-bold text-purple-600 mb-1">50%</p>
-              <p className="text-sm text-gray-600">Revenue → Buyback & Burn</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Revenue → Buyback & Burn</p>
             </div>
           </div>
           
           <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">Strategy:</span> Aggressive token buyback and burn program to create deflationary pressure and increase token value over time.
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="font-semibold text-gray-900 dark:text-white">Strategy:</span> Aggressive token buyback and burn program to create deflationary pressure and increase token value over time.
             </p>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-blue-200 hover:scale-105">
+          <div className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/20 hover:border-blue-200 dark:hover:border-blue-400 hover:scale-105">
             <div className="flex items-center">
               <div className="w-14 h-14 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,13 +370,13 @@ export default function ProfilePage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-semibold text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Total NFTs</p>
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">Total NFTs</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{stats.totalNFTs}</p>
               </div>
             </div>
           </div>
 
-          <div className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-purple-200 hover:scale-105">
+          <div className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/20 hover:border-purple-200 dark:hover:border-purple-400 hover:scale-105">
             <div className="flex items-center">
               <div className="w-14 h-14 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,13 +384,13 @@ export default function ProfilePage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-semibold text-gray-600 group-hover:text-purple-600 transition-colors duration-200">Collections</p>
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">Collections</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{stats.collectionsOwned}</p>
               </div>
             </div>
           </div>
 
-          <div className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-green-200 hover:scale-105">
+          <div className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/20 hover:border-green-200 dark:hover:border-green-400 hover:scale-105">
             <div className="flex items-center">
               <div className="w-14 h-14 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,7 +398,7 @@ export default function ProfilePage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-semibold text-gray-600 group-hover:text-green-600 transition-colors duration-200">Est. Value</p>
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-200">Est. Value</p>
                 <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">${stats.totalValue}</p>
               </div>
             </div>
@@ -368,9 +406,9 @@ export default function ProfilePage() {
         </div>
 
         {/* NFT Collection */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transition-colors duration-300">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">My NFT Collection</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My NFT Collection</h2>
             <button
               onClick={fetchUserNFTs}
               disabled={loading}
@@ -413,7 +451,7 @@ export default function ProfilePage() {
               {nfts.map((nft, index) => (
                 <div 
                   key={nft.mint} 
-                  className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20 hover:border-purple-200"
+                  className="group bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20 dark:border-gray-600/20 hover:border-purple-200 dark:hover:border-purple-400"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {/* NFT Image Container */}
@@ -452,18 +490,18 @@ export default function ProfilePage() {
                   {/* NFT Info */}
                   <div className="space-y-3">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg group-hover:text-purple-700 transition-colors duration-200">{nft.name}</h3>
-                      <p className="text-sm text-purple-600 font-medium">{nft.collectionName}</p>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-lg group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors duration-200">{nft.name}</h3>
+                      <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">{nft.collectionName}</p>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                    <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 space-y-1 transition-colors duration-300">
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Mint:</span>
-                        <span className="font-mono text-gray-700">{nft.mint.slice(0, 8)}...</span>
+                        <span className="text-gray-500 dark:text-gray-300">Mint:</span>
+                        <span className="font-mono text-gray-700 dark:text-gray-200">{nft.mint.slice(0, 8)}...</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Supply:</span>
-                        <span className="font-mono text-gray-700">{nft.supply}</span>
+                        <span className="text-gray-500 dark:text-gray-300">Supply:</span>
+                        <span className="font-mono text-gray-700 dark:text-gray-200">{nft.supply}</span>
                       </div>
                     </div>
                     
