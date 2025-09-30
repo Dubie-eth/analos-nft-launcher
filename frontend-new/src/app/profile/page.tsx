@@ -72,8 +72,8 @@ export default function ProfilePage() {
               supply: mintInfo.supply.toString(),
               isInitialized: mintInfo.isInitialized,
               collectionName: 'Analos NFT', // Default name, could be enhanced with metadata
-              image: '/api/placeholder/150/150', // Placeholder, could fetch real metadata
-              name: `NFT #${mintAddress.slice(0, 8)}`
+              image: `https://picsum.photos/300/300?random=${mintAddress.slice(0, 8)}`, // Dynamic placeholder with unique seed
+              name: `Analos NFT #${mintAddress.slice(0, 8)}`
             };
             
             nftList.push(nft);
@@ -129,8 +129,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100 p-8 relative overflow-hidden">
+      {/* Floating particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-2 h-2 bg-purple-300 rounded-full animate-pulse opacity-60"></div>
+        <div className="absolute top-40 right-20 w-3 h-3 bg-blue-300 rounded-full animate-bounce opacity-40" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-40 left-20 w-2 h-2 bg-indigo-300 rounded-full animate-pulse opacity-50" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-60 right-40 w-1 h-1 bg-purple-400 rounded-full animate-ping opacity-30" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute bottom-20 right-10 w-2 h-2 bg-blue-400 rounded-full animate-pulse opacity-40" style={{ animationDelay: '3s' }}></div>
+      </div>
+      
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
@@ -142,44 +151,44 @@ export default function ProfilePage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-blue-200 hover:scale-105">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total NFTs</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalNFTs}</p>
+                <p className="text-sm font-semibold text-gray-600 group-hover:text-blue-600 transition-colors duration-200">Total NFTs</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{stats.totalNFTs}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-purple-200 hover:scale-105">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Collections</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.collectionsOwned}</p>
+                <p className="text-sm font-semibold text-gray-600 group-hover:text-purple-600 transition-colors duration-200">Collections</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{stats.collectionsOwned}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="group bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 border border-white/20 hover:border-green-200 hover:scale-105">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Est. Value</p>
-                <p className="text-2xl font-bold text-gray-900">${stats.totalValue}</p>
+                <p className="text-sm font-semibold text-gray-600 group-hover:text-green-600 transition-colors duration-200">Est. Value</p>
+                <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">${stats.totalValue}</p>
               </div>
             </div>
           </div>
@@ -192,19 +201,19 @@ export default function ProfilePage() {
             <button
               onClick={fetchUserNFTs}
               disabled={loading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-purple-600 hover:via-blue-600 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Refreshing...
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Scanning Blockchain...</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  Refresh NFTs
+                  <span>🔄 Refresh NFTs</span>
                 </>
               )}
             </button>
@@ -229,33 +238,66 @@ export default function ProfilePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {nfts.map((nft, index) => (
-                <div key={nft.mint} className="bg-gray-50 rounded-xl p-4 hover:shadow-lg transition-all duration-200">
-                  <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg mb-4 flex items-center justify-center">
+                <div 
+                  key={nft.mint} 
+                  className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20 hover:border-purple-200"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  {/* NFT Image Container */}
+                  <div className="relative aspect-square bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 rounded-xl mb-4 overflow-hidden group-hover:from-purple-200 group-hover:via-blue-100 group-hover:to-indigo-200 transition-all duration-300">
                     <img
                       src={nft.image}
                       alt={nft.name}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover rounded-xl group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
                         target.nextElementSibling?.classList.remove('hidden');
                       }}
                     />
-                    <div className="hidden w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                    {/* Fallback gradient overlay */}
+                    <div className="hidden absolute inset-0 bg-gradient-to-br from-purple-400 via-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                      <div className="text-center">
+                        <svg className="w-12 h-12 text-white mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-white text-sm font-medium">NFT Image</p>
+                      </div>
+                    </div>
+                    
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                        <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{nft.name}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{nft.collectionName}</p>
-                  <div className="text-xs text-gray-500">
-                    <div>Mint: {nft.mint.slice(0, 8)}...</div>
-                    <div>Supply: {nft.supply}</div>
+                  
+                  {/* NFT Info */}
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-lg group-hover:text-purple-700 transition-colors duration-200">{nft.name}</h3>
+                      <p className="text-sm text-purple-600 font-medium">{nft.collectionName}</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Mint:</span>
+                        <span className="font-mono text-gray-700">{nft.mint.slice(0, 8)}...</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Supply:</span>
+                        <span className="font-mono text-gray-700">{nft.supply}</span>
+                      </div>
+                    </div>
+                    
+                    <button className="w-full bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 text-white py-3 px-4 rounded-xl text-sm font-semibold hover:from-purple-600 hover:via-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                      ✨ View Details
+                    </button>
                   </div>
-                  <button className="w-full mt-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200">
-                    View Details
-                  </button>
                 </div>
               ))}
             </div>
