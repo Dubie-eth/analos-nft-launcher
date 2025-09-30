@@ -145,7 +145,8 @@ function AdminPageContent() {
 
   const loadExistingCollection = (collection: BlockchainCollectionData) => {
     console.log('📥 Loading existing collection data:', collection);
-    setCollectionData({
+    
+    const newCollectionData = {
       name: collection.name,
       description: collection.description || '',
       image: null, // Will need to re-upload image
@@ -155,14 +156,23 @@ function AdminPageContent() {
       feeRecipient: collection.feeRecipient || '',
       symbol: collection.symbol || '',
       externalUrl: collection.externalUrl || ''
-    });
+    };
+    
+    console.log('📝 Setting collection data:', newCollectionData);
+    setCollectionData(newCollectionData);
     
     // Set image preview if available
     if (collection.imageUrl) {
+      console.log('🖼️ Setting image preview:', collection.imageUrl);
       setImagePreview(collection.imageUrl);
     }
     
-    setSaveStatus(`Loaded collection "${collection.name}" for editing`);
+    setSaveStatus(`✅ Loaded collection "${collection.name}" for editing - Form should now be populated!`);
+    
+    // Force a re-render by updating a dummy state
+    setTimeout(() => {
+      setSaveStatus(`✅ Collection "${collection.name}" loaded successfully! You can now edit the details above.`);
+    }, 100);
   };
 
   if (!mounted) {
@@ -417,7 +427,7 @@ function AdminPageContent() {
             
             <div className="grid md:grid-cols-2 gap-8">
               {/* Left Column - Basic Info */}
-              <div className="space-y-6">
+              <div id="collection-form" className="space-y-6">
                 <h2 className="text-2xl font-bold text-white mb-4">Collection Details</h2>
                 
                 <div>
@@ -674,6 +684,15 @@ function AdminPageContent() {
                 <p className="text-white text-center">{saveStatus}</p>
               </div>
             )}
+
+            {/* Collection Loaded Indicator */}
+            {collectionData.name && (
+              <div className="mt-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
+                <p className="text-green-300 text-center font-medium">
+                  ✅ Collection "{collectionData.name}" is loaded and ready to edit!
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -829,7 +848,17 @@ function AdminPageContent() {
                       </button>
                       
                       <button
-                        onClick={() => loadExistingCollection(collection)}
+                        onClick={() => {
+                          console.log('🖱️ Edit Collection button clicked for:', collection.name);
+                          loadExistingCollection(collection);
+                          // Scroll to the form section
+                          setTimeout(() => {
+                            const formSection = document.querySelector('#collection-form');
+                            if (formSection) {
+                              formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                          }, 200);
+                        }}
                         className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
                       >
                         ✏️ Edit Collection
