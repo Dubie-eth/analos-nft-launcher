@@ -157,17 +157,45 @@ export default function ProfilePage() {
 
   if (!connected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-8 relative overflow-hidden transition-colors duration-300">
+        {/* Dark mode toggle - always visible */}
+        <div className="absolute top-8 right-8 z-20">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {darkMode ? (
+              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-2 h-2 bg-purple-300 dark:bg-purple-600 rounded-full animate-pulse opacity-60"></div>
+          <div className="absolute top-40 right-20 w-3 h-3 bg-blue-300 dark:bg-blue-600 rounded-full animate-bounce opacity-40" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-40 left-20 w-2 h-2 bg-indigo-300 dark:bg-indigo-600 rounded-full animate-pulse opacity-50" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-60 right-40 w-1 h-1 bg-purple-400 dark:bg-purple-700 rounded-full animate-ping opacity-30" style={{ animationDelay: '0.5s' }}></div>
+          <div className="absolute bottom-20 right-10 w-2 h-2 bg-blue-400 dark:bg-blue-700 rounded-full animate-pulse opacity-40" style={{ animationDelay: '3s' }}></div>
+        </div>
+
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center py-20">
-            <div className="bg-white rounded-2xl shadow-xl p-12 max-w-md mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-12 max-w-md mx-auto transition-colors duration-300">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Connect Your Wallet</h1>
-              <p className="text-gray-600 mb-8">Connect your Backpack wallet to view your NFT collection and profile.</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Connect Your Wallet</h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-8">Connect your Backpack wallet to view your NFT collection and profile.</p>
               <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200">
                 Connect Wallet
               </button>

@@ -55,6 +55,13 @@ class TokenIdTracker {
     };
   }
 
+  // Clear all data for fresh start
+  clearAllData() {
+    this.tokenMappings = {};
+    this.collectionCounters = {};
+    console.log('🧹 Cleared all token ID tracking data');
+  }
+
   // Initialize with some sample data for testing
   initializeSampleData() {
     // Add some sample mappings for testing
@@ -68,5 +75,5 @@ class TokenIdTracker {
 // Export singleton instance
 export const tokenIdTracker = new TokenIdTracker();
 
-// Initialize with sample data for now
-tokenIdTracker.initializeSampleData();
+// Clear all data for fresh start
+tokenIdTracker.clearAllData();
