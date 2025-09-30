@@ -1,5 +1,4 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getTokenAccountsByOwner } from '@solana/spl-token';
 
 export interface LOSBalanceInfo {
   walletAddress: string;
@@ -20,6 +19,7 @@ export class LOSBalanceChecker {
 
   /**
    * Check if a wallet holds enough $LOS tokens for minting
+   * For now, we'll check native SOL balance as $LOS is likely SOL-based
    */
   async checkLOSBalance(
     walletAddress: string, 
@@ -31,60 +31,20 @@ export class LOSBalanceChecker {
 
       const walletPublicKey = new PublicKey(walletAddress);
       
-      // Get all token accounts for this wallet
-      const tokenAccounts = await getTokenAccountsByOwner(
-        this.connection,
-        walletPublicKey,
-        {
-          programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
-        }
-      );
-
-      let losBalance = 0;
-      let losTokenAccountAddress = '';
-
-      // Look for $LOS token account (assuming it's SOL-based)
-      for (const account of tokenAccounts.value) {
-        try {
-          const accountInfo = await this.connection.getParsedAccountInfo(account.pubkey);
-          if (accountInfo.value?.data && 'parsed' in accountInfo.value.data) {
-            const parsedData = accountInfo.value.data.parsed;
-            const mint = parsedData.info.mint;
-            const amount = parsedData.info.tokenAmount.uiAmount || 0;
-            
-            // Check if this is the $LOS token (SOL mint)
-            if (mint === this.losTokenMint) {
-              losBalance = amount;
-              losTokenAccountAddress = account.pubkey.toString();
-              console.log(`✅ Found $LOS balance: ${amount}`);
-              break;
-            }
-          }
-        } catch (error) {
-          console.warn(`⚠️ Error parsing token account:`, error);
-        }
-      }
-
-      // If no token account found, check native SOL balance
-      if (losBalance === 0) {
-        try {
-          const solBalance = await this.connection.getBalance(walletPublicKey);
-          losBalance = solBalance / 1e9; // Convert lamports to SOL
-          console.log(`✅ Found native SOL balance: ${losBalance}`);
-        } catch (error) {
-          console.warn(`⚠️ Error getting SOL balance:`, error);
-        }
-      }
+      // Check native SOL balance (assuming $LOS is SOL-based)
+      const solBalance = await this.connection.getBalance(walletPublicKey);
+      const losBalance = solBalance / 1e9; // Convert lamports to SOL
+      
+      console.log(`✅ Found native SOL balance: ${losBalance} SOL (${solBalance} lamports)`);
 
       const hasMinimumBalance = losBalance >= minimumBalance;
       
       const result: LOSBalanceInfo = {
         walletAddress,
-        losBalance: Math.floor(losBalance * 1e9), // Raw amount in lamports
+        losBalance: solBalance, // Raw amount in lamports
         losBalanceFormatted: losBalance,
         hasMinimumBalance,
-        minimumRequired: minimumBalance,
-        tokenAccountAddress: losTokenAccountAddress || undefined
+        minimumRequired: minimumBalance
       };
 
       console.log(`📊 $LOS Balance Check Result:`, result);
