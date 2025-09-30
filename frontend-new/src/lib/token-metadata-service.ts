@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getMint } from '@solana/spl-token';
+import { analosTokenService } from './analos-token-service';
 
 export interface TokenMetadata {
   mint: string;
@@ -97,9 +98,29 @@ export class TokenMetadataService {
     } catch (error) {
       console.error(`❌ Error fetching token metadata for ${mintAddress}:`, error);
       
+      // Try the new robust token service as fallback
+      console.log(`🔄 Trying alternative token service as fallback`);
+      try {
+        const analosTokenInfo = await analosTokenService.getTokenInfo(mintAddress);
+        if (analosTokenInfo) {
+          console.log(`✅ Got token info from alternative service`);
+          return {
+            mint: analosTokenInfo.mint,
+            symbol: analosTokenInfo.symbol,
+            name: analosTokenInfo.name,
+            decimals: analosTokenInfo.decimals,
+            supply: analosTokenInfo.supply,
+            authority: undefined,
+            freezeAuthority: undefined
+          };
+        }
+      } catch (fallbackError) {
+        console.warn(`⚠️ Alternative token service also failed:`, fallbackError);
+      }
+      
       // Return fallback metadata for known tokens even on error
       if (mintAddress === 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6') {
-        console.log(`🔄 Returning fallback metadata for LOL token`);
+        console.log(`🔄 Returning hardcoded fallback metadata for LOL token`);
         return {
           mint: mintAddress,
           symbol: 'LOL',

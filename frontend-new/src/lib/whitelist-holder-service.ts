@@ -1,6 +1,7 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getParsedTokenAccountsByOwner, getTokenAccountsByOwner } from '@solana/spl-token';
 import { tokenMetadataService } from './token-metadata-service';
+import { analosTokenService } from './analos-token-service';
 
 export interface TokenHolder {
   walletAddress: string;
@@ -50,28 +51,43 @@ export class WhitelistHolderService {
       
       const tokenMint = new PublicKey(criteria.tokenMint);
       
-      // Get token metadata to understand decimals
-      let tokenMetadata = await tokenMetadataService.getTokenMetadata(criteria.tokenMint);
+      // Use the new robust token service instead of the problematic one
+      let tokenInfo = await analosTokenService.getTokenInfo(criteria.tokenMint);
       
-      // Special handling for known tokens
-      if (!tokenMetadata && criteria.tokenMint === 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6') {
-        tokenMetadata = {
-          mint: criteria.tokenMint,
-          symbol: 'LOL',
-          name: 'Launch On LOS Token',
-          decimals: 6,
-          supply: 0
-        };
-        console.log(`🔄 Using hardcoded metadata for LOL token`);
+      // Fallback to old service if new one fails
+      if (!tokenInfo) {
+        console.log(`🔄 Falling back to old token metadata service`);
+        const tokenMetadata = await tokenMetadataService.getTokenMetadata(criteria.tokenMint);
+        
+        // Special handling for known tokens
+        if (!tokenMetadata && criteria.tokenMint === 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6') {
+          tokenInfo = {
+            mint: criteria.tokenMint,
+            symbol: 'LOL',
+            name: 'Launch On LOS Token',
+            decimals: 6,
+            supply: 0
+          };
+          console.log(`🔄 Using hardcoded metadata for LOL token`);
+        } else if (tokenMetadata) {
+          tokenInfo = {
+            mint: criteria.tokenMint,
+            symbol: tokenMetadata.symbol,
+            name: tokenMetadata.name,
+            decimals: tokenMetadata.decimals,
+            supply: tokenMetadata.supply
+          };
+        }
       }
       
-      const decimals = tokenMetadata?.decimals || 6;
-      const tokenSymbol = tokenMetadata?.symbol || this.generateSymbolFromMint(criteria.tokenMint);
+      const decimals = tokenInfo?.decimals || 6;
+      const tokenSymbol = tokenInfo?.symbol || this.generateSymbolFromMint(criteria.tokenMint);
       
-      console.log(`📊 Token metadata result:`, { 
+      console.log(`📊 Token info result:`, { 
         symbol: tokenSymbol, 
         decimals, 
-        metadataExists: !!tokenMetadata 
+        infoExists: !!tokenInfo,
+        source: tokenInfo ? 'analos-token-service' : 'fallback'
       });
 
       // Get all token accounts for this mint
