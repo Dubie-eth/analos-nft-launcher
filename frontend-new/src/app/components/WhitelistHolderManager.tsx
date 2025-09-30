@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { whitelistHolderService, WhitelistSnapshot, TokenHolder } from '../../lib/whitelist-holder-service';
+import { whitelistHolderService, WhitelistSnapshot, TokenHolder, WhitelistHolderService } from '../../lib/whitelist-holder-service';
 import { tokenMetadataService } from '../../lib/token-metadata-service';
 
 interface WhitelistHolderManagerProps {
@@ -121,7 +121,7 @@ export default function WhitelistHolderManager({
   };
 
   const generateWhitelistFromSnapshot = (snapshot: WhitelistSnapshot) => {
-    const addresses = whitelistHolderService.generateWhitelistAddresses(snapshot.holders);
+    const addresses = WhitelistHolderService.generateWhitelistAddresses(snapshot.holders);
     onWhitelistGenerated(addresses);
     alert(`Generated whitelist with ${addresses.length} addresses from snapshot "${snapshot.name}"`);
   };
@@ -132,7 +132,7 @@ export default function WhitelistHolderManager({
       return;
     }
     
-    const addresses = whitelistHolderService.generateWhitelistAddresses(holders);
+    const addresses = WhitelistHolderService.generateWhitelistAddresses(holders);
     onWhitelistGenerated(addresses);
     alert(`Generated whitelist with ${addresses.length} addresses from current holders`);
   };
