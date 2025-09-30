@@ -51,9 +51,28 @@ export class WhitelistHolderService {
       const tokenMint = new PublicKey(criteria.tokenMint);
       
       // Get token metadata to understand decimals
-      const tokenMetadata = await tokenMetadataService.getTokenMetadata(criteria.tokenMint);
+      let tokenMetadata = await tokenMetadataService.getTokenMetadata(criteria.tokenMint);
+      
+      // Special handling for known tokens
+      if (!tokenMetadata && criteria.tokenMint === 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6') {
+        tokenMetadata = {
+          mint: criteria.tokenMint,
+          symbol: 'LOL',
+          name: 'Launch On LOS Token',
+          decimals: 6,
+          supply: 0
+        };
+        console.log(`🔄 Using hardcoded metadata for LOL token`);
+      }
+      
       const decimals = tokenMetadata?.decimals || 6;
       const tokenSymbol = tokenMetadata?.symbol || this.generateSymbolFromMint(criteria.tokenMint);
+      
+      console.log(`📊 Token metadata result:`, { 
+        symbol: tokenSymbol, 
+        decimals, 
+        metadataExists: !!tokenMetadata 
+      });
 
       // Get all token accounts for this mint
       const tokenAccounts = await this.connection.getProgramAccounts(

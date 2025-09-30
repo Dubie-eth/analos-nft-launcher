@@ -35,13 +35,33 @@ export class TokenMetadataService {
         throw new Error('Token mint account does not exist');
       }
 
+      // Check if account is owned by SPL Token Program
+      const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+      if (accountInfo.owner.toString() !== SPL_TOKEN_PROGRAM_ID) {
+        throw new Error('Account is not owned by SPL Token Program');
+      }
+
       // Try to get mint info
       let mintInfo;
       try {
         mintInfo = await getMint(this.connection, mintPublicKey);
+        console.log(`✅ Successfully fetched mint info for ${mintAddress}`);
       } catch (error) {
-        console.warn(`⚠️ Could not fetch mint info for ${mintAddress}, using fallback values`);
-        // Create fallback mint info
+        console.warn(`⚠️ Could not fetch mint info for ${mintAddress}, using fallback values:`, error);
+        // Create fallback mint info based on known tokens
+        if (mintAddress === 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6') {
+          return {
+            mint: mintAddress,
+            symbol: 'LOL',
+            name: 'Launch On LOS Token',
+            decimals: 6,
+            supply: 0,
+            authority: undefined,
+            freezeAuthority: undefined
+          };
+        }
+        
+        // Generic fallback
         mintInfo = {
           decimals: 6, // Default decimals
           supply: BigInt(0),
@@ -77,8 +97,9 @@ export class TokenMetadataService {
     } catch (error) {
       console.error(`❌ Error fetching token metadata for ${mintAddress}:`, error);
       
-      // Return fallback metadata for known tokens
+      // Return fallback metadata for known tokens even on error
       if (mintAddress === 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6') {
+        console.log(`🔄 Returning fallback metadata for LOL token`);
         return {
           mint: mintAddress,
           symbol: 'LOL',
@@ -90,6 +111,7 @@ export class TokenMetadataService {
         };
       }
       
+      // For unknown tokens, return null to indicate failure
       return null;
     }
   }
