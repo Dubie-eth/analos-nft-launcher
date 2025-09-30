@@ -7,19 +7,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import RealMintButton from '../../components/RealMintButton';
+import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 
-interface CollectionInfo {
-  name: string;
-  description: string;
-  imageUrl: string;
-  mintPrice: number;
-  totalSupply: number;
-  currentSupply: number;
-  feePercentage: number;
-  symbol: string;
-  externalUrl: string;
-  feeRecipient: string;
-}
+// Use the blockchain collection data interface
+type CollectionInfo = BlockchainCollectionData;
 
 function CollectionMintContent() {
   const { publicKey, connected, signTransaction } = useWallet();
@@ -35,20 +26,20 @@ function CollectionMintContent() {
 
   const fetchCollectionInfo = useCallback(async () => {
     try {
-      // Fixed backend URL for collection lookup - v3.3.0 - bypassing env vars
-      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const fullUrl = `${backendUrl}/api/collections/${encodeURIComponent(collectionName)}`;
-      console.log('Fetching collection from:', fullUrl);
-      const response = await fetch(fullUrl);
-      if (response.ok) {
-        const data = await response.json();
-        setCollection(data.collection);
+      console.log('📡 Fetching collection from blockchain (single source of truth):', collectionName);
+      const blockchainService = new BlockchainCollectionService();
+      const blockchainCollection = await blockchainService.getCollectionByNameFromBlockchain(collectionName);
+      
+      if (blockchainCollection) {
+        setCollection(blockchainCollection);
+        console.log('✅ Collection fetched from blockchain:', blockchainCollection.name, 'Price:', blockchainCollection.mintPrice);
       } else {
-        setMintStatus('Collection not found');
+        setMintStatus('Collection not found on blockchain');
+        console.log('❌ Collection not found on blockchain:', collectionName);
       }
     } catch (error) {
-      console.error('Failed to fetch collection:', error);
-      setMintStatus('Failed to load collection');
+      console.error('❌ Failed to fetch collection from blockchain:', error);
+      setMintStatus('Failed to load collection from blockchain');
     } finally {
       setLoading(false);
     }

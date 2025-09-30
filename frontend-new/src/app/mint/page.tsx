@@ -4,18 +4,10 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 
-interface Collection {
-  name: string;
-  description: string;
-  imageUrl: string;
-  mintPrice: number;
-  totalSupply: number;
-  currentSupply: number;
-  feePercentage: number;
-  symbol: string;
-  externalUrl: string;
-}
+// Use the blockchain collection data interface
+type Collection = BlockchainCollectionData;
 
 function MintPageContent() {
   const { publicKey, connected } = useWallet();
@@ -37,14 +29,13 @@ function MintPageContent() {
 
   const fetchCollections = async () => {
     try {
-      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/collections`);
-      if (response.ok) {
-        const data = await response.json();
-        setCollections(data.collections || []);
-      }
+      console.log('📡 Fetching collections from blockchain (single source of truth)...');
+      const blockchainService = new BlockchainCollectionService();
+      const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
+      setCollections(blockchainCollections);
+      console.log('✅ Collections fetched from blockchain:', blockchainCollections.length);
     } catch (error) {
-      console.error('Failed to fetch collections:', error);
+      console.error('❌ Failed to fetch collections from blockchain:', error);
     } finally {
       setLoading(false);
     }
