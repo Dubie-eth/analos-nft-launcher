@@ -1,4 +1,3 @@
 {
-  "framework": "nextjs",
-  "comment": "Force redeploy - trigger new build"
+  "framework": "nextjs"
 }
