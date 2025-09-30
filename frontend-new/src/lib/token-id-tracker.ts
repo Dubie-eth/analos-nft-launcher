@@ -33,6 +33,15 @@ interface CollectionInfo {
     addresses: string[];
     phases: WhitelistPhase[];
   };
+  // Multi-token payment support
+  paymentTokens: {
+    mint: string;
+    symbol: string;
+    decimals: number;
+    pricePerNFT: number;
+    minBalanceForWhitelist?: number;
+    accepted: boolean;
+  }[];
 }
 
 interface WhitelistPhase {
@@ -43,6 +52,14 @@ interface WhitelistPhase {
   price: number;
   addresses: string[];
   active: boolean;
+  // Token-based whitelist features
+  tokenRequirements?: {
+    tokenMint: string;
+    minAmount: number;
+    decimals: number;
+    tokenSymbol: string;
+  }[];
+  isTokenBased: boolean;
 }
 
 interface WalletMintCount {
@@ -79,6 +96,14 @@ class TokenIdTracker {
         addresses?: string[];
         phases?: WhitelistPhase[];
       };
+      paymentTokens?: {
+        mint: string;
+        symbol: string;
+        decimals: number;
+        pricePerNFT: number;
+        minBalanceForWhitelist?: number;
+        accepted: boolean;
+      }[];
     } = {}
   ): void {
     this.collections[collectionMint] = {
@@ -100,7 +125,8 @@ class TokenIdTracker {
         enabled: options.whitelist?.enabled || false,
         addresses: options.whitelist?.addresses || [],
         phases: options.whitelist?.phases || []
-      }
+      },
+      paymentTokens: options.paymentTokens || []
     };
     
     this.collectionCounters[collectionMint] = 0;
@@ -257,13 +283,20 @@ class TokenIdTracker {
       lastMintTime: 0
     };
 
-    // Check whitelist phases first
-    const activePhase = collection.whitelist.phases.find(phase => 
-      phase.active && 
-      Date.now() >= phase.startTime && 
-      Date.now() <= phase.endTime &&
-      phase.addresses.includes(walletAddress)
-    );
+    // Check whitelist phases first (including token-based phases)
+    const activePhase = collection.whitelist.phases.find(phase => {
+      if (!phase.active || Date.now() < phase.startTime || Date.now() > phase.endTime) {
+        return false;
+      }
+
+      // For token-based phases, we'll check token holdings separately
+      if (phase.isTokenBased) {
+        return true; // Token verification will be done elsewhere
+      }
+
+      // For address-based phases
+      return phase.addresses.includes(walletAddress);
+    });
 
     if (activePhase) {
       const phaseMintCount = walletCounts.phaseMints[activePhase.name] || 0;
@@ -273,9 +306,26 @@ class TokenIdTracker {
           reason: `Exceeds phase limit (${activePhase.maxMintsPerWallet} per wallet)`,
           currentCount: phaseMintCount,
           maxAllowed: activePhase.maxMintsPerWallet,
-          phaseInfo: { phase: activePhase.name, price: activePhase.price }
+          phaseInfo: { 
+            phase: activePhase.name, 
+            price: activePhase.price,
+            isTokenBased: activePhase.isTokenBased,
+            tokenRequirements: activePhase.tokenRequirements
+          }
         };
       }
+
+      return {
+        canMint: true,
+        currentCount: phaseMintCount,
+        maxAllowed: activePhase.maxMintsPerWallet,
+        phaseInfo: { 
+          phase: activePhase.name, 
+          price: activePhase.price,
+          isTokenBased: activePhase.isTokenBased,
+          tokenRequirements: activePhase.tokenRequirements
+        }
+      };
     } else if (collection.whitelist.enabled) {
       // Check general whitelist
       if (!collection.whitelist.addresses.includes(walletAddress)) {
@@ -301,8 +351,8 @@ class TokenIdTracker {
     return {
       canMint: true,
       currentCount: walletCounts.totalMints,
-      maxAllowed: activePhase?.maxMintsPerWallet || collection.maxMintsPerWallet,
-      phaseInfo: activePhase ? { phase: activePhase.name, price: activePhase.price } : undefined
+      maxAllowed: collection.maxMintsPerWallet,
+      phaseInfo: undefined
     };
   }
 

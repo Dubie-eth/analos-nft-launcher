@@ -32,7 +32,21 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
     endTime: '',
     maxMintsPerWallet: 5,
     price: 0,
-    addresses: [] as string[]
+    addresses: [] as string[],
+    isTokenBased: false,
+    tokenRequirements: [] as Array<{
+      tokenMint: string;
+      minAmount: number;
+      decimals: number;
+      tokenSymbol: string;
+    }>
+  });
+
+  const [newTokenRequirement, setNewTokenRequirement] = useState({
+    tokenMint: '',
+    minAmount: 0,
+    decimals: 6,
+    tokenSymbol: ''
   });
 
   const handleSettingChange = (path: string, value: any) => {
@@ -62,6 +76,26 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
     handleSettingChange('whitelist.addresses', addresses);
   };
 
+  const addTokenRequirement = () => {
+    if (newTokenRequirement.tokenMint.trim() && newTokenRequirement.tokenSymbol.trim()) {
+      const requirements = [...newPhase.tokenRequirements, { ...newTokenRequirement }];
+      setNewPhase({ ...newPhase, tokenRequirements: requirements });
+      
+      // Reset token requirement form
+      setNewTokenRequirement({
+        tokenMint: '',
+        minAmount: 0,
+        decimals: 6,
+        tokenSymbol: ''
+      });
+    }
+  };
+
+  const removeTokenRequirement = (index: number) => {
+    const requirements = newPhase.tokenRequirements.filter((_, i) => i !== index);
+    setNewPhase({ ...newPhase, tokenRequirements: requirements });
+  };
+
   const addWhitelistPhase = () => {
     if (newPhase.name.trim()) {
       const phase = {
@@ -81,7 +115,9 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
         endTime: '',
         maxMintsPerWallet: 5,
         price: 0,
-        addresses: []
+        addresses: [],
+        isTokenBased: false,
+        tokenRequirements: []
       });
     }
   };
@@ -248,12 +284,40 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
               {/* Add New Phase */}
               <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
                 <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Add New Phase</h5>
+                
+                {/* Phase Type Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Phase Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        checked={!newPhase.isTokenBased}
+                        onChange={() => setNewPhase({ ...newPhase, isTokenBased: false })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Address-Based</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        checked={newPhase.isTokenBased}
+                        onChange={() => setNewPhase({ ...newPhase, isTokenBased: true })}
+                        className="mr-2"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Token-Based</span>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <input
                     type="text"
                     value={newPhase.name}
                     onChange={(e) => setNewPhase({ ...newPhase, name: e.target.value })}
-                    placeholder="Phase Name"
+                    placeholder="Phase Name (e.g., LOL Holders 1M+)"
                     className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
                   <input
@@ -280,38 +344,125 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
                     step="0.01"
                     value={newPhase.price}
                     onChange={(e) => setNewPhase({ ...newPhase, price: parseFloat(e.target.value) || 0 })}
-                    placeholder="Phase Price"
+                    placeholder="Phase Price (0 for free)"
                     className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
-                  <button
-                    onClick={addWhitelistPhase}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Add Phase
-                  </button>
                 </div>
+
+                {/* Token Requirements Section */}
+                {newPhase.isTokenBased && (
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <h6 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-3">
+                      🪙 Token Requirements
+                    </h6>
+                    
+                    {/* Add Token Requirement */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                      <input
+                        type="text"
+                        value={newTokenRequirement.tokenMint}
+                        onChange={(e) => setNewTokenRequirement({ ...newTokenRequirement, tokenMint: e.target.value })}
+                        placeholder="Token Contract Address"
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={newTokenRequirement.tokenSymbol}
+                        onChange={(e) => setNewTokenRequirement({ ...newTokenRequirement, tokenSymbol: e.target.value })}
+                        placeholder="Token Symbol (e.g., LOL)"
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                      />
+                      <input
+                        type="number"
+                        value={newTokenRequirement.minAmount}
+                        onChange={(e) => setNewTokenRequirement({ ...newTokenRequirement, minAmount: parseFloat(e.target.value) || 0 })}
+                        placeholder="Min Amount (e.g., 1000000)"
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                      />
+                      <button
+                        onClick={addTokenRequirement}
+                        className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
+                      >
+                        Add Requirement
+                      </button>
+                    </div>
+
+                    {/* Existing Token Requirements */}
+                    {newPhase.tokenRequirements.length > 0 && (
+                      <div className="space-y-2">
+                        {newPhase.tokenRequirements.map((req, index) => (
+                          <div key={index} className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded border">
+                            <div className="text-sm">
+                              <span className="font-medium text-gray-900 dark:text-white">{req.tokenSymbol}</span>
+                              <span className="text-gray-600 dark:text-gray-300 ml-2">
+                                ≥ {req.minAmount.toLocaleString()} {req.tokenSymbol}
+                              </span>
+                              <span className="text-gray-500 dark:text-gray-400 ml-2 text-xs">
+                                ({req.tokenMint.slice(0, 8)}...)
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => removeTokenRequirement(index)}
+                              className="text-red-600 hover:text-red-700 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                      💡 Example: LOL holders with 1,000,000+ tokens get free mint in first phase
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={addWhitelistPhase}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Add {newPhase.isTokenBased ? 'Token-Based' : 'Address-Based'} Phase
+                </button>
               </div>
 
               {/* Existing Phases */}
               {settings.whitelist.phases.length > 0 && (
                 <div className="space-y-2">
                   {settings.whitelist.phases.map((phase: any, index: number) => (
-                    <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg flex items-center justify-between">
-                      <div>
-                        <span className="font-medium text-gray-900 dark:text-white">{phase.name}</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-300 ml-2">
-                          {new Date(phase.startTime).toLocaleDateString()} - {new Date(phase.endTime).toLocaleDateString()}
-                        </span>
-                        <span className="text-sm text-gray-600 dark:text-gray-300 ml-2">
-                          ({phase.maxMintsPerWallet} per wallet, {phase.price} $LOS)
-                        </span>
+                    <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <span className="font-medium text-gray-900 dark:text-white">{phase.name}</span>
+                          <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                            {phase.isTokenBased ? '🪙 Token-Based' : '📋 Address-Based'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => removeWhitelistPhase(index)}
+                          className="text-red-600 hover:text-red-700 text-sm"
+                        >
+                          Remove
+                        </button>
                       </div>
-                      <button
-                        onClick={() => removeWhitelistPhase(index)}
-                        className="text-red-600 hover:text-red-700 text-sm"
-                      >
-                        Remove
-                      </button>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <div>
+                          📅 {new Date(phase.startTime).toLocaleDateString()} - {new Date(phase.endTime).toLocaleDateString()}
+                        </div>
+                        <div>
+                          🎯 {phase.maxMintsPerWallet} per wallet, {phase.price} $LOS
+                        </div>
+                        {phase.isTokenBased && phase.tokenRequirements && phase.tokenRequirements.length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Token Requirements:</div>
+                            {phase.tokenRequirements.map((req: any, reqIndex: number) => (
+                              <div key={reqIndex} className="text-xs text-gray-600 dark:text-gray-400 ml-2">
+                                • {req.tokenSymbol}: ≥ {req.minAmount.toLocaleString()} tokens
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
