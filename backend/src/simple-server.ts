@@ -7,7 +7,7 @@ import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PE
 import { AnalosSDKService } from './analos-sdk-service';
 import { AnalosMetaplexService } from './analos-metaplex-service';
 import RealNFTMintService from './real-nft-mint-service';
-const { AnalosSDKBridge } = require('./analos-sdk-bridge');
+// const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
 const app = express();
 const PORT = process.env.PORT || 3001;
