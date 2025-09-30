@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import ImageUpdateModal from '../components/ImageUpdateModal';
 import NFTRevealModal from '../components/NFTRevealModal';
+import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 
 interface CollectionData {
   name: string;
@@ -48,7 +49,7 @@ function AdminPageContent() {
   // Image update modal state
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<any>(null);
-  const [collections, setCollections] = useState<any[]>([]);
+  const [collections, setCollections] = useState<BlockchainCollectionData[]>([]);
   
   // Reveal modal state
   const [showRevealModal, setShowRevealModal] = useState(false);
@@ -60,14 +61,13 @@ function AdminPageContent() {
 
   const fetchCollections = async () => {
     try {
-      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/collections`);
-      if (response.ok) {
-        const data = await response.json();
-        setCollections(data.collections || []);
-      }
+      console.log('📡 Fetching collections from blockchain for admin panel...');
+      const blockchainService = new BlockchainCollectionService();
+      const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
+      setCollections(blockchainCollections);
+      console.log('✅ Collections fetched from blockchain for admin:', blockchainCollections.length);
     } catch (error) {
-      console.error('Error fetching collections:', error);
+      console.error('❌ Error fetching collections from blockchain:', error);
     }
   };
 
@@ -608,11 +608,11 @@ function AdminPageContent() {
                       <div className="space-y-1 text-sm text-white/60">
                         <div className="flex justify-between">
                           <span>Supply:</span>
-                          <span>{collection.currentSupply || 0}/{collection.maxSupply}</span>
+                          <span>{collection.currentSupply || 0}/{collection.totalSupply}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Price:</span>
-                          <span>{collection.price} $LOS</span>
+                          <span>{collection.mintPrice} $LOS</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Symbol:</span>
