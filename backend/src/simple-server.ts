@@ -1977,7 +1977,7 @@ app.post('/api/transactions/deploy-collection', async (req, res) => {
       collectionSymbol || 'COL',
       collectionUri || '',
       maxSupply || 1000,
-      mintPrice || 100000000, // 0.1 SOL in lamports
+      mintPrice || 1, // Use provided price or default to 1
       authorityWallet,
       programId
     );
