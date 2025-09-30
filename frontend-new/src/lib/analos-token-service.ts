@@ -130,22 +130,37 @@ export class AnalosTokenService {
       console.log(`🔍 Token program ID: ${tokenProgramId}`);
       
       // Get all token accounts for this mint
-      const tokenAccounts = await this.connection.getProgramAccounts(
-        new PublicKey(tokenProgramId),
-        {
-          filters: [
+      // Token-2022 accounts can have different sizes due to extensions
+      // Try multiple data sizes to find all holders
+      const dataSizes = [165, 170, 175, 180]; // Common Token-2022 account sizes
+      let allTokenAccounts = [];
+      
+      for (const dataSize of dataSizes) {
+        try {
+          const accounts = await this.connection.getProgramAccounts(
+            new PublicKey(tokenProgramId),
             {
-              dataSize: 165, // Token account data size
-            },
-            {
-              memcmp: {
-                offset: 0, // Mint address offset
-                bytes: mintPublicKey.toBase58(),
-              },
-            },
-          ],
+              filters: [
+                {
+                  dataSize: dataSize,
+                },
+                {
+                  memcmp: {
+                    offset: 0, // Mint address offset
+                    bytes: mintPublicKey.toBase58(),
+                  },
+                },
+              ],
+            }
+          );
+          allTokenAccounts = allTokenAccounts.concat(accounts);
+          console.log(`📊 Found ${accounts.length} accounts with data size ${dataSize}`);
+        } catch (error) {
+          console.log(`⚠️ Error with data size ${dataSize}:`, error.message);
         }
-      );
+      }
+      
+      const tokenAccounts = allTokenAccounts;
 
       console.log(`📊 Found ${tokenAccounts.length} token accounts`);
       

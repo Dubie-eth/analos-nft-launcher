@@ -91,22 +91,41 @@ export class WhitelistHolderService {
       });
 
       // Get all token accounts for this mint
-      const tokenAccounts = await this.connection.getProgramAccounts(
-        new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), // SPL Token Program
-        {
-          filters: [
+      // Use the token program from the mint account (could be SPL Token or Token-2022)
+      const mintAccountInfo = await this.connection.getAccountInfo(tokenMint);
+      const tokenProgramId = mintAccountInfo.owner.toString();
+      
+      // Token-2022 accounts can have different sizes due to extensions
+      // Try multiple data sizes to find all holders
+      const dataSizes = [165, 170, 175, 180]; // Common account sizes
+      let allTokenAccounts = [];
+      
+      for (const dataSize of dataSizes) {
+        try {
+          const accounts = await this.connection.getProgramAccounts(
+            new PublicKey(tokenProgramId),
             {
-              dataSize: 165, // Token account data size
-            },
-            {
-              memcmp: {
-                offset: 0, // Mint address offset in token account
-                bytes: tokenMint.toBase58(),
-              },
-            },
-          ],
+              filters: [
+                {
+                  dataSize: dataSize,
+                },
+                {
+                  memcmp: {
+                    offset: 0, // Mint address offset in token account
+                    bytes: tokenMint.toBase58(),
+                  },
+                },
+              ],
+            }
+          );
+          allTokenAccounts = allTokenAccounts.concat(accounts);
+          console.log(`📊 Found ${accounts.length} accounts with data size ${dataSize} for ${tokenSymbol}`);
+        } catch (error) {
+          console.log(`⚠️ Error with data size ${dataSize} for ${tokenSymbol}:`, error.message);
         }
-      );
+      }
+      
+      const tokenAccounts = allTokenAccounts;
 
       console.log(`📊 Found ${tokenAccounts.length} token accounts for ${tokenSymbol}`);
 
