@@ -5,7 +5,10 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import ImageUpdateModal from '../components/ImageUpdateModal';
 import NFTRevealModal from '../components/NFTRevealModal';
+import AdvancedMintingSettings from '../components/AdvancedMintingSettings';
+import PaymentTokenConfig from '../components/PaymentTokenConfig';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
+import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
 interface CollectionData {
   name: string;
@@ -53,6 +56,10 @@ function AdminPageContent() {
   
   // Reveal modal state
   const [showRevealModal, setShowRevealModal] = useState(false);
+  
+  // Advanced collection settings state
+  const [currentCollection, setCurrentCollection] = useState<CollectionInfo | null>(null);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -91,6 +98,40 @@ function AdminPageContent() {
     fetchCollections(); // Refresh collections list
     setShowRevealModal(false);
     setSelectedCollection(null);
+  };
+
+  const handleCreateOrUpdateCollection = async () => {
+    if (!collectionData.name.trim()) {
+      alert('Please enter a collection name');
+      return;
+    }
+
+    const collectionMint = `collection_${collectionData.name.toLowerCase().replace(/\s+/g, '_')}`;
+    
+    // Create or update collection in token tracker
+    if (currentCollection) {
+      // Update existing collection
+      tokenIdTracker.updateCollection(collectionMint, {
+        ...currentCollection,
+        name: collectionData.name,
+        mint: collectionMint,
+        totalSupply: collectionData.maxSupply,
+        mintPrice: collectionData.price,
+        createdAt: currentCollection.createdAt
+      });
+      setCurrentCollection(tokenIdTracker.getCollectionInfo(collectionMint));
+    } else {
+      // Create new collection
+      tokenIdTracker.createCollection(collectionMint, collectionData.name, collectionData.maxSupply, collectionData.price);
+      setCurrentCollection(tokenIdTracker.getCollectionInfo(collectionMint));
+    }
+    
+    setShowAdvancedSettings(true);
+  };
+
+  const handleUpdateAdvancedCollection = (updatedCollection: CollectionInfo) => {
+    setCurrentCollection(updatedCollection);
+    tokenIdTracker.updateCollection(updatedCollection.mint, updatedCollection);
   };
 
   if (!mounted) {
@@ -549,6 +590,20 @@ function AdminPageContent() {
                 </p>
               </div>
 
+              {/* Advanced Settings Button */}
+              <div>
+                <button
+                  onClick={handleCreateOrUpdateCollection}
+                  disabled={!connected || !collectionData.name.trim()}
+                  className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
+                >
+                  ⚙️ Configure Advanced Settings
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Set up delayed reveals, whitelist phases, and multi-token payments
+                </p>
+              </div>
+
               {/* Save Changes Button - saves to backend storage */}
               <div>
                 <button
@@ -577,6 +632,81 @@ function AdminPageContent() {
             )}
           </div>
         </div>
+
+        {/* Advanced Settings Section */}
+        {showAdvancedSettings && currentCollection && (
+          <div className="mt-12">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-bold text-white">
+                  ⚙️ Advanced Collection Settings
+                </h2>
+                <button
+                  onClick={() => setShowAdvancedSettings(false)}
+                  className="text-white/60 hover:text-white text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Advanced Minting Settings */}
+                <AdvancedMintingSettings
+                  collection={currentCollection}
+                  onUpdateCollection={handleUpdateAdvancedCollection}
+                />
+                
+                {/* Payment Token Configuration */}
+                <PaymentTokenConfig
+                  collection={currentCollection}
+                  onUpdateCollection={handleUpdateAdvancedCollection}
+                />
+              </div>
+              
+              <div className="mt-8 p-4 bg-white/10 rounded-lg">
+                <h3 className="text-lg font-bold text-white mb-3">📊 Collection Summary</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-white/80">
+                      <span>Collection:</span>
+                      <span>{currentCollection.name}</span>
+                    </div>
+                    <div className="flex justify-between text-white/80">
+                      <span>Max Mints per Wallet:</span>
+                      <span>{currentCollection.maxMintsPerWallet}</span>
+                    </div>
+                    <div className="flex justify-between text-white/80">
+                      <span>Delayed Reveal:</span>
+                      <span>{currentCollection.delayedReveal.enabled ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                    <div className="flex justify-between text-white/80">
+                      <span>Whitelist:</span>
+                      <span>{currentCollection.whitelist.enabled ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-white/80">
+                      <span>Whitelist Phases:</span>
+                      <span>{currentCollection.whitelist.phases.length}</span>
+                    </div>
+                    <div className="flex justify-between text-white/80">
+                      <span>Payment Tokens:</span>
+                      <span>{currentCollection.paymentTokens.length}</span>
+                    </div>
+                    <div className="flex justify-between text-white/80">
+                      <span>Total Supply:</span>
+                      <span>{currentCollection.totalSupply}</span>
+                    </div>
+                    <div className="flex justify-between text-white/80">
+                      <span>Minted:</span>
+                      <span>{currentCollection.mintedCount}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Collections Management Section */}
         <div className="mt-12">

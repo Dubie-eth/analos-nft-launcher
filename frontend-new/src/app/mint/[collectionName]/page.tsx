@@ -7,7 +7,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import RealMintButton from '../../components/RealMintButton';
+import AdvancedMintButton from '../../components/AdvancedMintButton';
+import PaymentSelector from '../../components/PaymentSelector';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
+import { tokenIdTracker, CollectionInfo as TokenTrackerCollectionInfo } from '@/lib/token-id-tracker';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -23,6 +26,10 @@ function CollectionMintContent() {
   const [minting, setMinting] = useState(false);
   const [mintStatus, setMintStatus] = useState<string>('');
   const [mounted, setMounted] = useState(false);
+  
+  // Advanced features state
+  const [selectedPaymentMint, setSelectedPaymentMint] = useState<string>('');
+  const [tokenTrackerCollection, setTokenTrackerCollection] = useState<TokenTrackerCollectionInfo | null>(null);
 
   const fetchCollectionInfo = useCallback(async () => {
     try {
@@ -33,6 +40,19 @@ function CollectionMintContent() {
       if (blockchainCollection) {
         setCollection(blockchainCollection);
         console.log('✅ Collection fetched from blockchain:', blockchainCollection.name, 'Price:', blockchainCollection.mintPrice);
+        
+        // Also fetch from token tracker for advanced features
+        const collectionMint = `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`;
+        const trackerCollection = tokenIdTracker.getCollectionInfo(collectionMint);
+        setTokenTrackerCollection(trackerCollection);
+        
+        // Set default payment token if available
+        if (trackerCollection && trackerCollection.paymentTokens.length > 0) {
+          const defaultToken = trackerCollection.paymentTokens.find(token => token.accepted) || trackerCollection.paymentTokens[0];
+          if (defaultToken) {
+            setSelectedPaymentMint(defaultToken.mint);
+          }
+        }
       } else {
         setMintStatus('Collection not found on blockchain');
         console.log('❌ Collection not found on blockchain:', collectionName);
@@ -201,7 +221,19 @@ function CollectionMintContent() {
   }
 
   const remainingSupply = collection.totalSupply - collection.currentSupply;
-  const totalCost = collection.mintPrice * mintQuantity;
+  
+  // Calculate cost based on selected payment token
+  let totalCost = collection.mintPrice * mintQuantity;
+  let currency = '$LOS';
+  
+  if (tokenTrackerCollection && selectedPaymentMint) {
+    const selectedToken = tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint);
+    if (selectedToken) {
+      totalCost = selectedToken.pricePerNFT * mintQuantity;
+      currency = selectedToken.symbol;
+    }
+  }
+  
   const platformFee = (totalCost * collection.feePercentage) / 100;
   const creatorRevenue = totalCost - platformFee;
 
@@ -305,7 +337,10 @@ function CollectionMintContent() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-white/80">
                         <span>Price per NFT:</span>
-                        <span>{collection.mintPrice?.toFixed(2) || '0.00'} $LOS</span>
+                        <span>{tokenTrackerCollection && selectedPaymentMint ? 
+                          (tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint)?.pricePerNFT?.toFixed(2) || '0.00') + ' ' + currency :
+                          (collection.mintPrice?.toFixed(2) || '0.00') + ' ' + currency
+                        }</span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Quantity:</span>
@@ -313,38 +348,65 @@ function CollectionMintContent() {
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Subtotal:</span>
-                        <span>{totalCost?.toFixed(2) || '0.00'} $LOS</span>
+                        <span>{totalCost?.toFixed(2) || '0.00'} {currency}</span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Platform Fee ({collection.feePercentage || 0}%):</span>
-                        <span>{platformFee?.toFixed(2) || '0.00'} $LOS</span>
+                        <span>{platformFee?.toFixed(2) || '0.00'} {currency}</span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Creator Revenue:</span>
-                        <span>{creatorRevenue?.toFixed(2) || '0.00'} $LOS</span>
+                        <span>{creatorRevenue?.toFixed(2) || '0.00'} {currency}</span>
                       </div>
                       <hr className="border-white/20" />
                       <div className="flex justify-between text-white font-semibold">
                         <span>Total Cost:</span>
-                        <span>{totalCost?.toFixed(2) || '0.00'} $LOS</span>
+                        <span>{totalCost?.toFixed(2) || '0.00'} {currency}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Real Blockchain Mint Button */}
-                  <RealMintButton
-                    collectionName={collection.name}
-                    quantity={mintQuantity}
-                    totalCost={totalCost}
-                    currency="$LOS"
-                    onMintSuccess={(result) => {
-                      setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
-                      fetchCollectionInfo(); // Refresh collection info
-                    }}
-                    onMintError={(error) => {
-                      setMintStatus(`Minting failed: ${error}`);
-                    }}
-                  />
+                  {/* Payment Token Selector */}
+                  {tokenTrackerCollection && tokenTrackerCollection.paymentTokens.length > 0 && (
+                    <PaymentSelector
+                      collection={tokenTrackerCollection}
+                      onSelectPaymentToken={setSelectedPaymentMint}
+                      selectedPaymentMint={selectedPaymentMint}
+                      quantity={mintQuantity}
+                    />
+                  )}
+
+                  {/* Advanced Mint Button with all features */}
+                  {tokenTrackerCollection ? (
+                    <AdvancedMintButton
+                      collectionName={collection.name}
+                      collectionMint={`collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`}
+                      quantity={mintQuantity}
+                      totalCost={totalCost}
+                      currency={currency}
+                      onMintSuccess={(result) => {
+                        setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+                        fetchCollectionInfo(); // Refresh collection info
+                      }}
+                      onMintError={(error) => {
+                        setMintStatus(`Minting failed: ${error}`);
+                      }}
+                    />
+                  ) : (
+                    <RealMintButton
+                      collectionName={collection.name}
+                      quantity={mintQuantity}
+                      totalCost={totalCost}
+                      currency={currency}
+                      onMintSuccess={(result) => {
+                        setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+                        fetchCollectionInfo(); // Refresh collection info
+                      }}
+                      onMintError={(error) => {
+                        setMintStatus(`Minting failed: ${error}`);
+                      }}
+                    />
+                  )}
 
                   {mintStatus && (
                     <div className="mt-4 p-3 bg-white/10 rounded-lg">
