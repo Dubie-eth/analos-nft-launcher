@@ -197,6 +197,12 @@ class TokenIdTracker {
     return this.collections[collectionMint] || null;
   }
 
+  // Update collection info
+  updateCollection(collectionMint: string, updatedCollection: CollectionInfo): void {
+    this.collections[collectionMint] = updatedCollection;
+    console.log(`📝 Updated collection: ${updatedCollection.name} (${collectionMint})`);
+  }
+
   // Get all collections
   getAllCollections(): CollectionInfo[] {
     return Object.values(this.collections);
@@ -393,8 +399,8 @@ class TokenIdTracker {
   // Initialize with some sample data for testing
   initializeSampleData() {
     // Add some sample mappings for testing
-    this.addNFT('5AWa2uJS...', 'LOL Genesis Collection', 'collection1');
-    this.addNFT('3w2Ss8ve...', 'LOL Genesis Collection', 'collection1');
+    this.addNFT('5AWa2uJS...', 'LOL Genesis Collection', 'collection1', 'sample-wallet-address');
+    this.addNFT('3w2Ss8ve...', 'LOL Genesis Collection', 'collection1', 'sample-wallet-address');
     
     console.log('🎯 Initialized sample token ID data');
   }
