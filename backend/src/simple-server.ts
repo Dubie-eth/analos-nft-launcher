@@ -6,10 +6,14 @@ import path from 'path';
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
 import { AnalosSDKService } from './analos-sdk-service';
 import { AnalosMetaplexService } from './analos-metaplex-service';
+import RealNFTMintService from './real-nft-mint-service';
 const { AnalosSDKBridge } = require('./analos-sdk-bridge');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize services
+let realNFTMintService: RealNFTMintService | null = null;
 
 // Force redeploy - mint instructions endpoint ready v2.0.1
 // This endpoint creates real blockchain transaction instructions for wallet signing
@@ -324,6 +328,10 @@ try {
   console.log('🔧 Initializing Analos Metaplex service...');
   analosMetaplexService = new AnalosMetaplexService(connection, blockchainService.walletKeypair);
   console.log('✅ Analos Metaplex service initialized');
+  
+  console.log('🔧 Initializing Real NFT Mint Service...');
+  realNFTMintService = new RealNFTMintService(ANALOS_RPC_URL);
+  console.log('✅ Real NFT Mint Service initialized with proper Solana programs');
 } catch (error) {
   console.error('❌ Failed to initialize services:', error);
   console.log('⚠️  Server will continue with limited functionality');
@@ -1192,7 +1200,7 @@ app.get('/api/mint-status/:walletAddress', (req, res) => {
   }
 });
 
-// Create NFT minting transaction instructions for frontend signing
+// Create REAL NFT minting transaction instructions for frontend signing
 app.post('/api/mint/instructions', async (req, res) => {
   try {
     const { collectionName, quantity, walletAddress } = req.body;
@@ -1203,6 +1211,8 @@ app.post('/api/mint/instructions', async (req, res) => {
         error: 'Missing required fields: collectionName, quantity, and walletAddress are required' 
       });
     }
+
+    console.log('🎯 Creating REAL NFT mint instructions for:', { collectionName, quantity, walletAddress });
 
     // Find the collection
     const collection = Array.from(collections.values()).find(
@@ -1234,52 +1244,54 @@ app.post('/api/mint/instructions', async (req, res) => {
       });
     }
 
-    // Create transaction instructions for the frontend to sign
-    const instructions = [];
-    const nftData = [];
+    // Create REAL NFT mint instructions using Solana Token Program and Metaplex
+    const collectionData = {
+      name: collection.name,
+      symbol: collection.symbol,
+      description: collection.description || `A unique NFT from the ${collection.name} collection`,
+      image: collection.imageUrl || 'https://picsum.photos/500/500?random=' + Date.now(),
+      attributes: [
+        { trait_type: "Collection", value: collection.name },
+        { trait_type: "Symbol", value: collection.symbol },
+        { trait_type: "Mint Price", value: `${collection.mintPrice} $LOS` }
+      ]
+    };
 
-    for (let i = 0; i < requestedQuantity; i++) {
-      const nftNumber = collection.currentSupply + i + 1;
-      const mintKeypair = Keypair.generate();
-      const mintAddress = mintKeypair.publicKey.toBase58();
-      
-      // Create metadata
-      const metadata = {
-        name: `${collection.name} #${nftNumber}`,
-        description: collection.description || `A unique NFT from the ${collection.name} collection`,
-        image: collection.imageUrl || 'https://picsum.photos/500/500?random=' + Date.now(),
-        symbol: collection.symbol,
-        tokenId: nftNumber
-      };
-
-      // Create instruction for minting this NFT
-      instructions.push({
-        type: 'createMintAccount',
-        mintAddress: mintAddress,
-        metadata: metadata,
-        mintKeypair: mintKeypair
-      });
-
-      nftData.push({
-        mintAddress,
-        metadata,
-        tokenId: nftNumber
-      });
+    if (!realNFTMintService) {
+      throw new Error('Real NFT Mint Service not initialized');
     }
+
+    const mintInstructions = await realNFTMintService.createNFTMintInstructions(
+      collectionName,
+      requestedQuantity,
+      walletAddress,
+      collectionData
+    );
+
+    console.log('✅ Created REAL NFT mint instructions:', {
+      instructionCount: mintInstructions.instructions.length,
+      nftCount: requestedQuantity,
+      mintAddresses: mintInstructions.mintKeypairs.map((kp: any) => kp.publicKey.toBase58())
+    });
 
     res.json({
       success: true,
-      instructions,
-      nftData,
+      instructions: mintInstructions.instructions,
+      mintKeypairs: mintInstructions.mintKeypairs.map((kp: any) => ({
+        publicKey: kp.publicKey.toBase58(),
+        secretKey: Array.from(kp.secretKey)
+      })),
+      metadataAddresses: mintInstructions.metadataAddresses.map((addr: any) => addr.toBase58()),
+      masterEditionAddresses: mintInstructions.masterEditionAddresses.map((addr: any) => addr.toBase58()),
       totalCost: collection.mintPrice * requestedQuantity,
       currency: collection.currency,
       collection: collection.name,
-      message: 'Transaction instructions created. Please sign with your wallet to complete minting.'
+      message: 'REAL NFT mint instructions created using Solana Token Program and Metaplex. Please sign with your wallet to complete minting.'
     });
 
   } catch (error) {
-    console.error('Error creating mint instructions:', error);
-    res.status(500).json({ success: false, error: 'Failed to create mint instructions' });
+    console.error('❌ Error creating REAL NFT mint instructions:', error);
+    res.status(500).json({ success: false, error: 'Failed to create real NFT mint instructions' });
   }
 });
 
