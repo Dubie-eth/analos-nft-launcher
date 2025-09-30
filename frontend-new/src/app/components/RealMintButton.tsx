@@ -12,6 +12,7 @@ interface RealMintButtonProps {
   currency: string;
   onMintSuccess: (result: any) => void;
   onMintError: (error: string) => void;
+  losBalanceInfo?: any; // LOS balance eligibility info
 }
 
 export default function RealMintButton({
@@ -20,7 +21,8 @@ export default function RealMintButton({
   totalCost,
   currency,
   onMintSuccess,
-  onMintError
+  onMintError,
+  losBalanceInfo
 }: RealMintButtonProps) {
   const { publicKey, signTransaction } = useWallet();
   const [minting, setMinting] = useState(false);
@@ -115,12 +117,13 @@ export default function RealMintButton({
   return (
     <button
       onClick={handleMint}
-      disabled={minting || !publicKey}
+      disabled={minting || !publicKey || (losBalanceInfo && !losBalanceInfo.hasMinimumBalance)}
       className={`w-full py-4 px-8 rounded-lg font-bold text-lg transition-all duration-200 transform ${
-        minting || !publicKey
+        minting || !publicKey || (losBalanceInfo && !losBalanceInfo.hasMinimumBalance)
           ? 'bg-gray-600 cursor-not-allowed opacity-50'
           : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105'
       }`}
+      title={losBalanceInfo && !losBalanceInfo.hasMinimumBalance ? 'You need more $LOS tokens to mint' : ''}
     >
       {minting ? (
         <div className="flex flex-col items-center justify-center space-y-2">

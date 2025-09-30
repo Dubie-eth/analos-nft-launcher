@@ -9,8 +9,10 @@ import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } f
 import RealMintButton from '../../components/RealMintButton';
 import AdvancedMintButton from '../../components/AdvancedMintButton';
 import PaymentSelector from '../../components/PaymentSelector';
+import LOSBalanceChecker from '../../components/LOSBalanceChecker';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo as TokenTrackerCollectionInfo } from '@/lib/token-id-tracker';
+import { LOSBalanceInfo } from '@/lib/los-balance-checker';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -30,6 +32,10 @@ function CollectionMintContent() {
   // Advanced features state
   const [selectedPaymentMint, setSelectedPaymentMint] = useState<string>('');
   const [tokenTrackerCollection, setTokenTrackerCollection] = useState<TokenTrackerCollectionInfo | null>(null);
+  
+  // LOS balance checking
+  const [losBalanceInfo, setLosBalanceInfo] = useState<LOSBalanceInfo | null>(null);
+  const [minimumLosBalance] = useState(1000); // Minimum $LOS required for minting
 
   const fetchCollectionInfo = useCallback(async () => {
     try {
@@ -307,6 +313,15 @@ function CollectionMintContent() {
                     <p className="text-white/80 text-sm mb-2">Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}</p>
                   </div>
 
+                  {/* LOS Balance Checker */}
+                  <div className="mb-6">
+                    <LOSBalanceChecker
+                      minimumBalance={minimumLosBalance}
+                      onBalanceChecked={setLosBalanceInfo}
+                      showDetails={true}
+                    />
+                  </div>
+
                   {/* Quantity Selector */}
                   <div className="mb-6">
                     <label className="block text-white/80 text-sm mb-2">Quantity (1-10)</label>
@@ -384,6 +399,7 @@ function CollectionMintContent() {
                       quantity={mintQuantity}
                       totalCost={totalCost}
                       currency={currency}
+                      losBalanceInfo={losBalanceInfo}
                       onMintSuccess={(result) => {
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
                         fetchCollectionInfo(); // Refresh collection info
@@ -398,6 +414,7 @@ function CollectionMintContent() {
                       quantity={mintQuantity}
                       totalCost={totalCost}
                       currency={currency}
+                      losBalanceInfo={losBalanceInfo}
                       onMintSuccess={(result) => {
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
                         fetchCollectionInfo(); // Refresh collection info
