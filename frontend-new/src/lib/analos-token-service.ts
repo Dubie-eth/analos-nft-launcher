@@ -126,6 +126,8 @@ export class AnalosTokenService {
       const tokenProgramId = mintAccountInfo.owner.toString();
       
       console.log(`🔍 Using token program: ${tokenProgramId}`);
+      console.log(`🔍 Mint address: ${mintAddress}`);
+      console.log(`🔍 Token program ID: ${tokenProgramId}`);
       
       // Get all token accounts for this mint
       const tokenAccounts = await this.connection.getProgramAccounts(
@@ -146,6 +148,15 @@ export class AnalosTokenService {
       );
 
       console.log(`📊 Found ${tokenAccounts.length} token accounts`);
+      
+      if (tokenAccounts.length === 0) {
+        console.log('⚠️ No token accounts found. This might be because:');
+        console.log('  1. The token has no holders yet');
+        console.log('  2. Token accounts use a different data size');
+        console.log('  3. The mint address is incorrect');
+        console.log('  4. The token program ID is wrong');
+        return [];
+      }
 
       const holders: TokenHolder[] = [];
       let totalSupply = 0;
