@@ -41,12 +41,20 @@ export class AnalosTokenService {
         return null;
       }
 
-      // Check if it's owned by SPL Token Program
+      // Check if it's owned by SPL Token Program or Token-2022
       const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
-      if (accountInfo.owner.toString() !== SPL_TOKEN_PROGRAM_ID) {
-        console.warn(`⚠️ Account not owned by SPL Token Program: ${mintAddress}`);
+      const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+      
+      const isSPLToken = accountInfo.owner.toString() === SPL_TOKEN_PROGRAM_ID;
+      const isToken2022 = accountInfo.owner.toString() === TOKEN_2022_PROGRAM_ID;
+      
+      if (!isSPLToken && !isToken2022) {
+        console.warn(`⚠️ Account not owned by SPL Token Program or Token-2022: ${mintAddress}`);
+        console.warn(`🔍 Actual owner: ${accountInfo.owner.toString()}`);
         return null;
       }
+      
+      console.log(`✅ Token is ${isSPLToken ? 'SPL Token' : 'Token-2022'}`);
 
       // Parse mint account data manually (mint account is 82 bytes)
       if (accountInfo.data.length < 82) {
@@ -99,9 +107,15 @@ export class AnalosTokenService {
 
       const mintPublicKey = new PublicKey(mintAddress);
       
+      // Get the token program from the mint account
+      const mintAccountInfo = await this.connection.getAccountInfo(mintPublicKey);
+      const tokenProgramId = mintAccountInfo.owner.toString();
+      
+      console.log(`🔍 Using token program: ${tokenProgramId}`);
+      
       // Get all token accounts for this mint
       const tokenAccounts = await this.connection.getProgramAccounts(
-        new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        new PublicKey(tokenProgramId),
         {
           filters: [
             {
