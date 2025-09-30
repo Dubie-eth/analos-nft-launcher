@@ -134,6 +134,28 @@ function AdminPageContent() {
     tokenIdTracker.updateCollection(updatedCollection.mint, updatedCollection);
   };
 
+  const loadExistingCollection = (collection: BlockchainCollectionData) => {
+    console.log('📥 Loading existing collection data:', collection);
+    setCollectionData({
+      name: collection.name,
+      description: collection.description || '',
+      image: null, // Will need to re-upload image
+      price: collection.mintPrice || 100,
+      maxSupply: collection.totalSupply || 1000,
+      feePercentage: collection.feePercentage || 2.5,
+      feeRecipient: collection.feeRecipient || '',
+      symbol: collection.symbol || '',
+      externalUrl: collection.externalUrl || ''
+    });
+    
+    // Set image preview if available
+    if (collection.imageUrl) {
+      setImagePreview(collection.imageUrl);
+    }
+    
+    setSaveStatus(`Loaded collection "${collection.name}" for editing`);
+  };
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -330,11 +352,12 @@ function AdminPageContent() {
       // Call backend API to save collection data (not deploy to blockchain)
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       
-      // For now, use the deploy endpoint but we'll modify it to just save data
-      // Add a flag to indicate this is just saving, not deploying
+      // For saving collection data, we'll use the deploy endpoint with saveOnly flag
+      // This allows updating existing collections or saving new ones without deploying
       const savePayload = {
         ...payload,
-        saveOnly: true // Flag to indicate this is just saving data
+        saveOnly: true, // Flag to indicate this is just saving data
+        updateExisting: true // Allow updating existing collections
       };
       
       const response = await fetch(`${backendUrl}/api/collections/deploy`, {
@@ -611,10 +634,10 @@ function AdminPageContent() {
                   disabled={!connected || !collectionData.name.trim() || !collectionData.symbol.trim() || saving}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
                 >
-                  {saving ? 'Saving to Backend...' : '💾 Save Collection Data'}
+                  {saving ? 'Saving to Backend...' : '💾 Save/Update Collection Data'}
                 </button>
                 <p className="text-white/60 text-sm mt-2">
-                  Save collection data to backend (not deployed to blockchain yet)
+                  Save new collection or update existing collection data (not deployed to blockchain yet)
                 </p>
               </div>
             </div>
@@ -782,6 +805,13 @@ function AdminPageContent() {
                         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
                       >
                         🔗 View Mint Page
+                      </button>
+                      
+                      <button
+                        onClick={() => loadExistingCollection(collection)}
+                        className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        ✏️ Edit Collection
                       </button>
                       
                       <button
