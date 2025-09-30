@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { Connection, PublicKey, ParsedAccountData } from '@solana/web3.js';
+import { getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import Link from 'next/link';
 
 interface NFT {
@@ -44,20 +46,76 @@ function NFTViewerContent() {
 
   useEffect(() => {
     setMounted(true);
-    fetchNFTs();
-    fetchCollections();
-  }, []);
+    if (connected && publicKey) {
+      fetchNFTs();
+      fetchCollections();
+    }
+  }, [connected, publicKey]);
 
   const fetchNFTs = async () => {
+    if (!publicKey) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      const response = await fetch(`${backendUrl}/api/nfts`);
-      if (response.ok) {
-        const data = await response.json();
-        setNfts(data.nfts || []);
+      console.log('🔍 Fetching NFTs directly from blockchain for wallet:', publicKey.toBase58());
+      
+      const connection = new Connection('https://rpc.analos.io', 'confirmed');
+      
+      // Get all token accounts for this wallet
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+        publicKey,
+        { programId: TOKEN_PROGRAM_ID }
+      );
+
+      console.log(`📊 Found ${tokenAccounts.value.length} token accounts`);
+
+      const nftList: NFT[] = [];
+
+      for (const tokenAccount of tokenAccounts.value) {
+        const accountInfo = tokenAccount.account.data as ParsedAccountData;
+        const tokenData = accountInfo.parsed.info;
+        
+        // Only show tokens with amount > 0
+        if (parseFloat(tokenData.tokenAmount.uiAmountString) > 0) {
+          const mintAddress = tokenData.mint;
+          
+          try {
+            // Get mint info to check if it's an NFT (0 decimals)
+            const mintInfo = await getMint(connection, new PublicKey(mintAddress));
+            
+            if (mintInfo.decimals === 0) { // This is likely an NFT
+              console.log(`🎨 Found potential NFT: ${mintAddress}`);
+              
+              const nft: NFT = {
+                mintAddress,
+                tokenId: Math.floor(Math.random() * 1000000), // Generate random ID for now
+                name: `NFT #${Math.floor(Math.random() * 1000)}`,
+                description: 'Minted NFT from Launch On LOS collection',
+                image: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+                collection: 'Launch On LOS',
+                owner: publicKey.toBase58(),
+                transactionSignature: 'Direct blockchain mint',
+                explorerUrl: `https://explorer.analos.io/account/${mintAddress}`,
+                mintedAt: new Date().toISOString()
+              };
+              
+              nftList.push(nft);
+            }
+          } catch (error) {
+            console.log(`⚠️ Error fetching mint info for ${mintAddress}:`, error);
+          }
+        }
       }
+
+      console.log(`✅ Found ${nftList.length} NFTs in wallet`);
+      setNfts(nftList);
+      
     } catch (error) {
-      console.error('Failed to fetch NFTs:', error);
+      console.error('❌ Failed to fetch NFTs from blockchain:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,7 +138,27 @@ function NFTViewerContent() {
     ? nfts 
     : nfts.filter(nft => nft.collection.toLowerCase() === selectedCollection.toLowerCase());
 
-  if (!mounted || loading) {
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!connected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white mb-4">Analos NFT Explorer</h1>
+          <p className="text-white/80 mb-6">Connect your wallet to view your NFTs</p>
+          <div className="text-white/60">Please connect your wallet to see your minted NFTs</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading NFTs...</div>
@@ -102,9 +180,20 @@ function NFTViewerContent() {
             </p>
             
             {connected && (
-              <p className="text-white/60">
-                Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-              </p>
+              <div className="flex flex-col items-center gap-4">
+                <p className="text-white/60">
+                  Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+                </p>
+                <button
+                  onClick={() => {
+                    setLoading(true);
+                    fetchNFTs();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  🔄 Refresh NFTs
+                </button>
+              </div>
             )}
           </div>
 
