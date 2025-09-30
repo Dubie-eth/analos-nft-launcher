@@ -40,7 +40,7 @@ export class DirectNFTMintService {
     quantity: number,
     payerAddress: string,
     collectionData: DirectNFTMintData
-  ): Promise<Transaction> {
+  ): Promise<{ transaction: Transaction; mintKeypairs: Keypair[] }> {
     try {
       console.log('🎯 Creating REAL NFT mint transaction directly in frontend...');
       console.log('📊 Collection:', collectionName);
@@ -53,10 +53,13 @@ export class DirectNFTMintService {
       // Get rent exemption amounts
       const mintRent = await getMinimumBalanceForRentExemptMint(this.connection);
 
+      const mintKeypairs: Keypair[] = [];
+
       for (let i = 0; i < quantity; i++) {
         const nftNumber = i + 1;
         const mintKeypair = Keypair.generate();
         const mintAddress = mintKeypair.publicKey;
+        mintKeypairs.push(mintKeypair);
 
         // 1. Create mint account
         const createMintAccountIx = SystemProgram.createAccount({
@@ -115,7 +118,7 @@ export class DirectNFTMintService {
       console.log(`🎯 Created REAL NFT mint transaction with ${transaction.instructions.length} Token Program instructions`);
       console.log(`📊 Total instructions: ${transaction.instructions.length} (${quantity} NFTs × 4 instructions each)`);
 
-      return transaction;
+      return { transaction, mintKeypairs };
 
     } catch (error) {
       console.error('❌ Error creating REAL NFT mint transaction:', error);

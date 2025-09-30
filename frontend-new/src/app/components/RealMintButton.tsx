@@ -44,7 +44,7 @@ export default function RealMintButton({
       console.log('👛 Wallet:', publicKey.toBase58());
 
       // Create real NFT mint transaction with Token Program instructions
-      const transaction = await directMintService.createRealNFTMintTransaction(
+      const { transaction, mintKeypairs } = await directMintService.createRealNFTMintTransaction(
         collectionName,
         quantity,
         publicKey.toBase58(),
@@ -58,11 +58,17 @@ export default function RealMintButton({
 
       setStatus('Requesting wallet signature...');
       console.log('📝 REAL NFT transaction created with Token Program instructions, requesting wallet signature...');
+      console.log(`🔑 Mint keypairs generated: ${mintKeypairs.length}`);
       
-      // Sign the transaction
+      // Add mint keypairs as signers (they need to sign for the createAccount instructions)
+      mintKeypairs.forEach(keypair => {
+        transaction.partialSign(keypair);
+      });
+      
+      // Sign the transaction with wallet
       const signedTransaction = await signTransaction(transaction);
       setStatus('Transaction signed, sending to blockchain...');
-      console.log('✅ REAL NFT transaction signed by wallet');
+      console.log('✅ REAL NFT transaction signed by wallet and mint keypairs');
 
       // Send to blockchain
       const connection = new (await import('@solana/web3.js')).Connection('https://rpc.analos.io', 'confirmed');
