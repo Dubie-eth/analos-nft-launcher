@@ -106,8 +106,14 @@ export class DirectNFTMintService {
         transaction.add(createATAIx);
         transaction.add(mintToIx);
 
-        // Track the NFT in our token ID system
+        // Track the NFT in our enhanced token ID system
         const collectionMint = `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`;
+        
+        // Create collection if it doesn't exist
+        if (!tokenIdTracker.getCollectionInfo(collectionMint)) {
+          tokenIdTracker.createCollection(collectionMint, collectionName, 1000, 4200.69);
+        }
+        
         const tokenId = tokenIdTracker.addNFT(mintAddress.toBase58(), collectionName, collectionMint);
 
         console.log(`✅ Added REAL Token Program instructions for NFT #${nftNumber}`);
