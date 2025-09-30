@@ -53,7 +53,7 @@ export class WhitelistHolderService {
       // Get token metadata to understand decimals
       const tokenMetadata = await tokenMetadataService.getTokenMetadata(criteria.tokenMint);
       const decimals = tokenMetadata?.decimals || 6;
-      const tokenSymbol = tokenMetadata?.symbol || 'UNKNOWN';
+      const tokenSymbol = tokenMetadata?.symbol || this.generateSymbolFromMint(criteria.tokenMint);
 
       // Get all token accounts for this mint
       const tokenAccounts = await this.connection.getProgramAccounts(
@@ -343,6 +343,11 @@ export class WhitelistHolderService {
       topHolders,
       distribution: { ranges: distribution }
     };
+  }
+
+  private generateSymbolFromMint(mintAddress: string): string {
+    const shortMint = mintAddress.slice(0, 4).toUpperCase();
+    return `${shortMint}...`;
   }
 }
 

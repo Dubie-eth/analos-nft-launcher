@@ -40,9 +40,18 @@ export default function WhitelistHolderManager({
           } else if (metadata.decimals === 9) {
             setMinBalance(1000000); // Default 1M tokens for 9 decimals
           }
+        } else {
+          // If metadata fetch failed, generate a fallback symbol
+          const shortMint = value.slice(0, 4).toUpperCase();
+          setTokenSymbol(`${shortMint}...`);
+          setMinBalance(1000); // Default fallback
         }
       } catch (error) {
         console.error('Error fetching token metadata:', error);
+        // Generate fallback symbol even on error
+        const shortMint = value.slice(0, 4).toUpperCase();
+        setTokenSymbol(`${shortMint}...`);
+        setMinBalance(1000); // Default fallback
       } finally {
         setFetchingMetadata(false);
       }
