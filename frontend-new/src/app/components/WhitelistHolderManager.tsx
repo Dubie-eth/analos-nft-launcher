@@ -121,6 +121,10 @@ export default function WhitelistHolderManager({
   };
 
   const generateWhitelistFromSnapshot = (snapshot: WhitelistSnapshot) => {
+    console.log('🔧 generateWhitelistFromSnapshot called with snapshot:', snapshot);
+    console.log('🔧 WhitelistHolderService:', WhitelistHolderService);
+    console.log('🔧 generateWhitelistAddresses function:', WhitelistHolderService.generateWhitelistAddresses);
+    
     const addresses = WhitelistHolderService.generateWhitelistAddresses(snapshot.holders);
     onWhitelistGenerated(addresses);
     alert(`Generated whitelist with ${addresses.length} addresses from snapshot "${snapshot.name}"`);
@@ -131,6 +135,10 @@ export default function WhitelistHolderManager({
       alert('No holders to generate whitelist from. Please fetch holders first.');
       return;
     }
+    
+    console.log('🔧 generateWhitelistFromCurrentHolders called with holders:', holders.length);
+    console.log('🔧 WhitelistHolderService:', WhitelistHolderService);
+    console.log('🔧 generateWhitelistAddresses function:', WhitelistHolderService.generateWhitelistAddresses);
     
     const addresses = WhitelistHolderService.generateWhitelistAddresses(holders);
     onWhitelistGenerated(addresses);
