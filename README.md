@@ -1,14 +1,24 @@
-# LosLauncher - NFT Minting Platform for Analos Blockchain
+# LosLauncher - Advanced NFT Minting Platform for Analos Blockchain
 
-A full-stack NFT minting platform built for the Analos blockchain, featuring collection deployment, minting, and management capabilities.
+A full-stack NFT minting platform built for the Analos blockchain, featuring advanced collection deployment, multi-token payments, whitelist management, and comprehensive admin controls.
 
-## 🚀 Features
+## 🌐 Live Demo
 
-- **Collection Management**: Deploy and manage NFT collections
-- **Minting Interface**: User-friendly minting with wallet integration
-- **Admin Panel**: Create and configure collections
-- **Analos Integration**: Built specifically for the Analos blockchain
-- **Real-time Updates**: Live supply tracking and minting status
+- **Admin Panel**: https://analos-nft-launcher-9cxc.vercel.app/admin
+- **Mint Page**: https://analos-nft-launcher-9cxc.vercel.app/mint/launch-on-los
+- **NFT Explorer**: https://analos-nft-launcher-9cxc.vercel.app/explorer
+
+## 🚀 Advanced Features
+
+- **Multi-Token Payment System**: Pay with any Analos token + small $LOS fee for account creation
+- **Advanced Whitelist Management**: Address-based and token-holder based whitelisting
+- **Whitelist Phases**: Multiple phases with different rules, prices, and eligibility
+- **Delayed Reveal**: Timer-based, completion-based, or manual NFT reveals
+- **Max Mints Per Wallet**: Configurable limits per wallet address
+- **Token Holder Verification**: Auto-detect and whitelist holders of specific tokens
+- **Collection Management**: Professional admin panel with hide/unhide functionality
+- **Real-time Blockchain Integration**: Live supply tracking and minting status
+- **Token-2022 Support**: Full support for both SPL Token and Token-2022 standards
 
 ## 🏗️ Architecture
 
