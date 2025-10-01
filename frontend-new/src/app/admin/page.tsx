@@ -7,6 +7,8 @@ import ImageUpdateModal from '../components/ImageUpdateModal';
 import NFTRevealModal from '../components/NFTRevealModal';
 import AdvancedMintingSettings from '../components/AdvancedMintingSettings';
 import PaymentTokenConfig from '../components/PaymentTokenConfig';
+import CollectionBuilder from '../components/CollectionBuilder';
+import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
@@ -61,6 +63,8 @@ function AdminPageContent() {
   // Advanced collection settings state
   const [currentCollection, setCurrentCollection] = useState<CollectionInfo | null>(null);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [showCollectionBuilder, setShowCollectionBuilder] = useState(false);
+  const [showEnhancedRevealModal, setShowEnhancedRevealModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -648,6 +652,16 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   Set up delayed reveals, whitelist phases, and multi-token payments
                 </p>
+                
+                <button
+                  onClick={() => setShowCollectionBuilder(true)}
+                  className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  🏗️ Collection Builder
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Generate collections with images, metadata, and reveal settings
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -898,10 +912,13 @@ function AdminPageContent() {
                       
                       {collection.currentSupply > 0 && (
                         <button
-                          onClick={() => handleRevealNFTs(collection)}
+                          onClick={() => {
+                            setSelectedCollection(collection);
+                            setShowEnhancedRevealModal(true);
+                          }}
                           className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
                         >
-                          🎭 Reveal NFTs ({collection.currentSupply})
+                          🎭 Enhanced Reveal ({collection.currentSupply})
                         </button>
                       )}
                       
@@ -1040,6 +1057,46 @@ function AdminPageContent() {
       currentSupply={selectedCollection?.currentSupply || 0}
       onRevealComplete={handleRevealComplete}
       />
+
+      {/* Enhanced NFT Reveal Modal */}
+      <EnhancedNFTRevealModal
+        isOpen={showEnhancedRevealModal}
+        onClose={() => {
+          setShowEnhancedRevealModal(false);
+          setSelectedCollection(null);
+        }}
+        collectionId={selectedCollection?.id || ''}
+        collectionName={selectedCollection?.name || ''}
+        currentSupply={selectedCollection?.currentSupply || 0}
+        onRevealComplete={handleRevealComplete}
+      />
+
+      {/* Collection Builder Modal */}
+      {showCollectionBuilder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 rounded-2xl p-8 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                🏗️ Collection Builder
+              </h2>
+              <button
+                onClick={() => setShowCollectionBuilder(false)}
+                className="text-white/60 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            <CollectionBuilder
+              onCollectionBuilt={(result) => {
+                console.log('Collection built:', result);
+                fetchCollections(); // Refresh collections list
+                setShowCollectionBuilder(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
     </>
   );
