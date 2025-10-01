@@ -785,8 +785,19 @@ function AdminPageContent() {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {collections.map((collection) => (
-                  <div key={collection.id} className="bg-white/10 rounded-xl p-6">
+                {collections.map((collection) => {
+                  // Check if this collection is currently loaded for editing
+                  const isCurrentlyLoaded = collectionData.name === collection.name && collectionData.name !== '';
+                  
+                  return (
+                  <div 
+                    key={collection.id} 
+                    className={`rounded-xl p-6 transition-all duration-300 ${
+                      isCurrentlyLoaded 
+                        ? 'bg-green-500/20 border-2 border-green-500/50 shadow-lg shadow-green-500/20' 
+                        : 'bg-white/10'
+                    }`}
+                  >
                     <div className="mb-4">
                       <img
                         src={collection.imageUrl || 'https://picsum.photos/300/300?random=' + collection.id}
@@ -796,7 +807,17 @@ function AdminPageContent() {
                     </div>
                     
                     <div className="space-y-2 mb-4">
-                      <h3 className="text-xl font-bold text-white">{collection.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-white">{collection.name}</h3>
+                        {isCurrentlyLoaded && (
+                          <div className="flex items-center space-x-1 text-green-400">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-xs font-medium">Active</span>
+                          </div>
+                        )}
+                      </div>
                       <p className="text-white/70 text-sm">{collection.description}</p>
                       <div className="space-y-1 text-sm text-white/60">
                         <div className="flex justify-between">
@@ -892,7 +913,8 @@ function AdminPageContent() {
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
