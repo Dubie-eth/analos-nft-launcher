@@ -120,13 +120,13 @@ export class BlockchainCollectionService {
       ];
 
       // Filter out hidden collections
-      const hiddenCollections = this.getHiddenCollections();
+      const hiddenCollectionIds = this.getHiddenCollectionIds();
       const visibleCollections = collections.filter(collection => 
-        !hiddenCollections.includes(collection.id)
+        !hiddenCollectionIds.includes(collection.id)
       );
 
       console.log('✅ Found collections on blockchain:', collections.length);
-      console.log('🔒 Hidden collections:', hiddenCollections.length);
+      console.log('🔒 Hidden collections:', hiddenCollectionIds.length);
       console.log('👁️ Visible collections:', visibleCollections.length);
       
       return visibleCollections;
@@ -169,7 +169,7 @@ export class BlockchainCollectionService {
    */
   hideCollection(collectionId: string): void {
     try {
-      const hidden = this.getHiddenCollections();
+      const hidden = this.getHiddenCollectionIds();
       if (!hidden.includes(collectionId)) {
         hidden.push(collectionId);
         localStorage.setItem('hidden_collections', JSON.stringify(hidden));
@@ -185,7 +185,7 @@ export class BlockchainCollectionService {
    */
   showCollection(collectionId: string): void {
     try {
-      const hidden = this.getHiddenCollections();
+      const hidden = this.getHiddenCollectionIds();
       const updated = hidden.filter(id => id !== collectionId);
       localStorage.setItem('hidden_collections', JSON.stringify(updated));
       console.log(`👁️ Showed collection: ${collectionId}`);
@@ -197,11 +197,78 @@ export class BlockchainCollectionService {
   /**
    * Get list of hidden collection IDs
    */
-  private getHiddenCollections(): string[] {
+  private getHiddenCollectionIds(): string[] {
     try {
       const hidden = localStorage.getItem('hidden_collections');
       return hidden ? JSON.parse(hidden) : [];
     } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Get all hidden collections with their data
+   */
+  async getHiddenCollections(): Promise<BlockchainCollectionData[]> {
+    try {
+      console.log('🔍 Fetching hidden collections...');
+      
+      // Get all collections first (without filtering)
+      const allCollections = await this.getAllCollectionsFromBlockchainUnfiltered();
+      
+      // Get hidden collection IDs
+      const hiddenIds = this.getHiddenCollectionIds();
+      
+      // Filter to only hidden collections
+      const hiddenCollections = allCollections.filter(collection => 
+        hiddenIds.includes(collection.id)
+      );
+
+      console.log('🔒 Found hidden collections:', hiddenCollections.length);
+      return hiddenCollections;
+
+    } catch (error) {
+      console.error('❌ Error fetching hidden collections:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all collections without filtering hidden ones (for internal use)
+   */
+  private async getAllCollectionsFromBlockchainUnfiltered(): Promise<BlockchainCollectionData[]> {
+    try {
+      console.log('📡 Scanning blockchain for all collections (including hidden)...');
+      
+      // For now, return a mock collection
+      // In a real implementation, this would scan the blockchain for all deployed collections
+      const collections: BlockchainCollectionData[] = [
+        {
+          id: 'launch-on-los-blockchain',
+          name: 'Launch On LOS',
+          symbol: '$LOL',
+          description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+          imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          mintPrice: 4200.69, // Single source of truth from blockchain
+          totalSupply: 4200,
+          currentSupply: 0,
+          isActive: true,
+          feePercentage: 2.5,
+          externalUrl: 'https://launchonlos.fun/',
+          feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+          deployedAt: new Date().toISOString(),
+          mintAddress: 'blockchain_mint_address_launch_on_los',
+          metadataAddress: 'blockchain_metadata_address_launch_on_los',
+          masterEditionAddress: 'blockchain_master_edition_launch_on_los',
+          arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+        }
+      ];
+
+      console.log('✅ Found all collections on blockchain:', collections.length);
+      return collections;
+
+    } catch (error) {
+      console.error('❌ Error fetching all collections from blockchain:', error);
       return [];
     }
   }
