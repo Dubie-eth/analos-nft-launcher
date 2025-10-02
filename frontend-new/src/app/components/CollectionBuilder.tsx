@@ -88,7 +88,24 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
   };
 
   const loadCollection = (savedCollection: any) => {
-    setConfig(savedCollection.config);
+    // Ensure all required properties exist with defaults
+    const safeConfig = {
+      ...savedCollection.config,
+      metadata: {
+        ...savedCollection.config.metadata,
+        attributes: savedCollection.config.metadata?.attributes || []
+      },
+      imageGeneration: {
+        ...savedCollection.config.imageGeneration,
+        traitFolders: savedCollection.config.imageGeneration?.traitFolders || {}
+      },
+      hosting: {
+        ...savedCollection.config.hosting,
+        provider: savedCollection.config.hosting?.provider || 'pinata'
+      }
+    };
+    
+    setConfig(safeConfig);
     setStep(1);
     setGeneratedImages([]);
     setError('');
@@ -189,8 +206,8 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       },
       metadata: {
         ...prev.metadata,
-        attributes: [...prev.metadata.attributes, ...autoAttributes.filter(newAttr => 
-          !prev.metadata.attributes.some(existingAttr => existingAttr.trait_type === newAttr.trait_type)
+        attributes: [...(prev.metadata?.attributes || []), ...autoAttributes.filter(newAttr => 
+          !(prev.metadata?.attributes || []).some(existingAttr => existingAttr.trait_type === newAttr.trait_type)
         )]
       }
     }));
@@ -205,7 +222,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       delete newTraitFolders[traitName];
       
       // Remove corresponding attribute
-      const newAttributes = prev.metadata.attributes.filter(attr => attr.trait_type !== traitName);
+      const newAttributes = (prev.metadata?.attributes || []).filter(attr => attr.trait_type !== traitName);
       
       return {
         ...prev,
@@ -232,7 +249,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       ...prev,
       metadata: {
         ...prev.metadata,
-        attributes: [...prev.metadata.attributes, newAttribute]
+        attributes: [...(prev.metadata?.attributes || []), newAttribute]
       }
     }));
   };
@@ -242,7 +259,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       ...prev,
       metadata: {
         ...prev.metadata,
-        attributes: prev.metadata.attributes.map((attr, i) => 
+        attributes: (prev.metadata?.attributes || []).map((attr, i) => 
           i === index ? { ...attr, [field]: value } : attr
         )
       }
@@ -254,7 +271,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       ...prev,
       metadata: {
         ...prev.metadata,
-        attributes: prev.metadata.attributes.filter((_, i) => i !== index)
+        attributes: (prev.metadata?.attributes || []).filter((_, i) => i !== index)
       }
     }));
   };
@@ -264,10 +281,10 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       ...prev,
       metadata: {
         ...prev.metadata,
-        attributes: prev.metadata.attributes.map((attr, i) => 
+        attributes: (prev.metadata?.attributes || []).map((attr, i) => 
           i === attrIndex ? {
             ...attr,
-            values: attr.values.map((val, j) => j === valueIndex ? value : val)
+            values: (attr.values || []).map((val, j) => j === valueIndex ? value : val)
           } : attr
         )
       }
@@ -279,10 +296,10 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       ...prev,
       metadata: {
         ...prev.metadata,
-        attributes: prev.metadata.attributes.map((attr, i) => 
+        attributes: (prev.metadata?.attributes || []).map((attr, i) => 
           i === attrIndex ? {
             ...attr,
-            values: [...attr.values, '']
+            values: [...(attr.values || []), '']
           } : attr
         )
       }
@@ -294,10 +311,10 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       ...prev,
       metadata: {
         ...prev.metadata,
-        attributes: prev.metadata.attributes.map((attr, i) => 
+        attributes: (prev.metadata?.attributes || []).map((attr, i) => 
           i === attrIndex ? {
             ...attr,
-            values: attr.values.filter((_, j) => j !== valueIndex)
+            values: (attr.values || []).filter((_, j) => j !== valueIndex)
           } : attr
         )
       }
@@ -547,7 +564,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       <h2 className="text-2xl font-bold text-white mb-6">🏷️ Metadata & Attributes</h2>
       
       <div className="space-y-4">
-        {config.metadata.attributes.map((attr, index) => (
+        {(config.metadata?.attributes || []).map((attr, index) => (
           <div key={index} className="p-4 bg-white/10 rounded-lg border border-white/20">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white font-medium">Attribute {index + 1}</h3>
