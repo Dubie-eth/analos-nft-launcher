@@ -264,15 +264,28 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
         <label className="block text-white/80 text-sm font-medium mb-2">
           Generation Type
         </label>
-        <select
-          value={config.imageGeneration.type}
-          onChange={(e) => handleNestedInputChange('imageGeneration', 'type', e.target.value)}
-          className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          <option value="upload">Upload Source Images</option>
-          <option value="generate">AI Generation</option>
-          <option value="template">Template Based</option>
-        </select>
+        <div className="space-y-2">
+          {[
+            { value: 'upload', label: '📁 Upload Source Images', description: 'Upload multiple images to create variations from' },
+            { value: 'generate', label: '🤖 AI Generation', description: 'Generate images using AI prompts' },
+            { value: 'template', label: '🎨 Template Based', description: 'Use predefined templates (Coming Soon)' }
+          ].map((option) => (
+            <label key={option.value} className="flex items-start space-x-3 p-3 bg-white/10 border border-white/20 rounded-lg cursor-pointer hover:bg-white/15 transition-colors">
+              <input
+                type="radio"
+                name="generationType"
+                value={option.value}
+                checked={config.imageGeneration.type === option.value}
+                onChange={(e) => handleNestedInputChange('imageGeneration', 'type', e.target.value)}
+                className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+              />
+              <div className="flex-1">
+                <div className="text-white font-medium">{option.label}</div>
+                <div className="text-white/60 text-sm">{option.description}</div>
+              </div>
+            </label>
+          ))}
+        </div>
       </div>
 
       {config.imageGeneration.type === 'upload' && (
@@ -288,9 +301,6 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
             onChange={handleFileUpload}
             className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
-          <p className="text-white/60 text-sm mt-1">
-            Upload multiple images to create variations from
-          </p>
         </div>
       )}
 
