@@ -10,6 +10,8 @@ import PaymentTokenConfig from '../components/PaymentTokenConfig';
 import NFTGenerator from '../components/NFTGenerator';
 import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
 import PricingModal from '../components/PricingModal';
+import VerificationModal from '../components/VerificationModal';
+import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
@@ -67,6 +69,7 @@ function AdminPageContent() {
   const [showNFTGenerator, setShowNFTGenerator] = useState(false);
   const [showEnhancedRevealModal, setShowEnhancedRevealModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -690,6 +693,16 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   View our competitive pricing structure and marketplace integration
                 </p>
+
+                <button
+                  onClick={() => setShowVerificationModal(true)}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  ✅ Get Verified Badge
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Connect your social media to get a verified collection badge
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -877,14 +890,17 @@ function AdminPageContent() {
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-xl font-bold text-white">{collection.name}</h3>
-                        {isCurrentlyLoaded && (
-                          <div className="flex items-center space-x-1 text-green-400">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-xs font-medium">Active</span>
-                          </div>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          <CompactVerifiedBadge collectionId={collection.id} />
+                          {isCurrentlyLoaded && (
+                            <div className="flex items-center space-x-1 text-green-400">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              <span className="text-xs font-medium">Active</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <p className="text-white/70 text-sm">{collection.description}</p>
                       <div className="space-y-1 text-sm text-white/60">
@@ -1153,6 +1169,21 @@ function AdminPageContent() {
         isOpen={showPricingModal}
         onClose={() => setShowPricingModal(false)}
       />
+
+      {/* Verification Modal */}
+      {showVerificationModal && currentCollection && (
+        <VerificationModal
+          isOpen={showVerificationModal}
+          onClose={() => setShowVerificationModal(false)}
+          collectionId={currentCollection.id}
+          collectionName={currentCollection.name}
+          ownerWallet={currentCollection.ownerWallet || ''}
+          onVerificationComplete={(verification) => {
+            console.log('Collection verified:', verification);
+            setShowVerificationModal(false);
+          }}
+        />
+      )}
     </div>
     </>
   );
