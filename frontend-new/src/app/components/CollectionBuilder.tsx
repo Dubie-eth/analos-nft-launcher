@@ -206,7 +206,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
           value={config.symbol}
           onChange={(e) => handleInputChange('symbol', e.target.value.toUpperCase())}
           className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="e.g., APE, BAYC"
+          placeholder="e.g., MONKES, PUNKS"
           maxLength={10}
         />
       </div>
@@ -241,7 +241,7 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
 
         <div>
           <label className="block text-white/80 text-sm font-medium mb-2">
-            Price (SOL) *
+            Price ($LOS) *
           </label>
           <input
             type="number"
