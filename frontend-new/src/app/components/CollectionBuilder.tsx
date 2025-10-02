@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { collectionBuilderService, CollectionBuilderConfig, GeneratedImage } from '@/lib/collection-builder-service';
 
 interface CollectionBuilderProps {
@@ -12,6 +12,8 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [savedCollections, setSavedCollections] = useState<Array<{id: string, name: string, config: CollectionBuilderConfig, date: string}>>([]);
+  const [showSavedCollections, setShowSavedCollections] = useState(false);
   
   // Form state
   const [config, setConfig] = useState<CollectionBuilderConfig>({
@@ -39,6 +41,57 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved collections on component mount
+  useEffect(() => {
+    const saved = localStorage.getItem('collectionBuilder_savedCollections');
+    if (saved) {
+      try {
+        setSavedCollections(JSON.parse(saved));
+      } catch (error) {
+        console.error('Error loading saved collections:', error);
+      }
+    }
+  }, []);
+
+  // Save collections to localStorage whenever savedCollections changes
+  useEffect(() => {
+    localStorage.setItem('collectionBuilder_savedCollections', JSON.stringify(savedCollections));
+  }, [savedCollections]);
+
+  const saveCollection = () => {
+    if (!config.name.trim()) {
+      setError('Please enter a collection name before saving');
+      return;
+    }
+
+    const collectionId = `collection_${Date.now()}`;
+    const savedCollection = {
+      id: collectionId,
+      name: config.name,
+      config: { ...config },
+      date: new Date().toLocaleDateString()
+    };
+
+    setSavedCollections(prev => [savedCollection, ...prev]);
+    setError('');
+    alert(`Collection "${config.name}" saved successfully!`);
+  };
+
+  const loadCollection = (savedCollection: any) => {
+    setConfig(savedCollection.config);
+    setStep(1);
+    setGeneratedImages([]);
+    setError('');
+    setShowSavedCollections(false);
+    alert(`Loaded collection "${savedCollection.name}"`);
+  };
+
+  const deleteSavedCollection = (collectionId: string) => {
+    if (confirm('Are you sure you want to delete this saved collection?')) {
+      setSavedCollections(prev => prev.filter(c => c.id !== collectionId));
+    }
+  };
 
   const handleInputChange = (field: string, value: any) => {
     setConfig(prev => ({
@@ -483,9 +536,80 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-white text-center mb-8">
-          🏗️ Collection Builder
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-white">
+            🏗️ Collection Builder
+          </h1>
+          
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setShowSavedCollections(!showSavedCollections)}
+              className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            >
+              📁 Saved Collections ({savedCollections.length})
+            </button>
+            
+            <button
+              onClick={saveCollection}
+              disabled={!config.name.trim()}
+              className="px-4 py-2 bg-green-600/80 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            >
+              💾 Save Collection
+            </button>
+          </div>
+        </div>
+
+        {/* Saved Collections Modal */}
+        {showSavedCollections && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-96 overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">📁 Saved Collections</h2>
+                <button
+                  onClick={() => setShowSavedCollections(false)}
+                  className="text-white/60 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              {savedCollections.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-white/60">No saved collections yet</p>
+                  <p className="text-white/40 text-sm mt-2">Save your work-in-progress collections to access them later</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {savedCollections.map((collection) => (
+                    <div key={collection.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="text-white font-medium">{collection.name}</h3>
+                        <p className="text-white/60 text-sm">Saved on {collection.date}</p>
+                        <p className="text-white/40 text-xs">
+                          Step {collection.config.name ? '1' : '1'}, {collection.metadata.attributes.length} attributes
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => loadCollection(collection)}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => deleteSavedCollection(collection.id)}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Progress Steps */}
         <div className="flex justify-center mb-8">
