@@ -12,6 +12,7 @@ import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
 import PricingModal from '../components/PricingModal';
 import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
+import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
@@ -70,6 +71,7 @@ function AdminPageContent() {
   const [showEnhancedRevealModal, setShowEnhancedRevealModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [showPostDeploymentEditor, setShowPostDeploymentEditor] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -703,6 +705,16 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   Connect your social media to get a verified collection badge
                 </p>
+
+                <button
+                  onClick={() => setShowPostDeploymentEditor(true)}
+                  className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  ✏️ Edit Collection Settings
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Update whitelist, pricing, supply, and metadata (requires update fees)
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -833,6 +845,16 @@ function AdminPageContent() {
                       <span>Whitelist Phases:</span>
                       <span>{currentCollection.whitelist.phases.length}</span>
                     </div>
+                    {currentCollection.whitelist.phases.length > 0 && (
+                      <div className="mt-2 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                        <h4 className="text-blue-400 font-semibold mb-2">Whitelist Phases:</h4>
+                        {currentCollection.whitelist.phases.map((phase, index) => (
+                          <div key={index} className="text-sm text-gray-300 mb-1">
+                            Phase {index + 1}: {phase.name} - {phase.price} $LOL
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex justify-between text-white/80">
                       <span>Payment Tokens:</span>
                       <span>{currentCollection.paymentTokens.length}</span>
@@ -1183,6 +1205,23 @@ function AdminPageContent() {
             setShowVerificationModal(false);
           }}
         />
+      )}
+
+      {/* Post-Deployment Editor Modal */}
+      {showPostDeploymentEditor && currentCollection && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <PostDeploymentEditor
+            collection={currentCollection}
+            onUpdateComplete={(updatedCollection) => {
+              console.log('Collection updated:', updatedCollection);
+              setCurrentCollection(updatedCollection);
+              setShowPostDeploymentEditor(false);
+              // Refresh collections to show updates
+              fetchCollections();
+            }}
+            onClose={() => setShowPostDeploymentEditor(false)}
+          />
+        </div>
       )}
     </div>
     </>
