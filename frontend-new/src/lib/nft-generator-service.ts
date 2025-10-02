@@ -243,19 +243,28 @@ export class NFTGeneratorService {
   /**
    * Start NFT generation
    */
-  async generateNFTs(sessionId: string): Promise<void> {
+  async generateNFTs(sessionId: string, pricing?: any): Promise<void> {
+    const requestBody: any = { sessionId };
+    
+    if (pricing) {
+      requestBody.pricing = pricing;
+    }
+
     const response = await fetch(`${this.backendUrl}/api/nft-generator/generate-nfts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error?.message || 'Failed to start generation');
     }
+
+    const result = await response.json();
+    console.log('Generation started with pricing:', result);
   }
 
   /**

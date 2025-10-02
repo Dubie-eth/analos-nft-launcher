@@ -50,8 +50,8 @@ export class PricingService {
       {
         name: "Starter",
         description: "Perfect for small collections",
-        pricePerToken: 1200, // $LOS (equivalent to ~$0.18 USD)
-        pricePerTokenUSD: 0.18,
+        pricePerToken: 800, // $LOS (equivalent to ~$0.12 USD)
+        pricePerTokenUSD: 0.12,
         features: [
           "Up to 1,000 NFTs",
           "Basic IPFS hosting",
@@ -76,8 +76,8 @@ export class PricingService {
       {
         name: "Enterprise",
         description: "For large-scale collections",
-        pricePerToken: 800, // $LOS (equivalent to ~$0.12 USD)
-        pricePerTokenUSD: 0.12,
+        pricePerToken: 1200, // $LOS (equivalent to ~$0.18 USD)
+        pricePerTokenUSD: 0.18,
         features: [
           "Unlimited NFTs",
           "Dedicated IPFS hosting",
@@ -306,9 +306,9 @@ export class PricingService {
 
     return {
       artGenerator: {
-        cheapest: artGeneratorTiers[2].pricePerToken, // Enterprise
+        cheapest: artGeneratorTiers[0].pricePerToken, // Starter
         mostPopular: artGeneratorTiers[1].pricePerToken, // Professional
-        premium: artGeneratorTiers[0].pricePerToken // Starter
+        premium: artGeneratorTiers[2].pricePerToken // Enterprise
       },
       smartContract: {
         deployment: smartContractPricing.deploymentFee === 0 ? "FREE" : `${smartContractPricing.deploymentFee} $LOS`,

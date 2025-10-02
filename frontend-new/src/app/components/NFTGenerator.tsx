@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { nftGeneratorService, Layer, GenerationConfig, GenerationProgress, GenerationResult } from '@/lib/nft-generator-service';
+import { pricingService, PricingTier } from '@/lib/pricing-service';
 
 
 interface NFTGeneratorProps {
@@ -32,6 +33,16 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>('');
   const [uploadType, setUploadType] = useState<'zip' | 'folder'>('zip');
+  const [selectedPricingTier, setSelectedPricingTier] = useState<PricingTier | null>(null);
+  const [showPricingSelection, setShowPricingSelection] = useState(false);
+
+  // Calculate pricing for current configuration
+  const calculatePricing = () => {
+    if (!selectedPricingTier) return null;
+    return pricingService.calculateGenerationCost(config.supply, selectedPricingTier.name);
+  };
+
+  const pricing = calculatePricing();
 
   // Step 1: Upload ZIP file or folder with layers
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,12 +109,27 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
       return;
     }
 
+    if (!selectedPricingTier) {
+      setError('Please select a pricing tier');
+      return;
+    }
+
     setIsGenerating(true);
     setError('');
 
     try {
+      // Include pricing information in the generation request
+      const generationRequest = {
+        pricing: {
+          tier: selectedPricingTier.name,
+          pricePerToken: selectedPricingTier.pricePerToken,
+          totalCost: pricing?.totalLOS || 0,
+          totalCostUSD: pricing?.totalUSD || 0
+        }
+      };
+
       // Start generation
-      await nftGeneratorService.generateNFTs(sessionId);
+      await nftGeneratorService.generateNFTs(sessionId, generationRequest);
       
       // Start polling for progress
       pollProgress();
@@ -371,6 +397,58 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
               {/* Left Column - Collection Info */}
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold text-white">Collection Details</h3>
+                
+                {/* Pricing Selection */}
+                <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/50 rounded-xl p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4">💰 Select Pricing Plan</h4>
+                  <div className="space-y-3">
+                    {pricingService.getArtGeneratorPricing().map((tier) => (
+                      <div
+                        key={tier.name}
+                        className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
+                          selectedPricingTier?.name === tier.name
+                            ? 'border-purple-500 bg-purple-500/20'
+                            : 'border-white/20 bg-white/5 hover:bg-white/10'
+                        }`}
+                        onClick={() => setSelectedPricingTier(tier)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h5 className="text-white font-semibold">{tier.name}</h5>
+                              {tier.isPopular && (
+                                <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                                  Popular
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-300 text-sm mt-1">{tier.description}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-white font-bold">{tier.pricePerToken.toLocaleString()} $LOS</div>
+                            <div className="text-gray-400 text-sm">${tier.pricePerTokenUSD} per NFT</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {selectedPricingTier && pricing && (
+                    <div className="mt-4 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-white font-medium">Total Cost ({config.supply} NFTs):</span>
+                        <div className="text-right">
+                          <div className="text-green-400 font-bold text-lg">
+                            {pricing.totalLOS.toLocaleString()} $LOS
+                          </div>
+                          <div className="text-gray-300 text-sm">
+                            ~${pricing.totalUSD.toFixed(2)} USD
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-200 mb-2">
