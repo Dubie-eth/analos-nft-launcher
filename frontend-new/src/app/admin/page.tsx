@@ -76,7 +76,12 @@ function AdminPageContent() {
     if (collections.length > 0 && !collectionData.name) {
       const mostRecentCollection = collections[0]; // Assuming first is most recent
       console.log('🔄 Auto-loading most recent collection for editing:', mostRecentCollection);
-      loadExistingCollection(mostRecentCollection);
+      try {
+        loadExistingCollection(mostRecentCollection);
+      } catch (error) {
+        console.error('❌ Error loading existing collection:', error);
+        // Continue without auto-loading if there's an error
+      }
     }
   }, [collections]);
 
@@ -152,35 +157,40 @@ function AdminPageContent() {
   };
 
   const loadExistingCollection = (collection: BlockchainCollectionData) => {
-    console.log('📥 Loading existing collection data:', collection);
-    
-    const newCollectionData = {
-      name: collection.name,
-      description: collection.description || '',
-      image: null, // Will need to re-upload image
-      price: collection.mintPrice || 100,
-      maxSupply: collection.totalSupply || 1000,
-      feePercentage: collection.feePercentage || 2.5,
-      feeRecipient: collection.feeRecipient || '',
-      symbol: collection.symbol || '',
-      externalUrl: collection.externalUrl || ''
-    };
-    
-    console.log('📝 Setting collection data:', newCollectionData);
-    setCollectionData(newCollectionData);
-    
-    // Set image preview if available
-    if (collection.imageUrl) {
-      console.log('🖼️ Setting image preview:', collection.imageUrl);
-      setImagePreview(collection.imageUrl);
+    try {
+      console.log('📥 Loading existing collection data:', collection);
+      
+      const newCollectionData = {
+        name: collection.name || '',
+        description: collection.description || '',
+        image: null, // Will need to re-upload image
+        price: collection.mintPrice || 100,
+        maxSupply: collection.totalSupply || 1000,
+        feePercentage: collection.feePercentage || 2.5,
+        feeRecipient: collection.feeRecipient || '',
+        symbol: collection.symbol || '',
+        externalUrl: collection.externalUrl || ''
+      };
+      
+      console.log('📝 Setting collection data:', newCollectionData);
+      setCollectionData(newCollectionData);
+      
+      // Set image preview if available
+      if (collection.imageUrl) {
+        console.log('🖼️ Setting image preview:', collection.imageUrl);
+        setImagePreview(collection.imageUrl);
+      }
+      
+      setSaveStatus(`✅ Loaded collection "${collection.name}" for editing - Form should now be populated!`);
+      
+      // Force a re-render by updating a dummy state
+      setTimeout(() => {
+        setSaveStatus(`✅ Collection "${collection.name}" loaded successfully! You can now edit the details above.`);
+      }, 100);
+    } catch (error) {
+      console.error('❌ Error in loadExistingCollection:', error);
+      setSaveStatus('❌ Error loading collection data');
     }
-    
-    setSaveStatus(`✅ Loaded collection "${collection.name}" for editing - Form should now be populated!`);
-    
-    // Force a re-render by updating a dummy state
-    setTimeout(() => {
-      setSaveStatus(`✅ Collection "${collection.name}" loaded successfully! You can now edit the details above.`);
-    }, 100);
   };
 
   if (!mounted) {
@@ -730,19 +740,31 @@ function AdminPageContent() {
                 </button>
               </div>
               
-              <div className="grid lg:grid-cols-2 gap-8">
-                {/* Advanced Minting Settings */}
-                <AdvancedMintingSettings
-                  collection={currentCollection}
-                  onUpdateCollection={handleUpdateAdvancedCollection}
-                />
-                
-                {/* Payment Token Configuration */}
-                <PaymentTokenConfig
-                  collection={currentCollection}
-                  onUpdateCollection={handleUpdateAdvancedCollection}
-                />
-              </div>
+              {currentCollection && (
+                <div className="grid lg:grid-cols-2 gap-8">
+                  {/* Advanced Minting Settings */}
+                  <AdvancedMintingSettings
+                    onSettingsChange={(settings) => {
+                      if (currentCollection) {
+                        const updatedCollection = { ...currentCollection, ...settings };
+                        handleUpdateAdvancedCollection(updatedCollection);
+                      }
+                    }}
+                    initialSettings={currentCollection}
+                  />
+                  
+                  {/* Payment Token Configuration */}
+                  <PaymentTokenConfig
+                    onTokensChange={(tokens) => {
+                      if (currentCollection) {
+                        const updatedCollection = { ...currentCollection, paymentTokens: tokens };
+                        handleUpdateAdvancedCollection(updatedCollection);
+                      }
+                    }}
+                    initialTokens={currentCollection?.paymentTokens || []}
+                  />
+                </div>
+              )}
               
               <div className="mt-8 p-4 bg-white/10 rounded-lg">
                 <h3 className="text-lg font-bold text-white mb-3">📊 Collection Summary</h3>
