@@ -27,6 +27,13 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       sourceImages: [],
       traitFolders: {}
     },
+    hosting: {
+      provider: 'pinata',
+      pinataApiKey: '',
+      pinataSecret: '',
+      githubToken: '',
+      githubRepo: ''
+    },
     metadata: {
       attributes: []
     },
@@ -573,6 +580,93 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
         </button>
       </div>
 
+      {/* Hosting Settings */}
+      <div className="border-t border-white/20 pt-6">
+        <h3 className="text-white font-medium mb-4">☁️ Hosting Provider</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-white/80 text-sm font-medium mb-2">
+              Choose Hosting Provider
+            </label>
+            <div className="space-y-2">
+              {[
+                { value: 'pinata', label: '🌐 Pinata IPFS', description: 'Decentralized IPFS storage (recommended)' },
+                { value: 'github', label: '📁 GitHub', description: 'Git-based storage with version control' },
+                { value: 'local', label: '💾 Local Fallback', description: 'Use placeholder URLs for testing' }
+              ].map((option) => (
+                <label key={option.value} className="flex items-start space-x-3 p-3 bg-white/10 border border-white/20 rounded-lg cursor-pointer hover:bg-white/15 transition-colors">
+                  <input
+                    type="radio"
+                    name="hostingProvider"
+                    value={option.value}
+                    checked={config.hosting.provider === option.value}
+                    onChange={(e) => handleNestedInputChange('hosting', 'provider', e.target.value)}
+                    className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                  />
+                  <div className="flex-1">
+                    <div className="text-white font-medium">{option.label}</div>
+                    <div className="text-white/60 text-sm">{option.description}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Pinata Configuration */}
+          {config.hosting.provider === 'pinata' && (
+            <div className="space-y-3 p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+              <h4 className="text-blue-200 font-medium">🔑 Pinata Configuration</h4>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Pinata API Key"
+                  value={config.hosting.pinataApiKey || ''}
+                  onChange={(e) => handleNestedInputChange('hosting', 'pinataApiKey', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Pinata Secret Key"
+                  value={config.hosting.pinataSecret || ''}
+                  onChange={(e) => handleNestedInputChange('hosting', 'pinataSecret', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <p className="text-blue-200 text-xs">
+                  💡 Leave empty to use environment variables (NEXT_PUBLIC_PINATA_API_KEY, NEXT_PUBLIC_PINATA_SECRET_KEY)
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* GitHub Configuration */}
+          {config.hosting.provider === 'github' && (
+            <div className="space-y-3 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+              <h4 className="text-green-200 font-medium">🐙 GitHub Configuration</h4>
+              <div className="space-y-2">
+                <input
+                  type="password"
+                  placeholder="GitHub Personal Access Token"
+                  value={config.hosting.githubToken || ''}
+                  onChange={(e) => handleNestedInputChange('hosting', 'githubToken', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <input
+                  type="text"
+                  placeholder="GitHub Repository (owner/repo)"
+                  value={config.hosting.githubRepo || ''}
+                  onChange={(e) => handleNestedInputChange('hosting', 'githubRepo', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <p className="text-green-200 text-xs">
+                  💡 Create a GitHub Personal Access Token with repo permissions
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Reveal Settings */}
       <div className="border-t border-white/20 pt-6">
         <h3 className="text-white font-medium mb-4">🎭 Reveal Settings</h3>
@@ -819,6 +913,13 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
                     type: 'upload',
                     sourceImages: [],
                     traitFolders: {}
+                  },
+                  hosting: {
+                    provider: 'pinata',
+                    pinataApiKey: '',
+                    pinataSecret: '',
+                    githubToken: '',
+                    githubRepo: ''
                   },
                   metadata: {
                     attributes: []

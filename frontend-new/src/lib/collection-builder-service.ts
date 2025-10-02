@@ -15,6 +15,13 @@ export interface CollectionBuilderConfig {
     templateId?: string;
     generationPrompt?: string;
   };
+  hosting: {
+    provider: 'pinata' | 'github' | 'local';
+    pinataApiKey?: string;
+    pinataSecret?: string;
+    githubToken?: string;
+    githubRepo?: string;
+  };
   metadata: {
     attributes: Array<{
       trait_type: string;
@@ -77,7 +84,30 @@ export class CollectionBuilderService {
     this.pinataSecretKey = process.env.NEXT_PUBLIC_PINATA_SECRET_KEY || '';
     
     if (!this.pinataApiKey || !this.pinataSecretKey) {
-      console.warn('⚠️ Pinata API keys not configured. Using fallback image hosting.');
+      console.warn('⚠️ Pinata API keys not configured in environment. Will use user-provided keys or fallback.');
+    }
+  }
+
+  private getHostingCredentials(config: CollectionBuilderConfig) {
+    const hosting = config.hosting;
+    
+    switch (hosting.provider) {
+      case 'pinata':
+        return {
+          apiKey: hosting.pinataApiKey || this.pinataApiKey,
+          secret: hosting.pinataSecret || this.pinataSecretKey,
+          provider: 'pinata'
+        };
+      case 'github':
+        return {
+          token: hosting.githubToken || process.env.GITHUB_TOKEN,
+          repo: hosting.githubRepo || process.env.GITHUB_REPO,
+          provider: 'github'
+        };
+      default:
+        return {
+          provider: 'local'
+        };
     }
   }
 
@@ -329,45 +359,74 @@ export class CollectionBuilderService {
       // In production, this would composite all layers
       const primaryFile = layeredFiles[0];
       
-      // Upload the layered image to Pinata (if configured) or use fallback
-      if (!this.pinataApiKey || !this.pinataSecretKey) {
-        console.warn('⚠️ Pinata not configured, using fallback image URL');
-        return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
-      }
-
-      const formData = new FormData();
-      formData.append('file', primaryFile);
-      formData.append('pinataMetadata', JSON.stringify({
-        name: `${config.name}_layered_${index + 1}`,
-        keyvalues: {
-          collection: config.name,
-          index: index + 1,
-          type: 'layered-nft-image',
-          traits: JSON.stringify(traits)
+      // Get hosting credentials
+      const credentials = this.getHostingCredentials(config);
+      
+      // Upload based on hosting provider
+      if (credentials.provider === 'pinata') {
+        if (!credentials.apiKey || !credentials.secret) {
+          console.warn('⚠️ Pinata credentials not available, using fallback image URL');
+          return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
         }
-      }));
-
-      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-        method: 'POST',
-        headers: {
-          'pinata_api_key': this.pinataApiKey,
-          'pinata_secret_api_key': this.pinataSecretKey,
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        console.error(`❌ Pinata upload failed: ${response.statusText}, using fallback`);
+        return await this.uploadToPinata(primaryFile, `${config.name}_layered_${index + 1}`, credentials.apiKey, credentials.secret, traits);
+      } else if (credentials.provider === 'github') {
+        if (!credentials.token || !credentials.repo) {
+          console.warn('⚠️ GitHub credentials not available, using fallback image URL');
+          return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
+        }
+        return await this.uploadToGitHub(primaryFile, `${config.name}_layered_${index + 1}`, credentials.token, credentials.repo);
+      } else {
+        console.warn('⚠️ Using local fallback image URL');
         return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
       }
 
-      const result = await response.json();
-      return `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
     } catch (error) {
       console.error('❌ Error creating layered image:', error);
       // Fallback to placeholder
       return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
     }
+  }
+
+  /**
+   * Upload file to Pinata IPFS
+   */
+  private async uploadToPinata(file: File, name: string, apiKey: string, secret: string, metadata?: any): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('pinataMetadata', JSON.stringify({
+      name,
+      keyvalues: {
+        type: 'nft-image',
+        timestamp: Date.now(),
+        ...metadata
+      }
+    }));
+
+    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: {
+        'pinata_api_key': apiKey,
+        'pinata_secret_api_key': secret,
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`Pinata upload failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+  }
+
+  /**
+   * Upload file to GitHub (placeholder - would need GitHub API integration)
+   */
+  private async uploadToGitHub(file: File, name: string, token: string, repo: string): Promise<string> {
+    // This would integrate with GitHub API to upload files
+    // For now, return a placeholder URL
+    console.warn('⚠️ GitHub upload not yet implemented, using fallback');
+    return `https://raw.githubusercontent.com/${repo}/main/images/${name}`;
   }
 
   /**
@@ -379,39 +438,29 @@ export class CollectionBuilderService {
     // 2. Layer different elements
     // 3. Generate variations using AI
     
-    // Upload the source image to Pinata (if configured) or use fallback
-    if (!this.pinataApiKey || !this.pinataSecretKey) {
-      console.warn('⚠️ Pinata not configured, using fallback image URL');
-      return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
-    }
-
-    const formData = new FormData();
-    formData.append('file', sourceImage);
-    formData.append('pinataMetadata', JSON.stringify({
-      name: `${config.name}_${index + 1}`,
-      keyvalues: {
-        collection: config.name,
-        index: index + 1,
-        type: 'nft-image'
+    // Get hosting credentials
+    const credentials = this.getHostingCredentials(config);
+    
+    // Upload based on hosting provider
+    if (credentials.provider === 'pinata') {
+      if (!credentials.apiKey || !credentials.secret) {
+        console.warn('⚠️ Pinata credentials not available, using fallback image URL');
+        return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
       }
-    }));
-
-    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-      method: 'POST',
-      headers: {
-        'pinata_api_key': this.pinataApiKey,
-        'pinata_secret_api_key': this.pinataSecretKey,
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      console.error(`❌ Pinata upload failed: ${response.statusText}, using fallback`);
+      return await this.uploadToPinata(sourceImage, `${config.name}_${index + 1}`, credentials.apiKey, credentials.secret, {
+        collection: config.name,
+        index: index + 1
+      });
+    } else if (credentials.provider === 'github') {
+      if (!credentials.token || !credentials.repo) {
+        console.warn('⚠️ GitHub credentials not available, using fallback image URL');
+        return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
+      }
+      return await this.uploadToGitHub(sourceImage, `${config.name}_${index + 1}`, credentials.token, credentials.repo);
+    } else {
+      console.warn('⚠️ Using local fallback image URL');
       return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
     }
-
-    const result = await response.json();
-    return `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
   }
 
   /**
