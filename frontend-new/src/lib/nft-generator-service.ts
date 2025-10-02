@@ -128,6 +128,8 @@ export class NFTGeneratorService {
     // Group files by folder structure
     const layersMap = new Map<string, File[]>();
     
+    const invalidFiles: string[] = [];
+    
     files.forEach((file) => {
       // Extract folder path from file.webkitRelativePath
       const pathParts = file.webkitRelativePath.split('/');
@@ -135,15 +137,22 @@ export class NFTGeneratorService {
         const folderName = pathParts[0]; // First folder is the layer name
         
         // Validate image file
-        const isValidImage = this.isValidImageFile(file.name);
-        if (isValidImage) {
+        const validation = this.validateFileFormat(file.name);
+        if (validation.valid) {
           if (!layersMap.has(folderName)) {
             layersMap.set(folderName, []);
           }
           layersMap.get(folderName)!.push(file);
+        } else {
+          invalidFiles.push(validation.message || file.name);
         }
       }
     });
+
+    // Log invalid files for debugging
+    if (invalidFiles.length > 0) {
+      console.warn('Invalid files found:', invalidFiles);
+    }
 
     // Convert to layers array
     const layers: Layer[] = [];
@@ -181,6 +190,33 @@ export class NFTGeneratorService {
   private isValidImageFile(filename: string): boolean {
     const ext = filename.toLowerCase().split('.').pop();
     return ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext || '');
+  }
+
+  /**
+   * Get supported image formats
+   */
+  getSupportedFormats(): string[] {
+    return ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+  }
+
+  /**
+   * Validate file format with detailed error message
+   */
+  validateFileFormat(filename: string): { valid: boolean; message?: string } {
+    const ext = filename.toLowerCase().split('.').pop();
+    
+    if (!ext) {
+      return { valid: false, message: `File "${filename}" has no extension` };
+    }
+
+    if (!this.isValidImageFile(filename)) {
+      return { 
+        valid: false, 
+        message: `File "${filename}" has unsupported format "${ext}". Supported formats: PNG, JPG, JPEG, GIF, WebP` 
+      };
+    }
+
+    return { valid: true };
   }
 
   /**

@@ -269,7 +269,7 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept={uploadType === 'zip' ? '.zip' : '*'}
+                  accept={uploadType === 'zip' ? '.zip' : 'image/*,.png,.jpg,.jpeg,.gif,.webp'}
                   webkitdirectory={uploadType === 'folder'}
                   directory={uploadType === 'folder'}
                   onChange={handleFileUpload}
@@ -327,8 +327,32 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                   <div className="mt-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
                     <p className="text-blue-200 text-sm">
                       💡 <strong>Tip:</strong> Each subfolder represents a trait layer. 
-                      Place all your trait images (PNG, JPG, GIF, WebP) inside the appropriate layer folder.
+                      Place all your trait images inside the appropriate layer folder.
                     </p>
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
+                    <p className="text-green-200 text-sm mb-2">
+                      🎨 <strong>Supported Formats:</strong>
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span className="text-green-200">PNG (with transparency)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span className="text-green-200">JPG/JPEG</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span className="text-green-200">GIF (including animated)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                        <span className="text-green-200">WebP (modern format)</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
