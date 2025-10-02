@@ -476,10 +476,27 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
       {/* Token Holder Whitelist Manager */}
       <WhitelistHolderManager
         onWhitelistGenerated={(addresses) => {
-          // Add generated addresses to the whitelist
-          const currentAddresses = settings.whitelist.addresses;
-          const newAddresses = [...new Set([...currentAddresses, ...addresses])];
-          handleSettingChange('whitelist.addresses', newAddresses);
+          try {
+            console.log('🎯 Whitelist generated callback called with addresses:', addresses);
+            
+            // Ensure addresses is an array
+            if (!Array.isArray(addresses)) {
+              console.error('❌ Addresses is not an array:', addresses);
+              return;
+            }
+            
+            // Ensure settings.whitelist.addresses exists
+            const currentAddresses = settings.whitelist?.addresses || [];
+            const newAddresses = [...new Set([...currentAddresses, ...addresses])];
+            
+            console.log('✅ Adding addresses to whitelist:', newAddresses);
+            handleSettingChange('whitelist.addresses', newAddresses);
+            
+            alert(`✅ Successfully added ${addresses.length} addresses to whitelist!`);
+          } catch (error) {
+            console.error('❌ Error in onWhitelistGenerated callback:', error);
+            alert(`Error adding addresses to whitelist: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
         }}
         onSnapshotCreated={(snapshot) => {
           console.log('📸 Snapshot created:', snapshot);
