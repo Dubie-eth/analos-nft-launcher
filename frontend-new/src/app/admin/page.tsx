@@ -13,6 +13,7 @@ import PricingModal from '../components/PricingModal';
 import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
+import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
@@ -72,6 +73,7 @@ function AdminPageContent() {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [showPostDeploymentEditor, setShowPostDeploymentEditor] = useState(false);
+  const [showBondingCurveLauncher, setShowBondingCurveLauncher] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -715,6 +717,16 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   Update whitelist, pricing, supply, and metadata (requires update fees)
                 </p>
+
+                <button
+                  onClick={() => setShowBondingCurveLauncher(true)}
+                  className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  🚀 Launch Bonding Curve
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Create pump.fun-style bonding curve with NFT reveals and bridge trading
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -1223,6 +1235,18 @@ function AdminPageContent() {
           />
         </div>
       )}
+
+      {/* Bonding Curve Launcher Modal */}
+      <BondingCurveLauncher
+        isOpen={showBondingCurveLauncher}
+        onClose={() => setShowBondingCurveLauncher(false)}
+        onLaunchComplete={(collection) => {
+          console.log('Bonding curve launched:', collection);
+          setShowBondingCurveLauncher(false);
+          // Refresh collections to show new bonding curve
+          fetchCollections();
+        }}
+      />
     </div>
     </>
   );
