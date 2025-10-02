@@ -152,8 +152,14 @@ function AdminPageContent() {
   };
 
   const handleUpdateAdvancedCollection = (updatedCollection: CollectionInfo) => {
-    setCurrentCollection(updatedCollection);
-    tokenIdTracker.updateCollection(updatedCollection.mint, updatedCollection);
+    // Ensure the collection has all required properties with defaults
+    const safeCollection = {
+      ...updatedCollection,
+      metadata: updatedCollection.metadata || { attributes: [] },
+      attributes: updatedCollection.attributes || []
+    };
+    setCurrentCollection(safeCollection);
+    tokenIdTracker.updateCollection(safeCollection.mint, safeCollection);
   };
 
   const loadExistingCollection = (collection: BlockchainCollectionData) => {
@@ -746,11 +752,21 @@ function AdminPageContent() {
                   <AdvancedMintingSettings
                     onSettingsChange={(settings) => {
                       if (currentCollection) {
-                        const updatedCollection = { ...currentCollection, ...settings };
+                        const updatedCollection = { 
+                          ...currentCollection, 
+                          ...settings,
+                          // Ensure metadata and attributes exist
+                          metadata: currentCollection.metadata || { attributes: [] },
+                          attributes: currentCollection.attributes || []
+                        };
                         handleUpdateAdvancedCollection(updatedCollection);
                       }
                     }}
-                    initialSettings={currentCollection}
+                    initialSettings={{
+                      ...currentCollection,
+                      metadata: currentCollection.metadata || { attributes: [] },
+                      attributes: currentCollection.attributes || []
+                    }}
                   />
                   
                   {/* Payment Token Configuration */}

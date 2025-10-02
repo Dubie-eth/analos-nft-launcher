@@ -8,25 +8,30 @@
 
 ## 🚀 Setup Instructions
 
-### Option 1: Environment Variables (Recommended)
+### ✅ SECURE Server-Side Configuration (Recommended)
 Create a `.env.local` file in your `frontend-new` folder:
 
 ```bash
-# Pinata IPFS Configuration
-NEXT_PUBLIC_PINATA_API_KEY=53c9ee15d73bbf7306d5
-NEXT_PUBLIC_PINATA_SECRET_KEY=a62d4e623efea582eabe018ba5b2b3ff8b8969aa79cbf9e69b7284fba958a002
+# Pinata IPFS Configuration (Server-side - SECURE)
+PINATA_API_KEY=53c9ee15d73bbf7306d5
+PINATA_SECRET_KEY=a62d4e623efea582eabe018ba5b2b3ff8b8969aa79cbf9e69b7284fba958a002
 
 # Optional: GitHub Configuration
 GITHUB_TOKEN=your_github_token_here
 GITHUB_REPO=your_github_username/your_repo_name
+
+# Backend Configuration
+NEXT_PUBLIC_BACKEND_URL=https://analos-nft-launcher-production-f3da.up.railway.app
 ```
 
-### Option 2: Collection Builder UI
-1. Go to Collection Builder
-2. Select "🌐 Pinata IPFS" as hosting provider
-3. Enter your credentials directly in the form:
-   - **API Key:** `53c9ee15d73bbf7306d5`
-   - **Secret:** `a62d4e623efea582eabe018ba5b2b3ff8b8969aa79cbf9e69b7284fba958a002`
+### ⚠️ IMPORTANT: Security Update
+**DO NOT USE** the old client-side environment variables:
+- ❌ `NEXT_PUBLIC_PINATA_API_KEY` (exposes keys in browser)
+- ❌ `NEXT_PUBLIC_PINATA_SECRET_KEY` (exposes secrets in browser)
+
+**USE** the new server-side variables:
+- ✅ `PINATA_API_KEY` (server-side only)
+- ✅ `PINATA_SECRET_KEY` (server-side only)
 
 ## 🎯 Available Hosting Options
 

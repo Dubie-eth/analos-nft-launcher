@@ -388,35 +388,34 @@ export class CollectionBuilderService {
   }
 
   /**
-   * Upload file to Pinata IPFS
+   * Upload file using secure server-side endpoint
    */
-  private async uploadToPinata(file: File, name: string, apiKey: string, secret: string, metadata?: any): Promise<string> {
+  private async uploadFile(file: File, name: string, provider: string): Promise<string> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('pinataMetadata', JSON.stringify({
-      name,
-      keyvalues: {
-        type: 'nft-image',
-        timestamp: Date.now(),
-        ...metadata
-      }
-    }));
+    formData.append('name', name);
+    formData.append('provider', provider);
 
-    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+    const response = await fetch('/api/upload', {
       method: 'POST',
-      headers: {
-        'pinata_api_key': apiKey,
-        'pinata_secret_api_key': secret,
-      },
       body: formData
     });
 
     if (!response.ok) {
-      throw new Error(`Pinata upload failed: ${response.statusText}`);
+      const errorData = await response.json();
+      throw new Error(`Upload failed: ${errorData.details || errorData.error}`);
     }
 
     const result = await response.json();
-    return `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+    return result.url;
+  }
+
+  /**
+   * Upload file to Pinata IPFS (deprecated - use uploadFile instead)
+   */
+  private async uploadToPinata(file: File, name: string, apiKey: string, secret: string, metadata?: any): Promise<string> {
+    // Use secure server-side upload instead
+    return await this.uploadFile(file, name, 'pinata');
   }
 
   /**

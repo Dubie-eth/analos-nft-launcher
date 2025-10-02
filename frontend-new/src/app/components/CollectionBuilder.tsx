@@ -616,25 +616,20 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
           {/* Pinata Configuration */}
           {config.hosting.provider === 'pinata' && (
             <div className="space-y-3 p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
-              <h4 className="text-blue-200 font-medium">🔑 Pinata Configuration</h4>
+              <h4 className="text-blue-200 font-medium">🔐 Pinata IPFS Storage</h4>
               <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Pinata API Key"
-                  value={config.hosting.pinataApiKey || ''}
-                  onChange={(e) => handleNestedInputChange('hosting', 'pinataApiKey', e.target.value)}
-                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="password"
-                  placeholder="Pinata Secret Key"
-                  value={config.hosting.pinataSecret || ''}
-                  onChange={(e) => handleNestedInputChange('hosting', 'pinataSecret', e.target.value)}
-                  className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+                <div className="flex items-center space-x-2 text-green-200">
+                  <span className="text-lg">✅</span>
+                  <span className="text-sm">Secure server-side upload configured</span>
+                </div>
                 <p className="text-blue-200 text-xs">
-                  💡 Leave empty to use environment variables (NEXT_PUBLIC_PINATA_API_KEY, NEXT_PUBLIC_PINATA_SECRET_KEY)
+                  🔒 Your Pinata credentials are securely stored server-side and never exposed to the browser
                 </p>
+                <div className="text-blue-100 text-xs space-y-1">
+                  <div>• Images will be uploaded to IPFS automatically</div>
+                  <div>• Metadata will be pinned to IPFS</div>
+                  <div>• All uploads use secure server-side authentication</div>
+                </div>
               </div>
             </div>
           )}
