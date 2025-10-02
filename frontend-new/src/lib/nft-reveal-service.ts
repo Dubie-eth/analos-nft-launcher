@@ -37,8 +37,9 @@ export class NFTRevealService {
   private backendUrl: string;
 
   constructor() {
-    this.pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY || '';
-    this.pinataSecretKey = process.env.NEXT_PUBLIC_PINATA_SECRET_KEY || '';
+    // SECURITY: No client-side API keys - all uploads go through secure server endpoint
+    this.pinataApiKey = '';
+    this.pinataSecretKey = '';
     this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
   }
 

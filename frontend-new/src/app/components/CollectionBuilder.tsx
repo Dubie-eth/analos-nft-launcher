@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { collectionBuilderService, CollectionBuilderConfig, GeneratedImage } from '@/lib/collection-builder-service';
+import { validateCollectionName, validateCollectionDescription, validateFileUpload } from '@/lib/security-utils';
 
 interface CollectionBuilderProps {
   onCollectionBuilt: (result: any) => void;
@@ -120,7 +121,26 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    handleNestedInputChange('imageGeneration', 'sourceImages', files);
+    
+    // Validate each file
+    const validFiles: File[] = [];
+    const errors: string[] = [];
+    
+    files.forEach((file, index) => {
+      const validation = validateFileUpload(file);
+      if (validation.valid) {
+        validFiles.push(file);
+      } else {
+        errors.push(`File ${index + 1} (${file.name}): ${validation.error}`);
+      }
+    });
+    
+    if (errors.length > 0) {
+      setError(`File validation errors:\n${errors.join('\n')}`);
+      return;
+    }
+    
+    handleNestedInputChange('imageGeneration', 'sourceImages', validFiles);
   };
 
   const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,9 +309,19 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
     setError('');
 
     try {
-      // Validate config
-      if (!config.name || !config.description || !config.symbol) {
-        throw new Error('Please fill in all required fields');
+      // Validate config with security checks
+      const nameValidation = validateCollectionName(config.name);
+      if (!nameValidation.valid) {
+        throw new Error(nameValidation.error);
+      }
+      
+      const descriptionValidation = validateCollectionDescription(config.description);
+      if (!descriptionValidation.valid) {
+        throw new Error(descriptionValidation.error);
+      }
+      
+      if (!config.symbol) {
+        throw new Error('Collection symbol is required');
       }
 
       if (config.imageGeneration.type === 'upload' && 

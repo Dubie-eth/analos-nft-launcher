@@ -80,12 +80,9 @@ export class CollectionBuilderService {
 
   constructor() {
     this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
-    this.pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY || '';
-    this.pinataSecretKey = process.env.NEXT_PUBLIC_PINATA_SECRET_KEY || '';
-    
-    if (!this.pinataApiKey || !this.pinataSecretKey) {
-      console.warn('⚠️ Pinata API keys not configured in environment. Will use user-provided keys or fallback.');
-    }
+    // SECURITY: No client-side API keys - all uploads go through secure server endpoint
+    this.pinataApiKey = '';
+    this.pinataSecretKey = '';
   }
 
   private getHostingCredentials(config: CollectionBuilderConfig) {
