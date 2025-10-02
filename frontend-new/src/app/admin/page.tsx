@@ -15,6 +15,7 @@ import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
+import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
@@ -76,6 +77,7 @@ function AdminPageContent() {
   const [showPostDeploymentEditor, setShowPostDeploymentEditor] = useState(false);
   const [showBondingCurveLauncher, setShowBondingCurveLauncher] = useState(false);
   const [showTestEnvironment, setShowTestEnvironment] = useState(false);
+  const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -739,6 +741,16 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   Generate and test collections with real-time data and full functionality
                 </p>
+
+                <button
+                  onClick={() => setShowSecurityDashboard(true)}
+                  className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  🔒 Security Dashboard
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Monitor security events, system health, and emergency controls
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -1269,6 +1281,12 @@ function AdminPageContent() {
           setShowTestEnvironment(false);
           // TODO: Integrate with actual deployment system
         }}
+      />
+
+      {/* Security Monitoring Dashboard Modal */}
+      <SecurityMonitoringDashboard
+        isOpen={showSecurityDashboard}
+        onClose={() => setShowSecurityDashboard(false)}
       />
     </div>
     </>

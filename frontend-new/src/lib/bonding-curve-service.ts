@@ -1,7 +1,10 @@
 /**
  * Bonding Curve Service - NFT bonding curve system similar to pump.fun
  * Uses $LOS pairing with DLMM-like structure for NFT trading
+ * Integrated with comprehensive security measures
  */
+
+import { bondingCurveSecurity } from './bonding-curve-security';
 
 export interface BondingCurveConfig {
   virtualLOSReserves: number; // Virtual $LOS reserves
@@ -251,12 +254,14 @@ export class BondingCurveService {
   }
 
   /**
-   * Execute buy trade
+   * Execute buy trade with comprehensive security validation
    */
   async executeBuyTrade(
     collectionId: string,
     losAmount: number,
-    userWallet: string
+    userWallet: string,
+    ipAddress?: string,
+    userAgent?: string
   ): Promise<{
     success: boolean;
     nftsReceived: number;
@@ -264,22 +269,76 @@ export class BondingCurveService {
     error?: string;
   }> {
     try {
-      // TODO: Implement actual blockchain transaction
-      // This would involve:
-      // 1. Validate user has sufficient $LOS balance
-      // 2. Calculate quote
-      // 3. Execute trade on bonding curve
-      // 4. Mint NFTs to user
-      // 5. Update bonding curve state
+      // Get collection data
+      const collection = await this.getBondingCurveCollection(collectionId);
+      if (!collection) {
+        return {
+          success: false,
+          nftsReceived: 0,
+          error: 'Collection not found'
+        };
+      }
 
-      console.log('Executing buy trade:', { collectionId, losAmount, userWallet });
-      
-      // Simulate trade execution
-      return {
-        success: true,
-        nftsReceived: losAmount / 1000, // Simplified calculation
-        transactionHash: 'simulated_tx_hash'
-      };
+      // Comprehensive security validation
+      const validation = await bondingCurveSecurity.validateTrade({
+        wallet: userWallet,
+        tradeAmount: losAmount,
+        isBuy: true,
+        totalLiquidity: collection.state.virtualLOSReserves,
+        currentPrice: collection.state.currentPrice,
+        virtualLOSReserves: collection.state.virtualLOSReserves,
+        virtualNFTSupply: collection.state.virtualNFTSupply,
+        ipAddress,
+        userAgent
+      });
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          nftsReceived: 0,
+          error: validation.errors.join(', ')
+        };
+      }
+
+      // Start trade tracking
+      bondingCurveSecurity.startTrade(userWallet);
+
+      try {
+        // Calculate quote with security-validated parameters
+        const quote = this.calculateBuyQuote(collection.config, collection.state, losAmount);
+        
+        // Additional security checks
+        if (quote.priceImpact > 0.05) { // 5% max price impact
+          throw new Error('Price impact too high. Trade rejected for security.');
+        }
+
+        // TODO: Implement actual blockchain transaction
+        // This would involve:
+        // 1. Validate user has sufficient $LOS balance
+        // 2. Execute trade on bonding curve
+        // 3. Mint NFTs to user
+        // 4. Update bonding curve state
+
+        console.log('Executing secure buy trade:', { 
+          collectionId, 
+          losAmount, 
+          userWallet, 
+          priceImpact: quote.priceImpact,
+          nftsReceived: quote.outputAmount
+        });
+        
+        // Simulate trade execution
+        const transactionHash = `secure_buy_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        return {
+          success: true,
+          nftsReceived: quote.outputAmount,
+          transactionHash
+        };
+      } finally {
+        // Always end trade tracking
+        bondingCurveSecurity.endTrade(userWallet);
+      }
     } catch (error) {
       return {
         success: false,
@@ -290,12 +349,14 @@ export class BondingCurveService {
   }
 
   /**
-   * Execute sell trade
+   * Execute sell trade with comprehensive security validation
    */
   async executeSellTrade(
     collectionId: string,
     nftAmount: number,
-    userWallet: string
+    userWallet: string,
+    ipAddress?: string,
+    userAgent?: string
   ): Promise<{
     success: boolean;
     losReceived: number;
@@ -303,23 +364,80 @@ export class BondingCurveService {
     error?: string;
   }> {
     try {
-      // TODO: Implement actual blockchain transaction
-      // This would involve:
-      // 1. Validate user has sufficient NFTs
-      // 2. Calculate quote
-      // 3. Execute trade on bonding curve
-      // 4. Burn NFTs from user
-      // 5. Transfer $LOS to user
-      // 6. Update bonding curve state
+      // Get collection data
+      const collection = await this.getBondingCurveCollection(collectionId);
+      if (!collection) {
+        return {
+          success: false,
+          losReceived: 0,
+          error: 'Collection not found'
+        };
+      }
 
-      console.log('Executing sell trade:', { collectionId, nftAmount, userWallet });
-      
-      // Simulate trade execution
-      return {
-        success: true,
-        losReceived: nftAmount * 1000, // Simplified calculation
-        transactionHash: 'simulated_tx_hash'
-      };
+      // Convert NFT amount to $LOS equivalent for validation
+      const losEquivalent = nftAmount * collection.state.currentPrice;
+
+      // Comprehensive security validation
+      const validation = await bondingCurveSecurity.validateTrade({
+        wallet: userWallet,
+        tradeAmount: losEquivalent,
+        isBuy: false,
+        totalLiquidity: collection.state.virtualLOSReserves,
+        currentPrice: collection.state.currentPrice,
+        virtualLOSReserves: collection.state.virtualLOSReserves,
+        virtualNFTSupply: collection.state.virtualNFTSupply,
+        ipAddress,
+        userAgent
+      });
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          losReceived: 0,
+          error: validation.errors.join(', ')
+        };
+      }
+
+      // Start trade tracking
+      bondingCurveSecurity.startTrade(userWallet);
+
+      try {
+        // Calculate quote with security-validated parameters
+        const quote = this.calculateSellQuote(collection.config, collection.state, nftAmount);
+        
+        // Additional security checks
+        if (quote.priceImpact > 0.05) { // 5% max price impact
+          throw new Error('Price impact too high. Trade rejected for security.');
+        }
+
+        // TODO: Implement actual blockchain transaction
+        // This would involve:
+        // 1. Validate user has sufficient NFTs
+        // 2. Execute trade on bonding curve
+        // 3. Burn NFTs from user
+        // 4. Transfer $LOS to user
+        // 5. Update bonding curve state
+
+        console.log('Executing secure sell trade:', { 
+          collectionId, 
+          nftAmount, 
+          userWallet, 
+          priceImpact: quote.priceImpact,
+          losReceived: quote.netAmount
+        });
+        
+        // Simulate trade execution
+        const transactionHash = `secure_sell_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        return {
+          success: true,
+          losReceived: quote.netAmount,
+          transactionHash
+        };
+      } finally {
+        // Always end trade tracking
+        bondingCurveSecurity.endTrade(userWallet);
+      }
     } catch (error) {
       return {
         success: false,
