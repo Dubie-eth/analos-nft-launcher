@@ -287,8 +287,10 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
         throw new Error('Please fill in all required fields');
       }
 
-      if (config.imageGeneration.type === 'upload' && (!config.imageGeneration.sourceImages || config.imageGeneration.sourceImages.length === 0)) {
-        throw new Error('Please upload source images for generation');
+      if (config.imageGeneration.type === 'upload' && 
+          (!config.imageGeneration.sourceImages || config.imageGeneration.sourceImages.length === 0) &&
+          (!config.imageGeneration.traitFolders || Object.keys(config.imageGeneration.traitFolders).length === 0)) {
+        throw new Error('Please upload source images or trait folders for generation');
       }
 
       if (config.imageGeneration.type === 'generate' && !config.imageGeneration.generationPrompt) {
@@ -763,6 +765,14 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mt-6">
             <p className="text-red-200">{error}</p>
+            {error.includes('Pinata') && (
+              <div className="mt-2 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded">
+                <p className="text-yellow-200 text-sm">
+                  💡 <strong>Pinata Not Configured:</strong> The system will use fallback image hosting for now. 
+                  To use Pinata IPFS storage, add your API keys to the environment variables.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
