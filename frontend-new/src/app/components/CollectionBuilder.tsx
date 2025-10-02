@@ -24,7 +24,8 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
     price: 100,
     imageGeneration: {
       type: 'upload',
-      sourceImages: []
+      sourceImages: [],
+      traitFolders: {}
     },
     metadata: {
       attributes: []
@@ -113,6 +114,84 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     handleNestedInputChange('imageGeneration', 'sourceImages', files);
+  };
+
+  const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const traitFolders: Record<string, File[]> = {};
+
+    // Organize files by folder (trait type)
+    files.forEach(file => {
+      const path = file.webkitRelativePath || file.name;
+      const pathParts = path.split('/');
+      
+      if (pathParts.length >= 2) {
+        const traitName = pathParts[0]; // First folder is trait type
+        const fileName = pathParts[pathParts.length - 1];
+        
+        // Extract trait value from filename (remove extension)
+        const traitValue = fileName.replace(/\.[^/.]+$/, "");
+        
+        if (!traitFolders[traitName]) {
+          traitFolders[traitName] = [];
+        }
+        
+        // Store file with trait value metadata
+        const fileWithTrait = new File([file], fileName, { type: file.type });
+        (fileWithTrait as any).traitValue = traitValue;
+        traitFolders[traitName].push(fileWithTrait);
+      }
+    });
+
+    // Auto-generate attributes from uploaded folders
+    const autoAttributes = Object.keys(traitFolders).map(traitName => {
+      const traitValues = traitFolders[traitName].map(file => (file as any).traitValue);
+      return {
+        trait_type: traitName,
+        values: traitValues,
+        rarity: {}
+      };
+    });
+
+    // Update config with trait folders and auto-generated attributes
+    setConfig(prev => ({
+      ...prev,
+      imageGeneration: {
+        ...prev.imageGeneration,
+        traitFolders: { ...prev.imageGeneration.traitFolders, ...traitFolders }
+      },
+      metadata: {
+        ...prev.metadata,
+        attributes: [...prev.metadata.attributes, ...autoAttributes.filter(newAttr => 
+          !prev.metadata.attributes.some(existingAttr => existingAttr.trait_type === newAttr.trait_type)
+        )]
+      }
+    }));
+
+    console.log('📁 Uploaded trait folders:', Object.keys(traitFolders));
+    console.log('🏷️ Auto-generated attributes:', autoAttributes);
+  };
+
+  const removeTraitFolder = (traitName: string) => {
+    setConfig(prev => {
+      const newTraitFolders = { ...prev.imageGeneration.traitFolders };
+      delete newTraitFolders[traitName];
+      
+      // Remove corresponding attribute
+      const newAttributes = prev.metadata.attributes.filter(attr => attr.trait_type !== traitName);
+      
+      return {
+        ...prev,
+        imageGeneration: {
+          ...prev.imageGeneration,
+          traitFolders: newTraitFolders
+        },
+        metadata: {
+          ...prev.metadata,
+          attributes: newAttributes
+        }
+      };
+    });
   };
 
   const addAttribute = () => {
@@ -342,18 +421,60 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
       </div>
 
       {config.imageGeneration.type === 'upload' && (
-        <div>
-          <label className="block text-white/80 text-sm font-medium mb-2">
-            Upload Source Images
-          </label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileUpload}
-            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
+        <div className="space-y-4">
+          <div>
+            <label className="block text-white/80 text-sm font-medium mb-2">
+              Upload Trait Folders
+            </label>
+            <div className="space-y-3">
+              <div className="p-4 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                <h4 className="text-blue-200 font-medium mb-2">📁 Folder Structure Expected:</h4>
+                <div className="text-blue-100 text-sm space-y-1">
+                  <div>• <strong>Background/</strong> - background_1.png, background_2.png...</div>
+                  <div>• <strong>Eyes/</strong> - eyes_1.png, eyes_2.png...</div>
+                  <div>• <strong>Hat/</strong> - hat_1.png, hat_2.png...</div>
+                  <div>• <strong>Mouth/</strong> - mouth_1.png, mouth_2.png...</div>
+                  <div>• <strong>Clothing/</strong> - clothing_1.png, clothing_2.png...</div>
+                </div>
+                <p className="text-blue-200 text-xs mt-2">
+                  💡 Each folder represents a trait type, and files inside are the trait variations
+                </p>
+              </div>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                webkitdirectory="true"
+                directory="true"
+                onChange={handleFolderUpload}
+                className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              
+              {config.imageGeneration.traitFolders && Object.keys(config.imageGeneration.traitFolders).length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-white font-medium">📂 Uploaded Trait Folders:</h4>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {Object.entries(config.imageGeneration.traitFolders).map(([traitName, files]) => (
+                      <div key={traitName} className="flex items-center justify-between p-2 bg-white/10 rounded">
+                        <div>
+                          <span className="text-white font-medium">{traitName}</span>
+                          <span className="text-white/60 text-sm ml-2">({files.length} files)</span>
+                        </div>
+                        <button
+                          onClick={() => removeTraitFolder(traitName)}
+                          className="text-red-400 hover:text-red-300 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -686,7 +807,8 @@ export default function CollectionBuilder({ onCollectionBuilt }: CollectionBuild
                   price: 100,
                   imageGeneration: {
                     type: 'upload',
-                    sourceImages: []
+                    sourceImages: [],
+                    traitFolders: {}
                   },
                   metadata: {
                     attributes: []

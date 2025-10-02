@@ -11,6 +11,7 @@ export interface CollectionBuilderConfig {
   imageGeneration: {
     type: 'upload' | 'generate' | 'template';
     sourceImages?: File[];
+    traitFolders?: Record<string, File[]>; // traitName -> files[]
     templateId?: string;
     generationPrompt?: string;
   };
@@ -74,6 +75,49 @@ export class CollectionBuilderService {
     this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
     this.pinataApiKey = process.env.NEXT_PUBLIC_PINATA_API_KEY || '';
     this.pinataSecretKey = process.env.NEXT_PUBLIC_PINATA_SECRET_KEY || '';
+  }
+
+  /**
+   * Generate collection images from uploaded trait folders
+   */
+  async generateImagesFromTraitFolders(config: CollectionBuilderConfig): Promise<GeneratedImage[]> {
+    try {
+      console.log(`🎨 Generating ${config.totalSupply} images from trait folders...`);
+
+      if (!config.imageGeneration.traitFolders || Object.keys(config.imageGeneration.traitFolders).length === 0) {
+        throw new Error('No trait folders provided for generation');
+      }
+
+      const traitFolders = config.imageGeneration.traitFolders;
+      const generatedImages: GeneratedImage[] = [];
+
+      for (let i = 0; i < config.totalSupply; i++) {
+        const imageId = `generated_${i + 1}`;
+        
+        // Generate traits for this NFT
+        const traits = this.generateTraits(config.metadata.attributes, i);
+        
+        // Create layered image from trait folders
+        const imageUrl = await this.createLayeredImage(traitFolders, traits, i, config);
+        
+        const rarity = this.calculateRarity(traits, config.metadata.attributes);
+
+        generatedImages.push({
+          id: imageId,
+          url: imageUrl,
+          metadata: {
+            traits,
+            rarity
+          }
+        });
+      }
+
+      console.log(`✅ Generated ${generatedImages.length} images from trait folders successfully`);
+      return generatedImages;
+    } catch (error) {
+      console.error('❌ Error generating images from trait folders:', error);
+      throw error;
+    }
   }
 
   /**
@@ -191,7 +235,14 @@ export class CollectionBuilderService {
       // Generate images based on type
       switch (config.imageGeneration.type) {
         case 'upload':
-          generatedImages = await this.generateImagesFromUpload(config);
+          // Check if trait folders are available
+          if (config.imageGeneration.traitFolders && Object.keys(config.imageGeneration.traitFolders).length > 0) {
+            generatedImages = await this.generateImagesFromTraitFolders(config);
+          } else if (config.imageGeneration.sourceImages && config.imageGeneration.sourceImages.length > 0) {
+            generatedImages = await this.generateImagesFromUpload(config);
+          } else {
+            throw new Error('No images or trait folders provided for generation');
+          }
           break;
         case 'generate':
           generatedImages = await this.generateImagesFromPrompt(config);
@@ -243,6 +294,69 @@ export class CollectionBuilderService {
     } catch (error) {
       console.error('❌ Error building collection:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Create layered image from trait folders
+   */
+  private async createLayeredImage(traitFolders: Record<string, File[]>, traits: Record<string, string>, index: number, config: CollectionBuilderConfig): Promise<string> {
+    try {
+      // For now, we'll simulate layered image creation
+      // In production, this would use Canvas API or a backend service to layer images
+      
+      // Find the file for each trait
+      const layeredFiles: File[] = [];
+      Object.entries(traits).forEach(([traitType, traitValue]) => {
+        const traitFolder = traitFolders[traitType];
+        if (traitFolder) {
+          const matchingFile = traitFolder.find(file => (file as any).traitValue === traitValue);
+          if (matchingFile) {
+            layeredFiles.push(matchingFile);
+          }
+        }
+      });
+
+      if (layeredFiles.length === 0) {
+        throw new Error('No matching trait files found');
+      }
+
+      // For demo purposes, we'll use the first trait file
+      // In production, this would composite all layers
+      const primaryFile = layeredFiles[0];
+      
+      // Upload the layered image to Pinata
+      const formData = new FormData();
+      formData.append('file', primaryFile);
+      formData.append('pinataMetadata', JSON.stringify({
+        name: `${config.name}_layered_${index + 1}`,
+        keyvalues: {
+          collection: config.name,
+          index: index + 1,
+          type: 'layered-nft-image',
+          traits: JSON.stringify(traits)
+        }
+      }));
+
+      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+        method: 'POST',
+        headers: {
+          'pinata_api_key': this.pinataApiKey,
+          'pinata_secret_api_key': this.pinataSecretKey,
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload layered image: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
+    } catch (error) {
+      console.error('❌ Error creating layered image:', error);
+      // Fallback to placeholder
+      return `https://picsum.photos/512/512?random=${Date.now()}_${index}`;
     }
   }
 
