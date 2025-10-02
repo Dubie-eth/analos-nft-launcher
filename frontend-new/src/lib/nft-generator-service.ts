@@ -84,6 +84,106 @@ export class NFTGeneratorService {
   }
 
   /**
+   * Upload folder containing trait layers
+   */
+  async uploadFolder(files: File[]): Promise<{
+    sessionId: string;
+    layers: Layer[];
+    totalTraits: number;
+  }> {
+    try {
+      // Try backend folder upload first
+      const formData = new FormData();
+      
+      // Add all files to form data
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      const response = await fetch(`${this.backendUrl}/api/nft-generator/upload-folder`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.data;
+      }
+    } catch (error) {
+      console.log('Backend folder upload not available, using client-side processing');
+    }
+
+    // Fallback: Process folder client-side and create a ZIP
+    return this.processFolderClientSide(files);
+  }
+
+  /**
+   * Process folder client-side and create layers structure
+   */
+  private async processFolderClientSide(files: File[]): Promise<{
+    sessionId: string;
+    layers: Layer[];
+    totalTraits: number;
+  }> {
+    // Group files by folder structure
+    const layersMap = new Map<string, File[]>();
+    
+    files.forEach((file) => {
+      // Extract folder path from file.webkitRelativePath
+      const pathParts = file.webkitRelativePath.split('/');
+      if (pathParts.length >= 2) {
+        const folderName = pathParts[0]; // First folder is the layer name
+        
+        // Validate image file
+        const isValidImage = this.isValidImageFile(file.name);
+        if (isValidImage) {
+          if (!layersMap.has(folderName)) {
+            layersMap.set(folderName, []);
+          }
+          layersMap.get(folderName)!.push(file);
+        }
+      }
+    });
+
+    // Convert to layers array
+    const layers: Layer[] = [];
+    let totalTraits = 0;
+
+    layersMap.forEach((files, layerName) => {
+      const traits = files.map(file => {
+        // Remove extension from filename
+        const name = file.name.replace(/\.[^/.]+$/, '');
+        return name;
+      });
+
+      layers.push({
+        name: layerName,
+        traits,
+        images: new Map() // Will be populated during generation
+      });
+
+      totalTraits += traits.length;
+    });
+
+    // Generate session ID
+    const sessionId = `folder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    return {
+      sessionId,
+      layers,
+      totalTraits
+    };
+  }
+
+  /**
+   * Check if file is a valid image
+   */
+  private isValidImageFile(filename: string): boolean {
+    const ext = filename.toLowerCase().split('.').pop();
+    return ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext || '');
+  }
+
+  /**
    * Save generation configuration
    */
   async saveConfig(sessionId: string, config: GenerationConfig): Promise<void> {

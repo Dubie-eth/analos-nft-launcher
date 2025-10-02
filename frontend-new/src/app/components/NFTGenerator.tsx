@@ -31,21 +31,30 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>('');
+  const [uploadType, setUploadType] = useState<'zip' | 'folder'>('zip');
 
-  // Step 1: Upload ZIP file with layers
+  // Step 1: Upload ZIP file or folder with layers
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.name.endsWith('.zip')) {
-      setError('Please upload a ZIP file containing your trait folders');
-      return;
-    }
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setError('');
 
     try {
-      const result = await nftGeneratorService.uploadLayers(file);
+      let result;
+      
+      if (uploadType === 'zip') {
+        const zipFile = files[0];
+        if (!zipFile.name.endsWith('.zip')) {
+          setError('Please upload a ZIP file containing your trait folders');
+          return;
+        }
+        result = await nftGeneratorService.uploadLayers(zipFile);
+      } else {
+        // Handle folder upload
+        result = await nftGeneratorService.uploadFolder(files);
+      }
+      
       setSessionId(result.sessionId);
       setLayers(result.layers);
       setCurrentStep(2);
@@ -216,20 +225,53 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
               📁 Upload Trait Layers
             </h2>
             
+            {/* Upload Type Selection */}
+            <div className="flex justify-center mb-8">
+              <div className="bg-white/5 rounded-xl p-1 flex">
+                <button
+                  onClick={() => setUploadType('zip')}
+                  className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                    uploadType === 'zip'
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                >
+                  📦 ZIP File
+                </button>
+                <button
+                  onClick={() => setUploadType('folder')}
+                  className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                    uploadType === 'folder'
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                      : 'text-gray-300 hover:text-white'
+                  }`}
+                >
+                  📂 Folder
+                </button>
+              </div>
+            </div>
+            
             <div className="text-center">
               <div className="border-2 border-dashed border-white/30 rounded-2xl p-12 mb-6">
-                <div className="text-6xl mb-4">📦</div>
+                <div className="text-6xl mb-4">
+                  {uploadType === 'zip' ? '📦' : '📂'}
+                </div>
                 <h3 className="text-xl font-semibold text-white mb-2">
-                  Upload ZIP File
+                  {uploadType === 'zip' ? 'Upload ZIP File' : 'Upload Folder'}
                 </h3>
                 <p className="text-gray-300 mb-6">
-                  Upload a ZIP file containing organized trait folders
+                  {uploadType === 'zip' 
+                    ? 'Upload a ZIP file containing organized trait folders'
+                    : 'Select a folder containing organized trait subfolders'
+                  }
                 </p>
                 
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".zip"
+                  accept={uploadType === 'zip' ? '.zip' : '*'}
+                  webkitdirectory={uploadType === 'folder'}
+                  directory={uploadType === 'folder'}
                   onChange={handleFileUpload}
                   className="hidden"
                 />
@@ -238,16 +280,37 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                   onClick={() => fileInputRef.current?.click()}
                   className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105"
                 >
-                  Choose ZIP File
+                  {uploadType === 'zip' ? 'Choose ZIP File' : 'Choose Folder'}
                 </button>
               </div>
 
               <div className="text-left bg-white/5 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-3">📋 ZIP Structure Guide</h4>
+                <h4 className="text-lg font-semibold text-white mb-3">
+                  📋 {uploadType === 'zip' ? 'ZIP' : 'Folder'} Structure Guide
+                </h4>
                 <div className="text-gray-300 space-y-2">
-                  <p>Your ZIP file should contain folders for each trait layer:</p>
+                  <p>
+                    {uploadType === 'zip' 
+                      ? 'Your ZIP file should contain folders for each trait layer:'
+                      : 'Your folder should contain subfolders for each trait layer:'
+                    }
+                  </p>
                   <pre className="bg-black/20 p-3 rounded text-sm overflow-x-auto">
-{`layers.zip
+{uploadType === 'zip' 
+? `layers.zip
+├── Backgrounds/
+│   ├── blue.png
+│   ├── red.png
+│   └── green.png
+├── Eyes/
+│   ├── normal.png
+│   ├── laser.png
+│   └── glowing.png
+└── Hats/
+    ├── none.png
+    ├── cap.png
+    └── crown.png`
+: `MyCollection/
 ├── Backgrounds/
 │   ├── blue.png
 │   ├── red.png
@@ -261,6 +324,12 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
     ├── cap.png
     └── crown.png`}
                   </pre>
+                  <div className="mt-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
+                    <p className="text-blue-200 text-sm">
+                      💡 <strong>Tip:</strong> Each subfolder represents a trait layer. 
+                      Place all your trait images (PNG, JPG, GIF, WebP) inside the appropriate layer folder.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
