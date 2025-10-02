@@ -9,6 +9,7 @@ import AdvancedMintingSettings from '../components/AdvancedMintingSettings';
 import PaymentTokenConfig from '../components/PaymentTokenConfig';
 import NFTGenerator from '../components/NFTGenerator';
 import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
+import PricingModal from '../components/PricingModal';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 
@@ -65,6 +66,7 @@ function AdminPageContent() {
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showNFTGenerator, setShowNFTGenerator] = useState(false);
   const [showEnhancedRevealModal, setShowEnhancedRevealModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -678,6 +680,16 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   Generate collections with images, metadata, and reveal settings
                 </p>
+
+                <button
+                  onClick={() => setShowPricingModal(true)}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  💰 Pricing & Plans
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  View our competitive pricing structure and marketplace integration
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -1135,6 +1147,12 @@ function AdminPageContent() {
           </div>
         </div>
       )}
+
+      {/* Pricing Modal */}
+      <PricingModal
+        isOpen={showPricingModal}
+        onClose={() => setShowPricingModal(false)}
+      />
     </div>
     </>
   );
