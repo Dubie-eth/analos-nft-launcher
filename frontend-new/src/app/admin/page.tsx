@@ -7,7 +7,7 @@ import ImageUpdateModal from '../components/ImageUpdateModal';
 import NFTRevealModal from '../components/NFTRevealModal';
 import AdvancedMintingSettings from '../components/AdvancedMintingSettings';
 import PaymentTokenConfig from '../components/PaymentTokenConfig';
-import CollectionBuilder from '../components/CollectionBuilder';
+import NFTGenerator from '../components/NFTGenerator';
 import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
@@ -63,7 +63,7 @@ function AdminPageContent() {
   // Advanced collection settings state
   const [currentCollection, setCurrentCollection] = useState<CollectionInfo | null>(null);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
-  const [showCollectionBuilder, setShowCollectionBuilder] = useState(false);
+  const [showNFTGenerator, setShowNFTGenerator] = useState(false);
   const [showEnhancedRevealModal, setShowEnhancedRevealModal] = useState(false);
 
   useEffect(() => {
@@ -670,10 +670,10 @@ function AdminPageContent() {
                 </p>
                 
                 <button
-                  onClick={() => setShowCollectionBuilder(true)}
+                  onClick={() => setShowNFTGenerator(true)}
                   className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
                 >
-                  🏗️ Collection Builder
+                  🎨 NFT Generator
                 </button>
                 <p className="text-white/60 text-sm mt-2">
                   Generate collections with images, metadata, and reveal settings
@@ -1109,27 +1109,27 @@ function AdminPageContent() {
         onRevealComplete={handleRevealComplete}
       />
 
-      {/* Collection Builder Modal */}
-      {showCollectionBuilder && (
+      {/* NFT Generator Modal */}
+      {showNFTGenerator && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 rounded-2xl p-8 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">
-                🏗️ Collection Builder
+                🎨 NFT Generator
               </h2>
               <button
-                onClick={() => setShowCollectionBuilder(false)}
+                onClick={() => setShowNFTGenerator(false)}
                 className="text-white/60 hover:text-white text-2xl"
               >
                 ×
               </button>
             </div>
             
-            <CollectionBuilder
-              onCollectionBuilt={(result) => {
-                console.log('Collection built:', result);
+            <NFTGenerator
+              onGenerationComplete={(result) => {
+                console.log('NFTs generated:', result);
                 fetchCollections(); // Refresh collections list
-                setShowCollectionBuilder(false);
+                setShowNFTGenerator(false);
               }}
             />
           </div>
