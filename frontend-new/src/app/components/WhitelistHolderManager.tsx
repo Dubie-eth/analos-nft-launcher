@@ -121,28 +121,70 @@ export default function WhitelistHolderManager({
   };
 
   const generateWhitelistFromSnapshot = (snapshot: WhitelistSnapshot) => {
-    console.log('🔧 generateWhitelistFromSnapshot called with snapshot:', snapshot);
-    console.log('🔧 WhitelistHolderService:', WhitelistHolderService);
-    console.log('🔧 generateWhitelistAddresses function:', WhitelistHolderService.generateWhitelistAddresses);
-    
-    const addresses = WhitelistHolderService.generateWhitelistAddresses(snapshot.holders);
-    onWhitelistGenerated(addresses);
-    alert(`Generated whitelist with ${addresses.length} addresses from snapshot "${snapshot.name}"`);
+    try {
+      console.log('🔧 generateWhitelistFromSnapshot called with snapshot:', snapshot);
+      console.log('🔧 WhitelistHolderService:', WhitelistHolderService);
+      console.log('🔧 generateWhitelistAddresses function:', WhitelistHolderService.generateWhitelistAddresses);
+      
+      if (!WhitelistHolderService.generateWhitelistAddresses) {
+        console.error('❌ generateWhitelistAddresses method not found');
+        alert('Error: generateWhitelistAddresses method not found');
+        return;
+      }
+      
+      if (!snapshot.holders || snapshot.holders.length === 0) {
+        console.error('❌ No holders in snapshot');
+        alert('Error: No holders found in snapshot');
+        return;
+      }
+      
+      const addresses = WhitelistHolderService.generateWhitelistAddresses(snapshot.holders);
+      console.log('✅ Generated addresses:', addresses);
+      
+      if (onWhitelistGenerated) {
+        onWhitelistGenerated(addresses);
+        alert(`Generated whitelist with ${addresses.length} addresses from snapshot "${snapshot.name}"`);
+      } else {
+        console.error('❌ onWhitelistGenerated callback not provided');
+        alert('Error: onWhitelistGenerated callback not provided');
+      }
+    } catch (error) {
+      console.error('❌ Error in generateWhitelistFromSnapshot:', error);
+      alert(`Error generating whitelist: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const generateWhitelistFromCurrentHolders = () => {
-    if (holders.length === 0) {
-      alert('No holders to generate whitelist from. Please fetch holders first.');
-      return;
+    try {
+      if (holders.length === 0) {
+        alert('No holders to generate whitelist from. Please fetch holders first.');
+        return;
+      }
+      
+      console.log('🔧 generateWhitelistFromCurrentHolders called with holders:', holders.length);
+      console.log('🔧 WhitelistHolderService:', WhitelistHolderService);
+      console.log('🔧 generateWhitelistAddresses function:', WhitelistHolderService.generateWhitelistAddresses);
+      
+      if (!WhitelistHolderService.generateWhitelistAddresses) {
+        console.error('❌ generateWhitelistAddresses method not found');
+        alert('Error: generateWhitelistAddresses method not found');
+        return;
+      }
+      
+      const addresses = WhitelistHolderService.generateWhitelistAddresses(holders);
+      console.log('✅ Generated addresses from current holders:', addresses);
+      
+      if (onWhitelistGenerated) {
+        onWhitelistGenerated(addresses);
+        alert(`Generated whitelist with ${addresses.length} addresses from current holders`);
+      } else {
+        console.error('❌ onWhitelistGenerated callback not provided');
+        alert('Error: onWhitelistGenerated callback not provided');
+      }
+    } catch (error) {
+      console.error('❌ Error in generateWhitelistFromCurrentHolders:', error);
+      alert(`Error generating whitelist: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    console.log('🔧 generateWhitelistFromCurrentHolders called with holders:', holders.length);
-    console.log('🔧 WhitelistHolderService:', WhitelistHolderService);
-    console.log('🔧 generateWhitelistAddresses function:', WhitelistHolderService.generateWhitelistAddresses);
-    
-    const addresses = WhitelistHolderService.generateWhitelistAddresses(holders);
-    onWhitelistGenerated(addresses);
-    alert(`Generated whitelist with ${addresses.length} addresses from current holders`);
   };
 
   return (
