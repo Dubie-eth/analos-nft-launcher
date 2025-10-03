@@ -1,4 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
+import { tokenIdTracker } from './token-id-tracker';
 
 export interface BlockchainCollectionData {
   name: string;
@@ -129,7 +130,6 @@ export class BlockchainDataService {
       // 3. Use Metaplex metadata to identify collection NFTs
       
       // For now, we'll use the token ID tracker as a proxy for blockchain data
-      const { tokenIdTracker } = await import('./token-id-tracker');
       const collectionId = `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`;
       
       const mintedNFTs: MintedNFT[] = [];
