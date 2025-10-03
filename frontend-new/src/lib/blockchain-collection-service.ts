@@ -169,7 +169,7 @@ export class BlockchainCollectionService {
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros') {
+      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'Launch On LOS') {
         actualCollectionName = 'The LosBros';
       }
       

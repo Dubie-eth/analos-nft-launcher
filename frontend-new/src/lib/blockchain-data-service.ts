@@ -37,8 +37,8 @@ export class BlockchainDataService {
   // Known collection addresses on Analos
   private readonly COLLECTION_ADDRESSES = {
     'The LosBros': {
-      collectionAddress: 'collection_the_losbros',
-      mintAddress: 'mint_the_losbros',
+      collectionAddress: 'collection_launch_on_los', // Keep old ID to preserve minted NFTs
+      mintAddress: 'mint_launch_on_los', // Keep old ID to preserve minted NFTs
       totalSupply: 4200,
       mintPrice: 1100, // Updated to 1,100 $LOS
       paymentToken: 'LOS',
@@ -67,7 +67,7 @@ export class BlockchainDataService {
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros') {
+      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'Launch On LOS') {
         actualCollectionName = 'The LosBros';
       }
       
