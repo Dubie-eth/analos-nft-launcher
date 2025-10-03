@@ -149,10 +149,18 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
         {/* Art Generator Tab */}
         {activeTab === 'generator' && (
           <div className="space-y-6">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-white mb-2">🎨 Art Generator</h3>
-              <p className="text-gray-300">Generate unique NFT collections with custom traits and rarity</p>
-            </div>
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-2">🎨 Art Generator</h3>
+                  <p className="text-gray-300">Generate unique NFT collections with custom traits and rarity</p>
+                  <div className="mt-4 p-3 bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/50 rounded-xl">
+                    <div className="flex items-center justify-center space-x-2">
+                      <span className="text-red-400 text-lg">🔥</span>
+                      <span className="text-white font-semibold">25% of all collected $LOS will be burnt for the culture!</span>
+                      <span className="text-red-400 text-lg">🔥</span>
+                    </div>
+                    <p className="text-gray-300 text-sm mt-1">Supporting the Analos ecosystem through token burns</p>
+                  </div>
+                </div>
 
             {/* Pricing Tiers */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -273,6 +281,14 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
                     <div className="mt-2 text-sm text-gray-400">
                       Rate: {generationCost.pricePerToken.toLocaleString()} $LOS / NFT
                     </div>
+                    <div className="mt-3 p-3 bg-gradient-to-r from-red-600/10 to-orange-600/10 border border-red-500/30 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-red-400 text-sm font-medium">🔥 Token Burn (25%):</span>
+                        <span className="text-red-400 text-sm font-bold">
+                          {(generationCost.totalLOS * 0.25).toLocaleString()} $LOS
+                        </span>
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <div className="text-center py-4">
@@ -291,6 +307,13 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-white mb-2">📜 Smart Contract</h3>
               <p className="text-gray-300">Deploy secure and gas-optimized smart contracts</p>
+              <div className="mt-4 p-3 bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/50 rounded-xl">
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="text-red-400 text-lg">🔥</span>
+                  <span className="text-white font-semibold">25% of all collected $LOS will be burnt for the culture!</span>
+                  <span className="text-red-400 text-lg">🔥</span>
+                </div>
+              </div>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
@@ -372,6 +395,13 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-white mb-2">🎯 Drops</h3>
               <p className="text-gray-300">Create professional NFT drops with custom landing pages</p>
+              <div className="mt-4 p-3 bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/50 rounded-xl">
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="text-red-400 text-lg">🔥</span>
+                  <span className="text-white font-semibold">25% of all collected $LOS will be burnt for the culture!</span>
+                  <span className="text-red-400 text-lg">🔥</span>
+                </div>
+              </div>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
@@ -432,6 +462,13 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-white mb-2">📝 Forms</h3>
               <p className="text-gray-300">Create whitelist forms and verify token ownership</p>
+              <div className="mt-4 p-3 bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/50 rounded-xl">
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="text-red-400 text-lg">🔥</span>
+                  <span className="text-white font-semibold">25% of all collected $LOS will be burnt for the culture!</span>
+                  <span className="text-red-400 text-lg">🔥</span>
+                </div>
+              </div>
             </div>
 
             <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/50 rounded-2xl p-8 text-center">
