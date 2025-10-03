@@ -48,9 +48,16 @@ export class PricingService {
    */
   async getArtGeneratorPricing(): Promise<PricingTier[]> {
     try {
+      console.log('🔄 Fetching art generator pricing...');
       const pricing = await marketDataService.getArtGeneratorPricing();
+      console.log('✅ Art generator pricing fetched:', pricing);
       
-      return [
+      // Validate pricing data
+      if (!pricing || typeof pricing !== 'object') {
+        throw new Error('Invalid pricing data received');
+      }
+      
+      const tiers = [
         {
           name: "Starter",
           description: "Perfect for small collections",
@@ -92,6 +99,9 @@ export class PricingService {
           ]
         }
       ];
+      
+      console.log('✅ Pricing tiers created:', tiers.length);
+      return tiers;
     } catch (error) {
       console.error('❌ Error getting art generator pricing:', error);
       // Return fallback pricing if market data fails
