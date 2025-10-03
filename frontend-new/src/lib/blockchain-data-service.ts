@@ -72,7 +72,15 @@ export class BlockchainDataService {
       const mintedNFTs = await this.getMintedNFTsFromBlockchain(collectionName);
       
       // Calculate current supply
-      const currentSupply = mintedNFTs.length;
+      // Calculate current supply from minted NFTs or fallback to token tracker
+      let currentSupply = mintedNFTs.length;
+      
+      // If no NFTs found from blockchain scan, check token tracker directly
+      if (currentSupply === 0 && tokenIdTracker.collections[collectionId]) {
+        const trackerCollection = tokenIdTracker.collections[collectionId];
+        currentSupply = trackerCollection.mintedCount || 0;
+        console.log(`📊 Using token tracker supply: ${currentSupply}`);
+      }
       
       // Get holder data
       const holders = await this.getNFTHolders(mintedNFTs);
@@ -131,15 +139,22 @@ export class BlockchainDataService {
         
         // Convert token tracker data to blockchain format
         Object.values(collection.mintedNFTs || {}).forEach((nft: any, index: number) => {
-          // Add null checks to prevent undefined errors
-          if (nft && nft.mintAddress && nft.ownerAddress) {
-            mintedNFTs.push({
-              mintAddress: nft.mintAddress,
-              ownerAddress: nft.ownerAddress,
-              mintTime: nft.mintTime || Date.now() - (index * 60000), // Use actual mint time if available
-              tokenId: nft.tokenId || index + 1,
-              transactionSignature: `tx_${nft.mintAddress.slice(0, 8)}_${Date.now()}`
-            });
+          // Add comprehensive null checks to prevent undefined errors
+          if (nft && nft.mintAddress && nft.ownerAddress && typeof nft.mintAddress === 'string') {
+            try {
+              mintedNFTs.push({
+                mintAddress: nft.mintAddress,
+                ownerAddress: nft.ownerAddress,
+                mintTime: nft.mintTime || Date.now() - (index * 60000), // Use actual mint time if available
+                tokenId: nft.tokenId || index + 1,
+                transactionSignature: `tx_${nft.mintAddress.slice(0, 8)}_${Date.now()}`
+              });
+            } catch (error) {
+              console.log('⚠️ Error processing NFT data:', error, 'NFT:', nft);
+              // Skip this NFT but continue processing others
+            }
+          } else {
+            console.log('⚠️ Skipping invalid NFT data:', nft);
           }
         });
         
