@@ -78,7 +78,7 @@ class MarketDataService {
 
   /**
    * Fetch LOS token price from Jupiter API
-   * LOS is SOL (So11111111111111111111111111111111111111112)
+   * LOS token address: 6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV
    * Meteora API disabled due to 404 errors
    */
   private async fetchLOSPriceFromJupiter(): Promise<number> {
@@ -96,9 +96,10 @@ class MarketDataService {
 
   /**
    * Fetch LOS price from Jupiter Price API V3
+   * Using correct LOS token address: 6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV
    */
   private async fetchLOSPriceFromJupiterAPI(): Promise<number> {
-    const response = await fetch('https://lite-api.jup.ag/price/v3?ids=So11111111111111111111111111111111111111112');
+    const response = await fetch('https://lite-api.jup.ag/price/v3?ids=6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV');
     
     if (!response.ok) {
       throw new Error(`Jupiter API responded with status: ${response.status}`);
@@ -106,11 +107,11 @@ class MarketDataService {
     
     const data = await response.json();
     
-    if (data['So11111111111111111111111111111111111111112'] && data['So11111111111111111111111111111111111111112'].usdPrice) {
-      return data['So11111111111111111111111111111111111111112'].usdPrice;
+    if (data['6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV'] && data['6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV'].usdPrice) {
+      return data['6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV'].usdPrice;
     }
     
-    throw new Error('No SOL price data in Jupiter response');
+    throw new Error('No LOS price data in Jupiter response');
   }
 
   /**
