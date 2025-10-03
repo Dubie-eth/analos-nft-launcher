@@ -18,6 +18,15 @@ interface CollectionInfo {
   mintedCount: number;
   mintPrice: number;
   createdAt: number;
+  // Track individual minted NFTs
+  mintedNFTs?: {
+    [mintAddress: string]: {
+      tokenId: number;
+      ownerAddress: string;
+      mintTime: number;
+      metadataUri?: string;
+    };
+  };
   // Advanced minting features
   maxMintsPerWallet: number;
   delayedReveal: {
@@ -150,9 +159,22 @@ class TokenIdTracker {
       createdAt: Date.now()
     };
 
-    // Update collection minted count
+    // Update collection minted count and store NFT data
     if (this.collections[collectionMint]) {
       this.collections[collectionMint].mintedCount = tokenId;
+      
+      // Initialize mintedNFTs object if it doesn't exist
+      if (!this.collections[collectionMint].mintedNFTs) {
+        this.collections[collectionMint].mintedNFTs = {};
+      }
+      
+      // Store the NFT data
+      this.collections[collectionMint].mintedNFTs![mintAddress] = {
+        tokenId,
+        ownerAddress: walletAddress,
+        mintTime: Date.now(),
+        metadataUri
+      };
     }
 
     // Update wallet mint counts

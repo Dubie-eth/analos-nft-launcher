@@ -79,7 +79,8 @@ function CollectionMintContent() {
           mintAddress: blockchainData.mintAddress,
           metadataAddress: `metadata_${blockchainData.mintAddress}`,
           masterEditionAddress: `master_edition_${blockchainData.mintAddress}`,
-          arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+          arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          paymentToken: blockchainData.paymentToken
         };
         
         // Add timestamp for caching
@@ -152,10 +153,17 @@ function CollectionMintContent() {
       // Validate against smart contract reference first
       console.log('🔍 Validating minting eligibility against smart contract...');
       
-      // Determine payment token based on what user has
+      // Determine payment token based on collection configuration and user's balance
       let paymentToken = 'LOS'; // Default to LOS
-      if (lolBalanceInfo && lolBalanceInfo.balance >= 1000) {
-        paymentToken = 'LOL'; // Use LOL if user has sufficient balance
+      
+      // First check what payment token the collection actually uses
+      const blockchainData = await blockchainDataService.getCollectionData(collectionName);
+      if (blockchainData && blockchainData.paymentToken) {
+        paymentToken = blockchainData.paymentToken;
+        console.log('✅ Using collection payment token:', paymentToken);
+      } else if (lolBalanceInfo && lolBalanceInfo.balance >= 1000) {
+        paymentToken = 'LOL'; // Use LOL if user has sufficient balance and collection doesn't specify
+        console.log('✅ Using LOL based on user balance');
       }
       
       console.log('💳 Selected payment token:', paymentToken);
@@ -374,7 +382,10 @@ function CollectionMintContent() {
   let totalCost = collection.mintPrice * mintQuantity;
   let currency = '$LOS';
   
-  if (tokenTrackerCollection && selectedPaymentMint) {
+  // Use the actual payment token from blockchain data
+  if (collection.paymentToken) {
+    currency = collection.paymentToken === 'LOL' ? '$LOL' : '$LOS';
+  } else if (tokenTrackerCollection && selectedPaymentMint) {
     const selectedToken = tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint);
     if (selectedToken) {
       totalCost = selectedToken.pricePerNFT * mintQuantity;

@@ -20,6 +20,7 @@ export interface BlockchainCollectionData {
   metadataAddress: string;
   masterEditionAddress: string;
   arweaveUrl: string;
+  paymentToken?: string;
 }
 
 export class BlockchainCollectionService {
