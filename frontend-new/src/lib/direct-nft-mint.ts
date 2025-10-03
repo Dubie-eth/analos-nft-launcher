@@ -91,18 +91,8 @@ export class DirectNFTMintService {
           }
         }
         
-        if (collectionData.paymentToken === 'LOS' || !collectionData.paymentToken) {
-          // Native SOL payment
-          console.log('💰 Processing native SOL payment:', totalCost, 'SOL');
-          const paymentInstruction = SystemProgram.transfer({
-            fromPubkey: payer,
-            toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
-            lamports: totalCost * LAMPORTS_PER_SOL,
-          });
-          transaction.add(paymentInstruction);
-          console.log('✅ Added SOL payment instruction');
-        } else if (collectionData.paymentToken === 'LOL') {
-          // LOL token payment
+        if (collectionData.paymentToken === 'LOL') {
+          // LOL token payment - THIS SHOULD BE THE DEFAULT FOR THIS COLLECTION
           console.log('💰 Processing LOL token payment:', totalCost, 'LOL');
           const lolMint = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6'); // LOL token mint
           
@@ -125,6 +115,16 @@ export class DirectNFTMintService {
           
           transaction.add(lolTransferInstruction);
           console.log('✅ Added LOL token payment instruction');
+        } else if (collectionData.paymentToken === 'LOS' || !collectionData.paymentToken) {
+          // Native SOL payment - FALLBACK ONLY
+          console.log('💰 Processing native SOL payment:', totalCost, 'SOL');
+          const paymentInstruction = SystemProgram.transfer({
+            fromPubkey: payer,
+            toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
+            lamports: totalCost * LAMPORTS_PER_SOL,
+          });
+          transaction.add(paymentInstruction);
+          console.log('✅ Added SOL payment instruction');
         } else {
           // Other token payment
           console.log('💰 Processing custom token payment:', totalCost, collectionData.paymentToken);
