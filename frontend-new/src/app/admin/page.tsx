@@ -760,7 +760,28 @@ function AdminPageContent() {
               {/* Advanced Settings Button */}
               <div>
                 <button
-                  onClick={handleCreateOrUpdateCollection}
+                  onClick={() => {
+                    // Create a temporary collection for advanced settings if none exists
+                    if (!currentCollection) {
+                      const tempCollection = {
+                        id: `temp_${Date.now()}`,
+                        name: collectionData.name || 'New Collection',
+                        totalSupply: collectionData.maxSupply,
+                        mintPrice: collectionData.price,
+                        mintedCount: 0,
+                        maxMintsPerWallet: 10,
+                        delayedReveal: { enabled: false, type: 'manual', revealTime: '', revealAtCompletion: false, placeholderImage: '' },
+                        whitelist: { enabled: false, addresses: [], phases: [], rules: [] },
+                        paymentTokens: [],
+                        metadata: { attributes: [] },
+                        attributes: [],
+                        ownerWallet: publicKey?.toString() || '',
+                        createdAt: Date.now()
+                      };
+                      setCurrentCollection(tempCollection);
+                    }
+                    setShowAdvancedSettings(true);
+                  }}
                   disabled={!connected || !collectionData.name.trim()}
                   className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
                 >

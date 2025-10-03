@@ -347,9 +347,9 @@ export default function WhitelistPriorityManager({
                   type="number"
                   step="0.1"
                   min="0"
-                  max="2"
+                  max="10"
                   value={newRule.priceMultiplier || 1.0}
-                  onChange={(e) => setNewRule({ ...newRule, priceMultiplier: parseFloat(e.target.value) || 1 })}
+                  onChange={(e) => setNewRule({ ...newRule, priceMultiplier: parseFloat(e.target.value) || 0 })}
                   placeholder="1.0 = normal price, 0.5 = half price, 0 = free"
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                 />
