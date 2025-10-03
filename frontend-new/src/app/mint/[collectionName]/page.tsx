@@ -37,13 +37,25 @@ function CollectionMintContent() {
   const [lolBalanceInfo, setLolBalanceInfo] = useState<LOLBalanceInfo | null>(null);
   const [minimumLolBalance] = useState(1000); // Minimum $LOL required for minting
 
-  const fetchCollectionInfo = useCallback(async () => {
+  const fetchCollectionInfo = useCallback(async (forceRefresh = false) => {
     try {
+      // Add simple caching to prevent redundant calls
+      const cacheKey = `collection_${collectionName}`;
+      const cacheTime = 10000; // 10 seconds cache
+      const now = Date.now();
+      
+      if (!forceRefresh && collection && (now - (collection as any).lastFetched) < cacheTime) {
+        console.log('📋 Using cached collection data for:', collectionName);
+        return;
+      }
+      
       console.log('📡 Fetching collection from blockchain (single source of truth):', collectionName);
       const blockchainService = new BlockchainCollectionService();
       const blockchainCollection = await blockchainService.getCollectionByNameFromBlockchain(collectionName);
       
       if (blockchainCollection) {
+        // Add timestamp for caching
+        (blockchainCollection as any).lastFetched = now;
         setCollection(blockchainCollection);
         console.log('✅ Collection fetched from blockchain:', blockchainCollection.name, 'Price:', blockchainCollection.mintPrice);
         
@@ -76,14 +88,18 @@ function CollectionMintContent() {
     if (collectionName) {
       fetchCollectionInfo();
       
-      // Set up real-time updates every 5 seconds
+      // Only set up real-time updates for supply changes when actively minting
+      // Reduced frequency to 60 seconds for better performance
       const interval = setInterval(() => {
-        fetchCollectionInfo();
-      }, 5000);
+        // Only refresh if page is visible and we have a collection loaded
+        if (document.visibilityState === 'visible' && collection) {
+          fetchCollectionInfo();
+        }
+      }, 60000); // Changed from 5000ms to 60000ms (60 seconds)
       
       return () => clearInterval(interval);
     }
-  }, [collectionName, fetchCollectionInfo]);
+  }, [collectionName]); // Removed fetchCollectionInfo from dependencies to prevent re-renders
 
   const handleMint = async () => {
     if (!connected || !publicKey || !signTransaction) {
@@ -282,6 +298,17 @@ function CollectionMintContent() {
             {/* Collection Info */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <div className="text-center mb-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div></div>
+                  <button
+                    onClick={() => fetchCollectionInfo(true)}
+                    disabled={loading}
+                    className="px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 disabled:bg-gray-600/20 text-blue-400 hover:text-blue-300 disabled:text-gray-400 rounded-lg text-sm font-medium transition-colors border border-blue-500/30"
+                    title="Refresh collection data"
+                  >
+                    {loading ? '🔄' : '↻'} Refresh
+                  </button>
+                </div>
                 <img
                   src={collection.imageUrl}
                   alt={collection.name}

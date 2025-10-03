@@ -19,19 +19,35 @@ function MintPageContent() {
     setMounted(true);
     fetchCollections();
     
-    // Set up real-time updates every 5 seconds
+    // Only set up real-time updates if we're actively minting or need live data
+    // Reduced frequency to 30 seconds for better performance
     const interval = setInterval(() => {
-      fetchCollections();
-    }, 5000);
+      // Only refresh if page is visible and we have collections
+      if (document.visibilityState === 'visible' && collections.length > 0) {
+        fetchCollections();
+      }
+    }, 30000); // Changed from 5000ms to 30000ms (30 seconds)
     
     return () => clearInterval(interval);
   }, []);
 
-  const fetchCollections = async () => {
+  const fetchCollections = async (forceRefresh = false) => {
     try {
+      // Add simple caching to prevent redundant calls
+      const cacheTime = 15000; // 15 seconds cache
+      const now = Date.now();
+      
+      if (!forceRefresh && collections.length > 0 && (now - (collections as any).lastFetched) < cacheTime) {
+        console.log('📋 Using cached collections data');
+        return;
+      }
+      
       console.log('📡 Fetching collections from blockchain (single source of truth)...');
       const blockchainService = new BlockchainCollectionService();
       const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
+      
+      // Add timestamp for caching
+      (blockchainCollections as any).lastFetched = now;
       setCollections(blockchainCollections);
       console.log('✅ Collections fetched from blockchain:', blockchainCollections.length);
     } catch (error) {
@@ -54,6 +70,17 @@ function MintPageContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <div></div>
+              <button
+                onClick={() => fetchCollections(true)}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 disabled:bg-gray-600/20 text-blue-400 hover:text-blue-300 disabled:text-gray-400 rounded-lg text-sm font-medium transition-colors border border-blue-500/30"
+                title="Refresh collections"
+              >
+                {loading ? '🔄 Refreshing...' : '↻ Refresh Collections'}
+              </button>
+            </div>
             <h1 className="text-4xl font-bold text-white mb-4">
               Available NFT Collections
             </h1>
