@@ -5,6 +5,7 @@ import {
   TransactionInstruction,
   SystemProgram,
   Transaction,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import {
   createInitializeMintInstruction,
@@ -14,6 +15,8 @@ import {
   TOKEN_PROGRAM_ID,
   MINT_SIZE,
   getMinimumBalanceForRentExemptMint,
+  createTransferInstruction,
+  getAccount,
 } from '@solana/spl-token';
 import { tokenIdTracker } from './token-id-tracker';
 
@@ -22,6 +25,8 @@ export interface DirectNFTMintData {
   symbol: string;
   description: string;
   image: string;
+  mintPrice?: number;
+  paymentToken?: string; // 'LOS' or 'LOL' or other token mint address
 }
 
 export class DirectNFTMintService {
@@ -55,6 +60,75 @@ export class DirectNFTMintService {
       const mintRent = await getMinimumBalanceForRentExemptMint(this.connection);
 
       const mintKeypairs: Keypair[] = [];
+
+      // Add payment processing if mintPrice is specified
+      if (collectionData.mintPrice && collectionData.mintPrice > 0) {
+        console.log('💰 Processing payment for NFT minting...');
+        console.log('💵 Price per NFT:', collectionData.mintPrice);
+        console.log('💳 Payment token:', collectionData.paymentToken || 'LOS');
+        
+        const totalCost = collectionData.mintPrice * quantity;
+        
+        if (collectionData.paymentToken === 'LOS' || !collectionData.paymentToken) {
+          // Native SOL payment
+          console.log('💰 Processing native SOL payment:', totalCost, 'SOL');
+          const paymentInstruction = SystemProgram.transfer({
+            fromPubkey: payer,
+            toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
+            lamports: totalCost * LAMPORTS_PER_SOL,
+          });
+          transaction.add(paymentInstruction);
+          console.log('✅ Added SOL payment instruction');
+        } else if (collectionData.paymentToken === 'LOL') {
+          // LOL token payment
+          console.log('💰 Processing LOL token payment:', totalCost, 'LOL');
+          const lolMint = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6'); // LOL token mint
+          
+          // Get user's LOL token account
+          const userLolAccount = await getAssociatedTokenAddress(lolMint, payer);
+          
+          // Get fee recipient's LOL token account
+          const feeRecipientLolAccount = await getAssociatedTokenAddress(
+            lolMint, 
+            new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW')
+          );
+          
+          // Create LOL transfer instruction
+          const lolTransferInstruction = createTransferInstruction(
+            userLolAccount, // source
+            feeRecipientLolAccount, // destination
+            payer, // authority
+            totalCost * 1000000, // LOL has 6 decimals
+          );
+          
+          transaction.add(lolTransferInstruction);
+          console.log('✅ Added LOL token payment instruction');
+        } else {
+          // Other token payment
+          console.log('💰 Processing custom token payment:', totalCost, collectionData.paymentToken);
+          const tokenMint = new PublicKey(collectionData.paymentToken);
+          
+          // Get user's token account
+          const userTokenAccount = await getAssociatedTokenAddress(tokenMint, payer);
+          
+          // Get fee recipient's token account
+          const feeRecipientTokenAccount = await getAssociatedTokenAddress(
+            tokenMint, 
+            new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW')
+          );
+          
+          // Create token transfer instruction
+          const tokenTransferInstruction = createTransferInstruction(
+            userTokenAccount, // source
+            feeRecipientTokenAccount, // destination
+            payer, // authority
+            totalCost * 1000000, // Assuming 6 decimals
+          );
+          
+          transaction.add(tokenTransferInstruction);
+          console.log('✅ Added custom token payment instruction');
+        }
+      }
 
       for (let i = 0; i < quantity; i++) {
         const nftNumber = i + 1;
