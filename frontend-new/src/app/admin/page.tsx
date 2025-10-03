@@ -751,6 +751,21 @@ function AdminPageContent() {
                 <p className="text-white/60 text-sm mt-2">
                   Monitor security events, system health, and emergency controls
                 </p>
+
+                <button
+                  onClick={() => {
+                    if (confirm('⚠️ This will clear all token tracking data. Are you sure?')) {
+                      tokenIdTracker.clearAllData();
+                      setSaveStatus('🧹 All token tracking data cleared successfully');
+                    }
+                  }}
+                  className="w-full bg-gradient-to-r from-gray-600 to-slate-600 hover:from-gray-700 hover:to-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  🧹 Clear Token Data
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Clear all token ID tracking data and collections (use with caution)
+                </p>
               </div>
 
               {/* Save Changes Button - saves to backend storage */}
@@ -800,6 +815,76 @@ function AdminPageContent() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Collections Overview Section */}
+        <div className="mt-8">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              📊 Collections Overview
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Token Tracker Collections */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  🎯 Token Tracker Collections
+                </h3>
+                {Object.keys(tokenIdTracker.collections).length === 0 ? (
+                  <p className="text-white/60 text-sm">No collections tracked</p>
+                ) : (
+                  <div className="space-y-2">
+                    {Object.entries(tokenIdTracker.collections).map(([id, collection]) => (
+                      <div key={id} className="bg-white/10 rounded p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-white font-medium">{collection.name}</p>
+                            <p className="text-white/60 text-sm">ID: {id}</p>
+                            <p className="text-white/60 text-sm">Supply: {collection.currentSupply}/{collection.maxSupply}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-green-400 text-sm">${collection.mintPrice}</p>
+                            <p className="text-white/60 text-xs">{collection.paymentTokens?.length || 0} payment tokens</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Blockchain Collections */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  🔗 Blockchain Collections
+                </h3>
+                {blockchainCollections.length === 0 ? (
+                  <p className="text-white/60 text-sm">No collections deployed</p>
+                ) : (
+                  <div className="space-y-2">
+                    {blockchainCollections.map((collection) => (
+                      <div key={collection.name} className="bg-white/10 rounded p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-white font-medium">{collection.name}</p>
+                            <p className="text-white/60 text-sm">Supply: {collection.currentSupply}/{collection.totalSupply}</p>
+                            <p className="text-white/60 text-sm">Price: {collection.mintPrice} LOS</p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              collection.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                            }`}>
+                              {collection.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

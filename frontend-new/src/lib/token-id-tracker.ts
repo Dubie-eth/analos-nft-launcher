@@ -409,5 +409,6 @@ class TokenIdTracker {
 // Export singleton instance
 export const tokenIdTracker = new TokenIdTracker();
 
-// Clear all data for fresh start
-tokenIdTracker.clearAllData();
+// Only clear data if explicitly requested (not on every page load)
+// This preserves collection data across page refreshes
+// tokenIdTracker.clearAllData(); // Commented out - only clear when explicitly needed
