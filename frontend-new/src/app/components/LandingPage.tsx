@@ -148,7 +148,7 @@ Block Explorer: https://explorer.analos.io`
                 <span className="text-red-400 text-2xl">🔥</span>
               </div>
               <p className="text-gray-300">
-                All collected $LOS is burned for the culture, supporting the Analos ecosystem
+                25% of all collected $LOS is burned for the culture, supporting the Analos ecosystem
               </p>
             </div>
 
