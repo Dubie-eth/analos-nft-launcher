@@ -177,21 +177,21 @@ class MarketDataService {
     const marketData = await this.getMarketData();
     
     const starter = {
-      usdTarget: 120,
-      losCost: await this.calculateLOSCost(120),
-      perNFT: 0.12
+      usdTarget: 0.12, // $0.12 per NFT (like Bueno/Launch My NFT)
+      losCost: await this.calculateLOSCost(0.12),
+      perNFT: 0.12 // $0.12 per NFT
     };
 
     const professional = {
-      usdTarget: 150,
-      losCost: await this.calculateLOSCost(150),
-      perNFT: 0.15
+      usdTarget: 0.15, // $0.15 per NFT
+      losCost: await this.calculateLOSCost(0.15),
+      perNFT: 0.15 // $0.15 per NFT
     };
 
     const enterprise = {
-      usdTarget: 180,
-      losCost: await this.calculateLOSCost(180),
-      perNFT: 0.18
+      usdTarget: 0.18, // $0.18 per NFT
+      losCost: await this.calculateLOSCost(0.18),
+      perNFT: 0.18 // $0.18 per NFT
     };
 
     return { starter, professional, enterprise };

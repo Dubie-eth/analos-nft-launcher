@@ -61,7 +61,7 @@ export class PricingService {
         {
           name: "Starter",
           description: "Perfect for small collections",
-          pricePerToken: pricing?.starter?.losCost || 800000, // $LOS (calculated from real-time market data)
+          pricePerToken: pricing?.starter?.losCost || 84, // $LOS (calculated from real-time market data)
           pricePerTokenUSD: pricing?.starter?.usdTarget || 0.12,
           features: [
             "Up to 1,000 NFTs",
@@ -73,7 +73,7 @@ export class PricingService {
         {
           name: "Professional",
           description: "Ideal for medium collections",
-          pricePerToken: pricing?.professional?.losCost || 1000000, // $LOS (calculated from real-time market data)
+          pricePerToken: pricing?.professional?.losCost || 105, // $LOS (calculated from real-time market data)
           pricePerTokenUSD: pricing?.professional?.usdTarget || 0.15,
           features: [
             "Up to 10,000 NFTs",
@@ -87,7 +87,7 @@ export class PricingService {
         {
           name: "Enterprise",
           description: "For large-scale collections",
-          pricePerToken: pricing?.enterprise?.losCost || 1200000, // $LOS (calculated from real-time market data)
+          pricePerToken: pricing?.enterprise?.losCost || 127, // $LOS (calculated from real-time market data)
           pricePerTokenUSD: pricing?.enterprise?.usdTarget || 0.18,
           features: [
             "Unlimited NFTs",
@@ -104,49 +104,49 @@ export class PricingService {
       return tiers;
     } catch (error) {
       console.error('❌ Error getting art generator pricing:', error);
-      // Return fallback pricing if market data fails
-      return [
-        {
-          name: "Starter",
-          description: "Perfect for small collections",
-          pricePerToken: 800000, // Fallback LOS amount
-          pricePerTokenUSD: 0.12,
-          features: [
-            "Up to 1,000 NFTs",
-            "Basic IPFS hosting",
-            "Standard generation speed",
-            "Email support"
-          ]
-        },
-        {
-          name: "Professional",
-          description: "Ideal for medium collections",
-          pricePerToken: 1000000, // Fallback LOS amount
-          pricePerTokenUSD: 0.15,
-          features: [
-            "Up to 10,000 NFTs",
-            "Premium IPFS hosting",
-            "Fast generation speed",
-            "Priority support",
-            "Custom metadata"
-          ],
-          isPopular: true
-        },
-        {
-          name: "Enterprise",
-          description: "For large-scale collections",
-          pricePerToken: 1200000, // Fallback LOS amount
-          pricePerTokenUSD: 0.18,
-          features: [
-            "Unlimited NFTs",
-            "Dedicated IPFS hosting",
-            "Ultra-fast generation",
-            "24/7 phone support",
-            "Custom branding",
-            "White-label options"
-          ]
-        }
-      ];
+          // Return fallback pricing if market data fails
+          return [
+            {
+              name: "Starter",
+              description: "Perfect for small collections",
+              pricePerToken: 84, // Fallback LOS amount
+              pricePerTokenUSD: 0.12,
+              features: [
+                "Up to 1,000 NFTs",
+                "Basic IPFS hosting",
+                "Standard generation speed",
+                "Email support"
+              ]
+            },
+            {
+              name: "Professional",
+              description: "Ideal for medium collections",
+              pricePerToken: 105, // Fallback LOS amount
+              pricePerTokenUSD: 0.15,
+              features: [
+                "Up to 10,000 NFTs",
+                "Premium IPFS hosting",
+                "Fast generation speed",
+                "Priority support",
+                "Custom metadata"
+              ],
+              isPopular: true
+            },
+            {
+              name: "Enterprise",
+              description: "For large-scale collections",
+              pricePerToken: 127, // Fallback LOS amount
+              pricePerTokenUSD: 0.18,
+              features: [
+                "Unlimited NFTs",
+                "Dedicated IPFS hosting",
+                "Ultra-fast generation",
+                "24/7 phone support",
+                "Custom branding",
+                "White-label options"
+              ]
+            }
+          ];
     }
   }
 
