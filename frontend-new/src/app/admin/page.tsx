@@ -34,13 +34,15 @@ interface CollectionData {
 }
 
 function AdminPageContent() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, connecting } = useWallet();
   
   // Admin access control using centralized configuration
   const isAdmin = connected && publicKey && isAuthorizedAdmin(publicKey.toString());
   const adminInfo = connected && publicKey ? getAdminWalletInfo(publicKey.toString()) : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [navigationLocked, setNavigationLocked] = useState(false);
   
   const [collectionData, setCollectionData] = useState<CollectionData>({
     name: '',
@@ -86,6 +88,20 @@ function AdminPageContent() {
     fetchCollections();
   }, []);
 
+  // Handle wallet loading state
+  useEffect(() => {
+    if (!connecting) {
+      // Give a small delay to ensure wallet state is stable
+      const timeoutId = setTimeout(() => {
+        setWalletLoading(false);
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      setWalletLoading(true);
+    }
+  }, [connecting, connected, publicKey]);
+
   // Auto-load the most recent collection for editing
   useEffect(() => {
     if (collections.length > 0 && !collectionData.name) {
@@ -113,6 +129,18 @@ function AdminPageContent() {
     } catch (error) {
       console.error('❌ Error fetching collections from blockchain:', error);
     }
+  };
+
+  // Debounced navigation handler to prevent rapid navigation issues
+  const handleNavigation = (action: () => void, delay: number = 300) => {
+    if (navigationLocked) return;
+    
+    setNavigationLocked(true);
+    action();
+    
+    setTimeout(() => {
+      setNavigationLocked(false);
+    }, delay);
   };
 
   const handleUpdateImage = (collection: any) => {
@@ -218,6 +246,21 @@ function AdminPageContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show loading state while wallet is connecting or loading
+  if (walletLoading || connecting || !mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-6"></div>
+          <h1 className="text-2xl font-bold text-white mb-4">Loading Admin Panel</h1>
+          <p className="text-white/60 text-lg">
+            Please wait while we verify your access...
+          </p>
+        </div>
       </div>
     );
   }
@@ -713,8 +756,9 @@ function AdminPageContent() {
                 </p>
                 
                 <button
-                  onClick={() => setShowNFTGenerator(true)}
-                  className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                  onClick={() => handleNavigation(() => setShowNFTGenerator(true))}
+                  disabled={navigationLocked}
+                  className="w-full bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   🎨 NFT Generator
                 </button>
