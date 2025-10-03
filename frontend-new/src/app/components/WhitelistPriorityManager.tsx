@@ -89,9 +89,15 @@ export default function WhitelistPriorityManager({
 
   // Save whitelist rules to localStorage
   const saveWhitelistRules = (updatedRules: WhitelistRule[]) => {
-    localStorage.setItem(`whitelist_rules_${collectionId}`, JSON.stringify(updatedRules));
+    const localStorageKey = `whitelist_rules_${collectionId}`;
+    console.log('💾 WhitelistPriorityManager: Saving rules to localStorage with key:', localStorageKey);
+    console.log('💾 WhitelistPriorityManager: Rules to save:', updatedRules);
+    
+    localStorage.setItem(localStorageKey, JSON.stringify(updatedRules));
     setRules(updatedRules);
     onWhitelistRulesChange?.(updatedRules);
+    
+    console.log('💾 WhitelistPriorityManager: Rules saved successfully');
   };
 
   const addRule = () => {

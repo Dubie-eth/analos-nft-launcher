@@ -54,15 +54,28 @@ export default function WhitelistStatus({
   useEffect(() => {
     const loadWhitelistData = () => {
       try {
-        const savedRules = localStorage.getItem(`whitelist_rules_${collectionId}`);
+        const localStorageKey = `whitelist_rules_${collectionId}`;
+        console.log('🔍 WhitelistStatus: Looking for localStorage key:', localStorageKey);
+        
+        const savedRules = localStorage.getItem(localStorageKey);
+        console.log('🔍 WhitelistStatus: Found saved rules:', savedRules);
+        
         if (savedRules) {
           const rules: WhitelistRule[] = JSON.parse(savedRules);
+          console.log('🔍 WhitelistStatus: Parsed rules:', rules);
           setWhitelistRules(rules);
           
           // Check if current wallet is whitelisted
           if (connected && publicKey) {
             checkWhitelistStatus(rules);
           }
+        } else {
+          console.log('🔍 WhitelistStatus: No whitelist rules found for collectionId:', collectionId);
+          
+          // Debug: List all localStorage keys that start with 'whitelist_rules_'
+          const allKeys = Object.keys(localStorage);
+          const whitelistKeys = allKeys.filter(key => key.startsWith('whitelist_rules_'));
+          console.log('🔍 WhitelistStatus: All whitelist localStorage keys:', whitelistKeys);
         }
       } catch (error) {
         console.error('Error loading whitelist data:', error);
