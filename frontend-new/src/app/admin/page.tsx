@@ -969,11 +969,15 @@ function AdminPageContent() {
                     {currentCollection.whitelist.phases.length > 0 && (
                       <div className="mt-2 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg">
                         <h4 className="text-blue-400 font-semibold mb-2">Whitelist Phases:</h4>
-                        {currentCollection.whitelist.phases.map((phase, index) => (
+                        {currentCollection.whitelist.phases && currentCollection.whitelist.phases.length > 0 ? currentCollection.whitelist.phases.map((phase, index) => (
                           <div key={index} className="text-sm text-gray-300 mb-1">
                             Phase {index + 1}: {phase.name} - {phase.price} $LOL
                           </div>
-                        ))}
+                        )) : (
+                          <div className="text-center py-2">
+                            <p className="text-gray-400 text-sm">No whitelist phases configured</p>
+                          </div>
+                        )}
                       </div>
                     )}
                     <div className="flex justify-between text-white/80">
