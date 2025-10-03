@@ -137,52 +137,62 @@ function CollectionMintContent() {
       if (mintData.requiresWalletSigning && mintData.transaction) {
         setMintStatus('Please sign the NFT minting transaction in your wallet...');
         
-        // Create connection for transaction handling
-        const connection = new Connection('https://rpc.analos.io', {
-          commitment: 'confirmed',
-          wsEndpoint: undefined,
-        });
-
-        // Parse the transaction from the backend
-        const transaction = Transaction.from(Buffer.from(mintData.transaction, 'base64'));
-        
-        console.log('🔗 Signing NFT minting transaction...');
-        console.log('💰 Total cost:', mintData.totalCost, 'LOS');
-        console.log('📦 Quantity:', mintQuantity);
-
-        // Sign and send the NFT minting transaction
-        const signedTransaction = await signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-        
-        console.log('✅ NFT minting transaction sent:', signature);
-        setMintStatus('NFT minting transaction sent! Confirming...');
-
-        // Wait for confirmation
         try {
-          await connection.confirmTransaction(signature, 'confirmed');
-          console.log('✅ NFT minting transaction confirmed:', signature);
-          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
-        } catch (confirmError) {
-          console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);
-          setMintStatus(`NFT minting transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
+          // Create connection for transaction handling
+          const connection = new Connection('https://rpc.analos.io', {
+            commitment: 'confirmed',
+            wsEndpoint: undefined,
+          });
+
+          // Validate that the transaction is a proper base64 string
+          if (typeof mintData.transaction !== 'string') {
+            throw new Error('Invalid transaction data received from backend');
+          }
+
+          // Parse the transaction from the backend
+          const transaction = Transaction.from(Buffer.from(mintData.transaction, 'base64'));
+          
+          console.log('🔗 Signing NFT minting transaction...');
+          console.log('💰 Total cost:', mintData.totalCost, 'LOS');
+          console.log('📦 Quantity:', mintQuantity);
+
+          // Sign and send the NFT minting transaction
+          const signedTransaction = await signTransaction(transaction);
+          const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+          
+          console.log('✅ NFT minting transaction sent:', signature);
+          setMintStatus('NFT minting transaction sent! Confirming...');
+
+          // Wait for confirmation
+          try {
+            await connection.confirmTransaction(signature, 'confirmed');
+            console.log('✅ NFT minting transaction confirmed:', signature);
+            setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+          } catch (confirmError) {
+            console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);
+            setMintStatus(`NFT minting transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
+          }
+
+          // Confirm the mint on the backend
+          await fetch(`${backendUrl}/api/mint/confirm`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              collectionName: collection.name,
+              quantity: mintQuantity,
+              transactionSignature: signature,
+              walletAddress: publicKey.toString(),
+            }),
+          });
+        } catch (transactionError) {
+          console.error('❌ Transaction signing failed:', transactionError);
+          throw new Error(`Transaction signing failed: ${transactionError instanceof Error ? transactionError.message : 'Unknown error'}`);
         }
-
-        // Confirm the mint on the backend
-        await fetch(`${backendUrl}/api/mint/confirm`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            collectionName: collection.name,
-            quantity: mintQuantity,
-            transactionSignature: signature,
-            walletAddress: publicKey.toString(),
-          }),
-        });
-
       } else {
-        // Direct minting (no wallet signing required)
+        // Direct minting (simulated transaction - no wallet signing required)
+        console.log('🎯 Simulated minting completed:', mintData);
         setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${mintData.transactionSignature}`);
       }
 
@@ -190,9 +200,24 @@ function CollectionMintContent() {
       fetchCollectionInfo();
 
     } catch (error) {
-      console.error('Minting error:', error);
+      console.error('❌ Minting error:', error);
+      console.error('❌ Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       if (error instanceof Error) {
-        setMintStatus(`Minting failed: ${error.message}`);
+        // Provide more specific error messages
+        if (error.message.includes('toBase58')) {
+          setMintStatus('Minting failed: Invalid wallet address or transaction data. Please refresh and try again.');
+        } else if (error.message.includes('User rejected')) {
+          setMintStatus('Minting cancelled: Transaction was rejected in your wallet.');
+        } else if (error.message.includes('Insufficient funds')) {
+          setMintStatus('Minting failed: Insufficient LOS balance for transaction.');
+        } else {
+          setMintStatus(`Minting failed: ${error.message}`);
+        }
       } else {
         setMintStatus('Minting failed. Please try again.');
       }
