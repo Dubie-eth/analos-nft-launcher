@@ -14,6 +14,8 @@ import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blo
 import { tokenIdTracker, CollectionInfo as TokenTrackerCollectionInfo } from '@/lib/token-id-tracker';
 import { LOLBalanceInfo } from '@/lib/lol-balance-checker';
 import DirectNFTMintService from '@/lib/direct-nft-mint';
+import BlockchainVerificationService from '@/lib/blockchain-verification-service';
+import { smartContractReference } from '@/lib/smart-contract-reference';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -122,10 +124,8 @@ function CollectionMintContent() {
     setMintStatus('Creating NFT minting transaction...');
 
     try {
-      // Use direct frontend minting with proper payment processing
-      console.log('🎯 Using direct frontend minting with payment processing...');
-      
-      const directMintService = new DirectNFTMintService();
+      // Validate against smart contract reference first
+      console.log('🔍 Validating minting eligibility against smart contract...');
       
       // Determine payment token based on what user has
       let paymentToken = 'LOS'; // Default to LOS
@@ -135,12 +135,34 @@ function CollectionMintContent() {
       
       console.log('💳 Selected payment token:', paymentToken);
       
+      // Check smart contract eligibility
+      const eligibility = smartContractReference.validateMintingEligibility(
+        collection.name,
+        publicKey.toString(),
+        mintQuantity,
+        paymentToken
+      );
+      
+      if (!eligibility.eligible) {
+        throw new Error(`Minting not eligible: ${eligibility.reason}`);
+      }
+      
+      console.log('✅ Smart contract validation passed');
+      console.log('📊 Current phase:', eligibility.currentPhase?.name);
+      console.log('💰 Mint price:', eligibility.price);
+      console.log('🎯 Max mints per wallet:', eligibility.maxMints);
+      
+      // Use direct frontend minting with proper payment processing
+      console.log('🎯 Using direct frontend minting with payment processing...');
+      
+      const directMintService = new DirectNFTMintService();
+      
       const collectionData = {
         name: collection.name,
         symbol: collection.symbol || collection.name.substring(0, 4),
         description: collection.description || '',
         image: collection.imageUrl || '',
-        mintPrice: collection.mintPrice,
+        mintPrice: eligibility.price || collection.mintPrice, // Use smart contract price
         paymentToken: paymentToken
       };
       
@@ -193,6 +215,48 @@ function CollectionMintContent() {
       console.log('🎉 NFT minted successfully!');
       console.log('🔗 Transaction:', signature);
       console.log('🌐 Explorer:', directMintService.getExplorerUrl(signature));
+
+      // Verify transaction on blockchain as fail-safe
+      setMintStatus('Verifying transaction on blockchain...');
+      console.log('🔍 Starting blockchain verification as fail-safe...');
+      
+      const verificationService = new BlockchainVerificationService();
+      
+      try {
+        const verificationResult = await verificationService.retryTransactionVerification(
+          signature,
+          3, // Max retries
+          2000 // 2 second delay between retries
+        );
+        
+        if (verificationResult.success && verificationResult.verified) {
+          console.log('✅ Blockchain verification successful!');
+          console.log('🎯 NFT mint address:', verificationResult.nftMintAddress);
+          console.log('💰 Payment verified:', verificationResult.paymentAmount, verificationResult.paymentToken);
+          
+          // Verify NFT ownership
+          if (verificationResult.nftMintAddress) {
+            const ownershipVerified = await verificationService.verifyNFTOwnership(
+              verificationResult.nftMintAddress,
+              publicKey.toString()
+            );
+            
+            if (ownershipVerified) {
+              console.log('✅ NFT ownership verified on blockchain!');
+              setMintStatus(`✅ Successfully minted and verified ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+            } else {
+              console.log('⚠️ NFT ownership not yet confirmed (may take time to propagate)');
+              setMintStatus(`✅ NFT minted! Transaction: ${signature} (Ownership verification pending)`);
+            }
+          }
+        } else {
+          console.log('⚠️ Blockchain verification failed:', verificationResult.error);
+          setMintStatus(`⚠️ NFT transaction sent but verification failed: ${verificationResult.error}`);
+        }
+      } catch (verificationError) {
+        console.error('❌ Blockchain verification error:', verificationError);
+        setMintStatus(`✅ NFT transaction sent! Verification error: ${verificationError instanceof Error ? verificationError.message : 'Unknown error'}`);
+      }
 
       // Refresh collection info to update supply
       fetchCollectionInfo();
