@@ -166,6 +166,14 @@ function CollectionMintContent() {
         paymentToken: paymentToken
       };
       
+      console.log('🔍 Collection data for minting:', {
+        name: collectionData.name,
+        mintPrice: collectionData.mintPrice,
+        paymentToken: collectionData.paymentToken,
+        eligibilityPrice: eligibility.price,
+        originalPrice: collection.mintPrice
+      });
+      
       const { transaction, mintKeypairs } = await directMintService.createRealNFTMintTransaction(
         collection.name,
         mintQuantity,
@@ -258,8 +266,9 @@ function CollectionMintContent() {
         setMintStatus(`✅ NFT transaction sent! Verification error: ${verificationError instanceof Error ? verificationError.message : 'Unknown error'}`);
       }
 
-      // Refresh collection info to update supply
-      fetchCollectionInfo();
+      // Refresh collection info to update supply and progress bar
+      console.log('🔄 Refreshing collection info to update progress bar...');
+      await fetchCollectionInfo(true); // Force refresh
 
     } catch (error) {
       console.error('❌ Minting error:', error);

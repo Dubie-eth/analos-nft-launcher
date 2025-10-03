@@ -62,6 +62,13 @@ export class DirectNFTMintService {
       const mintKeypairs: Keypair[] = [];
 
       // Add payment processing if mintPrice is specified
+      console.log('🔍 Payment processing check:', {
+        mintPrice: collectionData.mintPrice,
+        paymentToken: collectionData.paymentToken,
+        hasMintPrice: !!collectionData.mintPrice,
+        mintPriceGreaterThanZero: collectionData.mintPrice > 0
+      });
+      
       if (collectionData.mintPrice && collectionData.mintPrice > 0) {
         console.log('💰 Processing payment for NFT minting...');
         console.log('💵 Price per NFT:', collectionData.mintPrice);
