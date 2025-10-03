@@ -306,6 +306,33 @@ export class TokenMetadataService {
   }
 
   /**
+   * Validate token address format and existence
+   */
+  async validateTokenAddress(tokenMint: string): Promise<boolean> {
+    try {
+      // Basic format validation
+      if (!tokenMint || typeof tokenMint !== 'string') {
+        return false;
+      }
+
+      // Check if it's a valid Solana public key format
+      try {
+        new PublicKey(tokenMint);
+      } catch {
+        return false;
+      }
+
+      // Check if token exists on blockchain
+      const result = await this.getTokenMetadata(tokenMint);
+      return result.valid;
+
+    } catch (error) {
+      console.error('❌ Error validating token address:', error);
+      return false;
+    }
+  }
+
+  /**
    * Get token info for display
    */
   getTokenDisplayInfo(tokenMint: string): {
