@@ -18,6 +18,7 @@ import BlockchainVerificationService from '@/lib/blockchain-verification-service
 import { smartContractReference } from '@/lib/smart-contract-reference';
 import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
 import SupplyDisplay from '../../components/SupplyDisplay';
+import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -55,14 +56,36 @@ function CollectionMintContent() {
       }
       
       console.log('📡 Fetching collection from blockchain (single source of truth):', collectionName);
-      const blockchainService = new BlockchainCollectionService();
-      const blockchainCollection = await blockchainService.getCollectionByNameFromBlockchain(collectionName);
       
-      if (blockchainCollection) {
+      // Get real blockchain data
+      const blockchainData = await blockchainDataService.getCollectionData(collectionName);
+      
+      if (blockchainData) {
+        // Convert blockchain data to collection format
+        const blockchainCollection: BlockchainCollectionData = {
+          id: blockchainData.collectionAddress,
+          name: blockchainData.name,
+          symbol: '$LOL',
+          description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+          imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          mintPrice: blockchainData.mintPrice,
+          totalSupply: blockchainData.totalSupply,
+          currentSupply: blockchainData.currentSupply,
+          isActive: blockchainData.isActive,
+          feePercentage: 2.5,
+          externalUrl: 'https://launchonlos.fun/',
+          feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+          deployedAt: new Date().toISOString(),
+          mintAddress: blockchainData.mintAddress,
+          metadataAddress: `metadata_${blockchainData.mintAddress}`,
+          masterEditionAddress: `master_edition_${blockchainData.mintAddress}`,
+          arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+        };
+        
         // Add timestamp for caching
         (blockchainCollection as any).lastFetched = now;
         setCollection(blockchainCollection);
-        console.log('✅ Collection fetched from blockchain:', blockchainCollection.name, 'Price:', blockchainCollection.mintPrice);
+        console.log('✅ Real blockchain data fetched:', blockchainCollection.name, 'Price:', blockchainCollection.mintPrice, 'Supply:', blockchainCollection.currentSupply);
         
         // Also fetch from token tracker for advanced features
         const collectionMint = `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`;
@@ -159,12 +182,15 @@ function CollectionMintContent() {
       
       const directMintService = new DirectNFTMintService();
       
+      // Get real pricing data from blockchain
+      const pricingData = await blockchainDataService.getCollectionPricing(collection.name);
+      
       const collectionData = {
         name: collection.name,
         symbol: collection.symbol || collection.name.substring(0, 4),
         description: collection.description || '',
         image: collection.imageUrl || '',
-        mintPrice: eligibility.price || collection.mintPrice, // Use smart contract price
+        mintPrice: pricingData.mintPrice, // Use real blockchain pricing
         paymentToken: paymentToken
       };
       

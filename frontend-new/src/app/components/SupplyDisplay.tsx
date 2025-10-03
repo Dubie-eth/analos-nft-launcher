@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
+import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 interface SupplyDisplayProps {
   collectionName: string;
@@ -21,12 +22,34 @@ export default function SupplyDisplay({ collectionName, className = '' }: Supply
 
   const fetchSupplyData = async () => {
     try {
-      console.log('📊 Fetching supply data for:', collectionName);
-      const stats = await nftSupplyTracker.getSupplyStatistics(collectionName);
+      console.log('📊 Fetching real blockchain supply data for:', collectionName);
+      
+      // Get real blockchain data
+      const blockchainSupply = await blockchainDataService.getCollectionSupply(collectionName);
+      
+      const stats = {
+        currentSupply: blockchainSupply.currentSupply,
+        totalSupply: blockchainSupply.totalSupply,
+        remainingSupply: blockchainSupply.remainingSupply,
+        mintedPercentage: blockchainSupply.mintedPercentage,
+        isSoldOut: blockchainSupply.currentSupply >= blockchainSupply.totalSupply,
+        lastUpdated: new Date().toLocaleTimeString()
+      };
+      
       setSupplyData(stats);
       setLoading(false);
+      
+      console.log('📊 Real blockchain supply data:', stats);
     } catch (error) {
-      console.error('❌ Error fetching supply data:', error);
+      console.error('❌ Error fetching blockchain supply data:', error);
+      
+      // Fallback to token tracker
+      try {
+        const stats = await nftSupplyTracker.getSupplyStatistics(collectionName);
+        setSupplyData(stats);
+      } catch (fallbackError) {
+        console.error('❌ Fallback supply data also failed:', fallbackError);
+      }
       setLoading(false);
     }
   };
