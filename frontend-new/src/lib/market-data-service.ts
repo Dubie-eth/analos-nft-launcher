@@ -152,52 +152,53 @@ class MarketDataService {
 
   /**
    * Fetch LOS price from Meteora API
-   * Using DLMM (Dynamic Liquidity Market Maker) API for SOL pairs
+   * Using correct Meteora API endpoints based on their documentation
    */
   private async fetchLOSPriceFromMeteoraAPI(): Promise<number> {
     try {
-      // Try Meteora DLMM API for SOL pairs
-      // SOL token: So11111111111111111111111111111111111111112
-      const response = await fetch('https://dlmm-api.meteora.ag/pair/So11111111111111111111111111111111111111112');
+      // Try DAMM v2 pools API first (more reliable for SOL pairs)
+      const dammResponse = await fetch('https://api.meteora.ag/dlmm/pairs');
       
-      if (!response.ok) {
-        throw new Error(`Meteora API responded with status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Look for price information in Meteora response
-      // This might need adjustment based on actual Meteora API response format
-      if (data.price && typeof data.price === 'number') {
-        return data.price;
-      }
-      
-      // Alternative: try to find price in pair data
-      if (data.pair && data.pair.price) {
-        return data.pair.price;
-      }
-      
-      throw new Error('No price data in Meteora response');
-    } catch (error) {
-      // If DLMM API fails, try alternative Meteora endpoints
-      try {
-        const altResponse = await fetch('https://dlmm-api.meteora.ag/pairs');
-        if (altResponse.ok) {
-          const pairsData = await altResponse.json();
-          // Look for SOL pair in the list
-          const solPair = pairsData.find((pair: any) => 
-            pair.token_x === 'So11111111111111111111111111111111111111112' || 
-            pair.token_y === 'So11111111111111111111111111111111111111112'
+      if (dammResponse.ok) {
+        const data = await dammResponse.json();
+        
+        // Look for SOL pairs in the response
+        if (Array.isArray(data)) {
+          const solPair = data.find((pair: any) => 
+            pair.token_x_mint === 'So11111111111111111111111111111111111111112' || 
+            pair.token_y_mint === 'So11111111111111111111111111111111111111112'
           );
           
           if (solPair && solPair.price) {
+            console.log('✅ LOS price from Meteora DAMM v2:', solPair.price);
             return solPair.price;
           }
         }
-      } catch (altError) {
-        console.warn('⚠️ Alternative Meteora API also failed:', altError);
       }
       
+      // Try DLMM API as fallback
+      const dlmmResponse = await fetch('https://dlmm-api.meteora.ag/pairs');
+      
+      if (dlmmResponse.ok) {
+        const dlmmData = await dlmmResponse.json();
+        
+        // Look for SOL pairs in DLMM data
+        if (Array.isArray(dlmmData)) {
+          const solPair = dlmmData.find((pair: any) => 
+            pair.token_x_mint === 'So11111111111111111111111111111111111111112' || 
+            pair.token_y_mint === 'So11111111111111111111111111111111111111112'
+          );
+          
+          if (solPair && solPair.price) {
+            console.log('✅ LOS price from Meteora DLMM:', solPair.price);
+            return solPair.price;
+          }
+        }
+      }
+      
+      throw new Error('No SOL price data found in Meteora APIs');
+    } catch (error) {
+      console.warn('⚠️ Meteora API not available:', error);
       throw error;
     }
   }
