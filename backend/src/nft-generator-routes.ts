@@ -101,6 +101,16 @@ router.post('/upload-folder', upload.array('files', 1000), async (req, res) => {
 
     const files = req.files as Express.Multer.File[];
     
+    console.log('📁 Backend received files:', files.length);
+    files.forEach((file, index) => {
+      console.log(`📁 Backend File ${index + 1}:`, {
+        originalname: file.originalname,
+        fieldname: file.fieldname,
+        mimetype: file.mimetype,
+        size: file.size
+      });
+    });
+    
     // Generate session ID
     const sessionId = `folder_${Date.now()}_${uuidv4().substring(0, 8)}`;
     

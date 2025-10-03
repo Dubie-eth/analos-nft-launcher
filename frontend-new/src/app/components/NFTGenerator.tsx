@@ -117,6 +117,18 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
 
     setError('');
 
+    // Debug logging
+    console.log('📁 Files received:', files.length);
+    console.log('📁 Upload type:', uploadType);
+    files.forEach((file, index) => {
+      console.log(`📁 File ${index + 1}:`, {
+        name: file.name,
+        webkitRelativePath: file.webkitRelativePath,
+        size: file.size,
+        type: file.type
+      });
+    });
+
     try {
       let result;
       
@@ -129,13 +141,16 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
         result = await nftGeneratorService.uploadLayers(zipFile);
       } else {
         // Handle folder upload
+        console.log('📁 Processing folder upload with', files.length, 'files');
         result = await nftGeneratorService.uploadFolder(files);
       }
       
+      console.log('✅ Upload result:', result);
       setSessionId(result.sessionId);
       setLayers(result.layers);
       setCurrentStep(2);
     } catch (err) {
+      console.error('❌ Upload error:', err);
       setError(err instanceof Error ? err.message : 'Upload failed');
     }
   };
