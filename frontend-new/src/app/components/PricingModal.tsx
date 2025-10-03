@@ -173,14 +173,14 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
                 <div
                   key={tier.name}
                   className={`bg-white/10 rounded-2xl p-6 border ${
-                    tier.isPopular 
+                    selectedTier === tier.name
                       ? 'border-purple-500 bg-gradient-to-br from-purple-500/20 to-blue-500/20' 
                       : 'border-white/20'
                   }`}
                 >
-                  {tier.isPopular && (
+                  {selectedTier === tier.name && (
                     <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                      Most Popular
+                      Selected
                     </div>
                   )}
                   
@@ -208,7 +208,7 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
                   <button
                     onClick={() => setSelectedTier(tier.name)}
                     className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 ${
-                      tier.isPopular
+                      selectedTier === tier.name
                         ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
                         : 'bg-white/20 hover:bg-white/30 text-white'
                     }`}
