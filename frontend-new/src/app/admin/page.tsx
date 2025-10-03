@@ -8,6 +8,7 @@ import NFTRevealModal from '../components/NFTRevealModal';
 import AdvancedMintingSettings from '../components/AdvancedMintingSettings';
 import PaymentTokenConfig from '../components/PaymentTokenConfig';
 import NFTGenerator from '../components/NFTGenerator';
+import ProfessionalNFTGenerator from '../components/ProfessionalNFTGenerator';
 import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
 import PricingModal from '../components/PricingModal';
 import VerificationModal from '../components/VerificationModal';
@@ -1284,29 +1285,25 @@ function AdminPageContent() {
         onRevealComplete={handleRevealComplete}
       />
 
-      {/* NFT Generator Modal */}
+      {/* Professional NFT Generator Modal */}
       {showNFTGenerator && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 rounded-2xl p-8 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 rounded-2xl w-full h-full max-w-7xl mx-4 max-h-[95vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-white/20">
               <h2 className="text-2xl font-bold text-white">
-                🎨 NFT Generator
+                🎨 Professional NFT Generator
               </h2>
               <button
                 onClick={() => setShowNFTGenerator(false)}
-                className="text-white/60 hover:text-white text-2xl"
+                className="text-white/60 hover:text-white text-2xl p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
                 ×
               </button>
             </div>
             
-            <NFTGenerator
-              onGenerationComplete={(result) => {
-                console.log('NFTs generated:', result);
-                fetchCollections(); // Refresh collections list
-                setShowNFTGenerator(false);
-              }}
-            />
+            <div className="h-full overflow-y-auto">
+              <ProfessionalNFTGenerator />
+            </div>
           </div>
         </div>
       )}
