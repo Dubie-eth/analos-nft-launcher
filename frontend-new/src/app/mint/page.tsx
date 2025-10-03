@@ -5,6 +5,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
+import StandardLayout from '../components/StandardLayout';
 
 // Use the blockchain collection data interface
 type Collection = BlockchainCollectionData;
@@ -59,14 +60,14 @@ function MintPageContent() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <StandardLayout className="flex items-center justify-center">
         <div className="text-white text-xl">Loading collections...</div>
-      </div>
+      </StandardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <StandardLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
@@ -168,7 +169,7 @@ function MintPageContent() {
           )}
         </div>
       </div>
-    </div>
+    </StandardLayout>
   );
 }
 

@@ -6,6 +6,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { tokenIdTracker } from '../../lib/token-id-tracker';
 import Link from 'next/link';
+import StandardLayout from '../components/StandardLayout';
 
 interface UserNFT {
   mint: string;
@@ -174,7 +175,7 @@ export default function ProfilePage() {
 
   if (!connected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-8 relative overflow-hidden transition-colors duration-300">
+      <StandardLayout className="p-8 relative overflow-hidden">
         {/* Dark mode toggle - always visible */}
         <div className="absolute top-8 right-8 z-20">
           <button
@@ -228,7 +229,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-8 relative overflow-hidden transition-colors duration-300">
+    <StandardLayout className="p-8 relative overflow-hidden">
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-2 h-2 bg-purple-300 rounded-full animate-pulse opacity-60"></div>
@@ -604,6 +605,6 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
-    </div>
+    </StandardLayout>
   );
 }

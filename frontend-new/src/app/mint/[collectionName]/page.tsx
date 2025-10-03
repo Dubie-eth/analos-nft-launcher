@@ -19,6 +19,7 @@ import { smartContractReference } from '@/lib/smart-contract-reference';
 import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
 import SupplyDisplay from '../../components/SupplyDisplay';
 import WhitelistStatus from '../../components/WhitelistStatus';
+import StandardLayout from '../../components/StandardLayout';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 // Use the blockchain collection data interface
@@ -385,15 +386,15 @@ function CollectionMintContent() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <StandardLayout className="flex items-center justify-center">
         <div className="text-white text-xl">Loading collection...</div>
-      </div>
+      </StandardLayout>
     );
   }
 
   if (!collection) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <StandardLayout className="flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Collection Not Found</h1>
           <p className="text-white/80 mb-6">{mintStatus}</p>
@@ -430,7 +431,7 @@ function CollectionMintContent() {
   const creatorRevenue = totalCost - platformFee;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <StandardLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -658,7 +659,7 @@ function CollectionMintContent() {
           </div>
         </div>
       </div>
-    </div>
+    </StandardLayout>
   );
 }
 
