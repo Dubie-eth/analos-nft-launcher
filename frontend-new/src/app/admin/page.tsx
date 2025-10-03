@@ -19,6 +19,7 @@ import MintPagePreview from '../components/MintPagePreview';
 import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
 import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
+import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 import { isAuthorizedAdmin, getAdminWalletInfo, hasAdminPermission } from '@/lib/admin-config';
 
@@ -126,7 +127,22 @@ function AdminPageContent() {
       const blockchainService = new BlockchainCollectionService();
       const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
       const hiddenCollectionsData = await blockchainService.getHiddenCollections();
-      setCollections(blockchainCollections);
+      
+      // Update collections with real blockchain data including supply counts
+      const updatedCollections = await Promise.all(blockchainCollections.map(async (collection) => {
+        try {
+          const blockchainData = await blockchainDataService.getCollectionData(collection.name);
+          return {
+            ...collection,
+            currentSupply: blockchainData.currentSupply,
+            holders: blockchainData.holders
+          };
+        } catch (error) {
+          console.error(`Error fetching blockchain data for ${collection.name}:`, error);
+          return collection;
+        }
+      }));
+      setCollections(updatedCollections);
       setHiddenCollections(hiddenCollectionsData);
       console.log('✅ Collections fetched from blockchain for admin:', blockchainCollections.length);
       console.log('🔒 Hidden collections fetched:', hiddenCollectionsData.length);

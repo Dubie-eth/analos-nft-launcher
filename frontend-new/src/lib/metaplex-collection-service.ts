@@ -117,11 +117,11 @@ export class MetaplexCollectionService {
   async getCollectionInfo(collectionMint: string): Promise<CollectionMetadata | null> {
     try {
       // In a real implementation, we'd fetch from the blockchain
-      // For now, return basic info
+      // For now, return basic info for The LosBros collection
       return {
-        name: 'LOL Genesis Collection',
-        symbol: 'LOL',
-        description: 'NFT Collection created on LOL platform',
+        name: 'The LosBros',
+        symbol: 'LBS',
+        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces.',
         image: 'https://picsum.photos/300/300?random=collection',
         totalSupply: 1000,
         mintPrice: 4200.69
@@ -139,11 +139,11 @@ export class MetaplexCollectionService {
       return {
         name: `LOL NFT #${mintAddress.slice(0, 8)}`,
         symbol: 'LOL',
-        description: 'NFT created on LOL platform',
+        description: 'The LosBros NFT - Part of the ultimate NFT collection for the Analos ecosystem.',
         image: `https://picsum.photos/300/300?random=${mintAddress.slice(0, 8)}`,
         collection: {
-          name: 'LOL Genesis Collection',
-          family: 'LOL'
+          name: 'The LosBros',
+          family: 'LBS'
         }
       };
     } catch (error) {

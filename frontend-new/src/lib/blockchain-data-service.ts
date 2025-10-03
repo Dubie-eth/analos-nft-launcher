@@ -37,8 +37,8 @@ export class BlockchainDataService {
   // Known collection addresses on Analos
   private readonly COLLECTION_ADDRESSES = {
     'The LosBros': {
-      collectionAddress: 'collection_launch_on_los', // Keep old ID to preserve minted NFTs
-      mintAddress: 'mint_launch_on_los', // Keep old ID to preserve minted NFTs
+      collectionAddress: 'collection_the_losbros', // Use consistent ID for The LosBros
+      mintAddress: 'mint_the_losbros', // Use consistent ID for The LosBros
       totalSupply: 4200,
       mintPrice: 1100, // Updated to 1,100 $LOS
       paymentToken: 'LOS',
@@ -84,23 +84,17 @@ export class BlockchainDataService {
       // Calculate current supply from minted NFTs or fallback to token tracker
       let currentSupply = mintedNFTs.length;
       
-      // Define collectionId for token tracker fallback
-      // Use the OLD collection ID to find previously minted NFTs
-      const oldCollectionId = 'collection_launch_on_los'; // This is where your 10 NFTs are stored
-      const newCollectionId = `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`;
+      // Define collectionId for token tracker
+      const collectionId = `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`;
       
-      // Check both old and new collection IDs in token tracker
+      // Check token tracker for minted NFTs
       if (currentSupply === 0) {
-        if (tokenIdTracker.collections[oldCollectionId]) {
-          const trackerCollection = tokenIdTracker.collections[oldCollectionId];
+        if (tokenIdTracker.collections[collectionId]) {
+          const trackerCollection = tokenIdTracker.collections[collectionId];
           currentSupply = trackerCollection.mintedCount || 0;
-          console.log(`📊 Using OLD token tracker supply: ${currentSupply} from ${oldCollectionId}`);
-        } else if (tokenIdTracker.collections[newCollectionId]) {
-          const trackerCollection = tokenIdTracker.collections[newCollectionId];
-          currentSupply = trackerCollection.mintedCount || 0;
-          console.log(`📊 Using NEW token tracker supply: ${currentSupply} from ${newCollectionId}`);
+          console.log(`📊 Using token tracker supply: ${currentSupply} from ${collectionId}`);
         } else {
-          console.log(`📊 No token tracker data found for either ${oldCollectionId} or ${newCollectionId}`);
+          console.log(`📊 No token tracker data found for ${collectionId}`);
           console.log(`📊 Available collections:`, Object.keys(tokenIdTracker.collections));
           
           // TEMPORARY FIX: If this is "The LosBros" and we can't find the data,

@@ -125,8 +125,8 @@ export default function ProfilePage() {
               nftList.push(nft);
               collectionSet.add(tokenInfo.collectionName);
             } else {
-              // Fallback for NFTs not in tracker (assign to default collection)
-              const fallbackCollection = 'LOL Genesis Collection';
+              // Fallback for NFTs not in tracker (assign to The LosBros collection)
+              const fallbackCollection = 'The LosBros';
               const fallbackTokenId = nftList.length + 1;
               
               const nft: UserNFT = {
