@@ -16,6 +16,7 @@ import { LOLBalanceInfo } from '@/lib/lol-balance-checker';
 import DirectNFTMintService from '@/lib/direct-nft-mint';
 import BlockchainVerificationService from '@/lib/blockchain-verification-service';
 import { smartContractReference } from '@/lib/smart-contract-reference';
+import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -252,9 +253,17 @@ function CollectionMintContent() {
             if (ownershipVerified) {
               console.log('✅ NFT ownership verified on blockchain!');
               setMintStatus(`✅ Successfully minted and verified ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+              
+              // Update supply data after successful mint
+              console.log('📊 Updating supply data after successful mint...');
+              await nftSupplyTracker.updateSupplyAfterMint(collection.name, mintQuantity);
             } else {
               console.log('⚠️ NFT ownership not yet confirmed (may take time to propagate)');
               setMintStatus(`✅ NFT minted! Transaction: ${signature} (Ownership verification pending)`);
+              
+              // Still update supply data even if ownership verification is pending
+              console.log('📊 Updating supply data after mint (ownership pending)...');
+              await nftSupplyTracker.updateSupplyAfterMint(collection.name, mintQuantity);
             }
           }
         } else {

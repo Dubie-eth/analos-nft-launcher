@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { AnalosBlockchainService } from './blockchain';
+import { nftSupplyTracker } from './nft-supply-tracker';
 
 export interface BlockchainCollectionData {
   id: string;
@@ -66,7 +67,7 @@ export class BlockchainCollectionService {
         imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
         mintPrice: 4200.69, // This should be read from the smart contract
         totalSupply: 4200,
-        currentSupply: 0, // This should be read from the smart contract
+        currentSupply: 0, // Will be updated by supply tracker
         isActive: true,
         feePercentage: 2.5,
         externalUrl: 'https://launchonlos.fun/',
@@ -78,7 +79,18 @@ export class BlockchainCollectionService {
         arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
       };
 
+      // Get updated supply data from NFT supply tracker
+      const supplyData = await nftSupplyTracker.getSupplyFromTokenTracker(collectionName);
+      collectionData.currentSupply = supplyData.currentSupply;
+      
       console.log('✅ Collection data fetched from blockchain:', collectionData);
+      console.log('📊 Updated supply data:', {
+        currentSupply: collectionData.currentSupply,
+        totalSupply: collectionData.totalSupply,
+        remainingSupply: supplyData.remainingSupply,
+        mintedPercentage: supplyData.mintedPercentage.toFixed(2) + '%'
+      });
+      
       return collectionData;
 
     } catch (error) {
@@ -106,7 +118,7 @@ export class BlockchainCollectionService {
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
           mintPrice: 4200.69, // Single source of truth from blockchain
           totalSupply: 4200,
-          currentSupply: 0,
+          currentSupply: 0, // Will be updated by supply tracker
           isActive: true,
           feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
@@ -251,7 +263,7 @@ export class BlockchainCollectionService {
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
           mintPrice: 4200.69, // Single source of truth from blockchain
           totalSupply: 4200,
-          currentSupply: 0,
+          currentSupply: 0, // Will be updated by supply tracker
           isActive: true,
           feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
