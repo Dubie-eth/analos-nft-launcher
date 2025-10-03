@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { TokenMetadataService } from '@/lib/token-metadata-service';
 
 export type WhitelistType = 'token_holders' | 'snapshot' | 'nft_collection' | 'manual';
 
@@ -52,6 +53,13 @@ export default function WhitelistPriorityManager({
   const [rules, setRules] = useState<WhitelistRule[]>(initialRules);
   const [showAddRule, setShowAddRule] = useState(false);
   const [editingRule, setEditingRule] = useState<WhitelistRule | null>(null);
+  const [tokenMetadata, setTokenMetadata] = useState<{
+    symbol: string;
+    name: string;
+    decimals: number;
+    loading: boolean;
+    error: string | null;
+  } | null>(null);
   const [newRule, setNewRule] = useState<Partial<WhitelistRule>>({
     type: 'token_holders',
     name: '',
@@ -177,6 +185,52 @@ export default function WhitelistPriorityManager({
     }
   };
 
+  const verifyTokenMetadata = async (tokenMint: string) => {
+    if (!tokenMint.trim()) {
+      setTokenMetadata(null);
+      return;
+    }
+
+    setTokenMetadata({
+      symbol: '',
+      name: '',
+      decimals: 0,
+      loading: true,
+      error: null
+    });
+
+    try {
+      const tokenMetadataService = new TokenMetadataService();
+      const result = await tokenMetadataService.getTokenMetadata(tokenMint);
+      
+      if (result.valid && result.token) {
+        setTokenMetadata({
+          symbol: result.token.symbol,
+          name: result.token.name,
+          decimals: result.token.decimals,
+          loading: false,
+          error: null
+        });
+      } else {
+        setTokenMetadata({
+          symbol: '',
+          name: '',
+          decimals: 0,
+          loading: false,
+          error: result.error || 'Invalid token mint address'
+        });
+      }
+    } catch (error) {
+      setTokenMetadata({
+        symbol: '',
+        name: '',
+        decimals: 0,
+        loading: false,
+        error: 'Failed to verify token'
+      });
+    }
+  };
+
   const getCurrentActiveRule = () => {
     const now = new Date();
     return rules.find(rule => {
@@ -254,12 +308,16 @@ export default function WhitelistPriorityManager({
                   value={newRule.type || 'token_holders'}
                   onChange={(e) => setNewRule({ ...newRule, type: e.target.value as WhitelistType })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                  title={getRuleTypeDescription(newRule.type || 'token_holders')}
                 >
-                  <option value="token_holders">🪙 Token Holders</option>
-                  <option value="snapshot">📸 Snapshot</option>
-                  <option value="nft_collection">🎨 NFT Collection</option>
-                  <option value="manual">✋ Manual</option>
+                  <option value="token_holders" title="Automatically whitelist users based on their token balance (e.g., $LOL holders with minimum balance)">🪙 Token Holders</option>
+                  <option value="snapshot" title="Use a pre-defined list of wallet addresses (e.g., from Discord snapshot, airdrop recipients)">📸 Snapshot</option>
+                  <option value="nft_collection" title="Whitelist holders of a specific NFT collection (e.g., holders of your previous collection)">🎨 NFT Collection</option>
+                  <option value="manual" title="Manually add individual wallet addresses one by one (for VIP users, special cases)">✋ Manual</option>
                 </select>
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  💡 {getRuleTypeDescription(newRule.type || 'token_holders')}
+                </div>
               </div>
               
               <div>
@@ -344,7 +402,11 @@ export default function WhitelistPriorityManager({
             {/* Rule-specific configuration */}
             {newRule.type === 'token_holders' && (
               <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
-                <h5 className="text-xs font-medium text-blue-900 dark:text-blue-300 mb-2">Token Holder Configuration</h5>
+                <h5 className="text-xs font-medium text-blue-900 dark:text-blue-300 mb-2">🪙 Token Holder Configuration</h5>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mb-3">
+                  This rule automatically whitelists users who hold a minimum amount of the specified token. 
+                  Perfect for rewarding token holders with priority access or discounts.
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -353,10 +415,15 @@ export default function WhitelistPriorityManager({
                     <input
                       type="text"
                       value={newRule.config?.tokenMint || ''}
-                      onChange={(e) => setNewRule({ 
-                        ...newRule, 
-                        config: { ...newRule.config, tokenMint: e.target.value }
-                      })}
+                      onChange={(e) => {
+                        const tokenMint = e.target.value;
+                        setNewRule({ 
+                          ...newRule, 
+                          config: { ...newRule.config, tokenMint }
+                        });
+                        // Verify token metadata when address changes
+                        verifyTokenMetadata(tokenMint);
+                      }}
                       placeholder="e.g., ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                     />
@@ -373,6 +440,142 @@ export default function WhitelistPriorityManager({
                         ...newRule, 
                         config: { ...newRule.config, minBalance: parseFloat(e.target.value) || 0 }
                       })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Token Verification Box */}
+                {newRule.config?.tokenMint && (
+                  <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                    <h6 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      🔍 Token Verification
+                    </h6>
+                    {tokenMetadata?.loading ? (
+                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b border-blue-500"></div>
+                        <span>Verifying token...</span>
+                      </div>
+                    ) : tokenMetadata?.error ? (
+                      <div className="text-xs text-red-600 dark:text-red-400">
+                        ❌ {tokenMetadata.error}
+                      </div>
+                    ) : tokenMetadata ? (
+                      <div className="grid grid-cols-3 gap-3 text-xs">
+                        <div>
+                          <div className="text-gray-500 dark:text-gray-400">Symbol</div>
+                          <div className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+                            {tokenMetadata.symbol}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500 dark:text-gray-400">Name</div>
+                          <div className="font-medium text-gray-900 dark:text-white truncate">
+                            {tokenMetadata.name}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500 dark:text-gray-400">Decimals</div>
+                          <div className="font-mono font-semibold text-green-600 dark:text-green-400">
+                            {tokenMetadata.decimals}
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {newRule.type === 'snapshot' && (
+              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                <h5 className="text-xs font-medium text-green-900 dark:text-green-300 mb-2">📸 Snapshot Configuration</h5>
+                <p className="text-xs text-green-700 dark:text-green-300 mb-3">
+                  This rule uses a pre-defined list of wallet addresses. Great for Discord snapshots, 
+                  airdrop recipients, or any curated list of addresses.
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Wallet Addresses (one per line)
+                    </label>
+                    <textarea
+                      value={newRule.config?.walletAddresses?.join('\n') || ''}
+                      onChange={(e) => setNewRule({ 
+                        ...newRule, 
+                        config: { ...newRule.config, walletAddresses: e.target.value.split('\n').filter(addr => addr.trim()) }
+                      })}
+                      placeholder="Enter wallet addresses, one per line&#10;e.g.:&#10;ABC123...XYZ789&#10;DEF456...GHI012"
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {newRule.type === 'nft_collection' && (
+              <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                <h5 className="text-xs font-medium text-purple-900 dark:text-purple-300 mb-2">🎨 NFT Collection Configuration</h5>
+                <p className="text-xs text-purple-700 dark:text-purple-300 mb-3">
+                  This rule whitelists holders of a specific NFT collection. Perfect for rewarding 
+                  holders of your previous collections or partner projects.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Collection Mint Address
+                    </label>
+                    <input
+                      type="text"
+                      value={newRule.config?.collectionMint || ''}
+                      onChange={(e) => setNewRule({ 
+                        ...newRule, 
+                        config: { ...newRule.config, collectionMint: e.target.value }
+                      })}
+                      placeholder="e.g., Collection mint address"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Minimum NFTs Required
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newRule.config?.minNFTs || 1}
+                      onChange={(e) => setNewRule({ 
+                        ...newRule, 
+                        config: { ...newRule.config, minNFTs: parseInt(e.target.value) || 1 }
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {newRule.type === 'manual' && (
+              <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800">
+                <h5 className="text-xs font-medium text-orange-900 dark:text-orange-300 mb-2">✋ Manual Configuration</h5>
+                <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
+                  This rule allows you to manually add individual wallet addresses. 
+                  Perfect for VIP users, special cases, or small curated lists.
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Wallet Addresses (one per line)
+                    </label>
+                    <textarea
+                      value={newRule.config?.manualAddresses?.join('\n') || ''}
+                      onChange={(e) => setNewRule({ 
+                        ...newRule, 
+                        config: { ...newRule.config, manualAddresses: e.target.value.split('\n').filter(addr => addr.trim()) }
+                      })}
+                      placeholder="Enter wallet addresses, one per line&#10;e.g.:&#10;VIP123...XYZ789&#10;Special456...GHI012"
+                      rows={4}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                     />
                   </div>
@@ -397,7 +600,12 @@ export default function WhitelistPriorityManager({
           <div key={rule.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <span className="text-lg">{getRuleTypeIcon(rule.type)}</span>
+                <span 
+                  className="text-lg cursor-help" 
+                  title={`${getRuleTypeIcon(rule.type)} ${getRuleTypeDescription(rule.type)}`}
+                >
+                  {getRuleTypeIcon(rule.type)}
+                </span>
                 <div>
                   <h5 className="text-sm font-medium text-gray-900 dark:text-white">
                     #{rule.priority} {rule.name}
