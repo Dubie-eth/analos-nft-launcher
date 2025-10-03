@@ -8,7 +8,7 @@
     "dev-minimal": "ts-node src/minimal-server.ts",
     "dev-working": "ts-node src/working-server.ts",
     "dev-real": "ts-node src/real-smart-contract-server.ts",
-    "build": "tsc && copy src\\analos-sdk-bridge.js dist\\analos-sdk-bridge.js && copy src\\analos-sdk-runner.mjs dist\\analos-sdk-runner.mjs",
+    "build": "tsc && node -e \"require('fs').copyFileSync('src/analos-sdk-bridge.js', 'dist/analos-sdk-bridge.js')\" && node -e \"require('fs').copyFileSync('src/analos-sdk-runner.mjs', 'dist/analos-sdk-runner.mjs')\"",
     "start": "echo 'Starting Simple Server with Real NFT Mint Instructions' && node dist/simple-server.js",
     "start-minimal-test": "node dist/minimal-test-server.js",
     "start-minimal": "node dist/minimal-server.js",
