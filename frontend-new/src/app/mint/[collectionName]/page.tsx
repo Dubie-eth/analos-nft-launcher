@@ -17,6 +17,7 @@ import DirectNFTMintService from '@/lib/direct-nft-mint';
 import BlockchainVerificationService from '@/lib/blockchain-verification-service';
 import { smartContractReference } from '@/lib/smart-contract-reference';
 import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
+import SupplyDisplay from '../../components/SupplyDisplay';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -389,20 +390,7 @@ function CollectionMintContent() {
 
               {/* Supply Progress */}
               <div className="mb-6">
-                <div className="flex justify-between text-white/80 text-sm mb-2">
-                  <span>Minted</span>
-                  <span>{collection.currentSupply}/{collection.totalSupply}</span>
-                </div>
-                <div className="w-full bg-white/20 rounded-full h-3">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(collection.currentSupply / collection.totalSupply) * 100}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-white/60 text-xs mt-1">
-                  <span>{((collection.currentSupply / collection.totalSupply) * 100).toFixed(1)}% minted</span>
-                  <span>{remainingSupply} remaining</span>
-                </div>
+                <SupplyDisplay collectionName={collection.name} />
               </div>
 
               {collection.externalUrl && (

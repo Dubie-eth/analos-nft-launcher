@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
+import { existingNFTScanner } from './existing-nft-scanner';
 
 export interface NFTSupplyData {
   totalSupply: number;
@@ -110,6 +111,9 @@ export class NFTSupplyTracker {
   async getSupplyFromTokenTracker(collectionName: string): Promise<NFTSupplyData> {
     try {
       console.log('📊 Getting supply data from token tracker for:', collectionName);
+      
+      // First, initialize existing NFT count if not already done
+      await existingNFTScanner.initializeExistingCount(collectionName);
       
       // Import tokenIdTracker dynamically to avoid circular dependencies
       const { tokenIdTracker } = await import('./token-id-tracker');
