@@ -272,6 +272,68 @@ app.get('/api/collections/:collectionName', (req, res) => {
   }
 });
 
+// Update existing collection (without redeploying to blockchain)
+app.post('/api/collections/update', async (req, res) => {
+  try {
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image, updateExisting } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection name is required' 
+      });
+    }
+
+    console.log('🔄 Updating existing collection:', name);
+
+    // Find existing collection by name
+    const existingCollection = Array.from(collections.values()).find(
+      col => col.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!existingCollection) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Collection not found' 
+      });
+    }
+
+    // Update collection data
+    const updatedCollection = {
+      ...existingCollection,
+      description: description || existingCollection.description,
+      mintPrice: price !== undefined ? Number(price) : existingCollection.mintPrice,
+      totalSupply: maxSupply !== undefined ? Number(maxSupply) : existingCollection.totalSupply,
+      feePercentage: feePercentage !== undefined ? Number(feePercentage) : existingCollection.feePercentage,
+      feeRecipient: feeRecipient || existingCollection.feeRecipient,
+      symbol: symbol || existingCollection.symbol,
+      externalUrl: externalUrl || existingCollection.externalUrl,
+      imageUrl: image || existingCollection.imageUrl,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Save updated collection
+    collections.set(existingCollection.id, updatedCollection);
+
+    console.log('✅ Collection updated successfully:', updatedCollection.name);
+    console.log('💰 New price:', updatedCollection.mintPrice);
+    console.log('📦 New supply:', updatedCollection.totalSupply);
+
+    res.json({
+      success: true,
+      message: 'Collection updated successfully',
+      collection: updatedCollection
+    });
+
+  } catch (error) {
+    console.error('Error updating collection:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update collection' 
+    });
+  }
+});
+
 // Deploy collection with REAL smart contracts
 app.post('/api/collections/deploy', async (req, res) => {
   try {

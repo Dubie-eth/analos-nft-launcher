@@ -15,6 +15,7 @@ import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
+import MintPagePreview from '../components/MintPagePreview';
 import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
 import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
@@ -82,6 +83,7 @@ function AdminPageContent() {
   const [showBondingCurveLauncher, setShowBondingCurveLauncher] = useState(false);
   const [showTestEnvironment, setShowTestEnvironment] = useState(false);
   const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
+  const [showMintPreview, setShowMintPreview] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -477,23 +479,16 @@ function AdminPageContent() {
       console.log('💾 Saving collection with payload:', payload);
       console.log('💰 Price being saved:', payload.price, 'Type:', typeof payload.price);
 
-      // Call backend API to save collection data (not deploy to blockchain)
+      // Call backend API to update collection data (not deploy to blockchain)
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       
-      // For saving collection data, we'll use the deploy endpoint with saveOnly flag
-      // This allows updating existing collections or saving new ones without deploying
-      const savePayload = {
-        ...payload,
-        saveOnly: true, // Flag to indicate this is just saving data
-        updateExisting: true // Allow updating existing collections
-      };
-      
-      const response = await fetch(`${backendUrl}/api/collections/deploy`, {
+      // Use the new update endpoint for existing collections
+      const response = await fetch(`${backendUrl}/api/collections/update`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(savePayload),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -851,6 +846,14 @@ function AdminPageContent() {
                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
                   >
                     {saving ? 'Saving to Backend...' : '💾 Save/Update Collection Data'}
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowMintPreview(true)}
+                    disabled={!collectionData.name.trim()}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
+                  >
+                    🎭 Preview Mint Page
                   </button>
                   
                   {collections.length > 0 && (
@@ -1470,6 +1473,23 @@ function AdminPageContent() {
         isOpen={showSecurityDashboard}
         onClose={() => setShowSecurityDashboard(false)}
       />
+
+      {/* Mint Page Preview Modal */}
+      {showMintPreview && (
+        <MintPagePreview
+          collectionData={{
+            name: collectionData.name,
+            description: collectionData.description,
+            imageUrl: imagePreview || 'https://picsum.photos/500/500?random=preview',
+            mintPrice: collectionData.price,
+            totalSupply: collectionData.maxSupply,
+            currentSupply: 0, // Preview shows 0 minted
+            symbol: collectionData.symbol,
+            externalUrl: collectionData.externalUrl
+          }}
+          onClose={() => setShowMintPreview(false)}
+        />
+      )}
     </div>
     </>
   );
