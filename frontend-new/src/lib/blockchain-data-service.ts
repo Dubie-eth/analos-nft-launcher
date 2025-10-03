@@ -1,5 +1,4 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getParsedTokenAccountsByOwner } from '@solana/spl-token';
 
 export interface BlockchainCollectionData {
   name: string;
@@ -276,9 +275,8 @@ export class BlockchainDataService {
       const ownerPublicKey = new PublicKey(ownerAddress);
       const mintPublicKey = new PublicKey(nftMintAddress);
       
-      // Get all token accounts for the owner
-      const tokenAccounts = await getParsedTokenAccountsByOwner(
-        this.connection,
+      // Use connection.getParsedTokenAccountsByOwner instead
+      const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
         ownerPublicKey,
         { mint: mintPublicKey }
       );
