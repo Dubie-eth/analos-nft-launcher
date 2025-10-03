@@ -280,7 +280,7 @@ Block Explorer: https://explorer.analos.io`
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-20">
           <div className="text-center">
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-gradient">
                 LosLauncher
               </span>
             </h1>
@@ -296,27 +296,27 @@ Block Explorer: https://explorer.analos.io`
               {isAdmin ? (
                 <Link 
                   href="/admin"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                  className="btn-primary text-lg py-4 px-10"
                 >
                   🎨 Start Creating
                 </Link>
               ) : (
                 <Link 
                   href="/mint"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                  className="btn-primary text-lg py-4 px-10"
                 >
                   🎨 Start Minting
                 </Link>
               )}
               <Link 
                 href="/explorer"
-                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                className="btn-success text-lg py-4 px-10"
               >
                 🔍 Explore NFTs
               </Link>
               <Link 
                 href="#features"
-                className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 border border-white/20 backdrop-blur-sm"
+                className="btn-secondary text-lg py-4 px-10"
               >
                 ✨ View Features
               </Link>
@@ -353,7 +353,7 @@ Block Explorer: https://explorer.analos.io`
             {tokenIncentives.map((incentive, index) => (
               <div
                 key={index}
-                className={`bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 transition-all duration-700 hover:scale-105 hover:shadow-2xl ${
+                className={`card-elevated animate-fade-in-up ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
                 }`}
                 style={{ transitionDelay: `${index * 150}ms` }}
@@ -756,21 +756,21 @@ Block Explorer: https://explorer.analos.io`
             {isAdmin ? (
               <Link 
                 href="/admin"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+                className="btn-primary text-lg py-4 px-8"
               >
                 🎨 Start Creating Now
               </Link>
             ) : (
               <Link 
                 href="/mint"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+                className="btn-primary text-lg py-4 px-8"
               >
                 🎨 Start Minting Now
               </Link>
             )}
             <Link 
               href="/explorer"
-              className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+              className="btn-success text-lg py-4 px-8"
             >
               🔍 Explore Collections
             </Link>

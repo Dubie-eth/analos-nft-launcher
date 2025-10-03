@@ -238,7 +238,7 @@ function AdminPageContent() {
           </p>
           <a 
             href="/" 
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105"
+            className="btn-primary"
           >
             Go Home
           </a>
