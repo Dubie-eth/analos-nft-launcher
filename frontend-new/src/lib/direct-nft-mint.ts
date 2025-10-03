@@ -114,7 +114,7 @@ export class DirectNFTMintService {
           tokenIdTracker.createCollection(collectionMint, collectionName, 1000, 4200.69);
         }
         
-        const tokenId = tokenIdTracker.addNFT(mintAddress.toBase58(), collectionName, collectionMint, payerAddress.toBase58());
+        const tokenId = tokenIdTracker.addNFT(mintAddress.toBase58(), collectionName, collectionMint, payerAddress);
 
         console.log(`✅ Added REAL Token Program instructions for NFT #${nftNumber}`);
         console.log(`   Mint: ${mintAddress.toBase58()}`);
