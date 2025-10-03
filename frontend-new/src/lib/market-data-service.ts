@@ -30,6 +30,7 @@ class MarketDataService {
 
   /**
    * Fetch real-time market data for LOS and LOL tokens
+   * TEMPORARY: Using fallback data until Analos API is available
    */
   async getMarketData(): Promise<MarketData> {
     const cacheKey = 'market_data';
@@ -40,38 +41,23 @@ class MarketDataService {
       return cached;
     }
 
-    console.log('📊 Fetching fresh market data...');
+    console.log('📊 Using fallback market data (Analos API not available)');
     
-    try {
-      // Try multiple sources for price data
-      const [losPrice, lolPrice] = await Promise.allSettled([
-        this.fetchLOSPrice(),
-        this.fetchLOLPrice()
-      ]);
+    // TEMPORARY: Use fallback data until we get proper Analos API endpoints
+    const marketData: MarketData = {
+      losPriceUSD: this.defaultLOSPrice,
+      lolPriceUSD: this.defaultLOLPrice,
+      lastUpdated: Date.now(),
+      source: 'fallback'
+    };
 
-      const marketData: MarketData = {
-        losPriceUSD: losPrice.status === 'fulfilled' ? losPrice.value : this.defaultLOSPrice,
-        lolPriceUSD: lolPrice.status === 'fulfilled' ? lolPrice.value : this.defaultLOLPrice,
-        lastUpdated: Date.now(),
-        source: 'real-time'
-      };
+    this.cache.set(cacheKey, marketData);
+    console.log('📊 Market data set (fallback):', {
+      LOS: `$${marketData.losPriceUSD.toFixed(6)}`,
+      LOL: `$${marketData.lolPriceUSD.toFixed(4)}`
+    });
 
-      this.cache.set(cacheKey, marketData);
-      console.log('📊 Market data fetched:', {
-        LOS: `$${marketData.losPriceUSD.toFixed(6)}`,
-        LOL: `$${marketData.lolPriceUSD.toFixed(4)}`
-      });
-
-      return marketData;
-    } catch (error) {
-      console.error('❌ Error fetching market data:', error);
-      return {
-        losPriceUSD: this.defaultLOSPrice,
-        lolPriceUSD: this.defaultLOLPrice,
-        lastUpdated: Date.now(),
-        source: 'fallback'
-      };
-    }
+    return marketData;
   }
 
   /**
