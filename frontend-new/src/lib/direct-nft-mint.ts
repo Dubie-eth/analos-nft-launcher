@@ -105,7 +105,7 @@ export class DirectNFTMintService {
             userLolAccount, // source
             feeRecipientLolAccount, // destination
             payer, // authority
-            totalCost * 1000000, // LOL has 6 decimals
+            totalCost * Math.pow(10, 9), // LOL has 9 decimals
           );
           
           transaction.add(lolTransferInstruction);
@@ -129,7 +129,7 @@ export class DirectNFTMintService {
             userTokenAccount, // source
             feeRecipientTokenAccount, // destination
             payer, // authority
-            totalCost * 1000000, // Assuming 6 decimals
+            totalCost * Math.pow(10, 9), // Using 9 decimals for custom tokens
           );
           
           transaction.add(tokenTransferInstruction);

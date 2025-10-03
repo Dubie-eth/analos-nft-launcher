@@ -46,18 +46,19 @@ export class LOLBalanceChecker {
 
         const tokenAccount = await getAccount(this.connection, associatedTokenAddress);
         const balance = Number(tokenAccount.amount);
-        const balanceFormatted = (balance / Math.pow(10, 6)).toFixed(2);
+        const balanceFormatted = (balance / Math.pow(10, 9)).toFixed(2); // $LOL has 9 decimals
         
         console.log('✅ Found LOL balance via SPL token:', balance);
         
-        const hasMinimumBalance = balance >= minimumRequired;
-        const shortfall = Math.max(0, minimumRequired - balance);
+        const minimumRequiredRaw = minimumRequired * Math.pow(10, 9); // Convert to raw units
+        const hasMinimumBalance = balance >= minimumRequiredRaw;
+        const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, 9));
 
         return {
           balance,
           balanceFormatted,
           hasMinimumBalance,
-          minimumRequired,
+          minimumRequired: minimumRequired,
           shortfall,
           tokenMint: this.lolTokenMint,
           tokenAccount: associatedTokenAddress.toString()
@@ -101,7 +102,7 @@ export class LOLBalanceChecker {
         
         if (mintAddress === this.lolTokenMint) {
           const balance = Number(parsedInfo.tokenAmount.amount);
-          const balanceFormatted = (balance / Math.pow(10, 6)).toFixed(2);
+          const balanceFormatted = (balance / Math.pow(10, 9)).toFixed(2); // $LOL has 9 decimals
           
           console.log('✅ Found LOL balance via Token-2022:', balance);
           
@@ -112,7 +113,7 @@ export class LOLBalanceChecker {
             balance,
             balanceFormatted,
             hasMinimumBalance,
-            minimumRequired,
+            minimumRequired: minimumRequired,
             shortfall,
             tokenMint: this.lolTokenMint,
             tokenAccount: accountInfo.pubkey.toString()
@@ -136,7 +137,7 @@ export class LOLBalanceChecker {
         
         if (mintAddress === this.lolTokenMint) {
           const balance = Number(parsedInfo.tokenAmount.amount);
-          const balanceFormatted = (balance / Math.pow(10, 6)).toFixed(2);
+          const balanceFormatted = (balance / Math.pow(10, 9)).toFixed(2); // $LOL has 9 decimals
           
           console.log('✅ Found LOL balance via SPL token program:', balance);
           
@@ -147,7 +148,7 @@ export class LOLBalanceChecker {
             balance,
             balanceFormatted,
             hasMinimumBalance,
-            minimumRequired,
+            minimumRequired: minimumRequired,
             shortfall,
             tokenMint: this.lolTokenMint,
             tokenAccount: accountInfo.pubkey.toString()
@@ -160,7 +161,7 @@ export class LOLBalanceChecker {
         balance: 0,
         balanceFormatted: '0.00',
         hasMinimumBalance: false,
-        minimumRequired,
+        minimumRequired: minimumRequired,
         shortfall: minimumRequired,
         tokenMint: this.lolTokenMint
       };
@@ -170,7 +171,7 @@ export class LOLBalanceChecker {
         balance: 0,
         balanceFormatted: '0.00',
         hasMinimumBalance: false,
-        minimumRequired,
+        minimumRequired: minimumRequired,
         shortfall: minimumRequired,
         tokenMint: this.lolTokenMint
       };
@@ -198,7 +199,7 @@ export class LOLBalanceChecker {
       symbol: 'LOL',
       name: 'LOL Token',
       mint: this.lolTokenMint,
-      decimals: 6,
+      decimals: 9, // $LOL has 9 decimals, not 6
       description: 'The LOL token used for minting NFTs on the Analos blockchain'
     };
   }
