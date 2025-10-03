@@ -157,7 +157,15 @@ export class BlockchainCollectionService {
       console.log('📡 Fetching collection by name from blockchain:', collectionName);
       
       const collections = await this.getAllCollectionsFromBlockchain();
+      
+      // Handle URL slug to collection name mapping
+      let actualCollectionName = collectionName;
+      if (collectionName === 'launch-on-los') {
+        actualCollectionName = 'Launch On LOS';
+      }
+      
       const collection = collections.find(c => 
+        c.name.toLowerCase() === actualCollectionName.toLowerCase() ||
         c.name.toLowerCase() === collectionName.toLowerCase() ||
         c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase()
       );
@@ -166,7 +174,7 @@ export class BlockchainCollectionService {
         console.log('✅ Collection found on blockchain:', collection.name);
         return collection;
       } else {
-        console.log('❌ Collection not found on blockchain:', collectionName);
+        console.log('❌ Collection not found on blockchain:', collectionName, '->', actualCollectionName);
         return null;
       }
 

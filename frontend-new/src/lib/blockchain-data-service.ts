@@ -56,9 +56,15 @@ export class BlockchainDataService {
     try {
       console.log('🔗 Fetching real blockchain data for collection:', collectionName);
       
-      const collectionConfig = this.COLLECTION_ADDRESSES[collectionName as keyof typeof this.COLLECTION_ADDRESSES];
+      // Handle URL slug to collection name mapping
+      let actualCollectionName = collectionName;
+      if (collectionName === 'launch-on-los') {
+        actualCollectionName = 'Launch On LOS';
+      }
+      
+      const collectionConfig = this.COLLECTION_ADDRESSES[actualCollectionName as keyof typeof this.COLLECTION_ADDRESSES];
       if (!collectionConfig) {
-        console.log('❌ Collection not found in known addresses');
+        console.log('❌ Collection not found in known addresses:', collectionName, '->', actualCollectionName);
         return null;
       }
 
@@ -72,7 +78,7 @@ export class BlockchainDataService {
       const holders = await this.getNFTHolders(mintedNFTs);
       
       const collectionData: BlockchainCollectionData = {
-        name: collectionName,
+        name: actualCollectionName,
         totalSupply: collectionConfig.totalSupply,
         currentSupply: currentSupply,
         mintPrice: collectionConfig.mintPrice,
