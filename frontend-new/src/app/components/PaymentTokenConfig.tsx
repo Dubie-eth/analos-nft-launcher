@@ -86,13 +86,20 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
       }
 
       const metadata = await tokenMetadataService.getTokenMetadata(mintAddress);
-      if (metadata) {
+      if (metadata && metadata.valid && metadata.token) {
         setNewToken(prev => ({
           ...prev,
-          symbol: metadata.symbol,
-          decimals: metadata.decimals,
-          name: metadata.name
+          symbol: metadata.token.symbol,
+          decimals: metadata.token.decimals
         }));
+        console.log('✅ Token metadata fetched:', {
+          symbol: metadata.token.symbol,
+          decimals: metadata.token.decimals,
+          name: metadata.token.name
+        });
+      } else {
+        console.warn('⚠️ No valid metadata found for token:', mintAddress);
+        alert('Token found but no metadata available. Please enter symbol and decimals manually.');
       }
     } catch (error) {
       console.error('Error fetching token metadata:', error);
@@ -104,12 +111,21 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
 
   const handleMintAddressChange = (value: string) => {
     setNewToken(prev => ({ ...prev, mint: value }));
-    
-    // Auto-fetch metadata when a valid-looking address is entered
-    if (value.length > 32 && value.length < 50) {
-      fetchTokenMetadata(value);
-    }
   };
+
+  // Auto-fetch metadata when a complete address is entered
+  useEffect(() => {
+    const mintAddress = newToken.mint.trim();
+    
+    // Only auto-fetch if we have a complete-looking address and not currently fetching
+    if (mintAddress.length >= 32 && mintAddress.length <= 44 && !fetchingMetadata && !newToken.symbol) {
+      const timeoutId = setTimeout(() => {
+        fetchTokenMetadata(mintAddress);
+      }, 800); // Wait 800ms after user stops typing
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [newToken.mint, fetchingMetadata, newToken.symbol]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
@@ -125,7 +141,8 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
       <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
         <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Add Payment Token</h4>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="space-y-4 mb-4">
+          {/* First row: Contract Address */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Token Contract Address
@@ -154,34 +171,38 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
               </button>
             )}
           </div>
-          
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Token Symbol
-            </label>
-            <input
-              type="text"
-              value={newToken.symbol}
-              onChange={(e) => setNewToken({ ...newToken, symbol: e.target.value })}
-              placeholder="e.g., LOL"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Decimals
-            </label>
-            <input
-              type="number"
-              value={newToken.decimals}
-              onChange={(e) => setNewToken({ ...newToken, decimals: parseInt(e.target.value) || 6 })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-            />
+
+          {/* Second row: Symbol and Decimals */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Token Symbol
+              </label>
+              <input
+                type="text"
+                value={newToken.symbol}
+                onChange={(e) => setNewToken({ ...newToken, symbol: e.target.value })}
+                placeholder="e.g., LOL"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Decimals
+              </label>
+              <input
+                type="number"
+                value={newToken.decimals}
+                onChange={(e) => setNewToken({ ...newToken, decimals: parseInt(e.target.value) || 6 })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        {/* Third row: Price and Whitelist settings */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Price per NFT (relative to $LOS)
@@ -208,7 +229,10 @@ export default function PaymentTokenConfig({ onTokensChange, initialTokens = [] 
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
             />
           </div>
-          
+        </div>
+
+        {/* Fourth row: Accept checkbox */}
+        <div className="mb-4">
           <div className="flex items-center">
             <label className="flex items-center">
               <input
