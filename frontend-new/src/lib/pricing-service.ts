@@ -146,13 +146,13 @@ export class PricingService {
   /**
    * Calculate total cost for NFT generation
    */
-  calculateGenerationCost(quantity: number, tier: string = 'Professional'): {
+  async calculateGenerationCost(quantity: number, tier: string = 'Professional'): Promise<{
     totalLOS: number;
     totalUSD: number;
     pricePerToken: number;
     pricePerTokenUSD: number;
-  } {
-    const tiers = this.getArtGeneratorPricing();
+  }> {
+    const tiers = await this.getArtGeneratorPricing();
     const selectedTier = tiers.find(t => t.name.toLowerCase() === tier.toLowerCase()) || tiers[1];
     
     const totalLOS = quantity * selectedTier.pricePerToken;
@@ -164,6 +164,18 @@ export class PricingService {
       pricePerToken: selectedTier.pricePerToken,
       pricePerTokenUSD: selectedTier.pricePerTokenUSD
     };
+  }
+
+  /**
+   * Get market summary for display
+   */
+  async getMarketSummary(): Promise<{
+    losPrice: string;
+    lolPrice: string;
+    lastUpdated: string;
+    source: string;
+  }> {
+    return await marketDataService.getMarketSummary();
   }
 
   /**
