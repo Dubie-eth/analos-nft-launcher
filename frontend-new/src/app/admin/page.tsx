@@ -19,6 +19,7 @@ import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
 import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
+import { isAuthorizedAdmin, getAdminWalletInfo, hasAdminPermission } from '@/lib/admin-config';
 
 interface CollectionData {
   name: string;
@@ -35,9 +36,9 @@ interface CollectionData {
 function AdminPageContent() {
   const { publicKey, connected } = useWallet();
   
-  // Admin page is now locked - only allow specific wallet
-  const ADMIN_WALLET = "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW";
-  const isAdmin = connected && publicKey?.toString() === ADMIN_WALLET;
+  // Admin access control using centralized configuration
+  const isAdmin = connected && publicKey && isAuthorizedAdmin(publicKey.toString());
+  const adminInfo = connected && publicKey ? getAdminWalletInfo(publicKey.toString()) : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
   
@@ -224,18 +225,68 @@ function AdminPageContent() {
   // Admin access check
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-6">🔒 Admin Access Required</h1>
-          <p className="text-white/80 mb-6">This page is restricted to authorized administrators only.</p>
-          <div className="space-y-4">
-            <WalletMultiButton />
-            <p className="text-white/60 text-sm">Connect with the authorized wallet to access admin features.</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 max-w-md w-full border border-white/20">
+          <div className="text-center">
+            <div className="text-6xl mb-6">🔒</div>
+            <h1 className="text-3xl font-bold text-white mb-4">Admin Access Required</h1>
+            <p className="text-white/80 mb-6 leading-relaxed">
+              This administrative panel is restricted to authorized administrators only. 
+              Only specific wallet addresses have access to collection management features.
+            </p>
+            
+            {connected ? (
+              <div className="space-y-4">
+                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
+                  <p className="text-red-300 text-sm">
+                    <strong>Access Denied:</strong> Your wallet ({publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}) 
+                    is not authorized to access this admin panel.
+                  </p>
+                </div>
+                <p className="text-white/60 text-sm">
+                  If you believe this is an error, please contact the platform administrator.
+                </p>
+                <div className="pt-4">
+                  <WalletMultiButton />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <WalletMultiButton />
+                <p className="text-white/60 text-sm">
+                  Connect your wallet to verify admin access permissions.
+                </p>
+              </div>
+            )}
+            
+            <div className="mt-8 pt-6 border-t border-white/20">
+              <p className="text-white/50 text-xs">
+                LosLauncher Admin Panel • Secured Access Only
+              </p>
+            </div>
           </div>
         </div>
       </div>
     );
   }
+
+  // Show admin status indicator for authorized users
+  const AdminStatusIndicator = () => {
+    if (!adminInfo) return null;
+    
+    return (
+      <div className="fixed top-4 right-4 z-50">
+        <div className="bg-green-500/20 border border-green-500/50 rounded-xl px-4 py-2 backdrop-blur-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-green-300 text-sm font-medium">
+              {adminInfo.name} ({adminInfo.role})
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const handleInputChange = (field: keyof CollectionData, value: string | number | File | null) => {
     console.log(`📝 Updating ${field} to:`, value, 'Type:', typeof value);
@@ -445,7 +496,8 @@ function AdminPageContent() {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <AdminStatusIndicator />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
