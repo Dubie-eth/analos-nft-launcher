@@ -18,6 +18,7 @@ import BlockchainVerificationService from '@/lib/blockchain-verification-service
 import { smartContractReference } from '@/lib/smart-contract-reference';
 import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
 import SupplyDisplay from '../../components/SupplyDisplay';
+import WhitelistStatus from '../../components/WhitelistStatus';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 // Use the blockchain collection data interface
@@ -42,6 +43,10 @@ function CollectionMintContent() {
   // LOL balance checking
   const [lolBalanceInfo, setLolBalanceInfo] = useState<LOLBalanceInfo | null>(null);
   const [minimumLolBalance] = useState(1000); // Minimum $LOL required for minting
+  
+  // Whitelist state
+  const [whitelistPrice, setWhitelistPrice] = useState<number | null>(null);
+  const [whitelistMultiplier, setWhitelistMultiplier] = useState(1.0);
 
   const fetchCollectionInfo = useCallback(async (forceRefresh = false) => {
     try {
@@ -405,8 +410,9 @@ function CollectionMintContent() {
 
   const remainingSupply = collection.totalSupply - collection.currentSupply;
   
-  // Calculate cost based on selected payment token
-  let totalCost = collection.mintPrice * mintQuantity;
+  // Calculate cost based on selected payment token and whitelist status
+  const effectivePrice = whitelistPrice !== null ? whitelistPrice : collection.mintPrice;
+  let totalCost = effectivePrice * mintQuantity;
   let currency = '$LOS';
   
   // Use the actual payment token from blockchain data
@@ -476,6 +482,17 @@ function CollectionMintContent() {
                 <SupplyDisplay collectionName={collection.name} />
               </div>
 
+              {/* Whitelist Status */}
+              <WhitelistStatus
+                collectionId={`collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
+                collectionName={collection.name}
+                basePrice={collection.mintPrice}
+                onWhitelistPriceChange={(price, multiplier) => {
+                  setWhitelistPrice(price);
+                  setWhitelistMultiplier(multiplier);
+                }}
+              />
+
               {collection.externalUrl && (
                 <div className="text-center">
                   <a
@@ -538,10 +555,20 @@ function CollectionMintContent() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-white/80">
                         <span>Price per NFT:</span>
-                        <span>{tokenTrackerCollection && selectedPaymentMint ? 
-                          (tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint)?.pricePerNFT?.toFixed(2) || '0.00') + ' ' + currency :
-                          (collection.mintPrice?.toFixed(2) || '0.00') + ' ' + currency
-                        }</span>
+                        <span>
+                          {whitelistPrice !== null ? (
+                            <span className="flex items-center space-x-2">
+                              <span>{effectivePrice.toFixed(2)} {currency}</span>
+                              <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
+                                WHITELIST {whitelistMultiplier === 0 ? 'FREE' : `${whitelistMultiplier}x`}
+                              </span>
+                            </span>
+                          ) : (
+                            tokenTrackerCollection && selectedPaymentMint ? 
+                              (tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint)?.pricePerNFT?.toFixed(2) || '0.00') + ' ' + currency :
+                              (collection.mintPrice?.toFixed(2) || '0.00') + ' ' + currency
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Quantity:</span>
@@ -601,6 +628,10 @@ function CollectionMintContent() {
                       totalCost={totalCost}
                       currency={currency}
                       lolBalanceInfo={lolBalanceInfo}
+                      whitelistStatus={whitelistPrice !== null ? {
+                        isWhitelisted: true,
+                        priceMultiplier: whitelistMultiplier
+                      } : undefined}
                       onMintSuccess={(result) => {
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
                         fetchCollectionInfo(); // Refresh collection info

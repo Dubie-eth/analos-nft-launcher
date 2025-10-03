@@ -13,6 +13,10 @@ interface RealMintButtonProps {
   onMintSuccess: (result: any) => void;
   onMintError: (error: string) => void;
   losBalanceInfo?: any; // LOS balance eligibility info
+  whitelistStatus?: {
+    isWhitelisted: boolean;
+    priceMultiplier: number;
+  };
 }
 
 export default function RealMintButton({
@@ -22,7 +26,8 @@ export default function RealMintButton({
   currency,
   onMintSuccess,
   onMintError,
-  losBalanceInfo
+  losBalanceInfo,
+  whitelistStatus
 }: RealMintButtonProps) {
   const { publicKey, signTransaction } = useWallet();
   const [minting, setMinting] = useState(false);
@@ -136,7 +141,14 @@ export default function RealMintButton({
           )}
         </div>
       ) : (
-        `🎯 Mint ${quantity} NFT${quantity > 1 ? 's' : ''} for ${totalCost} ${currency}`
+        <span className="flex items-center space-x-2">
+          <span>{`🎯 Mint ${quantity} NFT${quantity > 1 ? 's' : ''} for ${totalCost} ${currency}`}</span>
+          {whitelistStatus?.isWhitelisted && (
+            <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
+              {whitelistStatus.priceMultiplier === 0 ? 'FREE' : `${whitelistStatus.priceMultiplier}x`}
+            </span>
+          )}
+        </span>
       )}
     </button>
   );

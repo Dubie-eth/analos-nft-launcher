@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import WhitelistHolderManager from './WhitelistHolderManager';
+import WhitelistManager from './WhitelistManager';
 
 interface AdvancedMintingSettingsProps {
   onSettingsChange: (settings: any) => void;
@@ -502,6 +503,17 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
           console.log('📸 Snapshot created:', snapshot);
           // Could save snapshots for later use
         }}
+      />
+
+      {/* Manual Whitelist Manager */}
+      <WhitelistManager
+        collectionId={`collection_${settings.name?.toLowerCase().replace(/\s+/g, '_') || 'default'}`}
+        collectionName={settings.name || 'Unnamed Collection'}
+        onWhitelistChange={(phases) => {
+          console.log('🔐 Whitelist phases updated:', phases);
+          handleSettingChange('whitelist.phases', phases);
+        }}
+        initialPhases={settings.whitelist?.phases || []}
       />
     </div>
   );
