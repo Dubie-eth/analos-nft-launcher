@@ -1,13 +1,16 @@
 /**
  * Pricing Service - Handles pricing calculations and marketplace integration
  * Based on industry-standard pricing models with $LOS token support
+ * Now uses real-time market data for dynamic pricing
  */
+
+import { marketDataService } from './market-data-service';
 
 export interface PricingTier {
   name: string;
   description: string;
-  pricePerToken: number; // in $LOS
-  pricePerTokenUSD: number; // in USD
+  pricePerToken: number; // in $LOS (calculated from real-time market data)
+  pricePerTokenUSD: number; // in USD (target price)
   features: string[];
   isPopular?: boolean;
 }
@@ -38,20 +41,20 @@ export interface FormsPricing {
 }
 
 export class PricingService {
-  // Current $LOS to USD exchange rate (should be updated via API)
-  private losToUSD = 0.00015; // Example: 1 $LOS = $0.00015 USD
-
   /**
    * Art Generator Pricing Tiers
    * Based on industry standards but slightly lower than examples
+   * Now uses real-time market data for dynamic pricing
    */
-  getArtGeneratorPricing(): PricingTier[] {
+  async getArtGeneratorPricing(): Promise<PricingTier[]> {
+    const pricing = await marketDataService.getArtGeneratorPricing();
+    
     return [
       {
         name: "Starter",
         description: "Perfect for small collections",
-        pricePerToken: 800, // $LOS (equivalent to ~$0.12 USD)
-        pricePerTokenUSD: 0.12,
+        pricePerToken: pricing.starter.losCost, // $LOS (calculated from real-time market data)
+        pricePerTokenUSD: pricing.starter.usdTarget,
         features: [
           "Up to 1,000 NFTs",
           "Basic IPFS hosting",
@@ -62,8 +65,8 @@ export class PricingService {
       {
         name: "Professional",
         description: "Ideal for medium collections",
-        pricePerToken: 1000, // $LOS (equivalent to ~$0.15 USD)
-        pricePerTokenUSD: 0.15,
+        pricePerToken: pricing.professional.losCost, // $LOS (calculated from real-time market data)
+        pricePerTokenUSD: pricing.professional.usdTarget,
         features: [
           "Up to 10,000 NFTs",
           "Premium IPFS hosting",
@@ -76,8 +79,8 @@ export class PricingService {
       {
         name: "Enterprise",
         description: "For large-scale collections",
-        pricePerToken: 1200, // $LOS (equivalent to ~$0.18 USD)
-        pricePerTokenUSD: 0.18,
+        pricePerToken: pricing.enterprise.losCost, // $LOS (calculated from real-time market data)
+        pricePerTokenUSD: pricing.enterprise.usdTarget,
         features: [
           "Unlimited NFTs",
           "Dedicated IPFS hosting",

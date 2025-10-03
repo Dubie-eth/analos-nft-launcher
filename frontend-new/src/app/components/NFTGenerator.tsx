@@ -35,14 +35,42 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
   const [uploadType, setUploadType] = useState<'zip' | 'folder'>('zip');
   const [selectedPricingTier, setSelectedPricingTier] = useState<PricingTier | null>(null);
   const [showPricingSelection, setShowPricingSelection] = useState(false);
+  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
+  const [pricing, setPricing] = useState<any>(null);
+  const [marketData, setMarketData] = useState<any>(null);
+
+  // Load pricing tiers with real-time market data
+  useEffect(() => {
+    const loadPricing = async () => {
+      try {
+        const tiers = await pricingService.getArtGeneratorPricing();
+        setPricingTiers(tiers);
+        
+        const marketSummary = await pricingService.getMarketSummary();
+        setMarketData(marketSummary);
+      } catch (error) {
+        console.error('Error loading pricing:', error);
+      }
+    };
+    
+    loadPricing();
+  }, []);
 
   // Calculate pricing for current configuration
-  const calculatePricing = () => {
-    if (!selectedPricingTier) return null;
-    return pricingService.calculateGenerationCost(config.supply, selectedPricingTier.name);
-  };
+  useEffect(() => {
+    const calculatePricing = async () => {
+      if (!selectedPricingTier || !config.supply) return null;
+      
+      try {
+        const result = await pricingService.calculateGenerationCost(config.supply, selectedPricingTier.name);
+        setPricing(result);
+      } catch (error) {
+        console.error('Error calculating pricing:', error);
+      }
+    };
 
-  const pricing = calculatePricing();
+    calculatePricing();
+  }, [selectedPricingTier, config.supply]);
 
   // Step 1: Upload ZIP file or folder with layers
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,9 +428,18 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                 
                 {/* Pricing Selection */}
                 <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/50 rounded-xl p-6">
-                  <h4 className="text-lg font-semibold text-white mb-4">💰 Select Pricing Plan</h4>
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-semibold text-white">💰 Select Pricing Plan</h4>
+                    {marketData && (
+                      <div className="text-sm text-gray-300">
+                        <div>LOS: {marketData.losPrice}</div>
+                        <div>LOL: {marketData.lolPrice}</div>
+                        <div className="text-xs text-gray-400">Updated: {marketData.lastUpdated}</div>
+                      </div>
+                    )}
+                  </div>
                   <div className="space-y-3">
-                    {pricingService.getArtGeneratorPricing().map((tier) => (
+                    {pricingTiers.map((tier) => (
                       <div
                         key={tier.name}
                         className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
