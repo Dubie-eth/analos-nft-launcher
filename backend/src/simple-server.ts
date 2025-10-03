@@ -7,6 +7,7 @@ import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PE
 import { AnalosSDKService } from './analos-sdk-service';
 import { AnalosMetaplexService } from './analos-metaplex-service';
 import RealNFTMintService from './real-nft-mint-service';
+import nftGeneratorRoutes from './nft-generator-routes';
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
 const app = express();
@@ -2177,6 +2178,9 @@ console.log(`✅ Mint instructions endpoint: /api/mint/instructions`);
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
 });
+
+// NFT Generator API routes
+app.use('/api/nft-generator', nftGeneratorRoutes);
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
