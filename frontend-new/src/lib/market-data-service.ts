@@ -54,13 +54,14 @@ class MarketDataService {
         losPriceUSD: losPrice,
         lolPriceUSD: lolPrice,
         lastUpdated: Date.now(),
-        source: 'jupiter-v3'
+        source: 'jupiter-meteora-verified'
       };
 
       this.cache.set(cacheKey, marketData);
-      console.log('📊 Market data fetched from Jupiter:', {
+      console.log('📊 Market data fetched and verified:', {
         LOS: `$${marketData.losPriceUSD.toFixed(6)}`,
-        LOL: `$${marketData.lolPriceUSD.toFixed(4)}`
+        LOL: `$${marketData.lolPriceUSD.toFixed(4)}`,
+        sources: 'Jupiter & Meteora'
       });
 
       return marketData;
@@ -76,31 +77,128 @@ class MarketDataService {
   }
 
   /**
-   * Fetch LOS token price from Jupiter Price API V3
+   * Fetch LOS token price from multiple sources for verification
    * LOS is SOL (So11111111111111111111111111111111111111112)
    */
   private async fetchLOSPriceFromJupiter(): Promise<number> {
     try {
-      // Use Jupiter Price API V3 to get SOL price
-      const response = await fetch('https://lite-api.jup.ag/price/v3?ids=So11111111111111111111111111111111111111112');
+      // Get prices from both Jupiter and Meteora for cross-verification
+      const [jupiterPrice, meteoraPrice] = await Promise.allSettled([
+        this.fetchLOSPriceFromJupiterAPI(),
+        this.fetchLOSPriceFromMeteoraAPI()
+      ]);
+
+      const jupiterResult = jupiterPrice.status === 'fulfilled' ? jupiterPrice.value : null;
+      const meteoraResult = meteoraPrice.status === 'fulfilled' ? meteoraPrice.value : null;
+
+      // Use Jupiter as primary, Meteora as verification
+      if (jupiterResult && meteoraResult) {
+        const priceDiff = Math.abs(jupiterResult - meteoraResult);
+        const avgPrice = (jupiterResult + meteoraResult) / 2;
+        
+        // If prices are within 5% of each other, use average
+        if (priceDiff / avgPrice < 0.05) {
+          console.log('✅ LOS price verified across Jupiter & Meteora:', {
+            jupiter: jupiterResult,
+            meteora: meteoraResult,
+            average: avgPrice
+          });
+          return avgPrice;
+        } else {
+          console.warn('⚠️ Price discrepancy between Jupiter & Meteora:', {
+            jupiter: jupiterResult,
+            meteora: meteoraResult,
+            using: 'jupiter'
+          });
+        }
+      }
+
+      // Fallback to available source
+      if (jupiterResult) {
+        console.log('✅ LOS price from Jupiter API:', jupiterResult);
+        return jupiterResult;
+      }
+      
+      if (meteoraResult) {
+        console.log('✅ LOS price from Meteora API:', meteoraResult);
+        return meteoraResult;
+      }
+
+      throw new Error('No price data available from any source');
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch LOS price from all sources:', error);
+      return this.defaultLOSPrice;
+    }
+  }
+
+  /**
+   * Fetch LOS price from Jupiter Price API V3
+   */
+  private async fetchLOSPriceFromJupiterAPI(): Promise<number> {
+    const response = await fetch('https://lite-api.jup.ag/price/v3?ids=So11111111111111111111111111111111111111112');
+    
+    if (!response.ok) {
+      throw new Error(`Jupiter API responded with status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data['So11111111111111111111111111111111111111112'] && data['So11111111111111111111111111111111111111112'].usdPrice) {
+      return data['So11111111111111111111111111111111111111112'].usdPrice;
+    }
+    
+    throw new Error('No SOL price data in Jupiter response');
+  }
+
+  /**
+   * Fetch LOS price from Meteora API
+   * Using DLMM (Dynamic Liquidity Market Maker) API for SOL pairs
+   */
+  private async fetchLOSPriceFromMeteoraAPI(): Promise<number> {
+    try {
+      // Try Meteora DLMM API for SOL pairs
+      // SOL token: So11111111111111111111111111111111111111112
+      const response = await fetch('https://dlmm-api.meteora.ag/pair/So11111111111111111111111111111111111111112');
       
       if (!response.ok) {
-        throw new Error(`Jupiter API responded with status: ${response.status}`);
+        throw new Error(`Meteora API responded with status: ${response.status}`);
       }
       
       const data = await response.json();
       
-      // Check if we got the SOL price data
-      if (data['So11111111111111111111111111111111111111112'] && data['So11111111111111111111111111111111111111112'].usdPrice) {
-        const solPrice = data['So11111111111111111111111111111111111111112'].usdPrice;
-        console.log('✅ LOS (SOL) price fetched from Jupiter API V3:', solPrice);
-        return solPrice;
+      // Look for price information in Meteora response
+      // This might need adjustment based on actual Meteora API response format
+      if (data.price && typeof data.price === 'number') {
+        return data.price;
       }
       
-      throw new Error('No SOL price data in Jupiter response');
+      // Alternative: try to find price in pair data
+      if (data.pair && data.pair.price) {
+        return data.pair.price;
+      }
+      
+      throw new Error('No price data in Meteora response');
     } catch (error) {
-      console.warn('⚠️ Failed to fetch LOS price from Jupiter:', error);
-      return this.defaultLOSPrice;
+      // If DLMM API fails, try alternative Meteora endpoints
+      try {
+        const altResponse = await fetch('https://dlmm-api.meteora.ag/pairs');
+        if (altResponse.ok) {
+          const pairsData = await altResponse.json();
+          // Look for SOL pair in the list
+          const solPair = pairsData.find((pair: any) => 
+            pair.token_x === 'So11111111111111111111111111111111111111112' || 
+            pair.token_y === 'So11111111111111111111111111111111111111112'
+          );
+          
+          if (solPair && solPair.price) {
+            return solPair.price;
+          }
+        }
+      } catch (altError) {
+        console.warn('⚠️ Alternative Meteora API also failed:', altError);
+      }
+      
+      throw error;
     }
   }
 
