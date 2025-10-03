@@ -33,20 +33,22 @@ export class LOLBalanceChecker {
    */
   async checkLOLBalance(walletAddress: string, minimumRequired: number = 1000): Promise<LOLBalanceInfo> {
     try {
+      console.log('🔍 Checking LOL balance for wallet:', walletAddress);
       const walletPublicKey = new PublicKey(walletAddress);
       const tokenMintPublicKey = new PublicKey(this.lolTokenMint);
 
-      // Get associated token account
-      const associatedTokenAddress = await getAssociatedTokenAddress(
-        tokenMintPublicKey,
-        walletPublicKey
-      );
-
+      // First try the standard SPL token approach
       try {
-        // Get token account info
+        const associatedTokenAddress = await getAssociatedTokenAddress(
+          tokenMintPublicKey,
+          walletPublicKey
+        );
+
         const tokenAccount = await getAccount(this.connection, associatedTokenAddress);
         const balance = Number(tokenAccount.amount);
-        const balanceFormatted = (balance / Math.pow(10, tokenAccount.mint.toString() === this.lolTokenMint ? 6 : 6)).toFixed(2);
+        const balanceFormatted = (balance / Math.pow(10, 6)).toFixed(2);
+        
+        console.log('✅ Found LOL balance via SPL token:', balance);
         
         const hasMinimumBalance = balance >= minimumRequired;
         const shortfall = Math.max(0, minimumRequired - balance);
@@ -60,21 +62,118 @@ export class LOLBalanceChecker {
           tokenMint: this.lolTokenMint,
           tokenAccount: associatedTokenAddress.toString()
         };
-      } catch (error) {
-        // Token account doesn't exist or has zero balance
-        return {
-          balance: 0,
-          balanceFormatted: '0.00',
-          hasMinimumBalance: false,
-          minimumRequired,
-          shortfall: minimumRequired,
-          tokenMint: this.lolTokenMint,
-          tokenAccount: associatedTokenAddress.toString()
-        };
+      } catch (splError) {
+        console.log('⚠️ SPL token method failed, trying Token-2022 approach:', splError);
+        
+        // Try Token-2022 approach using raw RPC calls
+        return await this.checkLOLBalanceToken2022(walletAddress, minimumRequired);
       }
     } catch (error) {
-      console.error('Error checking LOL balance:', error);
+      console.error('❌ Error checking LOL balance:', error);
       throw new Error('Failed to check LOL balance');
+    }
+  }
+
+  /**
+   * Check LOL balance using Token-2022 approach
+   */
+  private async checkLOLBalanceToken2022(walletAddress: string, minimumRequired: number): Promise<LOLBalanceInfo> {
+    try {
+      console.log('🔍 Checking LOL balance using Token-2022 approach');
+      
+      const walletPublicKey = new PublicKey(walletAddress);
+      const tokenMintPublicKey = new PublicKey(this.lolTokenMint);
+
+      // Get all token accounts for this wallet
+      const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+        walletPublicKey,
+        {
+          programId: new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'), // Token-2022 program
+        }
+      );
+
+      console.log(`📊 Found ${tokenAccounts.value.length} Token-2022 accounts`);
+
+      // Look for LOL token account
+      for (const accountInfo of tokenAccounts.value) {
+        const parsedInfo = accountInfo.account.data.parsed.info;
+        const mintAddress = parsedInfo.mint;
+        
+        if (mintAddress === this.lolTokenMint) {
+          const balance = Number(parsedInfo.tokenAmount.amount);
+          const balanceFormatted = (balance / Math.pow(10, 6)).toFixed(2);
+          
+          console.log('✅ Found LOL balance via Token-2022:', balance);
+          
+          const hasMinimumBalance = balance >= minimumRequired;
+          const shortfall = Math.max(0, minimumRequired - balance);
+
+          return {
+            balance,
+            balanceFormatted,
+            hasMinimumBalance,
+            minimumRequired,
+            shortfall,
+            tokenMint: this.lolTokenMint,
+            tokenAccount: accountInfo.pubkey.toString()
+          };
+        }
+      }
+
+      // Also try standard SPL token program
+      const splTokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+        walletPublicKey,
+        {
+          programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), // SPL Token program
+        }
+      );
+
+      console.log(`📊 Found ${splTokenAccounts.value.length} SPL token accounts`);
+
+      for (const accountInfo of splTokenAccounts.value) {
+        const parsedInfo = accountInfo.account.data.parsed.info;
+        const mintAddress = parsedInfo.mint;
+        
+        if (mintAddress === this.lolTokenMint) {
+          const balance = Number(parsedInfo.tokenAmount.amount);
+          const balanceFormatted = (balance / Math.pow(10, 6)).toFixed(2);
+          
+          console.log('✅ Found LOL balance via SPL token program:', balance);
+          
+          const hasMinimumBalance = balance >= minimumRequired;
+          const shortfall = Math.max(0, minimumRequired - balance);
+
+          return {
+            balance,
+            balanceFormatted,
+            hasMinimumBalance,
+            minimumRequired,
+            shortfall,
+            tokenMint: this.lolTokenMint,
+            tokenAccount: accountInfo.pubkey.toString()
+          };
+        }
+      }
+
+      console.log('❌ No LOL token account found');
+      return {
+        balance: 0,
+        balanceFormatted: '0.00',
+        hasMinimumBalance: false,
+        minimumRequired,
+        shortfall: minimumRequired,
+        tokenMint: this.lolTokenMint
+      };
+    } catch (error) {
+      console.error('❌ Error in Token-2022 balance check:', error);
+      return {
+        balance: 0,
+        balanceFormatted: '0.00',
+        hasMinimumBalance: false,
+        minimumRequired,
+        shortfall: minimumRequired,
+        tokenMint: this.lolTokenMint
+      };
     }
   }
 
