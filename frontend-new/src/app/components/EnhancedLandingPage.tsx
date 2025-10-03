@@ -270,88 +270,98 @@ Block Explorer: https://explorer.analos.io`
       </div>
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+      <div className="relative overflow-hidden pt-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10"></div>
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-20">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              🚀 <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">LosLauncher</span>
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                LosLauncher
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto">
-              The Complete <span className="text-orange-400 font-semibold">NFT Ecosystem</span> for Analos Blockchain
+            <p className="text-2xl md:text-3xl text-gray-200 mb-6 max-w-4xl mx-auto font-light">
+              The Complete <span className="text-orange-400 font-semibold">NFT Ecosystem</span>
             </p>
-            <p className="text-lg text-gray-400 mb-12 max-w-5xl mx-auto">
+            <p className="text-lg text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
               Create, explore, trade, and launch professional NFT collections with advanced features, 
-              multi-token payments, and comprehensive analytics. Built specifically for the Analos ecosystem.
+              multi-token payments, and comprehensive analytics.
             </p>
             
-            {/* Token Burn Banner */}
-            <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/50 rounded-2xl p-6 mb-12 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center space-x-3 mb-2">
-                <span className="text-red-400 text-2xl">🔥</span>
-                <span className="text-white font-bold text-xl">25% Token Burn</span>
-                <span className="text-red-400 text-2xl">🔥</span>
-              </div>
-              <p className="text-gray-300">
-                25% of all collected $LOS is burned for the culture, supporting the Analos ecosystem
-              </p>
-            </div>
-
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link 
                 href="/admin"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >
                 🎨 Start Creating
               </Link>
               <Link 
                 href="/explorer"
-                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >
                 🔍 Explore NFTs
               </Link>
               <Link 
                 href="#features"
-                className="bg-white/20 hover:bg-white/30 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 border border-white/30"
+                className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 border border-white/20 backdrop-blur-sm"
               >
                 ✨ View Features
               </Link>
+            </div>
+
+            {/* Token Burn Banner */}
+            <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-400/30 rounded-2xl p-6 max-w-xl mx-auto backdrop-blur-sm">
+              <div className="flex items-center justify-center space-x-3 mb-3">
+                <span className="text-red-400 text-xl">🔥</span>
+                <span className="text-white font-bold text-lg">25% Token Burn</span>
+                <span className="text-red-400 text-xl">🔥</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                25% of all collected $LOS is burned for the culture, supporting the Analos ecosystem
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Token Holder Incentives */}
-      <section className="py-20 bg-gray-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+      <section className="py-24 bg-gradient-to-b from-transparent to-gray-900/30">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               💎 $LOL Holder Benefits
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
               Hold $LOL tokens to unlock exclusive benefits, discounts, and most importantly - <strong className="text-purple-400">governance voting rights</strong> to help shape our platform's future
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
             {tokenIncentives.map((incentive, index) => (
               <div
                 key={index}
-                className={`bg-gradient-to-br ${incentive.color} bg-opacity-20 rounded-2xl p-6 border border-white/20 transition-all duration-500 ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                className={`bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10 transition-all duration-700 hover:scale-105 hover:shadow-2xl ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
                 }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
+                style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="text-center">
-                  <h3 className="text-xl font-bold text-white mb-2">{incentive.tier}</h3>
-                  <p className="text-gray-300 text-sm mb-4">{incentive.requirement}</p>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${incentive.color} mx-auto mb-6 flex items-center justify-center`}>
+                    <span className="text-2xl">
+                      {incentive.tier === 'Bronze' && '🥉'}
+                      {incentive.tier === 'Silver' && '🥈'}
+                      {incentive.tier === 'Gold' && '🥇'}
+                      {incentive.tier === 'Diamond' && '💎'}
+                      {incentive.tier === 'Whale' && '🐋'}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-3">{incentive.tier}</h3>
+                  <p className="text-purple-400 font-semibold mb-6">{incentive.requirement}</p>
                   
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-3 text-sm">
                     {incentive.benefits.map((benefit, i) => (
-                      <li key={i} className="flex items-center text-gray-300">
-                        <span className="text-green-400 mr-2">✓</span>
-                        {benefit}
+                      <li key={i} className="flex items-start text-gray-300">
+                        <span className="text-green-400 mr-3 mt-0.5">✓</span>
+                        <span>{benefit}</span>
                       </li>
                     ))}
                   </ul>
@@ -363,66 +373,66 @@ Block Explorer: https://explorer.analos.io`
       </section>
 
       {/* Featured Upcoming Mint */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+      <section className="py-24 bg-gradient-to-b from-gray-900/30 to-transparent">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
               🌟 Featured Upcoming Mint
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
               Don't miss out on exclusive collections launching on our platform
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/50 rounded-3xl p-8">
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div className="bg-gradient-to-r from-purple-600/10 to-blue-600/10 border border-purple-400/20 rounded-3xl p-12 backdrop-blur-sm">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-2xl font-bold text-white mb-4">LosBros Collection</h3>
-                <p className="text-gray-300 mb-6">
+                <h3 className="text-3xl font-bold text-white mb-6">LosBros Collection</h3>
+                <p className="text-gray-300 mb-8 text-lg leading-relaxed">
                   An exclusive collection featuring 126 unique traits across 6 categories: 
                   Background, Clothes, Eyes, Hats, Mouth, and Skin. Each NFT is carefully 
                   crafted with professional-grade rarity distribution.
                 </p>
                 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">126</div>
-                    <div className="text-gray-400 text-sm">Unique Traits</div>
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                    <div className="text-3xl font-bold text-white mb-2">126</div>
+                    <div className="text-gray-400">Unique Traits</div>
                   </div>
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">6</div>
-                    <div className="text-gray-400 text-sm">Trait Categories</div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                    <div className="text-3xl font-bold text-white mb-2">6</div>
+                    <div className="text-gray-400">Trait Categories</div>
                   </div>
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">4,200</div>
-                    <div className="text-gray-400 text-sm">Total Supply</div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                    <div className="text-3xl font-bold text-white mb-2">4,200</div>
+                    <div className="text-gray-400">Total Supply</div>
                   </div>
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="text-2xl font-bold text-white">0.069</div>
-                    <div className="text-gray-400 text-sm">$LOS Mint Price</div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                    <div className="text-3xl font-bold text-white mb-2">0.069</div>
+                    <div className="text-gray-400">$LOS Mint Price</div>
                   </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link 
                     href="/mint/losbros"
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     🎨 View Collection
                   </Link>
                   <Link 
                     href="/explorer"
-                    className="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 border border-white/30"
+                    className="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 border border-white/20 backdrop-blur-sm"
                   >
                     🔍 Explore All NFTs
                   </Link>
                 </div>
               </div>
               
-              <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl p-8 text-center">
-                <div className="text-6xl mb-4">🎨</div>
-                <h4 className="text-xl font-bold text-white mb-2">Professional Quality</h4>
-                <p className="text-gray-300 text-sm">
+              <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-3xl p-12 text-center border border-white/10">
+                <div className="text-8xl mb-6">🎨</div>
+                <h4 className="text-2xl font-bold text-white mb-4">Professional Quality</h4>
+                <p className="text-gray-300 text-lg leading-relaxed">
                   Each trait is professionally designed and optimized for rarity distribution
                 </p>
               </div>
