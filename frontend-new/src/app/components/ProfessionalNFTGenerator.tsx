@@ -631,6 +631,20 @@ export default function ProfessionalNFTGenerator() {
                     <span className="text-red-400 text-lg">🔥</span>
                   </div>
                 </div>
+
+                <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/50 rounded-xl p-4">
+                  <h3 className="text-white font-semibold mb-2">💎 $LOL Holder Benefits</h3>
+                  <p className="text-gray-300 text-sm">
+                    Hold $LOL tokens to unlock exclusive discounts and premium features:
+                  </p>
+                  <ul className="text-gray-300 text-sm mt-2 space-y-1">
+                    <li>• 100K+ $LOL: 5% discount + early access</li>
+                    <li>• 500K+ $LOL: 10% discount + beta features</li>
+                    <li>• 2.5M+ $LOL: 15% discount + white-label</li>
+                    <li>• 10M+ $LOL: 20% discount + revenue sharing</li>
+                    <li>• 20M+ $LOL: 25% discount + governance rights</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

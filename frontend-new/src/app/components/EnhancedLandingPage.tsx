@@ -95,7 +95,7 @@ export default function EnhancedLandingPage() {
   const tokenIncentives = [
     {
       tier: "Bronze",
-      requirement: "1,000+ $LOS",
+      requirement: "100,000+ $LOL",
       benefits: [
         "Early access to new collections",
         "5% discount on generation fees",
@@ -106,7 +106,7 @@ export default function EnhancedLandingPage() {
     },
     {
       tier: "Silver", 
-      requirement: "5,000+ $LOS",
+      requirement: "500,000+ $LOL",
       benefits: [
         "All Bronze benefits",
         "10% discount on all services",
@@ -117,7 +117,7 @@ export default function EnhancedLandingPage() {
     },
     {
       tier: "Gold",
-      requirement: "25,000+ $LOS", 
+      requirement: "2,500,000+ $LOL", 
       benefits: [
         "All Silver benefits",
         "15% discount on all services",
@@ -128,7 +128,7 @@ export default function EnhancedLandingPage() {
     },
     {
       tier: "Diamond",
-      requirement: "100,000+ $LOS",
+      requirement: "10,000,000+ $LOL",
       benefits: [
         "All Gold benefits", 
         "20% discount on all services",
@@ -139,7 +139,7 @@ export default function EnhancedLandingPage() {
     },
     {
       tier: "Whale",
-      requirement: "500,000+ $LOS",
+      requirement: "20,000,000+ $LOL",
       benefits: [
         "All Diamond benefits",
         "25% discount on all services", 
@@ -331,10 +331,10 @@ Block Explorer: https://explorer.analos.io`
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              💎 Token Holder Incentives
+              💎 $LOL Holder Benefits
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Hold $LOS tokens to unlock exclusive benefits and platform features
+              Hold $LOL tokens to unlock exclusive benefits, discounts, and premium platform features
             </p>
           </div>
 
