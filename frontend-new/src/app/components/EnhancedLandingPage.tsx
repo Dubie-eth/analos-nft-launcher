@@ -2,8 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { isAuthorizedAdmin } from '@/lib/admin-config';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function EnhancedLandingPage() {
+  const { publicKey, connected } = useWallet();
+  const isAdmin = connected && publicKey && isAuthorizedAdmin(publicKey.toString());
+  
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [currentRoadmapItem, setCurrentRoadmapItem] = useState(0);
@@ -288,12 +293,21 @@ Block Explorer: https://explorer.analos.io`
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link 
-                href="/admin"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
-              >
-                🎨 Start Creating
-              </Link>
+              {isAdmin ? (
+                <Link 
+                  href="/admin"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                >
+                  🎨 Start Creating
+                </Link>
+              ) : (
+                <Link 
+                  href="/mint"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                >
+                  🎨 Start Minting
+                </Link>
+              )}
               <Link 
                 href="/explorer"
                 className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
@@ -739,12 +753,21 @@ Block Explorer: https://explorer.analos.io`
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link 
-              href="/admin"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
-            >
-              🎨 Start Creating Now
-            </Link>
+            {isAdmin ? (
+              <Link 
+                href="/admin"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+              >
+                🎨 Start Creating Now
+              </Link>
+            ) : (
+              <Link 
+                href="/mint"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
+              >
+                🎨 Start Minting Now
+              </Link>
+            )}
             <Link 
               href="/explorer"
               className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
@@ -787,7 +810,7 @@ Block Explorer: https://explorer.analos.io`
             <div>
               <h4 className="text-white font-semibold mb-4">Platform</h4>
               <ul className="space-y-2">
-                <li><Link href="/admin" className="text-gray-400 hover:text-white">Admin Panel</Link></li>
+                {isAdmin && <li><Link href="/admin" className="text-gray-400 hover:text-white">Admin Panel</Link></li>}
                 <li><Link href="/explorer" className="text-gray-400 hover:text-white">NFT Explorer</Link></li>
                 <li><Link href="/mint/launch-on-los" className="text-gray-400 hover:text-white">Sample Mint</Link></li>
               </ul>

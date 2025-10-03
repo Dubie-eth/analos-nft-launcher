@@ -3,18 +3,30 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { isAuthorizedAdmin } from '@/lib/admin-config';
 
 export default function Navigation() {
   const { connected, publicKey, disconnect } = useWallet();
   const pathname = usePathname();
 
-  const navItems = [
+  // Check if current user is an admin
+  const isAdmin = connected && publicKey && isAuthorizedAdmin(publicKey.toString());
+
+  // Base navigation items (always visible)
+  const baseNavItems = [
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/mint', label: 'Mint', icon: '🎨' },
     { href: '/explorer', label: 'Explorer', icon: '🔍' },
-    { href: '/admin', label: 'Admin', icon: '⚙️' },
     { href: '/profile', label: 'Profile', icon: '👤' },
   ];
+
+  // Admin-only navigation items
+  const adminNavItems = [
+    { href: '/admin', label: 'Admin', icon: '⚙️' },
+  ];
+
+  // Combine navigation items based on admin status
+  const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -100,3 +112,4 @@ export default function Navigation() {
     </nav>
   );
 }
+

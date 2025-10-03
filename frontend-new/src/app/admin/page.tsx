@@ -222,49 +222,26 @@ function AdminPageContent() {
     );
   }
 
-  // Admin access check
+  // Admin access check - redirect unauthorized users to 404
   if (!isAdmin) {
+    // Log unauthorized access attempt for security monitoring
+    console.log(`🚫 Unauthorized admin access attempt from wallet: ${publicKey?.toString() || 'not connected'}`);
+    
+    // Return a 404-like page to make admin panel invisible
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 max-w-md w-full border border-white/20">
-          <div className="text-center">
-            <div className="text-6xl mb-6">🔒</div>
-            <h1 className="text-3xl font-bold text-white mb-4">Admin Access Required</h1>
-            <p className="text-white/80 mb-6 leading-relaxed">
-              This administrative panel is restricted to authorized administrators only. 
-              Only specific wallet addresses have access to collection management features.
-            </p>
-            
-            {connected ? (
-              <div className="space-y-4">
-                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
-                  <p className="text-red-300 text-sm">
-                    <strong>Access Denied:</strong> Your wallet ({publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}) 
-                    is not authorized to access this admin panel.
-                  </p>
-                </div>
-                <p className="text-white/60 text-sm">
-                  If you believe this is an error, please contact the platform administrator.
-                </p>
-                <div className="pt-4">
-                  <WalletMultiButton />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <WalletMultiButton />
-                <p className="text-white/60 text-sm">
-                  Connect your wallet to verify admin access permissions.
-                </p>
-              </div>
-            )}
-            
-            <div className="mt-8 pt-6 border-t border-white/20">
-              <p className="text-white/50 text-xs">
-                LosLauncher Admin Panel • Secured Access Only
-              </p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-8xl mb-6">🔍</div>
+          <h1 className="text-4xl font-bold text-white mb-4">Page Not Found</h1>
+          <p className="text-white/60 mb-8 text-lg">
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+          <a 
+            href="/" 
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105"
+          >
+            Go Home
+          </a>
         </div>
       </div>
     );
