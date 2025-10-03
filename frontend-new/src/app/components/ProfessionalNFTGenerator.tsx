@@ -263,6 +263,11 @@ export default function ProfessionalNFTGenerator() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+              🚀 BETA
+            </div>
+          </div>
           <h1 className="text-4xl font-bold text-white mb-2">
             🎨 Professional NFT Generator
           </h1>

@@ -259,6 +259,16 @@ Block Explorer: https://explorer.analos.io`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+      {/* Beta Tab */}
+      <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-b-lg shadow-lg">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">🚀</span>
+            <span className="text-sm font-semibold">BETA</span>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20"></div>
@@ -287,20 +297,6 @@ Block Explorer: https://explorer.analos.io`
               </p>
             </div>
 
-            {/* Beta Disclaimer */}
-            <div className="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 border border-yellow-500/50 rounded-2xl p-6 mb-12 max-w-4xl mx-auto">
-              <div className="flex items-center justify-center space-x-3 mb-2">
-                <span className="text-yellow-400 text-2xl">⚠️</span>
-                <span className="text-white font-bold text-xl">Beta Platform Notice</span>
-                <span className="text-yellow-400 text-2xl">⚠️</span>
-              </div>
-              <p className="text-gray-300 mb-2">
-                LosLauncher is currently in <strong>BETA</strong> - this is an experimental platform.
-              </p>
-              <p className="text-gray-300 text-sm">
-                All tests and interactions are at your own risk. Use at your discretion.
-              </p>
-            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
@@ -806,7 +802,7 @@ Block Explorer: https://explorer.analos.io`
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2025 LosLauncher. Built for the Analos ecosystem. All rights reserved.</p>
             <p className="mt-2 text-sm">
-              <strong>Beta Platform:</strong> This is an experimental platform. Use at your own discretion.
+              🚀 <strong>Beta Version:</strong> We're continuously improving LosLauncher. Thank you for being part of our journey!
             </p>
           </div>
         </div>
