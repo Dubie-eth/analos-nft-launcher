@@ -859,11 +859,11 @@ function AdminPageContent() {
                 <h3 className="text-lg font-semibold text-white mb-3">
                   🔗 Blockchain Collections
                 </h3>
-                {blockchainCollections.length === 0 ? (
+                {collections.length === 0 ? (
                   <p className="text-white/60 text-sm">No collections deployed</p>
                 ) : (
                   <div className="space-y-2">
-                    {blockchainCollections.map((collection) => (
+                    {collections.map((collection) => (
                       <div key={collection.name} className="bg-white/10 rounded p-3">
                         <div className="flex justify-between items-start">
                           <div>
