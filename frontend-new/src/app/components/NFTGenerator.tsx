@@ -43,13 +43,41 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
   useEffect(() => {
     const loadPricing = async () => {
       try {
+        console.log('🔄 Loading pricing tiers...');
         const tiers = await pricingService.getArtGeneratorPricing();
         setPricingTiers(tiers);
+        console.log('✅ Pricing tiers loaded:', tiers.length);
         
         const marketSummary = await pricingService.getMarketSummary();
         setMarketData(marketSummary);
+        console.log('✅ Market data loaded:', marketSummary);
       } catch (error) {
-        console.error('Error loading pricing:', error);
+        console.error('❌ Error loading pricing:', error);
+        // Set fallback pricing to prevent UI crashes
+        setPricingTiers([
+          {
+            name: "Starter",
+            description: "Perfect for small collections",
+            pricePerToken: 800000, // Fallback LOS amount
+            pricePerTokenUSD: 0.12,
+            features: ["Up to 1,000 NFTs", "Basic IPFS hosting", "Standard generation speed", "Email support"]
+          },
+          {
+            name: "Professional",
+            description: "Ideal for medium collections",
+            pricePerToken: 1000000, // Fallback LOS amount
+            pricePerTokenUSD: 0.15,
+            features: ["Up to 10,000 NFTs", "Premium IPFS hosting", "Fast generation speed", "Priority support", "Custom metadata"],
+            isPopular: true
+          },
+          {
+            name: "Enterprise",
+            description: "For large-scale collections",
+            pricePerToken: 1200000, // Fallback LOS amount
+            pricePerTokenUSD: 0.18,
+            features: ["Unlimited NFTs", "Dedicated IPFS hosting", "Ultra-fast generation", "24/7 phone support", "Custom branding", "White-label options"]
+          }
+        ]);
       }
     };
     
@@ -59,13 +87,23 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
   // Calculate pricing for current configuration
   useEffect(() => {
     const calculatePricing = async () => {
-      if (!selectedPricingTier || !config.supply) return null;
+      if (!selectedPricingTier || !config.supply) {
+        setPricing(null);
+        return;
+      }
       
       try {
         const result = await pricingService.calculateGenerationCost(config.supply, selectedPricingTier.name);
         setPricing(result);
       } catch (error) {
         console.error('Error calculating pricing:', error);
+        // Set fallback pricing calculation
+        setPricing({
+          totalLOS: selectedPricingTier.pricePerToken * config.supply,
+          totalUSD: selectedPricingTier.pricePerTokenUSD * config.supply,
+          pricePerToken: selectedPricingTier.pricePerToken,
+          pricePerTokenUSD: selectedPricingTier.pricePerTokenUSD
+        });
       }
     };
 
@@ -439,7 +477,7 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                     )}
                   </div>
                   <div className="space-y-3">
-                    {pricingTiers.map((tier) => (
+                    {pricingTiers.length > 0 ? pricingTiers.map((tier) => (
                       <div
                         key={tier.name}
                         className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
@@ -467,7 +505,12 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                        <p className="text-gray-300">Loading pricing tiers...</p>
+                      </div>
+                    )}
                   </div>
                   
                   {selectedPricingTier && pricing && (
