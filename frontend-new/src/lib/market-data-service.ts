@@ -30,7 +30,7 @@ class MarketDataService {
 
   /**
    * Fetch real-time market data for LOS and LOL tokens
-   * TEMPORARY: Using fallback data until Analos API is available
+   * Using Jupiter Price API V3 for accurate pricing
    */
   async getMarketData(): Promise<MarketData> {
     const cacheKey = 'market_data';
@@ -41,94 +41,69 @@ class MarketDataService {
       return cached;
     }
 
-    console.log('📊 Using fallback market data (Analos API not available)');
+    console.log('📊 Fetching fresh market data from Jupiter API...');
     
-    // TEMPORARY: Use fallback data until we get proper Analos API endpoints
-    const marketData: MarketData = {
-      losPriceUSD: this.defaultLOSPrice,
-      lolPriceUSD: this.defaultLOLPrice,
-      lastUpdated: Date.now(),
-      source: 'fallback'
-    };
+    try {
+      // Fetch LOS (SOL) price from Jupiter Price API V3
+      const losPrice = await this.fetchLOSPriceFromJupiter();
+      
+      // For LOL, we'll use a reasonable estimate since it's specific to Analos
+      const lolPrice = this.defaultLOLPrice;
 
-    this.cache.set(cacheKey, marketData);
-    console.log('📊 Market data set (fallback):', {
-      LOS: `$${marketData.losPriceUSD.toFixed(6)}`,
-      LOL: `$${marketData.lolPriceUSD.toFixed(4)}`
-    });
+      const marketData: MarketData = {
+        losPriceUSD: losPrice,
+        lolPriceUSD: lolPrice,
+        lastUpdated: Date.now(),
+        source: 'jupiter-v3'
+      };
 
-    return marketData;
+      this.cache.set(cacheKey, marketData);
+      console.log('📊 Market data fetched from Jupiter:', {
+        LOS: `$${marketData.losPriceUSD.toFixed(6)}`,
+        LOL: `$${marketData.lolPriceUSD.toFixed(4)}`
+      });
+
+      return marketData;
+    } catch (error) {
+      console.error('❌ Error fetching market data:', error);
+      return {
+        losPriceUSD: this.defaultLOSPrice,
+        lolPriceUSD: this.defaultLOLPrice,
+        lastUpdated: Date.now(),
+        source: 'fallback'
+      };
+    }
   }
 
   /**
-   * Fetch LOS token price from Analos DEX or fallback sources
+   * Fetch LOS token price from Jupiter Price API V3
+   * LOS is SOL (So11111111111111111111111111111111111111112)
    */
-  private async fetchLOSPrice(): Promise<number> {
+  private async fetchLOSPriceFromJupiter(): Promise<number> {
     try {
-      // Try Analos DEX API first for LOS/USDC pair
-      // LOS token address: So11111111111111111111111111111111111111112 (native SOL)
-      const analosResponse = await fetch('https://app.analos.io/api/token/So11111111111111111111111111111111111111112/price');
+      // Use Jupiter Price API V3 to get SOL price
+      const response = await fetch('https://lite-api.jup.ag/price/v3?ids=So11111111111111111111111111111111111111112');
       
-      if (analosResponse.ok) {
-        const data = await analosResponse.json();
-        if (data.price && data.price > 0) {
-          console.log('✅ LOS price fetched from Analos DEX:', data.price);
-          return data.price;
-        }
+      if (!response.ok) {
+        throw new Error(`Jupiter API responded with status: ${response.status}`);
       }
       
-      // Fallback to CoinGecko for SOL price
-      const cgResponse = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-      const cgData = await cgResponse.json();
+      const data = await response.json();
       
-      if (cgData.solana && cgData.solana.usd) {
-        console.log('✅ LOS price fetched from CoinGecko (SOL):', cgData.solana.usd);
-        return cgData.solana.usd;
+      // Check if we got the SOL price data
+      if (data['So11111111111111111111111111111111111111112'] && data['So11111111111111111111111111111111111111112'].usdPrice) {
+        const solPrice = data['So11111111111111111111111111111111111111112'].usdPrice;
+        console.log('✅ LOS (SOL) price fetched from Jupiter API V3:', solPrice);
+        return solPrice;
       }
       
-      throw new Error('No price data available');
+      throw new Error('No SOL price data in Jupiter response');
     } catch (error) {
-      console.warn('⚠️ Failed to fetch LOS price:', error);
+      console.warn('⚠️ Failed to fetch LOS price from Jupiter:', error);
       return this.defaultLOSPrice;
     }
   }
 
-  /**
-   * Fetch LOL token price from Analos DEX
-   */
-  private async fetchLOLPrice(): Promise<number> {
-    try {
-      // Try Analos DEX API for LOL token price
-      // LOL token address: ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6
-      const analosResponse = await fetch('https://app.analos.io/api/token/ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6/price');
-      
-      if (analosResponse.ok) {
-        const data = await analosResponse.json();
-        if (data.price && data.price > 0) {
-          console.log('✅ LOL price fetched from Analos DEX:', data.price);
-          return data.price;
-        }
-      }
-      
-      // Try alternative Analos DEX endpoint for the specific LOL/USDC pair
-      const pairResponse = await fetch('https://app.analos.io/api/pair/9pan9bMn5HatX4EJdBwg9VgCa7Uz5HL8N1m5D3NdXejP/ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6/price');
-      
-      if (pairResponse.ok) {
-        const pairData = await pairResponse.json();
-        if (pairData.price && pairData.price > 0) {
-          console.log('✅ LOL price fetched from Analos DEX pair:', pairData.price);
-          return pairData.price;
-        }
-      }
-      
-      // Fallback to default price
-      console.log('⚠️ Using fallback LOL price:', this.defaultLOLPrice);
-      return this.defaultLOLPrice;
-    } catch (error) {
-      console.warn('⚠️ Failed to fetch LOL price:', error);
-      return this.defaultLOLPrice;
-    }
-  }
 
   /**
    * Calculate LOS cost for a given USD amount
