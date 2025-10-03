@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { tokenIdTracker } from '../../lib/token-id-tracker';
+import Link from 'next/link';
 
 interface ExplorerNFT {
   mint: string;
@@ -198,9 +199,12 @@ export default function ExplorerPage() {
                       </div>
                     </div>
                     
-                    <button className="w-full bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 text-white py-3 px-4 rounded-xl text-sm font-semibold hover:from-purple-600 hover:via-blue-600 hover:to-indigo-700 transition-all duration-200">
+                    <Link 
+                      href={`/mint/${nft.collectionName.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="w-full bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 text-white py-3 px-4 rounded-xl text-sm font-semibold hover:from-purple-600 hover:via-blue-600 hover:to-indigo-700 transition-all duration-200 block text-center"
+                    >
                       ✨ View Details
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}

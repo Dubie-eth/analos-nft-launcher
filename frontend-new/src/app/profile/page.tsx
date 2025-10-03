@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { tokenIdTracker } from '../../lib/token-id-tracker';
+import Link from 'next/link';
 
 interface UserNFT {
   mint: string;
@@ -590,9 +591,12 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     
-                    <button className="w-full bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 text-white py-3 px-4 rounded-xl text-sm font-semibold hover:from-purple-600 hover:via-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                    <Link 
+                      href={`/mint/${nft.collectionName.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="w-full bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 text-white py-3 px-4 rounded-xl text-sm font-semibold hover:from-purple-600 hover:via-blue-600 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl block text-center"
+                    >
                       ✨ View Details
-                    </button>
+                    </Link>
                   </div>
                 </div>
               ))}
