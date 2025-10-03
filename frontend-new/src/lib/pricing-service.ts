@@ -47,50 +47,97 @@ export class PricingService {
    * Now uses real-time market data for dynamic pricing
    */
   async getArtGeneratorPricing(): Promise<PricingTier[]> {
-    const pricing = await marketDataService.getArtGeneratorPricing();
-    
-    return [
-      {
-        name: "Starter",
-        description: "Perfect for small collections",
-        pricePerToken: pricing.starter.losCost, // $LOS (calculated from real-time market data)
-        pricePerTokenUSD: pricing.starter.usdTarget,
-        features: [
-          "Up to 1,000 NFTs",
-          "Basic IPFS hosting",
-          "Standard generation speed",
-          "Email support"
-        ]
-      },
-      {
-        name: "Professional",
-        description: "Ideal for medium collections",
-        pricePerToken: pricing.professional.losCost, // $LOS (calculated from real-time market data)
-        pricePerTokenUSD: pricing.professional.usdTarget,
-        features: [
-          "Up to 10,000 NFTs",
-          "Premium IPFS hosting",
-          "Fast generation speed",
-          "Priority support",
-          "Custom metadata"
-        ],
-        isPopular: true
-      },
-      {
-        name: "Enterprise",
-        description: "For large-scale collections",
-        pricePerToken: pricing.enterprise.losCost, // $LOS (calculated from real-time market data)
-        pricePerTokenUSD: pricing.enterprise.usdTarget,
-        features: [
-          "Unlimited NFTs",
-          "Dedicated IPFS hosting",
-          "Ultra-fast generation",
-          "24/7 phone support",
-          "Custom branding",
-          "White-label options"
-        ]
-      }
-    ];
+    try {
+      const pricing = await marketDataService.getArtGeneratorPricing();
+      
+      return [
+        {
+          name: "Starter",
+          description: "Perfect for small collections",
+          pricePerToken: pricing?.starter?.losCost || 800000, // $LOS (calculated from real-time market data)
+          pricePerTokenUSD: pricing?.starter?.usdTarget || 0.12,
+          features: [
+            "Up to 1,000 NFTs",
+            "Basic IPFS hosting",
+            "Standard generation speed",
+            "Email support"
+          ]
+        },
+        {
+          name: "Professional",
+          description: "Ideal for medium collections",
+          pricePerToken: pricing?.professional?.losCost || 1000000, // $LOS (calculated from real-time market data)
+          pricePerTokenUSD: pricing?.professional?.usdTarget || 0.15,
+          features: [
+            "Up to 10,000 NFTs",
+            "Premium IPFS hosting",
+            "Fast generation speed",
+            "Priority support",
+            "Custom metadata"
+          ],
+          isPopular: true
+        },
+        {
+          name: "Enterprise",
+          description: "For large-scale collections",
+          pricePerToken: pricing?.enterprise?.losCost || 1200000, // $LOS (calculated from real-time market data)
+          pricePerTokenUSD: pricing?.enterprise?.usdTarget || 0.18,
+          features: [
+            "Unlimited NFTs",
+            "Dedicated IPFS hosting",
+            "Ultra-fast generation",
+            "24/7 phone support",
+            "Custom branding",
+            "White-label options"
+          ]
+        }
+      ];
+    } catch (error) {
+      console.error('❌ Error getting art generator pricing:', error);
+      // Return fallback pricing if market data fails
+      return [
+        {
+          name: "Starter",
+          description: "Perfect for small collections",
+          pricePerToken: 800000, // Fallback LOS amount
+          pricePerTokenUSD: 0.12,
+          features: [
+            "Up to 1,000 NFTs",
+            "Basic IPFS hosting",
+            "Standard generation speed",
+            "Email support"
+          ]
+        },
+        {
+          name: "Professional",
+          description: "Ideal for medium collections",
+          pricePerToken: 1000000, // Fallback LOS amount
+          pricePerTokenUSD: 0.15,
+          features: [
+            "Up to 10,000 NFTs",
+            "Premium IPFS hosting",
+            "Fast generation speed",
+            "Priority support",
+            "Custom metadata"
+          ],
+          isPopular: true
+        },
+        {
+          name: "Enterprise",
+          description: "For large-scale collections",
+          pricePerToken: 1200000, // Fallback LOS amount
+          pricePerTokenUSD: 0.18,
+          features: [
+            "Unlimited NFTs",
+            "Dedicated IPFS hosting",
+            "Ultra-fast generation",
+            "24/7 phone support",
+            "Custom branding",
+            "White-label options"
+          ]
+        }
+      ];
+    }
   }
 
   /**
@@ -152,18 +199,38 @@ export class PricingService {
     pricePerToken: number;
     pricePerTokenUSD: number;
   }> {
-    const tiers = await this.getArtGeneratorPricing();
-    const selectedTier = tiers.find(t => t.name.toLowerCase() === tier.toLowerCase()) || tiers[1];
-    
-    const totalLOS = quantity * selectedTier.pricePerToken;
-    const totalUSD = quantity * selectedTier.pricePerTokenUSD;
+    try {
+      const tiers = await this.getArtGeneratorPricing();
+      
+      // Ensure tiers is an array and has items
+      if (!tiers || !Array.isArray(tiers) || tiers.length === 0) {
+        throw new Error('No pricing tiers available');
+      }
+      
+      const selectedTier = tiers.find(t => t.name.toLowerCase() === tier.toLowerCase()) || tiers[1] || tiers[0];
+      
+      const totalLOS = quantity * selectedTier.pricePerToken;
+      const totalUSD = quantity * selectedTier.pricePerTokenUSD;
 
-    return {
-      totalLOS,
-      totalUSD,
-      pricePerToken: selectedTier.pricePerToken,
-      pricePerTokenUSD: selectedTier.pricePerTokenUSD
-    };
+      return {
+        totalLOS,
+        totalUSD,
+        pricePerToken: selectedTier.pricePerToken,
+        pricePerTokenUSD: selectedTier.pricePerTokenUSD
+      };
+    } catch (error) {
+      console.error('❌ Error calculating generation cost:', error);
+      // Return fallback pricing
+      const fallbackPricePerToken = 1000000; // 1M LOS
+      const fallbackPricePerTokenUSD = 0.15; // $0.15
+      
+      return {
+        totalLOS: quantity * fallbackPricePerToken,
+        totalUSD: quantity * fallbackPricePerTokenUSD,
+        pricePerToken: fallbackPricePerToken,
+        pricePerTokenUSD: fallbackPricePerTokenUSD
+      };
+    }
   }
 
   /**
