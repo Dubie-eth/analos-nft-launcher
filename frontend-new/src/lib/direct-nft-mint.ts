@@ -116,15 +116,15 @@ export class DirectNFTMintService {
           transaction.add(lolTransferInstruction);
           console.log('✅ Added LOL token payment instruction');
         } else if (collectionData.paymentToken === 'LOS' || !collectionData.paymentToken) {
-          // Native SOL payment - FALLBACK ONLY
-          console.log('💰 Processing native SOL payment:', totalCost, 'SOL');
+          // Native LOS payment - FALLBACK ONLY
+          console.log('💰 Processing native LOS payment:', totalCost, 'LOS');
           const paymentInstruction = SystemProgram.transfer({
             fromPubkey: payer,
             toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
-            lamports: totalCost * LAMPORTS_PER_SOL,
+            lamports: totalCost * Math.pow(10, 9), // LOS has 9 decimals, not LAMPORTS_PER_SOL
           });
           transaction.add(paymentInstruction);
-          console.log('✅ Added SOL payment instruction');
+          console.log('✅ Added LOS payment instruction');
         } else {
           // Other token payment
           console.log('💰 Processing custom token payment:', totalCost, collectionData.paymentToken);
