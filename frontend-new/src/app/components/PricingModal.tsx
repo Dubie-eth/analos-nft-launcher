@@ -46,6 +46,23 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
     }
   }, [isOpen, quantity, selectedTier]);
 
+  // Recalculate generation cost when quantity or selectedTier changes
+  useEffect(() => {
+    if (isOpen && artGeneratorTiers.length > 0) {
+      const recalculateCost = async () => {
+        try {
+          const cost = await pricingService.calculateGenerationCost(quantity, selectedTier);
+          setGenerationCost(cost);
+        } catch (error) {
+          console.error('❌ Error recalculating generation cost:', error);
+          setGenerationCost(null);
+        }
+      };
+      
+      recalculateCost();
+    }
+  }, [quantity, selectedTier, artGeneratorTiers.length, isOpen]);
+
   if (!isOpen) return null;
 
   const smartContractPricing = pricingService.getSmartContractPricing();
@@ -237,23 +254,32 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
               </div>
 
               <div className="mt-6 p-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/50 rounded-xl">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-gray-300 text-sm">Total Cost ($LOS)</div>
-                    <div className="text-2xl font-bold text-white">
-                      {generationCost.totalLOS.toLocaleString()} $LOS
+                {generationCost ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-gray-300 text-sm">Total Cost ($LOS)</div>
+                        <div className="text-2xl font-bold text-white">
+                          {generationCost.totalLOS.toLocaleString()} $LOS
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-300 text-sm">Total Cost (USD)</div>
+                        <div className="text-2xl font-bold text-white">
+                          ~${generationCost.totalUSD.toFixed(2)}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <div className="text-gray-300 text-sm">Total Cost (USD)</div>
-                    <div className="text-2xl font-bold text-white">
-                      ~${generationCost.totalUSD.toFixed(2)}
+                    <div className="mt-2 text-sm text-gray-400">
+                      Rate: {generationCost.pricePerToken.toLocaleString()} $LOS / NFT
                     </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto mb-2"></div>
+                    <p className="text-gray-300">Calculating pricing...</p>
                   </div>
-                </div>
-                <div className="mt-2 text-sm text-gray-400">
-                  Rate: {generationCost.pricePerToken.toLocaleString()} $LOS / NFT
-                </div>
+                )}
               </div>
             </div>
           </div>
