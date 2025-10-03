@@ -30,6 +30,22 @@ export class TokenMetadataService {
   private readonly SPL_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
   private readonly TOKEN_2022_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 
+  // Known token mappings for Analos
+  private readonly KNOWN_TOKENS: { [mint: string]: { symbol: string; name: string } } = {
+    'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6': {
+      symbol: '$LOL',
+      name: 'LOL Token'
+    },
+    'So11111111111111111111111111111111111111112': {
+      symbol: 'SOL',
+      name: 'Solana'
+    },
+    '6d2Wze1KMUxQ28sFLrH9DKfgBXpUJSJYZaRbufucvBLV': {
+      symbol: '$LOS',
+      name: 'Launch on Solana'
+    }
+  };
+
   constructor(rpcUrl?: string) {
     this.connection = new Connection(rpcUrl || this.ANALOS_RPC_URL, 'confirmed');
     console.log('🔍 Token Metadata Service initialized');
@@ -126,11 +142,17 @@ export class TokenMetadataService {
         isToken2022
       });
 
-      // Try to get token name and symbol from metadata extensions
+      // Try to get token name and symbol
       let name = `Token-${tokenMint.slice(0, 8)}`;
       let symbol = `TKN-${tokenMint.slice(0, 4)}`;
 
-      if (isToken2022) {
+      // Check if this is a known token first
+      const knownToken = this.KNOWN_TOKENS[tokenMint];
+      if (knownToken) {
+        name = knownToken.name;
+        symbol = knownToken.symbol;
+        console.log('✅ Using known token data:', { name, symbol });
+      } else if (isToken2022) {
         try {
           const metadata = await this.getToken2022Metadata(mintPublicKey);
           if (metadata) {
