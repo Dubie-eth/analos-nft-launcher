@@ -40,8 +40,16 @@ export class BlockchainDataService {
       collectionAddress: 'collection_the_losbros',
       mintAddress: 'mint_the_losbros',
       totalSupply: 4200,
-      mintPrice: 4200,
-      paymentToken: 'LOS'
+      mintPrice: 1100, // Updated to 1,100 $LOS
+      paymentToken: 'LOS',
+      isRevealLater: true,
+      revealDate: null, // Will be set when reveal happens
+      freeMintPhase: {
+        enabled: true,
+        maxFreeMints: 100, // First 100 NFTs are free
+        maxPerWallet: 3, // Max 3 free mints per wallet
+        requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
+      }
     }
   };
 

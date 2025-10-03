@@ -63,13 +63,14 @@ export class BlockchainCollectionService {
       const collectionData: BlockchainCollectionData = {
         id: mintAddress,
         name: 'The LosBros',
-        symbol: '$LOS',
-        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces',
+        symbol: '$LBS',
+        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
         imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-        mintPrice: 4200, // Updated to 4,200 $LOS
+        mintPrice: 1100, // Updated to 1,100 $LOS
         totalSupply: 4200,
         currentSupply: 0, // Will be updated by supply tracker
         isActive: true,
+        isRevealLater: true, // This is a reveal later collection
         feePercentage: 2.5,
         externalUrl: 'https://launchonlos.fun/',
         feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
@@ -114,14 +115,21 @@ export class BlockchainCollectionService {
         {
           id: 'launch-on-los-blockchain',
           name: 'The LosBros',
-          symbol: '$LOS',
-          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces',
+          symbol: '$LBS',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 4200, // Updated to 4,200 $LOS
+          mintPrice: 1100, // Updated to 1,100 $LOS
           totalSupply: 4200,
           currentSupply: 0, // Will be updated by supply tracker
-          isActive: true,
-          feePercentage: 2.5,
+        isActive: true,
+        isRevealLater: true, // This is a reveal later collection
+        freeMintPhase: {
+          enabled: true,
+          maxFreeMints: 100, // First 100 NFTs are free
+          maxPerWallet: 3, // Max 3 free mints per wallet
+          requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
+        },
+        feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
@@ -267,14 +275,21 @@ export class BlockchainCollectionService {
         {
           id: 'launch-on-los-blockchain',
           name: 'The LosBros',
-          symbol: '$LOS',
-          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces',
+          symbol: '$LBS',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 4200, // Updated to 4,200 $LOS
+          mintPrice: 1100, // Updated to 1,100 $LOS
           totalSupply: 4200,
           currentSupply: 0, // Will be updated by supply tracker
-          isActive: true,
-          feePercentage: 2.5,
+        isActive: true,
+        isRevealLater: true, // This is a reveal later collection
+        freeMintPhase: {
+          enabled: true,
+          maxFreeMints: 100, // First 100 NFTs are free
+          maxPerWallet: 3, // Max 3 free mints per wallet
+          requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
+        },
+        feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
