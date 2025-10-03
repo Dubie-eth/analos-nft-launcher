@@ -32,6 +32,7 @@ interface CollectionData {
   feeRecipient: string;
   symbol: string;
   externalUrl: string;
+  minimumLolBalance: number;
 }
 
 function AdminPageContent() {
@@ -54,7 +55,8 @@ function AdminPageContent() {
     feePercentage: 2.5,
     feeRecipient: '',
     symbol: '',
-    externalUrl: ''
+    externalUrl: '',
+    minimumLolBalance: 1000000
   });
   
   const [deploying, setDeploying] = useState(false);
@@ -586,6 +588,24 @@ function AdminPageContent() {
                     className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="https://your-website.com"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Minimum $LOL Balance Required
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={collectionData.minimumLolBalance}
+                    onChange={(e) => handleInputChange('minimumLolBalance', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="1000000"
+                  />
+                  <p className="text-white/60 text-xs mt-1">
+                    Minimum $LOL tokens required for users to be eligible to mint
+                  </p>
                 </div>
 
                 {/* Image Upload */}

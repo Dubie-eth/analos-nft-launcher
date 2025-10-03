@@ -275,7 +275,7 @@ app.get('/api/collections/:collectionName', (req, res) => {
 // Update existing collection (without redeploying to blockchain)
 app.post('/api/collections/update', async (req, res) => {
   try {
-    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image, updateExisting } = req.body;
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image, minimumLolBalance, updateExisting } = req.body;
 
     if (!name) {
       return res.status(400).json({ 
@@ -309,6 +309,7 @@ app.post('/api/collections/update', async (req, res) => {
       symbol: symbol || existingCollection.symbol,
       externalUrl: externalUrl || existingCollection.externalUrl,
       imageUrl: image || existingCollection.imageUrl,
+      minimumLolBalance: minimumLolBalance !== undefined ? Number(minimumLolBalance) : existingCollection.minimumLolBalance || 1000000,
       updatedAt: new Date().toISOString()
     };
 

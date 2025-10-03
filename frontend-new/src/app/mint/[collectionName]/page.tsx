@@ -43,7 +43,7 @@ function CollectionMintContent() {
   
   // LOL balance checking
   const [lolBalanceInfo, setLolBalanceInfo] = useState<LOLBalanceInfo | null>(null);
-  const [minimumLolBalance] = useState(1000); // Minimum $LOL required for minting
+  const minimumLolBalance = collection?.minimumLolBalance || 1000000; // Get from collection data or default to 1M $LOL
   
   // Whitelist state
   const [whitelistPrice, setWhitelistPrice] = useState<number | null>(null);
