@@ -67,7 +67,9 @@ export class DirectNFTMintService {
         mintPrice: collectionData.mintPrice,
         paymentToken: collectionData.paymentToken,
         hasMintPrice: !!collectionData.mintPrice,
-        mintPriceGreaterThanZero: collectionData.mintPrice > 0
+        mintPriceGreaterThanZero: collectionData.mintPrice > 0,
+        collectionDataKeys: Object.keys(collectionData),
+        fullCollectionData: collectionData
       });
       
       if (collectionData.mintPrice && collectionData.mintPrice > 0) {

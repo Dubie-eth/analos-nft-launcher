@@ -207,7 +207,9 @@ function CollectionMintContent() {
         mintPrice: collectionData.mintPrice,
         paymentToken: collectionData.paymentToken,
         eligibilityPrice: eligibility.price,
-        originalPrice: collection.mintPrice
+        originalPrice: collection.mintPrice,
+        pricingData: pricingData,
+        fullCollectionData: collectionData
       });
       
       const { transaction, mintKeypairs } = await directMintService.createRealNFTMintTransaction(
