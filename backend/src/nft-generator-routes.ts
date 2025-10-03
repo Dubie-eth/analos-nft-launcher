@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const router = express.Router();
 
@@ -40,7 +40,7 @@ router.post('/upload-layers', upload.single('zipFile'), async (req, res) => {
     }
 
     // Generate session ID
-    const sessionId = `zip_${Date.now()}_${uuidv4().substring(0, 8)}`;
+    const sessionId = `zip_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     
     // TODO: Implement ZIP processing logic
     // For now, return a mock response
@@ -112,7 +112,7 @@ router.post('/upload-folder', upload.array('files', 1000), async (req, res) => {
     });
     
     // Generate session ID
-    const sessionId = `folder_${Date.now()}_${uuidv4().substring(0, 8)}`;
+    const sessionId = `folder_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
     
     // Process folder structure
     const layersMap = new Map<string, string[]>();
