@@ -97,10 +97,10 @@ export default function EnhancedLandingPage() {
       tier: "Bronze",
       requirement: "100,000+ $LOL",
       benefits: [
+        "Governance voting rights",
         "Early access to new collections",
         "5% discount on generation fees",
-        "Priority customer support",
-        "Exclusive Discord channel"
+        "Priority customer support"
       ],
       color: "from-amber-500 to-orange-500"
     },
@@ -143,8 +143,8 @@ export default function EnhancedLandingPage() {
       benefits: [
         "All Diamond benefits",
         "25% discount on all services", 
-        "Governance voting rights",
-        "Exclusive partnership opportunities"
+        "Exclusive partnership opportunities",
+        "Priority governance proposal rights"
       ],
       color: "from-purple-500 to-pink-500"
     }
@@ -334,7 +334,7 @@ Block Explorer: https://explorer.analos.io`
               💎 $LOL Holder Benefits
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Hold $LOL tokens to unlock exclusive benefits, discounts, and premium platform features
+              Hold $LOL tokens to unlock exclusive benefits, discounts, and most importantly - <strong className="text-purple-400">governance voting rights</strong> to help shape our platform's future
             </p>
           </div>
 
