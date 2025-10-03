@@ -121,7 +121,7 @@ export class DirectNFTMintService {
           const paymentInstruction = SystemProgram.transfer({
             fromPubkey: payer,
             toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
-            lamports: totalCost * Math.pow(10, 9), // LOS has 9 decimals, not LAMPORTS_PER_SOL
+            lamports: totalCost * Math.pow(10, 6), // LOS has 6 decimals, not 9
           });
           transaction.add(paymentInstruction);
           console.log('✅ Added LOS payment instruction');

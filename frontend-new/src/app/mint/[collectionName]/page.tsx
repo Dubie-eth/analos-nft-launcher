@@ -20,6 +20,8 @@ import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
 import SupplyDisplay from '../../components/SupplyDisplay';
 import WhitelistStatus from '../../components/WhitelistStatus';
 import StandardLayout from '../../components/StandardLayout';
+import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
+import TokenIDTracker from '../../components/TokenIDTracker';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 // Use the blockchain collection data interface
@@ -431,9 +433,10 @@ function CollectionMintContent() {
   const creatorRevenue = totalCost - platformFee;
 
   return (
-    <StandardLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+    <MobileOptimizedLayout>
+      <StandardLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-white">Mint NFTs</h1>
@@ -526,6 +529,12 @@ function CollectionMintContent() {
                       onBalanceUpdate={setLolBalanceInfo}
                     />
                   </div>
+
+                  {/* Token ID Tracker */}
+                  <TokenIDTracker 
+                    collectionMint={collection.id || `collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
+                    collectionName={collection.name}
+                  />
 
                   {/* Quantity Selector */}
                   <div className="mb-6">
@@ -660,7 +669,8 @@ function CollectionMintContent() {
           </div>
         </div>
       </div>
-    </StandardLayout>
+      </StandardLayout>
+    </MobileOptimizedLayout>
   );
 }
 

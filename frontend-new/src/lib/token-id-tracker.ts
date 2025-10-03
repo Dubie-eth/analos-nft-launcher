@@ -122,7 +122,7 @@ class TokenIdTracker {
       mintedCount: 0,
       mintPrice,
       createdAt: Date.now(),
-      maxMintsPerWallet: options.maxMintsPerWallet || 10,
+      maxMintsPerWallet: options.maxMintsPerWallet || 2,
       delayedReveal: {
         enabled: options.delayedReveal?.enabled || false,
         type: options.delayedReveal?.type || 'manual',
