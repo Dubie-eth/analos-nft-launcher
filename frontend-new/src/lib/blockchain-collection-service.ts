@@ -62,11 +62,11 @@ export class BlockchainCollectionService {
       // In a real implementation, this would read from the actual smart contract
       const collectionData: BlockchainCollectionData = {
         id: mintAddress,
-        name: 'Launch On LOS',
-        symbol: '$LOL',
-        description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+        name: 'The LosBros',
+        symbol: '$LOS',
+        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces',
         imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-        mintPrice: 4200.69, // This should be read from the smart contract
+        mintPrice: 4200, // Updated to 4,200 $LOS
         totalSupply: 4200,
         currentSupply: 0, // Will be updated by supply tracker
         isActive: true,
@@ -113,11 +113,11 @@ export class BlockchainCollectionService {
       const collections: BlockchainCollectionData[] = [
         {
           id: 'launch-on-los-blockchain',
-          name: 'Launch On LOS',
-          symbol: '$LOL',
-          description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+          name: 'The LosBros',
+          symbol: '$LOS',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 4200.69, // Single source of truth from blockchain
+          mintPrice: 4200, // Updated to 4,200 $LOS
           totalSupply: 4200,
           currentSupply: 0, // Will be updated by supply tracker
           isActive: true,
@@ -161,8 +161,8 @@ export class BlockchainCollectionService {
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los') {
-        actualCollectionName = 'Launch On LOS';
+      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros') {
+        actualCollectionName = 'The LosBros';
       }
       
       const collection = collections.find(c => 
@@ -266,11 +266,11 @@ export class BlockchainCollectionService {
       const collections: BlockchainCollectionData[] = [
         {
           id: 'launch-on-los-blockchain',
-          name: 'Launch On LOS',
-          symbol: '$LOL',
-          description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+          name: 'The LosBros',
+          symbol: '$LOS',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 4200.69, // Single source of truth from blockchain
+          mintPrice: 4200, // Updated to 4,200 $LOS
           totalSupply: 4200,
           currentSupply: 0, // Will be updated by supply tracker
           isActive: true,

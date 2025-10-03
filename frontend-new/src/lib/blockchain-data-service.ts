@@ -36,12 +36,12 @@ export class BlockchainDataService {
   
   // Known collection addresses on Analos
   private readonly COLLECTION_ADDRESSES = {
-    'Launch On LOS': {
-      collectionAddress: 'collection_launch_on_los',
-      mintAddress: 'mint_launch_on_los',
+    'The LosBros': {
+      collectionAddress: 'collection_the_losbros',
+      mintAddress: 'mint_the_losbros',
       totalSupply: 4200,
-      mintPrice: 4200.69,
-      paymentToken: 'LOL'
+      mintPrice: 4200,
+      paymentToken: 'LOS'
     }
   };
 
@@ -59,8 +59,8 @@ export class BlockchainDataService {
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los') {
-        actualCollectionName = 'Launch On LOS';
+      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros') {
+        actualCollectionName = 'The LosBros';
       }
       
       const collectionConfig = this.COLLECTION_ADDRESSES[actualCollectionName as keyof typeof this.COLLECTION_ADDRESSES];

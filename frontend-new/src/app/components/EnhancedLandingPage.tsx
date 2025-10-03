@@ -264,12 +264,12 @@ Block Explorer: https://explorer.analos.io`
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
-      {/* Beta Tab */}
-      <div className="fixed top-0 left-1/2 transform -translate-x-1/2 z-50">
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-b-lg shadow-lg">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">🚀</span>
-            <span className="text-sm font-semibold">BETA</span>
+      {/* Beta Tab - Moved to top right corner */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className="bg-gradient-to-r from-blue-500/80 to-purple-500/80 backdrop-blur-sm text-white px-3 py-1 rounded-full shadow-lg border border-white/20">
+          <div className="flex items-center space-x-1">
+            <span className="text-xs">🚀</span>
+            <span className="text-xs font-semibold">BETA</span>
           </div>
         </div>
       </div>
