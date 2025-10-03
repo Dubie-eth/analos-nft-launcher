@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import WhitelistHolderManager from './WhitelistHolderManager';
 import WhitelistManager from './WhitelistManager';
+import WhitelistPriorityManager from './WhitelistPriorityManager';
 
 interface AdvancedMintingSettingsProps {
   onSettingsChange: (settings: any) => void;
@@ -505,12 +506,23 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
         }}
       />
 
-      {/* Manual Whitelist Manager */}
+      {/* Priority-Based Whitelist Manager */}
+      <WhitelistPriorityManager
+        collectionId={`collection_${settings.name?.toLowerCase().replace(/\s+/g, '_') || 'default'}`}
+        collectionName={settings.name || 'Unnamed Collection'}
+        onWhitelistRulesChange={(rules) => {
+          console.log('🎯 Whitelist rules updated:', rules);
+          handleSettingChange('whitelist.rules', rules);
+        }}
+        initialRules={settings.whitelist?.rules || []}
+      />
+
+      {/* Legacy Manual Whitelist Manager (for backward compatibility) */}
       <WhitelistManager
         collectionId={`collection_${settings.name?.toLowerCase().replace(/\s+/g, '_') || 'default'}`}
         collectionName={settings.name || 'Unnamed Collection'}
         onWhitelistChange={(phases) => {
-          console.log('🔐 Whitelist phases updated:', phases);
+          console.log('🔐 Legacy whitelist phases updated:', phases);
           handleSettingChange('whitelist.phases', phases);
         }}
         initialPhases={settings.whitelist?.phases || []}

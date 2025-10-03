@@ -488,9 +488,10 @@ function CollectionMintContent() {
                 collectionId={`collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
                 collectionName={collection.name}
                 basePrice={collection.mintPrice}
-                onWhitelistPriceChange={(price, multiplier) => {
+                onWhitelistPriceChange={(price, multiplier, rule) => {
                   setWhitelistPrice(price);
                   setWhitelistMultiplier(multiplier);
+                  console.log('🎯 Whitelist status updated:', { price, multiplier, rule });
                 }}
               />
 
