@@ -18,6 +18,7 @@ import {
   createTransferInstruction,
   getAccount,
 } from '@solana/spl-token';
+import { tokenMetadataService } from './token-metadata-service';
 import { tokenIdTracker } from './token-id-tracker';
 
 export interface DirectNFTMintData {
@@ -76,6 +77,18 @@ export class DirectNFTMintService {
         
         const totalCost = collectionData.mintPrice * quantity;
         
+        // Get token metadata for proper decimal handling
+        let paymentTokenDecimals = 9; // Default to 9 decimals for safety
+        if (collectionData.paymentToken && collectionData.paymentToken !== 'LOS') {
+          const tokenMetadata = await tokenMetadataService.getTokenMetadata(collectionData.paymentToken);
+          if (tokenMetadata.valid && tokenMetadata.token) {
+            paymentTokenDecimals = tokenMetadata.token.decimals;
+            console.log('✅ Payment token decimals verified:', paymentTokenDecimals);
+          } else {
+            console.log('⚠️ Using default decimals for payment token:', paymentTokenDecimals);
+          }
+        }
+        
         if (collectionData.paymentToken === 'LOS' || !collectionData.paymentToken) {
           // Native SOL payment
           console.log('💰 Processing native SOL payment:', totalCost, 'SOL');
@@ -105,7 +118,7 @@ export class DirectNFTMintService {
             userLolAccount, // source
             feeRecipientLolAccount, // destination
             payer, // authority
-            totalCost * Math.pow(10, 9), // LOL has 9 decimals
+            totalCost * Math.pow(10, paymentTokenDecimals), // Use verified decimals
           );
           
           transaction.add(lolTransferInstruction);
@@ -129,7 +142,7 @@ export class DirectNFTMintService {
             userTokenAccount, // source
             feeRecipientTokenAccount, // destination
             payer, // authority
-            totalCost * Math.pow(10, 9), // Using 9 decimals for custom tokens
+            totalCost * Math.pow(10, paymentTokenDecimals), // Use verified decimals
           );
           
           transaction.add(tokenTransferInstruction);

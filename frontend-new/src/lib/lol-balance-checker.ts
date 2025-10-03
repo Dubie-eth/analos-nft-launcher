@@ -5,6 +5,7 @@
 
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
+import { tokenMetadataService } from './token-metadata-service';
 
 export interface LOLBalanceInfo {
   balance: number;
@@ -34,6 +35,20 @@ export class LOLBalanceChecker {
   async checkLOLBalance(walletAddress: string, minimumRequired: number = 1000): Promise<LOLBalanceInfo> {
     try {
       console.log('🔍 Checking LOL balance for wallet:', walletAddress);
+      
+      // First, ensure we have the correct token metadata
+      const tokenMetadata = await tokenMetadataService.getTokenMetadata(this.lolTokenMint);
+      if (!tokenMetadata.valid || !tokenMetadata.token) {
+        throw new Error('Failed to fetch LOL token metadata');
+      }
+
+      const token = tokenMetadata.token;
+      console.log('✅ LOL token metadata verified:', {
+        symbol: token.symbol,
+        decimals: token.decimals,
+        isToken2022: token.isToken2022
+      });
+
       const walletPublicKey = new PublicKey(walletAddress);
       const tokenMintPublicKey = new PublicKey(this.lolTokenMint);
 
@@ -46,13 +61,13 @@ export class LOLBalanceChecker {
 
         const tokenAccount = await getAccount(this.connection, associatedTokenAddress);
         const balance = Number(tokenAccount.amount);
-        const balanceFormatted = (balance / Math.pow(10, 9)).toFixed(2); // $LOL has 9 decimals
+        const balanceFormatted = tokenMetadataService.formatTokenAmount(this.lolTokenMint, BigInt(balance));
         
         console.log('✅ Found LOL balance via SPL token:', balance);
         
-        const minimumRequiredRaw = minimumRequired * Math.pow(10, 9); // Convert to raw units
+        const minimumRequiredRaw = minimumRequired * Math.pow(10, token.decimals); // Convert to raw units using verified decimals
         const hasMinimumBalance = balance >= minimumRequiredRaw;
-        const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, 9));
+        const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, token.decimals));
 
         return {
           balance,
@@ -67,7 +82,7 @@ export class LOLBalanceChecker {
         console.log('⚠️ SPL token method failed, trying Token-2022 approach:', splError);
         
         // Try Token-2022 approach using raw RPC calls
-        return await this.checkLOLBalanceToken2022(walletAddress, minimumRequired);
+        return await this.checkLOLBalanceToken2022(walletAddress, minimumRequired, token.decimals);
       }
     } catch (error) {
       console.error('❌ Error checking LOL balance:', error);
@@ -78,7 +93,7 @@ export class LOLBalanceChecker {
   /**
    * Check LOL balance using Token-2022 approach
    */
-  private async checkLOLBalanceToken2022(walletAddress: string, minimumRequired: number): Promise<LOLBalanceInfo> {
+  private async checkLOLBalanceToken2022(walletAddress: string, minimumRequired: number, verifiedDecimals: number): Promise<LOLBalanceInfo> {
     try {
       console.log('🔍 Checking LOL balance using Token-2022 approach');
       
@@ -102,12 +117,13 @@ export class LOLBalanceChecker {
         
         if (mintAddress === this.lolTokenMint) {
           const balance = Number(parsedInfo.tokenAmount.amount);
-          const balanceFormatted = (balance / Math.pow(10, 9)).toFixed(2); // $LOL has 9 decimals
+          const balanceFormatted = tokenMetadataService.formatTokenAmount(this.lolTokenMint, BigInt(balance));
           
           console.log('✅ Found LOL balance via Token-2022:', balance);
           
-          const hasMinimumBalance = balance >= minimumRequired;
-          const shortfall = Math.max(0, minimumRequired - balance);
+          const minimumRequiredRaw = minimumRequired * Math.pow(10, verifiedDecimals); // Convert to raw units using verified decimals
+          const hasMinimumBalance = balance >= minimumRequiredRaw;
+          const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, verifiedDecimals));
 
           return {
             balance,
@@ -137,12 +153,13 @@ export class LOLBalanceChecker {
         
         if (mintAddress === this.lolTokenMint) {
           const balance = Number(parsedInfo.tokenAmount.amount);
-          const balanceFormatted = (balance / Math.pow(10, 9)).toFixed(2); // $LOL has 9 decimals
+          const balanceFormatted = tokenMetadataService.formatTokenAmount(this.lolTokenMint, BigInt(balance));
           
           console.log('✅ Found LOL balance via SPL token program:', balance);
           
-          const hasMinimumBalance = balance >= minimumRequired;
-          const shortfall = Math.max(0, minimumRequired - balance);
+          const minimumRequiredRaw = minimumRequired * Math.pow(10, verifiedDecimals); // Convert to raw units using verified decimals
+          const hasMinimumBalance = balance >= minimumRequiredRaw;
+          const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, verifiedDecimals));
 
           return {
             balance,
