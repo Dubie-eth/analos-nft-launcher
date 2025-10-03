@@ -157,48 +157,48 @@ export default function EnhancedLandingPage() {
 
   const roadmapItems = [
     {
-      quarter: "Q1 2025",
+      quarter: "Week 1-2",
       status: "Completed",
       features: [
-        "✅ Advanced NFT Generator",
-        "✅ Multi-token Payment System", 
-        "✅ Real-time Analytics",
-        "✅ Collection Management Tools"
+        "✅ Core NFT Minting System",
+        "✅ Wallet Integration (Backpack)",
+        "✅ Basic Collection Management",
+        "✅ $LOL Token Integration"
       ],
       color: "green"
     },
     {
-      quarter: "Q2 2025", 
-      status: "In Progress",
+      quarter: "Week 3-4", 
+      status: "Completed",
+      features: [
+        "✅ Advanced NFT Generator",
+        "✅ Multi-token Payment System",
+        "✅ Priority-based Whitelist System",
+        "✅ Real-time Blockchain Analytics"
+      ],
+      color: "green"
+    },
+    {
+      quarter: "Week 5-6",
+      status: "In Progress", 
       features: [
         "🔄 NFT Explorer v2.0",
-        "🔄 Marketplace Integration",
-        "🔄 Cross-chain Bridging",
-        "🔄 Mobile App (iOS/Android)"
+        "🔄 Bonding Curve Launcher",
+        "🔄 Advanced Collection Settings",
+        "🔄 Token Metadata Verification"
       ],
       color: "blue"
     },
     {
-      quarter: "Q3 2025",
-      status: "Planned", 
-      features: [
-        "📋 AI-Powered Trait Generation",
-        "📋 Advanced Bonding Curves",
-        "📋 DAO Governance",
-        "📋 Staking Rewards"
-      ],
-      color: "purple"
-    },
-    {
-      quarter: "Q4 2025",
+      quarter: "Week 7-8",
       status: "Planned",
       features: [
-        "📋 Enterprise APIs",
-        "📋 White-label Solutions", 
-        "📋 Multi-chain Support",
-        "📋 Advanced Analytics"
+        "📋 Marketplace Integration",
+        "📋 Mobile App (iOS/Android)",
+        "📋 Cross-chain Bridging",
+        "📋 Enterprise APIs"
       ],
-      color: "orange"
+      color: "purple"
     }
   ];
 
@@ -557,10 +557,10 @@ Block Explorer: https://explorer.analos.io`
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              🗺️ Development Roadmap
+              🚀 Development Roadmap
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Our journey to build the ultimate NFT ecosystem on Analos
+              From concept to production in just 4 weeks - Building the future of NFT minting on Analos
             </p>
           </div>
 
@@ -602,6 +602,31 @@ Block Explorer: https://explorer.analos.io`
                 </div>
               </div>
             ))}
+          
+          {/* Development Speed Highlight */}
+          <div className="mt-12 text-center">
+            <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-2xl p-8 max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold text-white mb-4">
+                ⚡ Lightning Fast Development
+              </h3>
+              <p className="text-lg text-gray-300 mb-4">
+                From concept to a fully functional NFT ecosystem in just <span className="text-green-400 font-bold">4 weeks</span>
+              </p>
+              <div className="grid md:grid-cols-3 gap-6 mt-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-400">100+</div>
+                  <div className="text-sm text-gray-300">Features Implemented</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-400">15+</div>
+                  <div className="text-sm text-gray-300">Components Built</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-400">5+</div>
+                  <div className="text-sm text-gray-300">Services Integrated</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
