@@ -76,6 +76,9 @@ export class BlockchainDataService {
       // Calculate current supply from minted NFTs or fallback to token tracker
       let currentSupply = mintedNFTs.length;
       
+      // Define collectionId for token tracker fallback
+      const collectionId = `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`;
+      
       // If no NFTs found from blockchain scan, check token tracker directly
       if (currentSupply === 0 && tokenIdTracker.collections[collectionId]) {
         const trackerCollection = tokenIdTracker.collections[collectionId];
