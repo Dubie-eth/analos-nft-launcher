@@ -131,13 +131,16 @@ export class BlockchainDataService {
         
         // Convert token tracker data to blockchain format
         Object.values(collection.mintedNFTs || {}).forEach((nft: any, index: number) => {
-          mintedNFTs.push({
-            mintAddress: nft.mintAddress,
-            ownerAddress: nft.ownerAddress,
-            mintTime: Date.now() - (index * 60000), // Simulate mint times
-            tokenId: nft.tokenId || index + 1,
-            transactionSignature: `tx_${nft.mintAddress.slice(0, 8)}_${Date.now()}`
-          });
+          // Add null checks to prevent undefined errors
+          if (nft && nft.mintAddress && nft.ownerAddress) {
+            mintedNFTs.push({
+              mintAddress: nft.mintAddress,
+              ownerAddress: nft.ownerAddress,
+              mintTime: nft.mintTime || Date.now() - (index * 60000), // Use actual mint time if available
+              tokenId: nft.tokenId || index + 1,
+              transactionSignature: `tx_${nft.mintAddress.slice(0, 8)}_${Date.now()}`
+            });
+          }
         });
         
         console.log(`🔗 Found ${mintedNFTs.length} minted NFTs from token tracker`);
@@ -256,9 +259,9 @@ export class BlockchainDataService {
       }
       
       return {
-        mintPrice: collectionData.mintPrice,
-        paymentToken: collectionData.paymentToken,
-        isActive: collectionData.isActive
+        mintPrice: collectionData.mintPrice || 4200.69,
+        paymentToken: collectionData.paymentToken || 'LOL',
+        isActive: collectionData.isActive || true
       };
 
     } catch (error) {

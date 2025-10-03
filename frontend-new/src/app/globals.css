@@ -3,11 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-background: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-muted: #64748b;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0f0f23;
+  --foreground: #f1f5f9;
+  --card-background: #1a1a2e;
+  --border-color: #2d3748;
+  --text-muted: #94a3b8;
 }
 
 @theme inline {
@@ -103,4 +109,9 @@ body {
 
 .shadow-green-glow {
   box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+}
+
+/* Enhanced text styles */
+.text-gradient-improved {
+  @apply bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent;
 }

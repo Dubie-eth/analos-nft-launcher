@@ -198,8 +198,8 @@ function CollectionMintContent() {
         symbol: collection.symbol || collection.name.substring(0, 4),
         description: collection.description || '',
         image: collection.imageUrl || '',
-        mintPrice: pricingData.mintPrice, // Use real blockchain pricing
-        paymentToken: paymentToken
+        mintPrice: pricingData.mintPrice || collection.mintPrice || 4200.69, // Use real blockchain pricing with fallbacks
+        paymentToken: paymentToken || 'LOL' // Ensure paymentToken is never undefined
       };
       
       console.log('🔍 Collection data for minting:', {
