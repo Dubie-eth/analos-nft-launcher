@@ -34,21 +34,37 @@ export default function ProfilePage() {
   // Load dark mode preference from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    console.log('🌙 Loading dark mode preference:', { saved: savedDarkMode });
+    
     setDarkMode(savedDarkMode);
     if (savedDarkMode) {
       document.documentElement.classList.add('dark');
+      console.log('🌙 Applied saved dark mode - added "dark" class');
+    } else {
+      document.documentElement.classList.remove('dark');
+      console.log('🌙 Applied saved light mode - removed "dark" class');
     }
+    
+    console.log('🌙 Initial html classes:', document.documentElement.className);
   }, []);
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
+    console.log('🌙 Toggling dark mode:', { current: darkMode, new: newDarkMode });
+    
     setDarkMode(newDarkMode);
     localStorage.setItem('darkMode', newDarkMode.toString());
+    
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
+      console.log('🌙 Dark mode enabled - added "dark" class to html element');
     } else {
       document.documentElement.classList.remove('dark');
+      console.log('🌙 Dark mode disabled - removed "dark" class from html element');
     }
+    
+    // Log current classes for debugging
+    console.log('🌙 Current html classes:', document.documentElement.className);
   };
 
   const ANALOS_RPC_URL = 'https://rpc.analos.io';
@@ -162,15 +178,19 @@ export default function ProfilePage() {
         <div className="absolute top-8 right-8 z-20">
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+            className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
+              darkMode 
+                ? 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600' 
+                : 'bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-800 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-600'
+            }`}
             title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {darkMode ? (
-              <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             ) : (
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
@@ -226,15 +246,19 @@ export default function ProfilePage() {
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Profile</h1>
                 <button
                   onClick={toggleDarkMode}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                  className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                    darkMode 
+                      ? 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600' 
+                      : 'bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-800 dark:to-gray-700 dark:hover:from-gray-700 dark:hover:to-gray-600'
+                  }`}
                   title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 >
                   {darkMode ? (
-                    <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                   ) : (
-                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                   )}
