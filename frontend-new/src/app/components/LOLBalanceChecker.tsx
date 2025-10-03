@@ -98,7 +98,7 @@ export default function LOLBalanceChecker({
               {balanceInfo.hasMinimumBalance ? '✅ Eligible' : '❌ Not Eligible'}
             </span>
             <span className="text-white font-bold">
-              {balanceInfo.balanceFormatted} / {minimumRequired.toLocaleString()} $LOL
+              {parseFloat(balanceInfo.balanceFormatted).toFixed(2)} / {minimumRequired.toLocaleString()} $LOL
             </span>
           </div>
           
@@ -109,7 +109,7 @@ export default function LOLBalanceChecker({
             </div>
             <div className="flex justify-between">
               <span>Current Balance:</span>
-              <span className="font-mono">{balanceInfo.balanceFormatted} $LOL</span>
+              <span className="font-mono">{parseFloat(balanceInfo.balanceFormatted).toFixed(2)} $LOL</span>
             </div>
             <div className="flex justify-between">
               <span>Minimum Required:</span>

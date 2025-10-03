@@ -61,7 +61,7 @@ export class LOLBalanceChecker {
 
         const tokenAccount = await getAccount(this.connection, associatedTokenAddress);
         const balance = Number(tokenAccount.amount);
-            const balanceFormatted = (balance / Math.pow(10, token.decimals)).toFixed(4);
+            const balanceFormatted = tokenMetadataService.formatTokenAmount(this.lolTokenMint, BigInt(balance));
         
         console.log('✅ Found LOL balance via SPL token:', balance);
         
@@ -117,7 +117,7 @@ export class LOLBalanceChecker {
         
         if (mintAddress === this.lolTokenMint) {
           const balance = Number(parsedInfo.tokenAmount.amount);
-            const balanceFormatted = (balance / Math.pow(10, token.decimals)).toFixed(4);
+            const balanceFormatted = tokenMetadataService.formatTokenAmount(this.lolTokenMint, BigInt(balance));
           
           console.log('✅ Found LOL balance via Token-2022:', balance);
           
@@ -153,7 +153,7 @@ export class LOLBalanceChecker {
         
         if (mintAddress === this.lolTokenMint) {
           const balance = Number(parsedInfo.tokenAmount.amount);
-            const balanceFormatted = (balance / Math.pow(10, token.decimals)).toFixed(4);
+            const balanceFormatted = tokenMetadataService.formatTokenAmount(this.lolTokenMint, BigInt(balance));
           
           console.log('✅ Found LOL balance via SPL token program:', balance);
           
