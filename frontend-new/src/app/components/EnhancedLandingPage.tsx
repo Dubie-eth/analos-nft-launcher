@@ -602,6 +602,7 @@ Block Explorer: https://explorer.analos.io`
                 </div>
               </div>
             ))}
+          </div>
           
           {/* Development Speed Highlight */}
           <div className="mt-12 text-center">
