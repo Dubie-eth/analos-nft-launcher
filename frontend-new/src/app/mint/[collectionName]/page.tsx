@@ -242,6 +242,16 @@ function CollectionMintContent() {
       try {
         await connection.confirmTransaction(signature, 'confirmed');
         console.log('✅ NFT minting transaction confirmed:', signature);
+        
+        // Update the collection supply after successful minting
+        const collectionId = `collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`;
+        const currentCollection = tokenIdTracker.getCollectionInfo(collectionId);
+        if (currentCollection) {
+          currentCollection.currentSupply += mintQuantity;
+          tokenIdTracker.updateCollection(collectionId, currentCollection);
+          console.log(`📊 Updated collection supply: ${currentCollection.currentSupply}/${currentCollection.maxSupply}`);
+        }
+        
         setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
       } catch (confirmError) {
         console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);

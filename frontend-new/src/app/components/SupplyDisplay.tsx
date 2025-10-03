@@ -87,7 +87,7 @@ export default function SupplyDisplay({ collectionName, className = '' }: Supply
         <div className="flex justify-between items-center">
           <span className="text-white/80 text-sm">Minted</span>
           <span className="text-white/60 text-xs">
-            {supplyData.currentSupply}/{supplyData.totalSupply} ({supplyData.mintedPercentage}%)
+            {supplyData.currentSupply}/{supplyData.totalSupply} ({supplyData.mintedPercentage.toFixed(2)}%)
           </span>
         </div>
         
