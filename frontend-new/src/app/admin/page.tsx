@@ -1223,10 +1223,33 @@ function AdminPageContent() {
       )}
 
       {/* Pricing Modal */}
-      <PricingModal
-        isOpen={showPricingModal}
-        onClose={() => setShowPricingModal(false)}
-      />
+        <PricingModal
+          isOpen={showPricingModal}
+          onClose={() => setShowPricingModal(false)}
+          onStartFree={(service, tier) => {
+            console.log(`Starting ${service}${tier ? ` (${tier} tier)` : ''} for free`);
+            
+            // Determine which tool to open based on the service
+            switch (service) {
+              case 'NFT Generator':
+                setShowNFTGenerator(true);
+                break;
+              case 'Smart Contract':
+                // For now, just show an alert - in the future this could open a smart contract builder
+                alert('Smart Contract builder coming soon! For now, use the NFT Generator to create your collection.');
+                break;
+              case 'Drops':
+                setShowBondingCurveLauncher(true);
+                break;
+              case 'Forms':
+                // For now, just show an alert - in the future this could open a forms builder
+                alert('Forms builder coming soon! For now, use the NFT Generator to create your collection.');
+                break;
+              default:
+                setShowNFTGenerator(true);
+            }
+          }}
+        />
 
       {/* Verification Modal */}
       {showVerificationModal && currentCollection && (

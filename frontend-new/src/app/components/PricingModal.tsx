@@ -6,9 +6,10 @@ import { pricingService } from '@/lib/pricing-service';
 interface PricingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onStartFree?: (service: string, tier?: string) => void;
 }
 
-export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
+export default function PricingModal({ isOpen, onClose, onStartFree }: PricingModalProps) {
   const [activeTab, setActiveTab] = useState<'generator' | 'smart-contract' | 'drops' | 'forms'>('generator');
   const [quantity, setQuantity] = useState(1000);
   const [selectedTier, setSelectedTier] = useState('Professional');
@@ -20,6 +21,44 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
   const dropPricing = pricingService.getDropPricing();
   const formsPricing = pricingService.getFormsPricing();
   const generationCost = pricingService.calculateGenerationCost(quantity, selectedTier);
+
+  const handleStartFree = () => {
+    // Determine which service to start based on active tab
+    let service = '';
+    let tier = '';
+    
+    switch (activeTab) {
+      case 'generator':
+        service = 'NFT Generator';
+        tier = selectedTier;
+        break;
+      case 'smart-contract':
+        service = 'Smart Contract';
+        break;
+      case 'drops':
+        service = 'Drops';
+        break;
+      case 'forms':
+        service = 'Forms';
+        break;
+      default:
+        service = 'NFT Generator';
+        tier = selectedTier;
+    }
+
+    // Close the pricing modal
+    onClose();
+
+    // Call the onStartFree callback if provided
+    if (onStartFree) {
+      onStartFree(service, tier);
+    } else {
+      // Default behavior - show alert and redirect to NFT Generator
+      alert(`Starting ${service}${tier ? ` (${tier} tier)` : ''} for free! Redirecting to the generator...`);
+      // In a real implementation, this would redirect to the appropriate tool
+      console.log(`Starting ${service}${tier ? ` (${tier} tier)` : ''} for free`);
+    }
+  };
 
   const tabs = [
     { id: 'generator', label: 'Art Generator', icon: '🎨' },
@@ -380,7 +419,10 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
 
         {/* Call to Action */}
         <div className="mt-8 text-center">
-          <button className="px-12 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-105">
+          <button 
+            onClick={handleStartFree}
+            className="px-12 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg transition-all duration-200 transform hover:scale-105"
+          >
             Start Free Today
           </button>
           <p className="text-gray-400 text-sm mt-2">
