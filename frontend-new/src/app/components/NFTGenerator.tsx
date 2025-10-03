@@ -120,14 +120,28 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
     // Debug logging
     console.log('📁 Files received:', files.length);
     console.log('📁 Upload type:', uploadType);
+    console.log('📁 Input element attributes:', {
+      webkitdirectory: e.target.webkitdirectory,
+      multiple: e.target.multiple,
+      accept: e.target.accept
+    });
+    
     files.forEach((file, index) => {
       console.log(`📁 File ${index + 1}:`, {
         name: file.name,
         webkitRelativePath: file.webkitRelativePath,
         size: file.size,
-        type: file.type
+        type: file.type,
+        path: file.webkitRelativePath || 'No relative path'
       });
     });
+
+    // Check if we're expecting a folder but only got one file
+    if (uploadType === 'folder' && files.length === 1) {
+      console.warn('⚠️ Expected multiple files for folder upload, but only got 1 file');
+      setError('Please select a folder, not a single file. Make sure to choose the entire folder containing your trait subfolders.');
+      return;
+    }
 
     try {
       let result;
@@ -142,6 +156,10 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
       } else {
         // Handle folder upload
         console.log('📁 Processing folder upload with', files.length, 'files');
+        if (files.length < 2) {
+          setError('Please select a folder containing multiple trait files. The folder should have subfolders with image files.');
+          return;
+        }
         result = await nftGeneratorService.uploadFolder(files);
       }
       
@@ -366,19 +384,28 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                 <h3 className="text-xl font-semibold text-white mb-2">
                   {uploadType === 'zip' ? 'Upload ZIP File' : 'Upload Folder'}
                 </h3>
-                <p className="text-gray-300 mb-6">
+                <p className="text-gray-300 mb-4">
                   {uploadType === 'zip' 
                     ? 'Upload a ZIP file containing organized trait folders'
                     : 'Select a folder containing organized trait subfolders'
                   }
                 </p>
+                {uploadType === 'folder' && (
+                  <div className="bg-yellow-600/20 border border-yellow-500/50 rounded-lg p-4 mb-6">
+                    <p className="text-yellow-200 text-sm">
+                      <strong>📁 How to select a folder:</strong> Click "Choose Folder" → Navigate to your collection folder → 
+                      Click "Select Folder" (not individual files). The browser will automatically include all files in the folder and subfolders.
+                    </p>
+                  </div>
+                )}
                 
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept={uploadType === 'zip' ? '.zip' : 'image/*,.png,.jpg,.jpeg,.gif,.webp'}
-                  webkitdirectory={uploadType === 'folder'}
-                  directory={uploadType === 'folder'}
+                  webkitdirectory={uploadType === 'folder' ? 'true' : undefined}
+                  directory={uploadType === 'folder' ? 'true' : undefined}
+                  multiple={uploadType === 'folder'}
                   onChange={handleFileUpload}
                   className="hidden"
                 />
