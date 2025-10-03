@@ -260,9 +260,34 @@ function CollectionMintContent() {
           currentCollection.currentSupply += mintQuantity;
           tokenIdTracker.updateCollection(collectionId, currentCollection);
           console.log(`📊 Updated collection supply: ${currentCollection.currentSupply}/${currentCollection.maxSupply}`);
+          
+          // Update the UI state to reflect the new supply
+          setCollection(prevCollection => ({
+            ...prevCollection,
+            currentSupply: currentCollection.currentSupply
+          }));
         }
         
         setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+        
+        // Refresh collection data from blockchain after successful mint
+        setTimeout(async () => {
+          try {
+            console.log('🔄 Refreshing collection data after mint...');
+            const updatedBlockchainData = await blockchainDataService.getCollectionData(collectionName);
+            if (updatedBlockchainData) {
+              setCollection(prevCollection => ({
+                ...prevCollection,
+                currentSupply: updatedBlockchainData.currentSupply,
+                mintPrice: updatedBlockchainData.mintPrice
+              }));
+              console.log('✅ Collection data refreshed:', updatedBlockchainData.currentSupply);
+            }
+          } catch (error) {
+            console.log('⚠️ Error refreshing collection data:', error);
+          }
+        }, 2000); // Wait 2 seconds for blockchain to update
+        
       } catch (confirmError) {
         console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);
         setMintStatus(`NFT minting transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
@@ -434,6 +459,15 @@ function CollectionMintContent() {
                   <span>Symbol: {collection.symbol}</span>
                   <span>•</span>
                   <span>Supply: {collection.currentSupply}/{collection.totalSupply}</span>
+                  <span>•</span>
+                  <button
+                    onClick={() => fetchCollectionInfo(true)}
+                    disabled={loading}
+                    className="text-blue-400 hover:text-blue-300 disabled:text-gray-400 text-xs underline"
+                    title="Refresh supply counter"
+                  >
+                    {loading ? '🔄' : '↻'} Update
+                  </button>
                 </div>
               </div>
 
