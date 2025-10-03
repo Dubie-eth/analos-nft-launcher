@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { collectionStatsService, CollectionStats } from '@/lib/collection-stats-service';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -12,6 +13,7 @@ export default function EnhancedLandingPage() {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [currentRoadmapItem, setCurrentRoadmapItem] = useState(0);
+  const [collectionStats, setCollectionStats] = useState<CollectionStats | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -26,6 +28,24 @@ export default function EnhancedLandingPage() {
       setCurrentRoadmapItem((prev) => (prev + 1) % roadmapItems.length);
     }, 8000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch collection statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const stats = await collectionStatsService.getCollectionStats();
+        setCollectionStats(stats);
+      } catch (error) {
+        console.error('Error fetching collection stats:', error);
+      }
+    };
+
+    fetchStats();
+    
+    // Refresh stats every 30 seconds
+    const statsInterval = setInterval(fetchStats, 30000);
+    return () => clearInterval(statsInterval);
   }, []);
 
   const features = [
@@ -804,19 +824,27 @@ Block Explorer: https://explorer.analos.io`
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-white">1000+</div>
-              <div className="text-gray-400">Collections Created</div>
+              <div className="text-3xl font-bold text-white">
+                {collectionStats ? collectionStatsService.formatCollectionCount(collectionStats.collectionsLaunched) : '1+'}
+              </div>
+              <div className="text-gray-400">Collections Launched</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-white">50K+</div>
+              <div className="text-3xl font-bold text-white">
+                {collectionStats ? collectionStatsService.formatNFTCount(collectionStats.totalNFTsMinted) : '50+'}
+              </div>
               <div className="text-gray-400">NFTs Minted</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-white">25%</div>
+              <div className="text-3xl font-bold text-white">
+                {collectionStats ? `${collectionStats.losBurned}K` : '25K'}
+              </div>
               <div className="text-gray-400">$LOS Burned</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-white">24/7</div>
+              <div className="text-3xl font-bold text-white">
+                {collectionStats ? collectionStats.platformUptime : '99.9%'}
+              </div>
               <div className="text-gray-400">Platform Uptime</div>
             </div>
           </div>
