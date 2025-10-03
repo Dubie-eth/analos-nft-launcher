@@ -621,7 +621,7 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                 <h3 className="text-xl font-semibold text-white">Layer Configuration</h3>
                 
                 <div className="space-y-4">
-                  {layers.map((layer) => (
+                  {layers && layers.length > 0 ? layers.map((layer) => (
                     <div key={layer.name} className="bg-white/5 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <input
@@ -637,7 +637,7 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
 
                       {config.order.includes(layer.name) && (
                         <div className="ml-7 space-y-2">
-                          {layer.traits.map((trait) => (
+                          {layer.traits && layer.traits.length > 0 ? layer.traits.map((trait) => (
                             <div key={trait} className="flex items-center justify-between">
                               <span className="text-gray-300 text-sm">{trait}</span>
                               <div className="flex items-center space-x-2">
@@ -652,11 +652,20 @@ export default function NFTGenerator({ onGenerationComplete }: NFTGeneratorProps
                                 <span className="text-gray-400 text-sm">%</span>
                               </div>
                             </div>
-                          ))}
+                          )) : (
+                            <div className="text-center py-4">
+                              <p className="text-gray-400 text-sm">No traits available</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                      <p className="text-gray-300">Loading layer configuration...</p>
+                    </div>
+                  )}
                 </div>
 
                 <button
