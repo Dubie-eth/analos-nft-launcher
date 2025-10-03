@@ -405,7 +405,7 @@ function CollectionMintContent() {
             Back to Collections
           </Link>
         </div>
-      </div>
+      </StandardLayout>
     );
   }
 
