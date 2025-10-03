@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { pricingService } from '@/lib/pricing-service';
 
 interface PricingModalProps {
@@ -13,14 +13,44 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
   const [activeTab, setActiveTab] = useState<'generator' | 'smart-contract' | 'drops' | 'forms'>('generator');
   const [quantity, setQuantity] = useState(1000);
   const [selectedTier, setSelectedTier] = useState('Professional');
+  const [artGeneratorTiers, setArtGeneratorTiers] = useState<any[]>([]);
+  const [generationCost, setGenerationCost] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Load pricing data when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const loadPricingData = async () => {
+        try {
+          setLoading(true);
+          console.log('🔄 Loading pricing data for modal...');
+          
+          const [tiers, cost] = await Promise.all([
+            pricingService.getArtGeneratorPricing(),
+            pricingService.calculateGenerationCost(quantity, selectedTier)
+          ]);
+          
+          console.log('✅ Pricing data loaded for modal:', { tiers: tiers.length, cost });
+          setArtGeneratorTiers(tiers);
+          setGenerationCost(cost);
+        } catch (error) {
+          console.error('❌ Error loading pricing data for modal:', error);
+          setArtGeneratorTiers([]);
+          setGenerationCost(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      loadPricingData();
+    }
+  }, [isOpen, quantity, selectedTier]);
 
   if (!isOpen) return null;
 
-  const artGeneratorTiers = pricingService.getArtGeneratorPricing();
   const smartContractPricing = pricingService.getSmartContractPricing();
   const dropPricing = pricingService.getDropPricing();
   const formsPricing = pricingService.getFormsPricing();
-  const generationCost = pricingService.calculateGenerationCost(quantity, selectedTier);
 
   const handleStartFree = () => {
     // Determine which service to start based on active tab
@@ -109,7 +139,12 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
 
             {/* Pricing Tiers */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
-              {artGeneratorTiers.map((tier) => (
+              {loading ? (
+                <div className="col-span-3 text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                  <p className="text-gray-300">Loading pricing tiers...</p>
+                </div>
+              ) : artGeneratorTiers && artGeneratorTiers.length > 0 ? artGeneratorTiers.map((tier) => (
                 <div
                   key={tier.name}
                   className={`bg-white/10 rounded-2xl p-6 border ${
@@ -156,7 +191,11 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
                     Select Plan
                   </button>
                 </div>
-              ))}
+              )) : (
+                <div className="col-span-3 text-center py-8">
+                  <p className="text-gray-400">No pricing tiers available</p>
+                </div>
+              )}
             </div>
 
             {/* Price Calculator */}
@@ -186,11 +225,13 @@ export default function PricingModal({ isOpen, onClose, onStartFree }: PricingMo
                     onChange={(e) => setSelectedTier(e.target.value)}
                     className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                    {artGeneratorTiers.map((tier) => (
+                    {artGeneratorTiers && artGeneratorTiers.length > 0 ? artGeneratorTiers.map((tier) => (
                       <option key={tier.name} value={tier.name}>
                         {tier.name} - {tier.pricePerToken.toLocaleString()} $LOS per NFT
                       </option>
-                    ))}
+                    )) : (
+                      <option value="">Loading tiers...</option>
+                    )}
                   </select>
                 </div>
               </div>
