@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import WhitelistHolderManager from './WhitelistHolderManager';
 import WhitelistManager from './WhitelistManager';
 import WhitelistPriorityManager from './WhitelistPriorityManager';
@@ -28,6 +28,9 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
     ...initialSettings
   });
 
+  // Debounce timer ref
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
   const [newWhitelistAddress, setNewWhitelistAddress] = useState('');
   const [newPhase, setNewPhase] = useState({
     name: '',
@@ -52,7 +55,7 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
     tokenSymbol: ''
   });
 
-  const handleSettingChange = (path: string, value: any) => {
+  const handleSettingChange = useCallback((path: string, value: any) => {
     const newSettings = { ...settings };
     const keys = path.split('.');
     let current = newSettings;
@@ -63,8 +66,17 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
     
     current[keys[keys.length - 1]] = value;
     setSettings(newSettings);
-    onSettingsChange(newSettings);
-  };
+    
+    // Clear existing timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    
+    // Debounce the parent callback to prevent excessive updates
+    debounceTimer.current = setTimeout(() => {
+      onSettingsChange(newSettings);
+    }, 300); // 300ms debounce
+  }, [settings, onSettingsChange]);
 
   const addToWhitelist = () => {
     if (newWhitelistAddress.trim()) {
@@ -491,7 +503,10 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
             const currentAddresses = settings.whitelist?.addresses || [];
             const newAddresses = [...new Set([...currentAddresses, ...addresses])];
             
-            console.log('✅ Adding addresses to whitelist:', newAddresses);
+            // Only log when addresses actually change
+            if (newAddresses.length !== currentAddresses.length) {
+              console.log('✅ Adding addresses to whitelist:', newAddresses);
+            }
             handleSettingChange('whitelist.addresses', newAddresses);
             
             alert(`✅ Successfully added ${addresses.length} addresses to whitelist!`);
@@ -511,7 +526,10 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
         collectionId={`collection_${settings.name?.toLowerCase().replace(/\s+/g, '_') || 'default'}`}
         collectionName={settings.name || 'Unnamed Collection'}
         onWhitelistRulesChange={(rules) => {
-          console.log('🎯 Whitelist rules updated:', rules);
+          // Only log when rules actually change (not on every render)
+          if (rules.length !== (settings.whitelist?.rules?.length || 0)) {
+            console.log('🎯 Whitelist rules updated:', rules);
+          }
           handleSettingChange('whitelist.rules', rules);
         }}
         initialRules={settings.whitelist?.rules || []}
@@ -522,7 +540,10 @@ export default function AdvancedMintingSettings({ onSettingsChange, initialSetti
         collectionId={`collection_${settings.name?.toLowerCase().replace(/\s+/g, '_') || 'default'}`}
         collectionName={settings.name || 'Unnamed Collection'}
         onWhitelistChange={(phases) => {
-          console.log('🔐 Legacy whitelist phases updated:', phases);
+          // Only log when phases actually change (not on every render)
+          if (phases.length !== (settings.whitelist?.phases?.length || 0)) {
+            console.log('🔐 Legacy whitelist phases updated:', phases);
+          }
           handleSettingChange('whitelist.phases', phases);
         }}
         initialPhases={settings.whitelist?.phases || []}

@@ -48,17 +48,35 @@ export const ADMIN_CONFIG = {
   }
 };
 
+// Cache for admin access checks to prevent excessive logging
+const adminAccessCache = new Map<string, { result: boolean; lastChecked: number }>();
+const CACHE_DURATION = 5000; // 5 seconds
+
 /**
  * Check if a wallet address is authorized for admin access
  */
 export function isAuthorizedAdmin(walletAddress: string | null): boolean {
   if (!walletAddress) return false;
   
+  const now = Date.now();
+  const cached = adminAccessCache.get(walletAddress);
+  
+  // Return cached result if it's still valid
+  if (cached && (now - cached.lastChecked) < CACHE_DURATION) {
+    return cached.result;
+  }
+  
   const isAuthorized = ADMIN_CONFIG.authorizedWallets.some(
     admin => admin.address === walletAddress
   );
   
-  // Log access attempts for security monitoring
+  // Cache the result
+  adminAccessCache.set(walletAddress, {
+    result: isAuthorized,
+    lastChecked: now
+  });
+  
+  // Log access attempts for security monitoring (only once per cache period)
   if (ADMIN_CONFIG.settings.logAccessAttempts) {
     const timestamp = new Date().toISOString();
     const result = isAuthorized ? 'GRANTED' : 'DENIED';
