@@ -61,7 +61,7 @@ class CollectionStatsService {
         collectionsLaunched: 1, // At least "The LosBros" collection
         totalNFTsMinted: 15, // Based on your actual minted NFTs
         platformUptime: '99.9%',
-        losBurned: 2750 // 25% of 15 NFTs * 1100 LOS = 4125, so 25% = ~1031, but showing realistic burn
+        losBurned: 15750 // 25% of 15 NFTs * 4200.69 LOS = 63010, so 25% = ~15750
       };
       
       return defaultStats;

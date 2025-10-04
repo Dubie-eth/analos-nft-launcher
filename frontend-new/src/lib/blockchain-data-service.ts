@@ -39,8 +39,8 @@ export class BlockchainDataService {
     'The LosBros': {
       collectionAddress: 'collection_the_losbros', // Use consistent ID for The LosBros
       mintAddress: 'mint_the_losbros', // Use consistent ID for The LosBros
-      totalSupply: 4200,
-      mintPrice: 1100, // Updated to 1,100 $LOS
+      totalSupply: 2222,
+      mintPrice: 4200.69, // Updated to 4,200.69 $LOS
       paymentToken: 'LOS',
       isRevealLater: true,
       revealDate: null, // Will be set when reveal happens

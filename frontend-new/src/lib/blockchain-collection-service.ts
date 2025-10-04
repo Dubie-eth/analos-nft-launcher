@@ -64,11 +64,11 @@ export class BlockchainCollectionService {
         id: mintAddress,
         name: 'The LosBros',
         symbol: '$LBS',
-        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
+        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
         imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-        mintPrice: 1100, // Updated to 1,100 $LOS
-        totalSupply: 4200,
-        currentSupply: 0, // Will be updated by supply tracker
+        mintPrice: 4200.69, // Updated to 4,200.69 $LOS
+        totalSupply: 2222,
+        currentSupply: 15, // Updated with actual minted count
         isActive: true,
         isRevealLater: true, // This is a reveal later collection
         feePercentage: 2.5,
@@ -116,11 +116,11 @@ export class BlockchainCollectionService {
           id: 'launch-on-los-blockchain',
           name: 'The LosBros',
           symbol: '$LBS',
-          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
           mintPrice: 1100, // Updated to 1,100 $LOS
           totalSupply: 4200,
-          currentSupply: 0, // Will be updated by supply tracker
+          currentSupply: 15, // Updated with actual minted count
         isActive: true,
         isRevealLater: true, // This is a reveal later collection
         freeMintPhase: {
@@ -276,11 +276,11 @@ export class BlockchainCollectionService {
           id: 'launch-on-los-blockchain',
           name: 'The LosBros',
           symbol: '$LBS',
-          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 4,200 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
           mintPrice: 1100, // Updated to 1,100 $LOS
           totalSupply: 4200,
-          currentSupply: 0, // Will be updated by supply tracker
+          currentSupply: 15, // Updated with actual minted count
         isActive: true,
         isRevealLater: true, // This is a reveal later collection
         freeMintPhase: {
