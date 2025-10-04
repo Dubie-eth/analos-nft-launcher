@@ -9,6 +9,7 @@ import BondingCurveAdminPanel from './BondingCurveAdminPanel';
 import MasterBondingCurveDashboard from './MasterBondingCurveDashboard';
 import BondingCurveRevealManager from './BondingCurveRevealManager';
 import SecureEscrowWalletManager from './SecureEscrowWalletManager';
+import CollectionDeployment from './CollectionDeployment';
 
 interface AdminControlPanelProps {
   isAuthorized: boolean;
@@ -21,6 +22,8 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
   const [loading, setLoading] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [showCreateCollection, setShowCreateCollection] = useState(false);
+  const [showDeployment, setShowDeployment] = useState(false);
+  const [selectedCollectionForDeployment, setSelectedCollectionForDeployment] = useState<string>('');
   const [whitelistStats, setWhitelistStats] = useState<WhitelistStats | null>(null);
   const [activePhases, setActivePhases] = useState<WhitelistPhase[]>([]);
   const [blockchainCollections, setBlockchainCollections] = useState<any[]>([]);
@@ -596,6 +599,16 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                   Refresh Data
                 </button>
 
+                <button
+                  onClick={() => {
+                    setSelectedCollectionForDeployment(collection.name);
+                    setShowDeployment(true);
+                  }}
+                  className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm font-medium transition-colors"
+                >
+                  🚀 Deploy
+                </button>
+
                 {collection.isTestMode && (
                   <button
                     onClick={() => adminControlService.deleteCollection(collection.name)}
@@ -868,6 +881,38 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
           />
         </div>
       ))}
+
+      {/* Collection Deployment Modal */}
+      {showDeployment && (
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">🚀 Deploy Collection</h2>
+                <button
+                  onClick={() => setShowDeployment(false)}
+                  className="text-white/60 hover:text-white text-2xl p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <CollectionDeployment
+                collectionName={selectedCollectionForDeployment}
+                onDeploymentComplete={(success, result) => {
+                  if (success) {
+                    console.log('✅ Deployment completed successfully:', result);
+                    setShowDeployment(false);
+                    loadCollections(); // Refresh collections list
+                  } else {
+                    console.error('❌ Deployment failed:', result);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

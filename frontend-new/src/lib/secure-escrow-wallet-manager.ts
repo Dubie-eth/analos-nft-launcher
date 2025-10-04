@@ -85,8 +85,15 @@ export class SecureEscrowWalletManager {
    * Initialize default escrow wallets for existing collections
    */
   private initializeDefaultEscrowWallets(): void {
-    // Generate escrow wallet for "The LosBros" collection
-    this.generateEscrowWallet('collection_the_losbros', 'The LosBros');
+    // Only initialize if we have an admin wallet available
+    const adminWallet = process.env.NEXT_PUBLIC_ADMIN_WALLET_1;
+    if (adminWallet && this.isAdminWallet(adminWallet)) {
+      // Generate escrow wallet for "The LosBros" collection
+      this.generateEscrowWallet('collection_the_losbros', 'The LosBros', adminWallet)
+        .catch(error => console.warn('⚠️ Could not initialize default escrow wallet:', error.message));
+    } else {
+      console.log('⚠️ No admin wallet available for escrow wallet initialization');
+    }
     console.log('✅ Default escrow wallets initialized');
   }
 
