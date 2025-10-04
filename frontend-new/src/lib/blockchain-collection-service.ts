@@ -148,9 +148,9 @@ export class BlockchainCollectionService {
           escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
-          mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
-          metadataAddress: 'So11111111111111111111111111111111111111113', // Valid Base58 address
-          masterEditionAddress: 'So11111111111111111111111111111111111111114', // Valid Base58 address
+          mintAddress: '11111111111111111111111111111111', // SOL mint address (valid Base58)
+          metadataAddress: '11111111111111111111111111111112', // Valid Base58 address
+          masterEditionAddress: '11111111111111111111111111111113', // Valid Base58 address
           arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
         }
       ];
@@ -338,9 +338,9 @@ export class BlockchainCollectionService {
           escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
-          mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
-          metadataAddress: 'So11111111111111111111111111111111111111113', // Valid Base58 address
-          masterEditionAddress: 'So11111111111111111111111111111111111111114', // Valid Base58 address
+          mintAddress: '11111111111111111111111111111111', // SOL mint address (valid Base58)
+          metadataAddress: '11111111111111111111111111111112', // Valid Base58 address
+          masterEditionAddress: '11111111111111111111111111111113', // Valid Base58 address
           arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
         }
       ];

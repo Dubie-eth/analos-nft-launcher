@@ -49,15 +49,20 @@ function MintPageContent() {
       const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
       
       // Filter collections based on admin control service
-      const visibleCollections = blockchainCollections.filter(collection => {
-        const adminConfig = adminControlService.getCollection(collection.name);
+      const visibleCollections = [];
+      for (const collection of blockchainCollections) {
+        const adminConfig = await adminControlService.getCollection(collection.name);
         if (adminConfig) {
           console.log(`🔍 Checking visibility for ${collection.name}: isActive=${adminConfig.isActive}, mintingEnabled=${adminConfig.mintingEnabled}`);
-          return adminConfig.isActive && adminConfig.mintingEnabled;
+          if (adminConfig.isActive && adminConfig.mintingEnabled) {
+            visibleCollections.push(collection);
+          }
+        } else {
+          // If no admin config found, show by default (for backward compatibility)
+          console.log(`⚠️ No admin config for ${collection.name}, showing by default`);
+          visibleCollections.push(collection);
         }
-        // If no admin config found, show by default (for backward compatibility)
-        return true;
-      });
+      }
       
       // Add timestamp for caching
       (visibleCollections as any).lastFetched = now;
