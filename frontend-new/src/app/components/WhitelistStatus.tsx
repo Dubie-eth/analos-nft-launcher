@@ -131,11 +131,36 @@ export default function WhitelistStatus({
       return now >= startDate && now <= endDate;
     });
 
-    if (!activeRule || !activePhase) {
+    if (!activePhase) {
       setWhitelistStatus(null);
       onWhitelistPriceChange?.(basePrice, 1.0, null);
       onWhitelistStatusChange?.(true, 999, false); // Allow minting when no whitelist is active
       return;
+    }
+
+    // If there's an active phase but no specific rule, check phase eligibility
+    if (!activeRule) {
+      const eligibility = await whitelistPhaseService.checkWalletEligibility(
+        walletAddress, 
+        activePhase,
+        formattedBalance
+      );
+
+      if (!eligibility.isEligible) {
+        setWhitelistStatus({
+          isWhitelisted: false,
+          activeRule: null,
+          canMint: false,
+          remainingMints: 0,
+          priceMultiplier: activePhase.priceMultiplier,
+          effectivePrice: whitelistPhaseService.getEffectivePrice(basePrice, activePhase),
+          eligibilityReason: eligibility.reason
+        });
+        
+        onWhitelistPriceChange?.(basePrice * activePhase.priceMultiplier, activePhase.priceMultiplier, null);
+        onWhitelistStatusChange?.(false, 0, false);
+        return;
+      }
     }
 
     // Check wallet eligibility using the phase service

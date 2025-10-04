@@ -55,7 +55,7 @@ export class AdminControlService {
           isActive: true, // Enabled for testing
           mintingEnabled: true, // Minting enabled for testing
       isTestMode: true,
-      totalSupply: 100,
+      totalSupply: 2222, // Match the actual collection size
       mintPrice: 10.00,
       paymentToken: 'LOS',
       description: 'Test collection for development and testing purposes',

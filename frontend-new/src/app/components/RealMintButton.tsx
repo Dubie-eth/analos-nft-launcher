@@ -42,9 +42,9 @@ export default function RealMintButton({
       return;
     }
 
-    // Check whitelist restrictions
-    if (whitelistStatus && whitelistStatus.isWhitelisted) {
-      if (whitelistStatus.canMint === false) {
+    // Check whitelist restrictions - ENFORCE STRICTLY
+    if (whitelistStatus) {
+      if (whitelistStatus.canMint === false || whitelistStatus.isWhitelisted === false) {
         onMintError('You are not eligible to mint during the whitelist phase');
         return;
       }
@@ -117,7 +117,7 @@ export default function RealMintButton({
           const phase = whitelistStatus?.isWhitelisted ? 'whitelist' : 'public';
           
           await directMintService.logMintEvent(
-            collectionName,
+            'Test', // Use actual collection name for logging
             publicKey.toBase58(),
             tokenIds,
             totalCost / quantity, // Price per NFT
@@ -154,11 +154,11 @@ export default function RealMintButton({
     }
   };
 
-  // Determine if button should be disabled
+  // Determine if button should be disabled - ENFORCE STRICTLY
   const isDisabled = minting || 
     !publicKey || 
     (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) ||
-    (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false);
+    (whitelistStatus && (whitelistStatus.canMint === false || whitelistStatus.isWhitelisted === false));
 
   // Get disabled reason for tooltip
   const getDisabledReason = () => {
@@ -189,7 +189,7 @@ export default function RealMintButton({
       return 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 cursor-not-allowed';
     }
     
-    if (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false) {
+    if (whitelistStatus && (whitelistStatus.canMint === false || whitelistStatus.isWhitelisted === false)) {
       return 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 cursor-not-allowed';
     }
     

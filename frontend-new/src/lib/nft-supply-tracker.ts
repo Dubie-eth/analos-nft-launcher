@@ -36,7 +36,10 @@ export class NFTSupplyTracker {
       // Get all minted NFTs for this collection
       const mintedNFTs = await this.getMintedNFTs(collectionName);
       
-      const totalSupply = 2222; // This should come from smart contract
+      // Get total supply from admin control service instead of hardcoding
+      const { adminControlService } = await import('./admin-control-service');
+      const collection = await adminControlService.getCollection(collectionName);
+      const totalSupply = collection?.totalSupply || 2222; // Fallback to 2222 if not found
       const currentSupply = mintedNFTs.length;
       const remainingSupply = Math.max(0, totalSupply - currentSupply);
       const mintedPercentage = totalSupply > 0 ? (currentSupply / totalSupply) * 100 : 0;
