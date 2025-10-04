@@ -198,7 +198,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* System Status */}
       <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
         <h3 className="text-white font-bold text-lg mb-4">📊 System Status</h3>
