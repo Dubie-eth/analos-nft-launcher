@@ -13,6 +13,7 @@ import EnhancedNFTRevealModal from '../components/EnhancedNFTRevealModal';
 import PricingModal from '../components/PricingModal';
 import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
+import { adminControlService } from '../../lib/admin-control-service';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
@@ -24,7 +25,6 @@ import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blo
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 import { isAuthorizedAdmin, getAdminWalletInfo, hasAdminPermission } from '@/lib/admin-config';
-import { adminControlService } from '@/lib/admin-control-service';
 import { feeManagementService } from '@/lib/fee-management-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 
@@ -261,15 +261,48 @@ function AdminPageContent() {
     setShowAdvancedSettings(true);
   };
 
-  const handleUpdateAdvancedCollection = (updatedCollection: CollectionInfo) => {
-    // Ensure the collection has all required properties with defaults
-    const safeCollection = {
-      ...updatedCollection,
-      metadata: updatedCollection.metadata || { attributes: [] },
-      attributes: updatedCollection.attributes || []
-    };
-    setCurrentCollection(safeCollection);
-    tokenIdTracker.updateCollection(safeCollection.mint, safeCollection);
+  const handleUpdateAdvancedCollection = async (updatedCollection: CollectionInfo) => {
+    try {
+      // Ensure the collection has all required properties with defaults
+      const safeCollection = {
+        ...updatedCollection,
+        metadata: updatedCollection.metadata || { attributes: [] },
+        attributes: updatedCollection.attributes || []
+      };
+      
+      // Update local state
+      setCurrentCollection(safeCollection);
+      tokenIdTracker.updateCollection(safeCollection.mint, safeCollection);
+      
+      // Persist to admin control service
+      if (safeCollection.name) {
+        console.log('💾 Saving collection updates to admin control service:', safeCollection.name);
+        
+        // Update the collection in admin control service
+        const success = await adminControlService.updateCollection(safeCollection.name, {
+          name: safeCollection.name,
+          displayName: safeCollection.displayName || safeCollection.name,
+          description: safeCollection.description || '',
+          imageUrl: safeCollection.image || '',
+          totalSupply: safeCollection.maxSupply || 0,
+          mintPrice: safeCollection.price || 0,
+          paymentToken: safeCollection.paymentToken || 'LOS',
+          paymentTokens: safeCollection.paymentTokens || [], // Save multi-token payment configuration
+          isActive: safeCollection.isActive !== false,
+          mintingEnabled: safeCollection.mintingEnabled !== false,
+          isTestMode: safeCollection.isTestMode || false,
+          lastModified: Date.now()
+        });
+        
+        if (success) {
+          console.log('✅ Collection saved successfully to admin control service');
+        } else {
+          console.warn('⚠️ Failed to save collection to admin control service');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error updating collection:', error);
+    }
   };
 
   const loadExistingCollection = (collection: BlockchainCollectionData) => {

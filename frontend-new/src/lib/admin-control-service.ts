@@ -3,6 +3,15 @@
  * Manages minting toggles and collection controls
  */
 
+export interface PaymentToken {
+  mint: string;
+  symbol: string;
+  decimals: number;
+  pricePerNFT: number;
+  minBalanceForWhitelist?: number;
+  accepted: boolean;
+}
+
 export interface CollectionConfig {
   name: string;
   displayName: string;
@@ -12,6 +21,7 @@ export interface CollectionConfig {
   totalSupply: number;
   mintPrice: number;
   paymentToken: string;
+  paymentTokens?: PaymentToken[]; // Multi-token payment configuration
   description: string;
   imageUrl: string;
   createdAt: number;
