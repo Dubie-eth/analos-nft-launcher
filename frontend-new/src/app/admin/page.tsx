@@ -1184,6 +1184,28 @@ function AdminPageContent() {
                         </div>
                       </div>
                       <p className="text-white/70 text-sm">{collection.description}</p>
+                      
+                      {/* Collection Status */}
+                      <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 mb-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                              <span className="text-green-400 font-semibold text-sm">Live & Active</span>
+                            </div>
+                            <p className="text-green-300 text-xs mt-1">Build Status: Production Ready</p>
+                          </div>
+                          <a
+                            href={`/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg transition-colors"
+                          >
+                            🎯 View Mint Page
+                          </a>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-1 text-sm text-white/60">
                         <div className="flex justify-between">
                           <span>Supply:</span>
@@ -1322,6 +1344,28 @@ function AdminPageContent() {
                         </div>
                       </div>
                       <p className="text-white/70 text-sm">{collection.description}</p>
+                      
+                      {/* Collection Status */}
+                      <div className="bg-orange-500/20 border border-orange-500/50 rounded-lg p-3 mb-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                              <span className="text-orange-400 font-semibold text-sm">Hidden</span>
+                            </div>
+                            <p className="text-orange-300 text-xs mt-1">Build Status: Production Ready</p>
+                          </div>
+                          <a
+                            href={`/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs rounded-lg transition-colors"
+                          >
+                            🎯 View Mint Page
+                          </a>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-1 text-sm text-white/60">
                         <div className="flex justify-between">
                           <span>Supply:</span>
