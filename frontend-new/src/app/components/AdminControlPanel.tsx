@@ -823,8 +823,8 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
               
               <div className="flex space-x-4 mt-6">
