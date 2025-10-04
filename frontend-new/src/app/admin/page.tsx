@@ -19,6 +19,7 @@ import MintPagePreview from '../components/MintPagePreview';
 import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
 import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
 import AdminControlPanel from '../components/AdminControlPanel';
+import AdminStatusIndicator from '../components/AdminStatusIndicator';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
