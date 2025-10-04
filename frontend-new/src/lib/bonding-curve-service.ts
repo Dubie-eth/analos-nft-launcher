@@ -7,6 +7,7 @@
 import { bondingCurveSecurity } from './bonding-curve-security';
 import { escrowWalletService } from './escrow-wallet-service';
 import { bondingCurveWhitelistService } from './bonding-curve-whitelist-service';
+import { bondingCurveCollectionManager } from './bonding-curve-collection-manager';
 
 export interface BondingCurveConfig {
   virtualLOSReserves: number; // Virtual $LOS reserves
@@ -313,43 +314,50 @@ export class BondingCurveService {
       }
 
       try {
+        // Execute bonding curve mint using collection manager
+        const mintResult = await bondingCurveCollectionManager.executeBondingCurveMint(
+          collectionId,
+          userWallet,
+          adjustedLosAmount,
+          Math.floor(quote.outputAmount)
+        );
 
-        // TODO: Implement actual blockchain transaction
-        // This would involve:
-        // 1. Validate user has sufficient $LOS balance
-        // 2. Execute trade on bonding curve
-        // 3. Mint NFTs to user
-        // 4. Update bonding curve state
-
-        console.log('Executing secure buy trade:', { 
-          collectionId, 
-          losAmount, 
-          userWallet, 
-          priceImpact: quote.priceImpact,
-          nftsReceived: quote.outputAmount
-        });
-
-        // Deposit fees to escrow wallet
-        if (quote.fee > 0) {
-          await escrowWalletService.depositToEscrow(
-            'bonding_curve',
-            quote.fee,
-            collectionId
-          );
-          console.log(`💰 Deposited ${quote.fee} $LOS to bonding curve escrow`);
+        if (mintResult.success) {
+          // Deposit fees to escrow wallet
+          if (quote.fee > 0) {
+            await escrowWalletService.depositToEscrow(
+              'bonding_curve',
+              quote.fee,
+              collectionId
+            );
+            console.log(`💰 Deposited ${quote.fee} $LOS to bonding curve escrow`);
+          }
+          
+          // Record trade for security tracking
+          bondingCurveSecurity.recordTrade(userWallet, quote.outputAmount, adjustedLosAmount);
+          
+          console.log('Executing secure buy trade:', { 
+            collectionId, 
+            losAmount: adjustedLosAmount, 
+            userWallet, 
+            priceImpact: quote.priceImpact,
+            nftsReceived: quote.outputAmount,
+            revealTriggered: mintResult.revealTriggered
+          });
+          
+          return {
+            success: true,
+            nftsReceived: quote.outputAmount,
+            transactionHash: mintResult.transactionHash,
+            revealTriggered: mintResult.revealTriggered
+          };
+        } else {
+          return {
+            success: false,
+            nftsReceived: 0,
+            error: mintResult.error || 'Minting failed'
+          };
         }
-        
-        // Record trade for security tracking
-        bondingCurveSecurity.recordTrade(userWallet, quote.outputAmount, losAmount);
-        
-        // Simulate trade execution
-        const transactionHash = `secure_buy_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        return {
-          success: true,
-          nftsReceived: quote.outputAmount,
-          transactionHash
-        };
       } catch (tradeError) {
         console.error('Trade execution failed:', tradeError);
         throw tradeError;

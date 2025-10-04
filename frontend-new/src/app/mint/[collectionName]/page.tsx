@@ -24,6 +24,7 @@ import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
 import SocialVerification from '../../components/SocialVerification';
+import BondingCurveMintButton from '../../components/BondingCurveMintButton';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { blockchainFirstService } from '@/lib/blockchain-first-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
@@ -748,8 +749,25 @@ function CollectionMintContent() {
                     />
                   )}
 
-                  {/* Advanced Mint Button with all features */}
-                  {tokenTrackerCollection ? (
+                  {/* Bonding Curve vs Regular Mint Button */}
+                  {collection.isBondingCurve ? (
+                    <BondingCurveMintButton
+                      collectionId={collection.id}
+                      collectionName={collection.name}
+                      quantity={mintQuantity}
+                      losAmount={totalCost || 0}
+                      onMintSuccess={(result) => {
+                        setMintStatus(`Successfully minted ${result.nftsReceived} NFT(s) via bonding curve! Transaction: ${result.transactionHash}`);
+                        if (result.revealTriggered) {
+                          setMintStatus(prev => prev + ' 🎉 Collection revealed!');
+                        }
+                        fetchCollectionInfo(); // Refresh collection info
+                      }}
+                      onMintError={(error) => {
+                        setMintStatus(`Bonding curve mint failed: ${error}`);
+                      }}
+                    />
+                  ) : tokenTrackerCollection ? (
                     <AdvancedMintButton
                       collectionName={collection.name}
                       collectionMint={`collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`}
