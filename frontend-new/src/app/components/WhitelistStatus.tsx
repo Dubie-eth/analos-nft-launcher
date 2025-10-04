@@ -87,7 +87,7 @@ export default function WhitelistStatus({
           
           setWhitelistRules([phaseRule]);
           
-          // Check if current wallet is whitelisted
+          // Check if current wallet is whitelisted (will be called again when lolBalanceInfo updates)
           if (connected && publicKey) {
             checkWhitelistStatus([phaseRule], activePhase);
           }
@@ -106,6 +106,16 @@ export default function WhitelistStatus({
 
     loadWhitelistData();
   }, [collectionId, connected, publicKey, basePrice, onWhitelistPriceChange, onWhitelistStatusChange]);
+
+  // Re-check whitelist status when LOL balance info changes
+  useEffect(() => {
+    if (whitelistRules.length > 0 && connected && publicKey) {
+      const activePhase = whitelistPhaseService.getCurrentActivePhase();
+      if (activePhase) {
+        checkWhitelistStatus(whitelistRules, activePhase);
+      }
+    }
+  }, [lolBalanceInfo, whitelistRules, connected, publicKey]);
 
   const checkWhitelistStatus = async (rules: WhitelistRule[], activePhase?: WhitelistPhase) => {
     if (!connected || !publicKey) return;
@@ -216,7 +226,30 @@ export default function WhitelistStatus({
     );
   }
 
-  // User is whitelisted
+  // User is whitelisted but check if they can actually mint
+  const canActuallyMint = whitelistStatus.isWhitelisted && whitelistStatus.canMint && whitelistStatus.remainingMints > 0;
+  
+  if (!canActuallyMint) {
+    // Show not eligible message even if technically whitelisted
+    return (
+      <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/50 rounded-xl p-4 mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="text-2xl">🚫</div>
+          <div>
+            <h3 className="text-white font-semibold">Not Eligible to Mint</h3>
+            <p className="text-red-200 text-sm">
+              <strong>{whitelistStatus.activeRule?.name}</strong> - {whitelistStatus.eligibilityReason || 'You do not meet the requirements for this phase'}
+            </p>
+            <p className="text-red-200 text-xs mt-1">
+              Phase active until: {new Date(whitelistStatus.activeRule?.endDate || '').toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // User is whitelisted and can mint
   return (
     <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/50 rounded-xl p-4 mb-6">
       <div className="flex items-center justify-between">
@@ -250,7 +283,7 @@ export default function WhitelistStatus({
             {whitelistStatus.priceMultiplier === 0 ? 'FREE MINT' : `${whitelistStatus.priceMultiplier}x PRICE`}
           </div>
           <div className="text-green-200 text-xs">
-            Until {new Date(whitelistStatus.currentPhase?.endDate || '').toLocaleDateString()}
+            Until {new Date(whitelistStatus.activeRule?.endDate || '').toLocaleDateString()}
           </div>
         </div>
       </div>

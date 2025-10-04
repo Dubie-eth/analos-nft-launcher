@@ -530,6 +530,27 @@ function CollectionMintContent() {
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
               <h2 className="text-2xl font-bold text-white mb-6">Mint NFTs</h2>
               
+              {/* Not Eligible Notice */}
+              {connected && lolBalanceInfo && !lolBalanceInfo.hasMinimumBalance && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-3xl">🚫</div>
+                    <div>
+                      <h3 className="text-red-400 font-bold text-lg">Cannot Mint - Insufficient $LOL Balance</h3>
+                      <p className="text-red-200 text-sm">
+                        You need <strong>{minimumLolBalance.toLocaleString()} $LOL</strong> to mint during the current phase.
+                      </p>
+                      <p className="text-red-200 text-sm">
+                        Current balance: <strong>{lolBalanceInfo.balance?.toLocaleString() || '0'} $LOL</strong>
+                      </p>
+                      <p className="text-red-200 text-xs mt-1">
+                        You need {((minimumLolBalance - (lolBalanceInfo.balance || 0)).toLocaleString())} more $LOL tokens.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {connected ? (
                 <div>
                   <div className="mb-6">
