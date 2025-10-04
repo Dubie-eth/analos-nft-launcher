@@ -443,7 +443,7 @@ Block Explorer: https://explorer.analos.io`
                     <div className="text-gray-400">Total Supply</div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-                    <div className="text-3xl font-bold text-white mb-2">0.069</div>
+                    <div className="text-3xl font-bold text-white mb-2">1,100</div>
                     <div className="text-gray-400">$LOS Mint Price</div>
                   </div>
                 </div>
