@@ -280,38 +280,27 @@ export class BondingCurveService {
         };
       }
 
-      // Comprehensive security validation
-      const validation = await bondingCurveSecurity.validateTrade({
-        wallet: userWallet,
-        tradeAmount: losAmount,
-        isBuy: true,
-        totalLiquidity: collection.state.virtualLOSReserves,
-        currentPrice: collection.state.currentPrice,
-        virtualLOSReserves: collection.state.virtualLOSReserves,
-        virtualNFTSupply: collection.state.virtualNFTSupply,
-        ipAddress,
-        userAgent
-      });
+      // Calculate quote first
+      const quote = this.calculateBuyQuote(collection.config, collection.state, losAmount);
+      
+      // Comprehensive security validation using new security service
+      const securityCheck = bondingCurveSecurity.checkTradeAllowed(
+        userWallet,
+        quote.outputAmount,
+        collection.config.virtualNFTSupply,
+        quote.priceImpact,
+        losAmount
+      );
 
-      if (!validation.isValid) {
+      if (!securityCheck.allowed) {
         return {
           success: false,
           nftsReceived: 0,
-          error: validation.errors.join(', ')
+          error: securityCheck.reason || 'Security check failed'
         };
       }
 
-      // Start trade tracking
-      bondingCurveSecurity.startTrade(userWallet);
-
       try {
-        // Calculate quote with security-validated parameters
-        const quote = this.calculateBuyQuote(collection.config, collection.state, losAmount);
-        
-        // Additional security checks
-        if (quote.priceImpact > 0.05) { // 5% max price impact
-          throw new Error('Price impact too high. Trade rejected for security.');
-        }
 
         // TODO: Implement actual blockchain transaction
         // This would involve:
@@ -327,6 +316,19 @@ export class BondingCurveService {
           priceImpact: quote.priceImpact,
           nftsReceived: quote.outputAmount
         });
+
+        // Deposit fees to escrow wallet
+        if (quote.fee > 0) {
+          await escrowWalletService.depositToEscrow(
+            'bonding_curve',
+            quote.fee,
+            collectionId
+          );
+          console.log(`💰 Deposited ${quote.fee} $LOS to bonding curve escrow`);
+        }
+        
+        // Record trade for security tracking
+        bondingCurveSecurity.recordTrade(userWallet, quote.outputAmount, losAmount);
         
         // Simulate trade execution
         const transactionHash = `secure_buy_tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -336,9 +338,9 @@ export class BondingCurveService {
           nftsReceived: quote.outputAmount,
           transactionHash
         };
-      } finally {
-        // Always end trade tracking
-        bondingCurveSecurity.endTrade(userWallet);
+      } catch (tradeError) {
+        console.error('Trade execution failed:', tradeError);
+        throw tradeError;
       }
     } catch (error) {
       return {

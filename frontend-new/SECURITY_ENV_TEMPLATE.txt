@@ -1,0 +1,120 @@
+# 🛡️ SECURITY CONFIGURATION - ANALOS NFT LAUNCHER
+# 
+# ⚠️ CRITICAL SECURITY NOTICE:
+# 1. NEVER commit actual .env.local files to version control
+# 2. Use HARDWARE WALLETS for all operations
+# 3. Create SEPARATE wallets for each function
+# 4. Test with SMALL amounts first
+# 5. Keep private keys in HARDWARE WALLETS ONLY
+
+# ===========================================
+# ADMIN WALLET CONFIGURATION
+# ===========================================
+# Primary admin wallet for platform management
+# MUST be a hardware wallet or secure key management
+NEXT_PUBLIC_ADMIN_WALLET_1=YOUR_SECURE_ADMIN_WALLET_ADDRESS_HERE
+
+# Optional: Additional admin wallets
+# NEXT_PUBLIC_ADMIN_WALLET_2=SECONDARY_ADMIN_WALLET_ADDRESS
+# NEXT_PUBLIC_ADMIN_WALLET_3=DEVELOPER_ADMIN_WALLET_ADDRESS
+
+# ===========================================
+# PLATFORM WALLETS CONFIGURATION
+# ===========================================
+# Platform fees wallet - receives platform fees
+# MUST be separate from admin wallet
+NEXT_PUBLIC_PLATFORM_FEES_WALLET=YOUR_PLATFORM_FEES_WALLET_ADDRESS_HERE
+
+# Bonding curve escrow wallet - holds fees during bonding curve
+# MUST be separate from platform fees wallet
+NEXT_PUBLIC_BONDING_CURVE_WALLET=YOUR_BONDING_CURVE_ESCROW_WALLET_ADDRESS_HERE
+
+# ===========================================
+# BLOCKCHAIN CONFIGURATION
+# ===========================================
+# Analos RPC endpoint
+NEXT_PUBLIC_RPC_URL=https://rpc.analos.io
+
+# Network configuration
+NEXT_PUBLIC_NETWORK=mainnet-beta
+
+# ===========================================
+# SECURITY CONFIGURATION
+# ===========================================
+# Maximum trade size percentage (5 = 5% of total supply)
+NEXT_PUBLIC_MAX_TRADE_SIZE_PERCENTAGE=5
+
+# Maximum trade size absolute (100 = max 100 NFTs per trade)
+NEXT_PUBLIC_MAX_TRADE_SIZE_ABSOLUTE=100
+
+# Maximum price impact percentage (50 = 50% max price impact)
+NEXT_PUBLIC_MAX_PRICE_IMPACT=50
+
+# Cooldown period in milliseconds (300000 = 5 minutes)
+NEXT_PUBLIC_COOLDOWN_PERIOD_MS=300000
+
+# Maximum daily volume per wallet in USD
+NEXT_PUBLIC_MAX_DAILY_VOLUME_PER_WALLET=100000
+
+# ===========================================
+# BONDING CURVE CONFIGURATION
+# ===========================================
+# Default bonding curve parameters
+NEXT_PUBLIC_DEFAULT_VIRTUAL_LOS_RESERVES=100000
+NEXT_PUBLIC_DEFAULT_BONDING_CAP=50000
+NEXT_PUBLIC_DEFAULT_FEE_PERCENTAGE=3.5
+NEXT_PUBLIC_DEFAULT_CREATOR_FEE_PERCENTAGE=1.0
+NEXT_PUBLIC_DEFAULT_PLATFORM_FEE_PERCENTAGE=2.5
+
+# ===========================================
+# MONITORING & ALERTS
+# ===========================================
+# Enable security monitoring
+NEXT_PUBLIC_ENABLE_SECURITY_MONITORING=true
+
+# Enable transaction logging
+NEXT_PUBLIC_ENABLE_TRANSACTION_LOGGING=true
+
+# Enable suspicious activity detection
+NEXT_PUBLIC_ENABLE_SUSPICIOUS_ACTIVITY_DETECTION=true
+
+# ===========================================
+# DEVELOPMENT CONFIGURATION
+# ===========================================
+# Enable debug mode (DISABLE in production)
+NEXT_PUBLIC_DEBUG_MODE=false
+
+# Enable test mode (DISABLE in production)
+NEXT_PUBLIC_TEST_MODE=false
+
+# ===========================================
+# SECURITY WARNINGS
+# ===========================================
+# 
+# 🚨 CRITICAL SECURITY REMINDERS:
+# 
+# 1. WALLET SECURITY:
+#    - Use HARDWARE WALLETS for all operations
+#    - Create SEPARATE wallets for each function
+#    - NEVER share private keys
+#    - Use multi-signature for large amounts
+#
+# 2. DEPLOYMENT SECURITY:
+#    - Test on TESTNET first
+#    - Start with SMALL amounts
+#    - Monitor for suspicious activity
+#    - Have emergency procedures ready
+#
+# 3. OPERATIONAL SECURITY:
+#    - Regular security audits
+#    - Update security measures
+#    - Monitor wallet balances
+#    - Keep backups secure
+#
+# 4. EMERGENCY PROCEDURES:
+#    - Know how to pause trading
+#    - Have backup admin access
+#    - Document recovery procedures
+#    - Keep emergency contacts ready
+#
+# ===========================================

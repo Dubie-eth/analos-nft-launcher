@@ -13,9 +13,10 @@ export interface AdminWallet {
 
 export const ADMIN_CONFIG = {
   // Authorized admin wallet addresses
+  // ⚠️ SECURITY: These should be moved to environment variables in production
   authorizedWallets: [
     {
-      address: "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW",
+      address: process.env.NEXT_PUBLIC_ADMIN_WALLET_1 || "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW",
       name: "Primary Admin",
       role: "primary" as const,
       permissions: ["full_access", "collection_management", "user_management", "system_config"],

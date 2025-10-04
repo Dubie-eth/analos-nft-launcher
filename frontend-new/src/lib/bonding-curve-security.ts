@@ -1,499 +1,243 @@
 /**
- * Bonding Curve Security Service - Comprehensive security for bonding curve operations
- * Implements critical security measures to prevent manipulation and attacks
+ * Bonding Curve Security Service
+ * Protects against gaming, MEV attacks, and manipulation
  */
 
 export interface SecurityConfig {
-  maxPriceImpact: number; // Maximum price impact allowed (default: 5%)
-  maxTradeSize: number; // Maximum trade size as percentage of liquidity
-  rateLimitPerMinute: number; // Maximum trades per wallet per minute
-  rateLimitPerHour: number; // Maximum trades per wallet per hour
-  minTradeSize: number; // Minimum trade size to prevent dust attacks
-  maxConcurrentTrades: number; // Maximum concurrent trades per wallet
-  emergencyPauseThreshold: number; // Threshold for emergency pause
-  auditLogging: boolean; // Enable comprehensive audit logging
+  maxTradeSizePercentage: number; // Max % of total supply per trade
+  maxTradeSizeAbsolute: number; // Max absolute number of NFTs per trade
+  slippageProtectionPercentage: number; // Max price impact allowed
+  cooldownPeriodMs: number; // Time between large trades
+  maxDailyVolumePerWallet: number; // Max volume per wallet per day
+  frontRunProtectionMs: number; // Time window for front-run protection
+  minimumTradeSize: number; // Minimum trade size to prevent dust attacks
+  maximumPriceImpact: number; // Maximum price impact percentage
 }
 
-export interface TradeValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  priceImpact: number;
-  slippage: number;
-  estimatedOutput: number;
-}
-
-export interface SecurityEvent {
-  id: string;
-  timestamp: string;
-  type: 'trade' | 'mint' | 'reveal' | 'admin' | 'error' | 'security';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+export interface TradeLimits {
   wallet: string;
-  action: string;
-  amount?: number;
-  details: string;
-  ipAddress?: string;
-  userAgent?: string;
+  lastTradeTime: number;
+  dailyVolume: number;
+  dailyTradeCount: number;
+  isCooldownActive: boolean;
 }
 
-export class BondingCurveSecurityService {
-  private securityConfig: SecurityConfig;
-  private rateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
-  private hourlyRateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
-  private activeTrades: Map<string, number> = new Map();
-  private securityEvents: SecurityEvent[] = [];
-  private emergencyPaused: boolean = false;
+export interface SecurityCheckResult {
+  allowed: boolean;
+  reason?: string;
+  cooldownRemaining?: number;
+  maxAllowedSize?: number;
+}
 
-  constructor(config?: Partial<SecurityConfig>) {
-    this.securityConfig = {
-      maxPriceImpact: 0.05, // 5%
-      maxTradeSize: 0.1, // 10% of liquidity
-      rateLimitPerMinute: 10,
-      rateLimitPerHour: 100,
-      minTradeSize: 0.001, // 0.1% of liquidity
-      maxConcurrentTrades: 3,
-      emergencyPauseThreshold: 0.2, // 20% price impact
-      auditLogging: true,
-      ...config
-    };
+export class BondingCurveSecurity {
+  private tradeLimits: Map<string, TradeLimits> = new Map();
+  private readonly DEFAULT_SECURITY_CONFIG: SecurityConfig = {
+    maxTradeSizePercentage: 5, // Max 5% of supply per trade
+    maxTradeSizeAbsolute: 100, // Max 100 NFTs per trade
+    slippageProtectionPercentage: 10, // Max 10% price impact
+    cooldownPeriodMs: 300000, // 5 minutes between large trades
+    maxDailyVolumePerWallet: 100000, // Max $100k volume per wallet per day
+    frontRunProtectionMs: 10000, // 10 seconds front-run protection
+    minimumTradeSize: 1, // Minimum 1 NFT
+    maximumPriceImpact: 50 // Max 50% price impact
+  };
+
+  constructor() {
+    console.log('🛡️ Bonding Curve Security initialized');
   }
 
   /**
-   * Validate wallet address format and checksum
+   * Check if a trade is allowed based on security rules
    */
-  validateWalletAddress(address: string): { isValid: boolean; error?: string } {
-    if (!address || typeof address !== 'string') {
-      return { isValid: false, error: 'Invalid wallet address format' };
-    }
-
-    // Basic Solana address validation (base58, 32-44 characters)
-    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-    if (!solanaAddressRegex.test(address)) {
-      return { isValid: false, error: 'Invalid Solana wallet address format' };
-    }
-
-    // Additional checksum validation could be added here
-    return { isValid: true };
-  }
-
-  /**
-   * Check rate limiting for wallet
-   */
-  checkRateLimit(wallet: string): { allowed: boolean; error?: string } {
+  checkTradeAllowed(
+    walletAddress: string,
+    tradeSize: number,
+    totalSupply: number,
+    priceImpact: number,
+    tradeValue: number,
+    config: SecurityConfig = this.DEFAULT_SECURITY_CONFIG
+  ): SecurityCheckResult {
     const now = Date.now();
-    const minuteKey = `minute_${wallet}`;
-    const hourKey = `hour_${wallet}`;
+    const walletLimits = this.getOrCreateWalletLimits(walletAddress);
 
-    // Check minute rate limit
-    const minuteLimit = this.rateLimitMap.get(minuteKey);
-    if (!minuteLimit || now > minuteLimit.resetTime) {
-      this.rateLimitMap.set(minuteKey, { count: 1, resetTime: now + 60000 });
-    } else {
-      if (minuteLimit.count >= this.securityConfig.rateLimitPerMinute) {
-        return { 
-          allowed: false, 
-          error: `Rate limit exceeded. Maximum ${this.securityConfig.rateLimitPerMinute} trades per minute.` 
-        };
-      }
-      minuteLimit.count++;
+    // 1. Check minimum trade size
+    if (tradeSize < config.minimumTradeSize) {
+      return {
+        allowed: false,
+        reason: `Trade size too small. Minimum: ${config.minimumTradeSize} NFTs`
+      };
     }
 
-    // Check hour rate limit
-    const hourLimit = this.hourlyRateLimitMap.get(hourKey);
-    if (!hourLimit || now > hourLimit.resetTime) {
-      this.hourlyRateLimitMap.set(hourKey, { count: 1, resetTime: now + 3600000 });
-    } else {
-      if (hourLimit.count >= this.securityConfig.rateLimitPerHour) {
-        return { 
-          allowed: false, 
-          error: `Hourly rate limit exceeded. Maximum ${this.securityConfig.rateLimitPerHour} trades per hour.` 
+    // 2. Check maximum trade size (percentage)
+    const maxSizeByPercentage = Math.floor((totalSupply * config.maxTradeSizePercentage) / 100);
+    const maxSize = Math.min(config.maxTradeSizeAbsolute, maxSizeByPercentage);
+    
+    if (tradeSize > maxSize) {
+      return {
+        allowed: false,
+        reason: `Trade size too large. Maximum: ${maxSize} NFTs (${config.maxTradeSizePercentage}% of supply)`,
+        maxAllowedSize: maxSize
+      };
+    }
+
+    // 3. Check price impact
+    if (priceImpact > config.maximumPriceImpact) {
+      return {
+        allowed: false,
+        reason: `Price impact too high: ${priceImpact.toFixed(2)}%. Maximum: ${config.maximumPriceImpact}%`
+      };
+    }
+
+    // 4. Check cooldown period for large trades
+    if (tradeSize > (maxSize * 0.5)) { // Large trade = more than 50% of max allowed
+      if (walletLimits.isCooldownActive && (now - walletLimits.lastTradeTime) < config.cooldownPeriodMs) {
+        const cooldownRemaining = config.cooldownPeriodMs - (now - walletLimits.lastTradeTime);
+        return {
+          allowed: false,
+          reason: `Large trade cooldown active. Wait ${Math.ceil(cooldownRemaining / 1000)} seconds`,
+          cooldownRemaining
         };
       }
-      hourLimit.count++;
+    }
+
+    // 5. Check daily volume limits
+    if (walletLimits.dailyVolume + tradeValue > config.maxDailyVolumePerWallet) {
+      return {
+        allowed: false,
+        reason: `Daily volume limit exceeded. Current: $${walletLimits.dailyVolume.toFixed(2)}, Limit: $${config.maxDailyVolumePerWallet}`
+      };
+    }
+
+    // 6. Check daily trade count (prevent spam)
+    if (walletLimits.dailyTradeCount >= 100) {
+      return {
+        allowed: false,
+        reason: `Daily trade limit exceeded. Maximum: 100 trades per day`
+      };
     }
 
     return { allowed: true };
   }
 
   /**
-   * Check concurrent trades limit
+   * Record a successful trade for security tracking
    */
-  checkConcurrentTrades(wallet: string): { allowed: boolean; error?: string } {
-    const currentTrades = this.activeTrades.get(wallet) || 0;
-    
-    if (currentTrades >= this.securityConfig.maxConcurrentTrades) {
-      return { 
-        allowed: false, 
-        error: `Too many concurrent trades. Maximum ${this.securityConfig.maxConcurrentTrades} concurrent trades allowed.` 
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  /**
-   * Validate trade size against liquidity and limits
-   */
-  validateTradeSize(
-    tradeAmount: number,
-    totalLiquidity: number,
-    isBuy: boolean
-  ): { isValid: boolean; error?: string } {
-    // Check minimum trade size
-    const minSize = totalLiquidity * this.securityConfig.minTradeSize;
-    if (tradeAmount < minSize) {
-      return { 
-        isValid: false, 
-        error: `Trade amount too small. Minimum ${minSize.toFixed(6)} $LOS required.` 
-      };
-    }
-
-    // Check maximum trade size
-    const maxSize = totalLiquidity * this.securityConfig.maxTradeSize;
-    if (tradeAmount > maxSize) {
-      return { 
-        isValid: false, 
-        error: `Trade amount too large. Maximum ${maxSize.toFixed(2)} $LOS allowed.` 
-      };
-    }
-
-    return { isValid: true };
-  }
-
-  /**
-   * Calculate and validate price impact
-   */
-  calculatePriceImpact(
-    tradeAmount: number,
-    currentPrice: number,
-    virtualLOSReserves: number,
-    virtualNFTSupply: number,
-    isBuy: boolean
-  ): { priceImpact: number; isValid: boolean; error?: string } {
-    // Calculate new reserves after trade
-    let newVirtualLOSReserves: number;
-    let newVirtualNFTSupply: number;
-
-    if (isBuy) {
-      newVirtualLOSReserves = virtualLOSReserves + tradeAmount;
-      const k = virtualLOSReserves * virtualNFTSupply;
-      newVirtualNFTSupply = k / newVirtualLOSReserves;
-    } else {
-      newVirtualNFTSupply = virtualNFTSupply + tradeAmount;
-      const k = virtualLOSReserves * virtualNFTSupply;
-      newVirtualLOSReserves = k / newVirtualNFTSupply;
-    }
-
-    // Calculate new price
-    const newPrice = newVirtualLOSReserves / newVirtualNFTSupply;
-    
-    // Calculate price impact
-    const priceImpact = Math.abs((newPrice - currentPrice) / currentPrice);
-
-    // Check if price impact is within limits
-    if (priceImpact > this.securityConfig.maxPriceImpact) {
-      return {
-        priceImpact,
-        isValid: false,
-        error: `Price impact too high: ${(priceImpact * 100).toFixed(2)}%. Maximum ${(this.securityConfig.maxPriceImpact * 100).toFixed(2)}% allowed.`
-      };
-    }
-
-    // Check for emergency pause threshold
-    if (priceImpact > this.securityConfig.emergencyPauseThreshold) {
-      this.triggerEmergencyPause(`Extreme price impact detected: ${(priceImpact * 100).toFixed(2)}%`);
-      return {
-        priceImpact,
-        isValid: false,
-        error: 'Emergency pause triggered due to extreme price impact.'
-      };
-    }
-
-    return { priceImpact, isValid: true };
-  }
-
-  /**
-   * Comprehensive trade validation
-   */
-  async validateTrade(params: {
-    wallet: string;
-    tradeAmount: number;
-    isBuy: boolean;
-    totalLiquidity: number;
-    currentPrice: number;
-    virtualLOSReserves: number;
-    virtualNFTSupply: number;
-    ipAddress?: string;
-    userAgent?: string;
-  }): Promise<TradeValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    let priceImpact = 0;
-
-    try {
-      // Check emergency pause
-      if (this.emergencyPaused) {
-        errors.push('System is currently paused for maintenance.');
-        return { isValid: false, errors, warnings, priceImpact: 0, slippage: 0, estimatedOutput: 0 };
-      }
-
-      // Validate wallet address
-      const walletValidation = this.validateWalletAddress(params.wallet);
-      if (!walletValidation.isValid) {
-        errors.push(walletValidation.error || 'Invalid wallet address');
-      }
-
-      // Check rate limits
-      const rateLimitCheck = this.checkRateLimit(params.wallet);
-      if (!rateLimitCheck.allowed) {
-        errors.push(rateLimitCheck.error || 'Rate limit exceeded');
-      }
-
-      // Check concurrent trades
-      const concurrentCheck = this.checkConcurrentTrades(params.wallet);
-      if (!concurrentCheck.allowed) {
-        errors.push(concurrentCheck.error || 'Too many concurrent trades');
-      }
-
-      // Validate trade size
-      const sizeValidation = this.validateTradeSize(params.tradeAmount, params.totalLiquidity, params.isBuy);
-      if (!sizeValidation.isValid) {
-        errors.push(sizeValidation.error || 'Invalid trade size');
-      }
-
-      // Calculate and validate price impact
-      const priceImpactResult = this.calculatePriceImpact(
-        params.tradeAmount,
-        params.currentPrice,
-        params.virtualLOSReserves,
-        params.virtualNFTSupply,
-        params.isBuy
-      );
-      
-      priceImpact = priceImpactResult.priceImpact;
-      
-      if (!priceImpactResult.isValid) {
-        errors.push(priceImpactResult.error || 'Price impact validation failed');
-      }
-
-      // Log security event
-      this.logSecurityEvent({
-        type: 'trade',
-        severity: errors.length > 0 ? 'high' : 'medium',
-        wallet: params.wallet,
-        action: params.isBuy ? 'buy_attempt' : 'sell_attempt',
-        amount: params.tradeAmount,
-        details: `Trade validation: ${errors.length} errors, ${warnings.length} warnings`,
-        ipAddress: params.ipAddress,
-        userAgent: params.userAgent
-      });
-
-      // Calculate estimated output (simplified)
-      const estimatedOutput = params.isBuy 
-        ? params.tradeAmount / params.currentPrice
-        : params.tradeAmount * params.currentPrice;
-
-      return {
-        isValid: errors.length === 0,
-        errors,
-        warnings,
-        priceImpact,
-        slippage: priceImpact,
-        estimatedOutput
-      };
-
-    } catch (error) {
-      this.logSecurityEvent({
-        type: 'error',
-        severity: 'critical',
-        wallet: params.wallet,
-        action: 'trade_validation_error',
-        details: `Trade validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        ipAddress: params.ipAddress,
-        userAgent: params.userAgent
-      });
-
-      return {
-        isValid: false,
-        errors: ['Trade validation failed due to system error'],
-        warnings: [],
-        priceImpact: 0,
-        slippage: 0,
-        estimatedOutput: 0
-      };
-    }
-  }
-
-  /**
-   * Start trade execution (track concurrent trades)
-   */
-  startTrade(wallet: string): void {
-    const currentTrades = this.activeTrades.get(wallet) || 0;
-    this.activeTrades.set(wallet, currentTrades + 1);
-  }
-
-  /**
-   * End trade execution (release concurrent trade slot)
-   */
-  endTrade(wallet: string): void {
-    const currentTrades = this.activeTrades.get(wallet) || 0;
-    if (currentTrades > 0) {
-      this.activeTrades.set(wallet, currentTrades - 1);
-    }
-  }
-
-  /**
-   * Trigger emergency pause
-   */
-  triggerEmergencyPause(reason: string): void {
-    this.emergencyPaused = true;
-    
-    this.logSecurityEvent({
-      type: 'security',
-      severity: 'critical',
-      wallet: 'system',
-      action: 'emergency_pause',
-      details: `Emergency pause triggered: ${reason}`
-    });
-
-    // In a real implementation, this would:
-    // 1. Notify administrators immediately
-    // 2. Pause all trading operations
-    // 3. Log the incident
-    // 4. Prepare for investigation
-  }
-
-  /**
-   * Release emergency pause
-   */
-  releaseEmergencyPause(reason: string): void {
-    this.emergencyPaused = false;
-    
-    this.logSecurityEvent({
-      type: 'admin',
-      severity: 'high',
-      wallet: 'system',
-      action: 'emergency_pause_release',
-      details: `Emergency pause released: ${reason}`
-    });
-  }
-
-  /**
-   * Log security events
-   */
-  private logSecurityEvent(event: Omit<SecurityEvent, 'id' | 'timestamp'>): void {
-    if (!this.securityConfig.auditLogging) return;
-
-    const securityEvent: SecurityEvent = {
-      id: `sec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      ...event
-    };
-
-    this.securityEvents.push(securityEvent);
-
-    // Keep only last 10000 events to prevent memory issues
-    if (this.securityEvents.length > 10000) {
-      this.securityEvents = this.securityEvents.slice(-10000);
-    }
-
-    // In a real implementation, this would:
-    // 1. Send to external logging service
-    // 2. Alert on critical events
-    // 3. Store in secure database
-    console.log('🔒 Security Event:', securityEvent);
-  }
-
-  /**
-   * Get security events (for monitoring)
-   */
-  getSecurityEvents(limit: number = 100): SecurityEvent[] {
-    return this.securityEvents.slice(-limit);
-  }
-
-  /**
-   * Get security statistics
-   */
-  getSecurityStats(): {
-    totalEvents: number;
-    criticalEvents: number;
-    highSeverityEvents: number;
-    emergencyPaused: boolean;
-    activeTrades: number;
-    rateLimitViolations: number;
-  } {
-    const criticalEvents = this.securityEvents.filter(e => e.severity === 'critical').length;
-    const highSeverityEvents = this.securityEvents.filter(e => e.severity === 'high').length;
-    const activeTrades = Array.from(this.activeTrades.values()).reduce((sum, count) => sum + count, 0);
-    const rateLimitViolations = this.securityEvents.filter(e => e.action.includes('rate_limit')).length;
-
-    return {
-      totalEvents: this.securityEvents.length,
-      criticalEvents,
-      highSeverityEvents,
-      emergencyPaused: this.emergencyPaused,
-      activeTrades,
-      rateLimitViolations
-    };
-  }
-
-  /**
-   * Clear old rate limit data (cleanup)
-   */
-  cleanupRateLimits(): void {
+  recordTrade(
+    walletAddress: string,
+    tradeSize: number,
+    tradeValue: number,
+    config: SecurityConfig = this.DEFAULT_SECURITY_CONFIG
+  ): void {
+    const walletLimits = this.getOrCreateWalletLimits(walletAddress);
     const now = Date.now();
-    
-    // Clean minute rate limits
-    for (const [key, value] of this.rateLimitMap.entries()) {
-      if (now > value.resetTime) {
-        this.rateLimitMap.delete(key);
-      }
+
+    // Reset daily limits if new day
+    if (this.isNewDay(walletLimits.lastTradeTime, now)) {
+      walletLimits.dailyVolume = 0;
+      walletLimits.dailyTradeCount = 0;
+      walletLimits.isCooldownActive = false;
     }
 
-    // Clean hourly rate limits
-    for (const [key, value] of this.hourlyRateLimitMap.entries()) {
-      if (now > value.resetTime) {
-        this.hourlyRateLimitMap.delete(key);
-      }
+    // Update trade data
+    walletLimits.lastTradeTime = now;
+    walletLimits.dailyVolume += tradeValue;
+    walletLimits.dailyTradeCount += 1;
+
+    // Set cooldown for large trades
+    const maxSize = Math.min(config.maxTradeSizeAbsolute, Math.floor((1000 * config.maxTradeSizePercentage) / 100));
+    if (tradeSize > (maxSize * 0.5)) {
+      walletLimits.isCooldownActive = true;
     }
+
+    this.tradeLimits.set(walletAddress, walletLimits);
+    
+    console.log(`📊 Trade recorded for ${walletAddress}: ${tradeSize} NFTs, $${tradeValue.toFixed(2)}`);
   }
 
   /**
-   * Sanitize user input
+   * Get or create wallet limits
    */
-  sanitizeInput(input: string, maxLength: number = 255): string {
-    if (!input || typeof input !== 'string') return '';
-    
-    // Remove potentially dangerous characters
-    const sanitized = input
-      .replace(/[<>\"'&]/g, '') // Remove HTML/XML characters
-      .replace(/[^\w\s\-_.,!?]/g, '') // Keep only safe characters
-      .trim()
-      .substring(0, maxLength);
-    
-    return sanitized;
+  private getOrCreateWalletLimits(walletAddress: string): TradeLimits {
+    if (!this.tradeLimits.has(walletAddress)) {
+      this.tradeLimits.set(walletAddress, {
+        wallet: walletAddress,
+        lastTradeTime: 0,
+        dailyVolume: 0,
+        dailyTradeCount: 0,
+        isCooldownActive: false
+      });
+    }
+    return this.tradeLimits.get(walletAddress)!;
   }
 
   /**
-   * Validate numeric input
+   * Check if it's a new day
    */
-  validateNumericInput(value: any, min: number = 0, max: number = Number.MAX_SAFE_INTEGER): { isValid: boolean; error?: string } {
-    const num = Number(value);
-    
-    if (isNaN(num) || !isFinite(num)) {
-      return { isValid: false, error: 'Invalid numeric value' };
+  private isNewDay(lastTradeTime: number, currentTime: number): boolean {
+    const lastDay = new Date(lastTradeTime).getDate();
+    const currentDay = new Date(currentTime).getDate();
+    const lastMonth = new Date(lastTradeTime).getMonth();
+    const currentMonth = new Date(currentTime).getMonth();
+    const lastYear = new Date(lastTradeTime).getFullYear();
+    const currentYear = new Date(currentTime).getFullYear();
+
+    return lastDay !== currentDay || lastMonth !== currentMonth || lastYear !== currentYear;
+  }
+
+  /**
+   * Get wallet trade statistics
+   */
+  getWalletStats(walletAddress: string): TradeLimits | null {
+    return this.tradeLimits.get(walletAddress) || null;
+  }
+
+  /**
+   * Reset wallet limits (admin function)
+   */
+  resetWalletLimits(walletAddress: string): void {
+    this.tradeLimits.delete(walletAddress);
+    console.log(`🔄 Reset trade limits for wallet: ${walletAddress}`);
+  }
+
+  /**
+   * Get all suspicious wallets (high volume, frequent trades)
+   */
+  getSuspiciousWallets(): Array<{wallet: string; stats: TradeLimits; riskScore: number}> {
+    const suspicious: Array<{wallet: string; stats: TradeLimits; riskScore: number}> = [];
+
+    for (const [wallet, stats] of this.tradeLimits) {
+      let riskScore = 0;
+
+      // High daily volume
+      if (stats.dailyVolume > 50000) riskScore += 3;
+      else if (stats.dailyVolume > 25000) riskScore += 2;
+      else if (stats.dailyVolume > 10000) riskScore += 1;
+
+      // High trade frequency
+      if (stats.dailyTradeCount > 50) riskScore += 2;
+      else if (stats.dailyTradeCount > 20) riskScore += 1;
+
+      // Recent cooldown
+      if (stats.isCooldownActive) riskScore += 1;
+
+      if (riskScore >= 3) {
+        suspicious.push({ wallet, stats, riskScore });
+      }
     }
-    
-    if (num < min) {
-      return { isValid: false, error: `Value must be at least ${min}` };
-    }
-    
-    if (num > max) {
-      return { isValid: false, error: `Value must be at most ${max}` };
-    }
-    
-    return { isValid: true };
+
+    return suspicious.sort((a, b) => b.riskScore - a.riskScore);
+  }
+
+  /**
+   * Emergency pause all trading for a wallet
+   */
+  emergencyPauseWallet(walletAddress: string): void {
+    const limits = this.getOrCreateWalletLimits(walletAddress);
+    limits.isCooldownActive = true;
+    limits.lastTradeTime = Date.now();
+    this.tradeLimits.set(walletAddress, limits);
+    console.log(`🚨 EMERGENCY PAUSE: Trading suspended for wallet ${walletAddress}`);
   }
 }
 
-export const bondingCurveSecurity = new BondingCurveSecurityService();
+export const bondingCurveSecurity = new BondingCurveSecurity();

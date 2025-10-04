@@ -23,8 +23,9 @@ export interface EscrowTransaction {
 
 export class EscrowWalletService {
   // Main platform escrow wallets
-  private readonly PLATFORM_FEES_ESCROW = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'; // Your main wallet
-  private readonly BONDING_CURVE_ESCROW = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'; // Same for now, can be different
+  // ⚠️ SECURITY: These should be environment variables in production
+  private readonly PLATFORM_FEES_ESCROW = process.env.NEXT_PUBLIC_PLATFORM_FEES_WALLET || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW';
+  private readonly BONDING_CURVE_ESCROW = process.env.NEXT_PUBLIC_BONDING_CURVE_WALLET || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW';
   
   // Escrow wallet registry
   private escrowWallets: Map<string, EscrowWallet> = new Map();

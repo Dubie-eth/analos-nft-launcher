@@ -29,6 +29,9 @@ import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { adminControlService } from '@/lib/admin-control-service';
 import { feeManagementService } from '@/lib/fee-management-service';
 import { blockchainPriceService } from '@/lib/blockchain-price-service';
+import BondingCurveStatus from '../../components/BondingCurveStatus';
+import BondingCurveGuide from '../../components/BondingCurveGuide';
+import SecurityNotice from '../../components/SecurityNotice';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -44,6 +47,7 @@ function CollectionMintContent() {
   const [minting, setMinting] = useState(false);
   const [mintStatus, setMintStatus] = useState<string>('');
   const [mounted, setMounted] = useState(false);
+  const [showBondingCurveGuide, setShowBondingCurveGuide] = useState(false);
   
   // Advanced features state
   const [selectedPaymentMint, setSelectedPaymentMint] = useState<string>('');
