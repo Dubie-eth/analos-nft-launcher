@@ -129,9 +129,10 @@ export class BlockchainDataService {
         actualCollectionName = 'The LosBros';
       }
       
-      const collectionConfig = this.COLLECTION_ADDRESSES[actualCollectionName as keyof typeof this.COLLECTION_ADDRESSES];
+      // Get collection config from admin control service instead of undefined COLLECTION_ADDRESSES
+      const collectionConfig = await adminControlService.getCollection(actualCollectionName);
       if (!collectionConfig) {
-        console.log('❌ Collection not found in known addresses:', collectionName, '->', actualCollectionName);
+        console.log('❌ Collection not found in admin control service:', collectionName, '->', actualCollectionName);
         return null;
       }
 
@@ -156,7 +157,11 @@ export class BlockchainDataService {
           console.log(`📊 Available collections:`, Object.keys(tokenIdTracker.collections));
           
           // If still no data, perform a more thorough blockchain scan
-          currentSupply = await this.performThoroughBlockchainScan(actualCollectionName, collectionConfig);
+          currentSupply = await this.performThoroughBlockchainScan(actualCollectionName, {
+            mintAddress: `mint_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`,
+            collectionAddress: `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`,
+            totalSupply: collectionConfig.totalSupply
+          });
         }
       }
       
@@ -169,9 +174,9 @@ export class BlockchainDataService {
         currentSupply: currentSupply,
         mintPrice: collectionConfig.mintPrice,
         paymentToken: collectionConfig.paymentToken,
-        mintAddress: collectionConfig.mintAddress,
-        collectionAddress: collectionConfig.collectionAddress,
-        isActive: true,
+        mintAddress: `mint_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`, // Generate placeholder
+        collectionAddress: `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`, // Generate placeholder
+        isActive: collectionConfig.isActive,
         holders: holders,
         mintedNFTs: mintedNFTs
       };
