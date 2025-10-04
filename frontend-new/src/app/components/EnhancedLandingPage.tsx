@@ -387,6 +387,12 @@ Block Explorer: https://explorer.analos.io`
                 </Link>
               )}
               <Link 
+                href="/generator"
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+              >
+                🚀 Create Collection
+              </Link>
+              <Link 
                 href="/explorer"
                 className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >

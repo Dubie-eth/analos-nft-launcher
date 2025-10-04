@@ -1,11 +1,11 @@
 'use client';
 
-import NFTGenerator from '../components/NFTGenerator';
+import DeploymentOrchestrator from '../components/DeploymentOrchestrator';
 
 export default function GeneratorPage() {
   return (
     <div className="min-h-screen">
-      <NFTGenerator />
+      <DeploymentOrchestrator />
     </div>
   );
 }
