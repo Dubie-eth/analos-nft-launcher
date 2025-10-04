@@ -4,8 +4,9 @@
  * Allows NFTs to be traded as fractional tokens (404s)
  */
 
-import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
-import { mplHybrid } from '@metaplex-foundation/mpl-hybrid';
+// MPL-Hybrid imports disabled to prevent breaking existing system
+// import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+// import { mplHybrid } from '@metaplex-foundation/mpl-hybrid';
 import { PublicKey } from '@solana/web3.js';
 import { secureEscrowWalletManager } from './secure-escrow-wallet-manager';
 
@@ -55,12 +56,12 @@ export class MPLHybrid404Service {
   private escrowConfigs: Map<string, EscrowConfiguration> = new Map();
 
   constructor() {
-    // Initialize Umi with MPL-Hybrid
-    this.umi = createUmi(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com')
-      .use(mplHybrid());
+    // Initialize without Umi to prevent breaking existing system
+    // this.umi = createUmi(process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com')
+    //   .use(mplHybrid());
     
     this.initializeDefaultConfigs();
-    console.log('🔗 MPL-Hybrid 404 Service initialized');
+    console.log('🔗 MPL-Hybrid 404 Service initialized (standalone mode)');
   }
 
   /**
