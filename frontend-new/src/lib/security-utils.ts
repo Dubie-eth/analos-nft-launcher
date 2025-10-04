@@ -168,12 +168,98 @@ export function createSafeElement(tag: string, textContent: string, className?: 
 }
 
 /**
+ * Sanitize input to prevent XSS and injection attacks
+ */
+export function sanitizeInput(input: string): string {
+  if (!input) return '';
+  
+  // Remove null bytes and control characters
+  let sanitized = input.replace(/[\x00-\x1F\x7F]/g, '');
+  
+  // HTML encode special characters
+  sanitized = sanitized
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+  
+  return sanitized;
+}
+
+/**
+ * Validate file upload to prevent malicious files
+ */
+export function validateFileUpload(file: File): { isValid: boolean; error?: string } {
+  // Check file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    return { isValid: false, error: 'File size must be less than 10MB' };
+  }
+  
+  // Check file type
+  const allowedTypes = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/zip'
+  ];
+  
+  if (!allowedTypes.includes(file.type)) {
+    return { isValid: false, error: 'Invalid file type. Only images (JPEG, PNG, GIF, WebP) and ZIP files are allowed' };
+  }
+  
+  // Check file name for suspicious patterns
+  const suspiciousPatterns = [
+    /\.exe$/i,
+    /\.bat$/i,
+    /\.cmd$/i,
+    /\.scr$/i,
+    /\.pif$/i,
+    /\.com$/i,
+    /\.js$/i,
+    /\.vbs$/i,
+    /\.php$/i,
+    /\.asp$/i,
+    /\.jsp$/i
+  ];
+  
+  for (const pattern of suspiciousPatterns) {
+    if (pattern.test(file.name)) {
+      return { isValid: false, error: 'File type not allowed for security reasons' };
+    }
+  }
+  
+  // Check for null bytes in filename
+  if (file.name.includes('\x00')) {
+    return { isValid: false, error: 'Invalid file name' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
  * Rate limiting utility
  */
-class RateLimiter {
+export class RateLimiter {
   private requests: Map<string, number[]> = new Map();
   
-  isAllowed(key: string, maxRequests: number, windowMs: number): boolean {
+  constructor(maxRequests: number, windowMs: number) {
+    this.maxRequests = maxRequests;
+    this.windowMs = windowMs;
+  }
+  
+  private maxRequests: number;
+  private windowMs: number;
+  
+  isAllowed(key: string): boolean {
+    return this.isAllowedWithCustom(key, this.maxRequests, this.windowMs);
+  }
+  
+  isAllowedWithCustom(key: string, maxRequests: number, windowMs: number): boolean {
     const now = Date.now();
     const requests = this.requests.get(key) || [];
     
@@ -190,7 +276,7 @@ class RateLimiter {
   }
 }
 
-export const rateLimiter = new RateLimiter();
+export const rateLimiter = new RateLimiter(10, 60000); // 10 requests per minute by default
 
 /**
  * Content Security Policy helpers
