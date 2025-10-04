@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import StandardLayout from '../components/StandardLayout';
+import { adminControlService } from '@/lib/admin-control-service';
 
 // Use the blockchain collection data interface
 type Collection = BlockchainCollectionData;
@@ -47,10 +48,21 @@ function MintPageContent() {
       const blockchainService = new BlockchainCollectionService();
       const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
       
+      // Filter collections based on admin control service
+      const visibleCollections = blockchainCollections.filter(collection => {
+        const adminConfig = adminControlService.getCollection(collection.name);
+        if (adminConfig) {
+          console.log(`🔍 Checking visibility for ${collection.name}: isActive=${adminConfig.isActive}, mintingEnabled=${adminConfig.mintingEnabled}`);
+          return adminConfig.isActive && adminConfig.mintingEnabled;
+        }
+        // If no admin config found, show by default (for backward compatibility)
+        return true;
+      });
+      
       // Add timestamp for caching
-      (blockchainCollections as any).lastFetched = now;
-      setCollections(blockchainCollections);
-      console.log('✅ Collections fetched from blockchain:', blockchainCollections.length);
+      (visibleCollections as any).lastFetched = now;
+      setCollections(visibleCollections);
+      console.log('✅ Collections fetched from blockchain:', visibleCollections.length, '(filtered by admin controls)');
     } catch (error) {
       console.error('❌ Failed to fetch collections from blockchain:', error);
     } finally {
