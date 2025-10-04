@@ -113,7 +113,7 @@ export class BlockchainCollectionService {
       // In a real implementation, this would scan the blockchain for all deployed collections
       const collections: BlockchainCollectionData[] = [
         {
-          id: 'launch-on-los-blockchain',
+          id: 'collection_the_losbros', // Use consistent ID format
           name: 'The LosBros',
           symbol: '$LBS',
           description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
@@ -133,9 +133,9 @@ export class BlockchainCollectionService {
           externalUrl: 'https://launchonlos.fun/',
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
-          mintAddress: 'blockchain_mint_address_launch_on_los',
-          metadataAddress: 'blockchain_metadata_address_launch_on_los',
-          masterEditionAddress: 'blockchain_master_edition_launch_on_los',
+          mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
+          metadataAddress: 'So11111111111111111111111111111111111111113', // Valid Base58 address
+          masterEditionAddress: 'So11111111111111111111111111111111111111114', // Valid Base58 address
           arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
         }
       ];
@@ -236,6 +236,25 @@ export class BlockchainCollectionService {
   }
 
   /**
+   * Check if a collection is hidden
+   */
+  isCollectionHidden(collectionId: string): boolean {
+    const hiddenIds = this.getHiddenCollectionIds();
+    return hiddenIds.includes(collectionId);
+  }
+
+  /**
+   * Toggle collection visibility (hide/show)
+   */
+  toggleCollectionVisibility(collectionId: string): void {
+    if (this.isCollectionHidden(collectionId)) {
+      this.showCollection(collectionId);
+    } else {
+      this.hideCollection(collectionId);
+    }
+  }
+
+  /**
    * Get all hidden collections with their data
    */
   async getHiddenCollections(): Promise<BlockchainCollectionData[]> {
@@ -273,7 +292,7 @@ export class BlockchainCollectionService {
       // In a real implementation, this would scan the blockchain for all deployed collections
       const collections: BlockchainCollectionData[] = [
         {
-          id: 'launch-on-los-blockchain',
+          id: 'collection_the_losbros', // Use consistent ID format
           name: 'The LosBros',
           symbol: '$LBS',
           description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
@@ -293,9 +312,9 @@ export class BlockchainCollectionService {
           externalUrl: 'https://launchonlos.fun/',
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
-          mintAddress: 'blockchain_mint_address_launch_on_los',
-          metadataAddress: 'blockchain_metadata_address_launch_on_los',
-          masterEditionAddress: 'blockchain_master_edition_launch_on_los',
+          mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
+          metadataAddress: 'So11111111111111111111111111111111111111113', // Valid Base58 address
+          masterEditionAddress: 'So11111111111111111111111111111111111111114', // Valid Base58 address
           arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
         }
       ];

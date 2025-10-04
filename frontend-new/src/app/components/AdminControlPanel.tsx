@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { adminControlService, CollectionConfig, AdminSettings } from '@/lib/admin-control-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { whitelistMonitoringService, WhitelistStats, WhitelistPhase } from '@/lib/whitelist-monitoring-service';
+import BlockchainCollectionService from '@/lib/blockchain-collection-service';
 
 interface AdminControlPanelProps {
   isAuthorized: boolean;
@@ -18,6 +19,8 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [whitelistStats, setWhitelistStats] = useState<WhitelistStats | null>(null);
   const [activePhases, setActivePhases] = useState<WhitelistPhase[]>([]);
+  const [blockchainCollections, setBlockchainCollections] = useState<any[]>([]);
+  const [hiddenCollections, setHiddenCollections] = useState<any[]>([]);
 
   // New collection form state
   const [newCollection, setNewCollection] = useState({
@@ -39,12 +42,15 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      const [collectionsData, settingsData, statusData, whitelistStatsData, activePhasesData] = await Promise.all([
+      const blockchainService = new BlockchainCollectionService();
+      const [collectionsData, settingsData, statusData, whitelistStatsData, activePhasesData, blockchainCollectionsData, hiddenCollectionsData] = await Promise.all([
         adminControlService.getCollections(),
         adminControlService.getAdminSettings(),
         adminControlService.getSystemStatus(),
         whitelistMonitoringService.getWhitelistStats(),
-        whitelistMonitoringService.getActivePhases()
+        whitelistMonitoringService.getActivePhases(),
+        blockchainService.getAllCollectionsFromBlockchain(),
+        blockchainService.getHiddenCollections()
       ]);
 
       setCollections(collectionsData);
@@ -52,6 +58,8 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
       setSystemStatus(statusData);
       setWhitelistStats(whitelistStatsData);
       setActivePhases(activePhasesData);
+      setBlockchainCollections(blockchainCollectionsData);
+      setHiddenCollections(hiddenCollectionsData);
     } catch (error) {
       console.error('❌ Error loading admin data:', error);
     } finally {
@@ -98,6 +106,20 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
       alert('🚨 EMERGENCY STOP ACTIVATED - All operations disabled');
     } catch (error) {
       console.error('❌ Error during emergency stop:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleCollectionVisibility = async (collectionId: string) => {
+    try {
+      setLoading(true);
+      const blockchainService = new BlockchainCollectionService();
+      blockchainService.toggleCollectionVisibility(collectionId);
+      await loadAdminData(); // Refresh data
+      console.log(`✅ Collection visibility toggled: ${collectionId}`);
+    } catch (error) {
+      console.error('❌ Error toggling collection visibility:', error);
     } finally {
       setLoading(false);
     }
@@ -362,6 +384,96 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
               <p>No active whitelist phases</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Collection Visibility Management */}
+      <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+        <h3 className="text-white font-bold text-lg mb-4">👁️ Collection Visibility Management</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Visible Collections */}
+          <div>
+            <h4 className="text-white font-medium text-lg mb-3">Visible Collections ({blockchainCollections.length})</h4>
+            <div className="space-y-3">
+              {blockchainCollections.length > 0 ? (
+                blockchainCollections.map((collection) => (
+                  <div key={collection.id} className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h5 className="text-white font-medium">{collection.name}</h5>
+                        <p className="text-gray-400 text-sm">{collection.id}</p>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-green-600 text-white">
+                            VISIBLE
+                          </span>
+                          <span className="text-gray-400 text-xs">
+                            {collection.currentSupply}/{collection.totalSupply} minted
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => toggleCollectionVisibility(collection.id)}
+                        disabled={loading}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
+                      >
+                        {loading ? '...' : 'Hide'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-400">
+                  <p>No visible collections</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Hidden Collections */}
+          <div>
+            <h4 className="text-white font-medium text-lg mb-3">Hidden Collections ({hiddenCollections.length})</h4>
+            <div className="space-y-3">
+              {hiddenCollections.length > 0 ? (
+                hiddenCollections.map((collection) => (
+                  <div key={collection.id} className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h5 className="text-white font-medium">{collection.name}</h5>
+                        <p className="text-gray-400 text-sm">{collection.id}</p>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-red-600 text-white">
+                            HIDDEN
+                          </span>
+                          <span className="text-gray-400 text-xs">
+                            {collection.currentSupply}/{collection.totalSupply} minted
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => toggleCollectionVisibility(collection.id)}
+                        disabled={loading}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
+                      >
+                        {loading ? '...' : 'Show'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-400">
+                  <p>No hidden collections</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+          <p className="text-blue-300 text-sm">
+            💡 <strong>Tip:</strong> Hidden collections won't appear on the mint page but can still be accessed directly via URL. 
+            Use this to temporarily hide collections from public view.
+          </p>
         </div>
       </div>
 
