@@ -154,15 +154,21 @@ export class LayerProcessor {
    * Extract layer name from file path/name
    */
   private extractLayerName(fileName: string): string {
+    console.log(`🔍 Extracting layer name from: "${fileName}"`);
+    
     // For folder uploads, the fileName includes the full path like "LosBros/Background/solid_blue.png"
     // Extract the folder name (which becomes the layer name)
     const pathParts = fileName.split('/');
+    console.log(`📂 Path parts:`, pathParts);
     
     // If there's a folder structure, use the folder name as the layer
     if (pathParts.length > 1) {
       const folderName = pathParts[pathParts.length - 2]; // Get the folder name (second to last part)
+      console.log(`📁 Folder name extracted: "${folderName}"`);
       if (folderName && folderName !== '.') {
-        return this.formatLayerName(folderName);
+        const formatted = this.formatLayerName(folderName);
+        console.log(`✅ Formatted layer name: "${formatted}"`);
+        return formatted;
       }
     }
     
@@ -182,7 +188,9 @@ export class LayerProcessor {
     
     // Default to first part of filename
     const parts = fileName.split(/[-_]/);
-    return parts[0] ? this.formatLayerName(parts[0]) : 'Default Layer';
+    const result = parts[0] ? this.formatLayerName(parts[0]) : 'Default Layer';
+    console.log(`🔄 Fallback layer name: "${result}"`);
+    return result;
   }
 
   /**

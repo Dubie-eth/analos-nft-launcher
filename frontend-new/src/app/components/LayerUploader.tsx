@@ -40,7 +40,18 @@ export default function LayerUploader({ onFilesUploaded, fileInputRef }: LayerUp
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
+    console.log('📁 File input changed:', files ? files.length : 0, 'files');
     if (files && files.length > 0) {
+      // Debug: Log all files being uploaded
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`📄 File ${i}:`, {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          webkitRelativePath: (file as any).webkitRelativePath || 'N/A'
+        });
+      }
       handleFileSelect(files);
     }
   }, [handleFileSelect]);
@@ -97,7 +108,8 @@ export default function LayerUploader({ onFilesUploaded, fileInputRef }: LayerUp
           ref={fileInputRef}
           type="file"
           multiple
-          webkitdirectory=""
+          webkitdirectory="true"
+          directory="true"
           accept=".png,.jpg,.jpeg,.gif,.webp,.svg"
           onChange={handleInputChange}
           className="hidden"
@@ -111,13 +123,18 @@ export default function LayerUploader({ onFilesUploaded, fileInputRef }: LayerUp
           <div>
             <h5 className="font-medium text-blue-800 mb-2">Upload Guidelines:</h5>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• <strong>Folder upload:</strong> Select entire folders to maintain organization (e.g., "Backgrounds", "Eyes", "Mouth")</li>
-              <li>• <strong>Drag & drop:</strong> Drag folders directly onto the upload area</li>
-              <li>• <strong>Individual files:</strong> Use descriptive names like "background_sunset.png"</li>
+              <li>• <strong>Multiple file selection:</strong> Hold Ctrl/Cmd and select all image files from your folders</li>
+              <li>• <strong>Folder organization:</strong> The system will auto-detect layers from folder structure</li>
+              <li>• <strong>Drag & drop:</strong> Drag multiple files directly onto the upload area</li>
               <li>• <strong>Supported formats:</strong> PNG, JPG, JPEG, GIF, WebP, SVG</li>
               <li>• <strong>File size:</strong> Recommended under 5MB per image</li>
               <li>• <strong>Dimensions:</strong> All images should be the same size (e.g., 512x512)</li>
             </ul>
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>💡 Tip:</strong> To upload your LosBros folder, select all 131 PNG files at once using Ctrl+A in Windows Explorer, then drag them here or use the file picker.
+              </p>
+            </div>
           </div>
         </div>
       </div>
