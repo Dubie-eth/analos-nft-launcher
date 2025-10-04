@@ -27,6 +27,7 @@ import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { blockchainFirstService } from '@/lib/blockchain-first-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { adminControlService } from '@/lib/admin-control-service';
+import { feeManagementService } from '@/lib/fee-management-service';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -72,34 +73,61 @@ function CollectionMintContent() {
       
       console.log('📡 Fetching collection with blockchain fail-safes:', collectionName);
       
+      // Redirect "The LosBros" to "Test" collection for development
+      let actualCollectionName = collectionName;
+      if (collectionName === 'The LosBros') {
+        actualCollectionName = 'Test';
+        console.log('🔄 Redirecting "The LosBros" to "Test" collection for development');
+      }
+
       // Check admin controls first
-      const mintingCheck = await adminControlService.isMintingAllowed(collectionName);
+      const mintingCheck = await adminControlService.isMintingAllowed(actualCollectionName);
       if (!mintingCheck.allowed) {
         console.warn(`⚠️ Minting not allowed: ${mintingCheck.reason}`);
         // Still fetch collection data for display, but mark as inactive
       }
 
-      // Use blockchain fail-safe service as single source of truth
+      // Use admin control service as primary source of truth
       let blockchainData;
       try {
-        blockchainData = await blockchainFailSafeService.getCollectionDataWithFailSafes(collectionName);
-        console.log('✅ Blockchain fail-safe data fetched:', blockchainData.name, 'Price:', blockchainData.mintPrice, 'Supply:', blockchainData.currentSupply);
-        
-        // Override active status based on admin controls
-        if (!mintingCheck.allowed) {
-          blockchainData.isActive = false;
-          console.log('🔒 Collection marked as inactive due to admin controls');
+        // Get collection config from admin service
+        const collection = await adminControlService.getCollection(actualCollectionName);
+        if (collection) {
+          // Get fee breakdown
+          const feeBreakdown = feeManagementService.getFeeBreakdown(actualCollectionName);
+          
+          blockchainData = {
+            name: collection.name,
+            totalSupply: collection.totalSupply,
+            currentSupply: 0, // Will be fetched from blockchain
+            mintPrice: feeBreakdown.totalPrice, // Total price including fees
+            basePrice: feeBreakdown.basePrice, // Base price before fees
+            paymentToken: collection.paymentToken,
+            mintAddress: `mint_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+            collectionAddress: `collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+            isActive: collection.isActive && mintingCheck.allowed,
+            mintingEnabled: collection.mintingEnabled && mintingCheck.allowed,
+            isTestMode: collection.isTestMode,
+            feeBreakdown: feeBreakdown,
+            source: 'admin-controlled'
+          };
+          
+          console.log('✅ Admin-controlled data fetched:', blockchainData.name, 'Total Price:', blockchainData.mintPrice, 'Base Price:', blockchainData.basePrice);
+          console.log('💰 Fee breakdown:', feeBreakdown);
+          
+        } else {
+          throw new Error(`Collection not found in admin service: ${actualCollectionName}`);
         }
         
       } catch (error) {
-        console.error('❌ All blockchain fail-safes failed:', error);
-        // Final fallback to legacy service
-        console.log('⚠️ Using final fallback to legacy service');
-        blockchainData = await blockchainDataService.getCollectionData(collectionName);
+        console.error('❌ Admin service failed:', error);
+        // Fallback to blockchain fail-safe service
+        console.log('⚠️ Falling back to blockchain fail-safe service');
+        blockchainData = await blockchainFailSafeService.getCollectionDataWithFailSafes(actualCollectionName);
         
         if (blockchainData) {
-          blockchainData.isActive = false; // Mark as inactive since fail-safes failed
-          blockchainData.source = 'legacy-fallback';
+          blockchainData.isActive = false; // Mark as inactive since admin service failed
+          blockchainData.source = 'blockchain-fallback';
         }
       }
       
@@ -448,24 +476,16 @@ function CollectionMintContent() {
 
   const remainingSupply = collection.totalSupply - collection.currentSupply;
   
-  // Calculate cost based on selected payment token and whitelist status
-  const effectivePrice = whitelistPrice !== null ? whitelistPrice : collection.mintPrice;
+  // Calculate cost using fee breakdown from fee management service
+  const feeBreakdown = collection.feeBreakdown || feeManagementService.getFeeBreakdown(collection.name);
+  const effectivePrice = whitelistPrice !== null ? whitelistPrice : feeBreakdown.totalPrice;
   let totalCost = effectivePrice * mintQuantity;
-  let currency = '$LOS';
+  let currency = collection.paymentToken === 'LOL' ? '$LOL' : '$LOS';
   
-  // Use the actual payment token from blockchain data
-  if (collection.paymentToken) {
-    currency = collection.paymentToken === 'LOL' ? '$LOL' : '$LOS';
-  } else if (tokenTrackerCollection && selectedPaymentMint) {
-    const selectedToken = tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint);
-    if (selectedToken) {
-      totalCost = selectedToken.pricePerNFT * mintQuantity;
-      currency = selectedToken.symbol;
-    }
-  }
-  
-  const platformFee = (totalCost * collection.feePercentage) / 100;
-  const creatorRevenue = totalCost - platformFee;
+  // Calculate individual fees
+  const platformFee = feeBreakdown.platformFee * mintQuantity;
+  const creatorFee = feeBreakdown.creatorFee * mintQuantity;
+  const baseCost = feeBreakdown.basePrice * mintQuantity;
 
   return (
     <MobileOptimizedLayout>
@@ -635,12 +655,25 @@ function CollectionMintContent() {
                     <h3 className="text-lg font-semibold text-white mb-3">Cost Breakdown</h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-white/80">
-                        <span>Price per NFT:</span>
+                        <span>Base Price per NFT:</span>
+                        <span>{feeBreakdown.basePrice.toFixed(2)} {currency}</span>
+                      </div>
+                      <div className="flex justify-between text-white/80">
+                        <span>Platform Fee ({feeBreakdown.platformFeePercentage}%):</span>
+                        <span>{feeBreakdown.platformFee.toFixed(2)} {currency}</span>
+                      </div>
+                      <div className="flex justify-between text-white/80">
+                        <span>Creator Fee ({feeBreakdown.creatorFeePercentage}%):</span>
+                        <span>{feeBreakdown.creatorFee.toFixed(2)} {currency}</span>
+                      </div>
+                      <hr className="border-white/20" />
+                      <div className="flex justify-between text-white/80">
+                        <span>Total Price per NFT:</span>
                         <span>
                           {whitelistPrice !== null ? (
                             <span className="flex flex-col items-end space-y-1">
                               <span className="flex items-center space-x-2">
-                                <span className="text-white/60 line-through">{collection.mintPrice?.toFixed(2) || '0.00'} {currency}</span>
+                                <span className="text-white/60 line-through">{feeBreakdown.totalPrice.toFixed(2)} {currency}</span>
                                 <span className="text-green-400 font-semibold">{effectivePrice.toFixed(5)} {currency}</span>
                               </span>
                               <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
@@ -648,9 +681,7 @@ function CollectionMintContent() {
                               </span>
                             </span>
                           ) : (
-                            tokenTrackerCollection && selectedPaymentMint ? 
-                              (tokenTrackerCollection.paymentTokens.find(token => token.mint === selectedPaymentMint)?.pricePerNFT?.toFixed(2) || '0.00') + ' ' + currency :
-                              (collection.mintPrice?.toFixed(2) || '0.00') + ' ' + currency
+                            `${feeBreakdown.totalPrice.toFixed(2)} ${currency}`
                           )}
                         </span>
                       </div>
@@ -658,22 +689,13 @@ function CollectionMintContent() {
                         <span>Quantity:</span>
                         <span>{mintQuantity}</span>
                       </div>
-                      <div className="flex justify-between text-white/80">
-                        <span>Subtotal:</span>
-                        <span>{totalCost?.toFixed(2) || '0.00'} {currency}</span>
-                      </div>
-                      <div className="flex justify-between text-white/80">
-                        <span>Platform Fee ({collection.feePercentage || 0}%):</span>
-                        <span>{platformFee?.toFixed(2) || '0.00'} {currency}</span>
-                      </div>
-                      <div className="flex justify-between text-white/80">
-                        <span>Creator Revenue:</span>
-                        <span>{creatorRevenue?.toFixed(2) || '0.00'} {currency}</span>
-                      </div>
                       <hr className="border-white/20" />
                       <div className="flex justify-between text-white font-semibold">
                         <span>Total Cost:</span>
-                        <span>{totalCost?.toFixed(5) || '0.00'} {currency}</span>
+                        <span>{totalCost?.toFixed(2) || '0.00'} {currency}</span>
+                      </div>
+                      <div className="text-xs text-white/60 mt-2">
+                        💰 Platform Fee: {platformFee.toFixed(2)} {currency} | Creator Fee: {creatorFee.toFixed(2)} {currency}
                       </div>
                     </div>
                   </div>
