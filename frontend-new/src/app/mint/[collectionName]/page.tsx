@@ -498,6 +498,7 @@ function CollectionMintContent() {
                 collectionId={`collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
                 collectionName={collection.name}
                 basePrice={collection.mintPrice}
+                lolBalanceInfo={lolBalanceInfo}
                 onWhitelistPriceChange={(price, multiplier, rule) => {
                   setWhitelistPrice(price);
                   setWhitelistMultiplier(multiplier);
@@ -581,8 +582,11 @@ function CollectionMintContent() {
                         <span>Price per NFT:</span>
                         <span>
                           {whitelistPrice !== null ? (
-                            <span className="flex items-center space-x-2">
-                              <span>{effectivePrice.toFixed(5)} {currency}</span>
+                            <span className="flex flex-col items-end space-y-1">
+                              <span className="flex items-center space-x-2">
+                                <span className="text-white/60 line-through">{collection.mintPrice?.toFixed(2) || '0.00'} {currency}</span>
+                                <span className="text-green-400 font-semibold">{effectivePrice.toFixed(5)} {currency}</span>
+                              </span>
                               <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
                                 WHITELIST {whitelistMultiplier === 0 ? 'FREE' : `${whitelistMultiplier}x`}
                               </span>

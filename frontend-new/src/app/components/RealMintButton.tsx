@@ -18,6 +18,7 @@ interface RealMintButtonProps {
     priceMultiplier: number;
     canMint?: boolean;
     remainingMints?: number;
+    eligibilityReason?: string;
   };
 }
 
@@ -143,7 +144,12 @@ export default function RealMintButton({
   const getDisabledReason = () => {
     if (!publicKey) return 'Connect your wallet to mint';
     if (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) return 'You need more $LOS tokens to mint';
-    if (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false) return 'You are not eligible to mint during the whitelist phase';
+    if (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false) {
+      if (whitelistStatus.remainingMints === 0) {
+        return 'You have reached your mint limit for this whitelist phase';
+      }
+      return 'You are not eligible to mint during the whitelist phase';
+    }
     return '';
   };
 

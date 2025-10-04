@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WhitelistRule, WhitelistType } from './WhitelistPriorityManager';
+import { whitelistPhaseService, WhitelistPhase } from '@/lib/whitelist-phase-service';
 
 interface WhitelistEntry {
   walletAddress: string;
@@ -30,6 +31,7 @@ interface WhitelistStatusProps {
   basePrice: number;
   onWhitelistPriceChange?: (price: number, multiplier: number, rule: WhitelistRule | null) => void;
   onWhitelistStatusChange?: (canMint: boolean, remainingMints: number, isWhitelisted: boolean) => void;
+  lolBalanceInfo?: any; // LOL balance info from the balance checker
 }
 
 export default function WhitelistStatus({ 
@@ -37,7 +39,8 @@ export default function WhitelistStatus({
   collectionName, 
   basePrice,
   onWhitelistPriceChange,
-  onWhitelistStatusChange 
+  onWhitelistStatusChange,
+  lolBalanceInfo 
 }: WhitelistStatusProps) {
   const { publicKey, connected } = useWallet();
   const [whitelistRules, setWhitelistRules] = useState<WhitelistRule[]>([]);
@@ -49,35 +52,50 @@ export default function WhitelistStatus({
     priceMultiplier: number;
     whitelistPrice: number;
     ruleType: WhitelistType | null;
+    eligibilityReason?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load whitelist data
+  // Load whitelist data from hardcoded phases
   useEffect(() => {
     const loadWhitelistData = () => {
       try {
-        const localStorageKey = `whitelist_rules_${collectionId}`;
-        console.log('🔍 WhitelistStatus: Looking for localStorage key:', localStorageKey);
+        console.log('🔍 WhitelistStatus: Loading hardcoded whitelist phases');
         
-        const savedRules = localStorage.getItem(localStorageKey);
-        console.log('🔍 WhitelistStatus: Found saved rules:', savedRules);
+        // Get current active phase
+        const activePhase = whitelistPhaseService.getCurrentActivePhase();
+        console.log('🔍 WhitelistStatus: Active phase:', activePhase);
         
-        if (savedRules) {
-          const rules: WhitelistRule[] = JSON.parse(savedRules);
-          console.log('🔍 WhitelistStatus: Parsed rules:', rules);
-          setWhitelistRules(rules);
+        if (activePhase) {
+          // Convert phase to WhitelistRule format for compatibility
+          const phaseRule: WhitelistRule = {
+            id: activePhase.id,
+            type: 'token_holders',
+            name: activePhase.name,
+            priority: 1,
+            enabled: activePhase.enabled,
+            priceMultiplier: activePhase.priceMultiplier,
+            maxMintsPerWallet: activePhase.maxMintsPerWallet,
+            config: {
+              tokenMint: activePhase.requirements.tokenMint,
+              minBalance: activePhase.requirements.minBalance
+            },
+            startDate: activePhase.startDate,
+            endDate: activePhase.endDate,
+            description: activePhase.description
+          };
+          
+          setWhitelistRules([phaseRule]);
           
           // Check if current wallet is whitelisted
           if (connected && publicKey) {
-            checkWhitelistStatus(rules);
+            checkWhitelistStatus([phaseRule], activePhase);
           }
         } else {
-          console.log('🔍 WhitelistStatus: No whitelist rules found for collectionId:', collectionId);
-          
-          // Debug: List all localStorage keys that start with 'whitelist_rules_'
-          const allKeys = Object.keys(localStorage);
-          const whitelistKeys = allKeys.filter(key => key.startsWith('whitelist_rules_'));
-          console.log('🔍 WhitelistStatus: All whitelist localStorage keys:', whitelistKeys);
+          console.log('🔍 WhitelistStatus: No active whitelist phase');
+          setWhitelistRules([]);
+          onWhitelistPriceChange?.(basePrice, 1.0, null);
+          onWhitelistStatusChange?.(true, 999, false); // Allow minting when no whitelist is active
         }
       } catch (error) {
         console.error('Error loading whitelist data:', error);
@@ -87,9 +105,9 @@ export default function WhitelistStatus({
     };
 
     loadWhitelistData();
-  }, [collectionId, connected, publicKey]);
+  }, [collectionId, connected, publicKey, basePrice, onWhitelistPriceChange, onWhitelistStatusChange]);
 
-  const checkWhitelistStatus = async (rules: WhitelistRule[]) => {
+  const checkWhitelistStatus = async (rules: WhitelistRule[], activePhase?: WhitelistPhase) => {
     if (!connected || !publicKey) return;
 
     const walletAddress = publicKey.toString();
@@ -103,48 +121,32 @@ export default function WhitelistStatus({
       return now >= startDate && now <= endDate;
     });
 
-    if (!activeRule) {
+    if (!activeRule || !activePhase) {
       setWhitelistStatus(null);
       onWhitelistPriceChange?.(basePrice, 1.0, null);
       onWhitelistStatusChange?.(true, 999, false); // Allow minting when no whitelist is active
       return;
     }
 
-    // Check if wallet qualifies for the active rule
-    let isWhitelisted = false;
-    let remainingMints = 0;
+    // Check wallet eligibility using the phase service
+    const eligibility = await whitelistPhaseService.checkWalletEligibility(
+      walletAddress, 
+      activePhase,
+      lolBalanceInfo?.balance // Pass the actual LOL balance
+    );
 
-    switch (activeRule.type) {
-      case 'token_holders':
-        // Check token balance (simplified - in real implementation, you'd check actual balance)
-        isWhitelisted = true; // Placeholder
-        remainingMints = activeRule.maxMintsPerWallet;
-        break;
-      case 'snapshot':
-        // Check if wallet is in snapshot
-        isWhitelisted = activeRule.config.walletAddresses?.includes(walletAddress) || false;
-        remainingMints = activeRule.maxMintsPerWallet;
-        break;
-      case 'nft_collection':
-        // Check NFT collection holdings (simplified)
-        isWhitelisted = true; // Placeholder
-        remainingMints = activeRule.maxMintsPerWallet;
-        break;
-      case 'manual':
-        // Check manual addresses
-        isWhitelisted = activeRule.config.manualAddresses?.includes(walletAddress) || false;
-        remainingMints = activeRule.maxMintsPerWallet;
-        break;
-    }
+    // Get remaining mints for this phase
+    const mintInfo = await whitelistPhaseService.getRemainingMints(walletAddress, activePhase);
 
     const status = {
-      isWhitelisted,
+      isWhitelisted: eligibility.isEligible,
       activeRule,
-      canMint: isWhitelisted,
-      remainingMints,
+      canMint: eligibility.isEligible && mintInfo.remaining > 0,
+      remainingMints: mintInfo.remaining,
       priceMultiplier: activeRule.priceMultiplier,
       whitelistPrice: basePrice * activeRule.priceMultiplier,
-      ruleType: activeRule.type
+      ruleType: activeRule.type,
+      eligibilityReason: eligibility.reason
     };
 
     setWhitelistStatus(status);
@@ -201,12 +203,12 @@ export default function WhitelistStatus({
         <div className="flex items-center space-x-3">
           <div className="text-2xl">🚫</div>
           <div>
-            <h3 className="text-white font-semibold">Not Whitelisted</h3>
+            <h3 className="text-white font-semibold">Not Eligible for Current Phase</h3>
             <p className="text-red-200 text-sm">
-              Your wallet is not whitelisted for the current rule: <strong>{whitelistStatus.activeRule?.name}</strong>
+              <strong>{whitelistStatus.activeRule?.name}</strong> - {whitelistStatus.eligibilityReason || 'You do not meet the requirements for this phase'}
             </p>
             <p className="text-red-200 text-xs mt-1">
-              Rule active until: {new Date(whitelistStatus.activeRule?.endDate || '').toLocaleDateString()}
+              Phase active until: {new Date(whitelistStatus.activeRule?.endDate || '').toLocaleDateString()}
             </p>
           </div>
         </div>
