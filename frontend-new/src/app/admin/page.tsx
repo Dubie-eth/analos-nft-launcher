@@ -23,6 +23,9 @@ import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blo
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 import { isAuthorizedAdmin, getAdminWalletInfo, hasAdminPermission } from '@/lib/admin-config';
+import { adminControlService } from '@/lib/admin-control-service';
+import { feeManagementService } from '@/lib/fee-management-service';
+import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 
 interface CollectionData {
   name: string;
@@ -125,31 +128,72 @@ function AdminPageContent() {
 
   const fetchCollections = async () => {
     try {
-      console.log('📡 Fetching collections from blockchain for admin panel...');
-      const blockchainService = new BlockchainCollectionService();
-      const blockchainCollections = await blockchainService.getAllCollectionsFromBlockchain();
-      const hiddenCollectionsData = await blockchainService.getHiddenCollections();
+      console.log('📡 Fetching collections from admin control service for admin panel...');
       
-      // Update collections with real blockchain data including supply counts
-      const updatedCollections = await Promise.all(blockchainCollections.map(async (collection) => {
+      // Get collections from admin control service
+      const availableCollections = ['Test', 'The LosBros', 'New Collection'];
+      const collectionsData: BlockchainCollectionData[] = [];
+      const hiddenCollectionsData: BlockchainCollectionData[] = [];
+
+      for (const collectionName of availableCollections) {
         try {
-          const blockchainData = await blockchainDataService.getCollectionData(collection.name);
-          return {
-            ...collection,
-            currentSupply: blockchainData.currentSupply,
-            holders: blockchainData.holders
-          };
+          // Get collection config from admin service
+          const collection = await adminControlService.getCollection(collectionName);
+          if (collection) {
+            // Get fee breakdown
+            const feeBreakdown = feeManagementService.getFeeBreakdown(collectionName);
+            
+            // Try to get blockchain data for supply count
+            let currentSupply = 0;
+            try {
+              const blockchainData = await blockchainDataService.getCollectionData(collectionName);
+              currentSupply = blockchainData?.currentSupply || 0;
+            } catch (error) {
+              console.warn(`Failed to fetch blockchain supply for ${collectionName}:`, error);
+            }
+            
+            const collectionData: BlockchainCollectionData = {
+              id: `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`,
+              name: collection.displayName,
+              symbol: collection.paymentToken === 'LOL' ? '$LOL' : '$LOS',
+              description: collection.description,
+              imageUrl: collection.imageUrl,
+              mintPrice: feeBreakdown.totalPrice,
+              totalSupply: collection.totalSupply,
+              currentSupply: currentSupply,
+              isActive: collection.isActive,
+              feePercentage: feeBreakdown.platformFeePercentage,
+              externalUrl: 'https://launchonlos.fun/',
+              feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+              deployedAt: new Date().toISOString(),
+              mintAddress: `mint_${collectionName.toLowerCase().replace(/\s+/g, '_')}`,
+              metadataAddress: `metadata_${collectionName.toLowerCase().replace(/\s+/g, '_')}`,
+              masterEditionAddress: `master_edition_${collectionName.toLowerCase().replace(/\s+/g, '_')}`,
+              arweaveUrl: collection.imageUrl,
+              paymentToken: collection.paymentToken,
+              mintingEnabled: collection.mintingEnabled,
+              isTestMode: collection.isTestMode
+            };
+            
+            // Add to appropriate list based on status
+            if (collection.isActive && collection.mintingEnabled) {
+              collectionsData.push(collectionData);
+            } else {
+              hiddenCollectionsData.push(collectionData);
+            }
+          }
         } catch (error) {
-          console.error(`Error fetching blockchain data for ${collection.name}:`, error);
-          return collection;
+          console.warn(`Failed to fetch collection ${collectionName}:`, error);
         }
-      }));
-      setCollections(updatedCollections);
+      }
+
+      setCollections(collectionsData);
       setHiddenCollections(hiddenCollectionsData);
-      console.log('✅ Collections fetched from blockchain for admin:', blockchainCollections.length);
-      console.log('🔒 Hidden collections fetched:', hiddenCollectionsData.length);
+      console.log('✅ Collections fetched from admin service:', collectionsData.length, 'active,', hiddenCollectionsData.length, 'hidden');
     } catch (error) {
-      console.error('❌ Error fetching collections from blockchain:', error);
+      console.error('❌ Error fetching collections:', error);
+      setCollections([]);
+      setHiddenCollections([]);
     }
   };
 
