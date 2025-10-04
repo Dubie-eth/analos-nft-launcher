@@ -143,25 +143,44 @@ export default function RealMintButton({
   // Get disabled reason for tooltip
   const getDisabledReason = () => {
     if (!publicKey) return 'Connect your wallet to mint';
-    if (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) return 'You need more $LOS tokens to mint';
+    if (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) {
+      return 'You need more $LOL tokens to mint during this phase. Don\'t worry - this phase ends soon and another will begin!';
+    }
     if (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false) {
       if (whitelistStatus.remainingMints === 0) {
-        return 'You have reached your mint limit for this whitelist phase';
+        return 'You have reached your mint limit for this whitelist phase. Don\'t worry - this phase ends soon and another will begin!';
       }
-      return 'You are not eligible to mint during the whitelist phase';
+      return 'You are not eligible to mint during the whitelist phase. Don\'t worry - this phase ends soon and another will begin!';
     }
     return '';
+  };
+
+  // Determine button styling based on eligibility
+  const getButtonStyling = () => {
+    if (minting) {
+      return 'bg-gray-600 cursor-not-allowed opacity-50';
+    }
+    
+    if (!publicKey) {
+      return 'bg-gray-600 cursor-not-allowed opacity-50';
+    }
+    
+    if (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) {
+      return 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 cursor-not-allowed';
+    }
+    
+    if (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false) {
+      return 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 cursor-not-allowed';
+    }
+    
+    return 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105';
   };
 
   return (
     <button
       onClick={handleMint}
       disabled={isDisabled}
-      className={`w-full py-4 px-8 rounded-lg font-bold text-lg transition-all duration-200 transform ${
-        isDisabled
-          ? 'bg-gray-600 cursor-not-allowed opacity-50'
-          : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105'
-      }`}
+      className={`w-full py-4 px-8 rounded-lg font-bold text-lg transition-all duration-200 transform ${getButtonStyling()}`}
       title={getDisabledReason()}
     >
       {minting ? (
@@ -175,12 +194,36 @@ export default function RealMintButton({
           )}
         </div>
       ) : (
-        <span className="flex items-center space-x-2">
-          <span>{`🎯 Mint ${quantity} NFT${quantity > 1 ? 's' : ''} for ${totalCost} ${currency}`}</span>
-          {whitelistStatus?.isWhitelisted && (
-            <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
-              {whitelistStatus.priceMultiplier === 0 ? 'FREE' : `${whitelistStatus.priceMultiplier}x`}
-            </span>
+        <span className="flex flex-col items-center space-y-1">
+          {losBalanceInfo && !losBalanceInfo.hasMinimumBalance ? (
+            <>
+              <span className="flex items-center space-x-2">
+                <span>🚫 Not Eligible - Need More $LOL</span>
+              </span>
+              <span className="text-sm font-normal opacity-90">
+                Don't worry! This phase ends soon and another will begin
+              </span>
+            </>
+          ) : whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false ? (
+            <>
+              <span className="flex items-center space-x-2">
+                <span>🚫 Not Eligible for Current Phase</span>
+              </span>
+              <span className="text-sm font-normal opacity-90">
+                Don't worry! This phase ends soon and another will begin
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="flex items-center space-x-2">
+                <span>{`🎯 Mint ${quantity} NFT${quantity > 1 ? 's' : ''} for ${totalCost} ${currency}`}</span>
+                {whitelistStatus?.isWhitelisted && (
+                  <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
+                    {whitelistStatus.priceMultiplier === 0 ? 'FREE' : `${whitelistStatus.priceMultiplier}x`}
+                  </span>
+                )}
+              </span>
+            </>
           )}
         </span>
       )}
