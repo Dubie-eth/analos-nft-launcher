@@ -16,6 +16,7 @@ import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import { adminControlService } from '../../lib/admin-control-service';
 import { adminPreviewService } from '../../lib/admin-preview-service';
+import { realBlockchainDeploymentService } from '../../lib/blockchain/real-deployment-service';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
@@ -562,47 +563,83 @@ function AdminPageContent() {
       console.log('🚀 Deploying collection with payload:', payload);
       console.log('💰 Price being sent:', payload.price, 'Type:', typeof payload.price);
 
-      // Get deployment instructions from backend
-      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
-      console.log('Backend URL:', backendUrl);
+      // Use real blockchain deployment service
+      console.log('🚀 Using real blockchain deployment service...');
       
-      const instructionsPayload = {
-        ...payload,
-        walletAddress: publicKey.toString()
+      const deploymentConfig = {
+        name: payload.name,
+        symbol: payload.symbol,
+        description: payload.description,
+        image: payload.image,
+        maxSupply: payload.maxSupply,
+        mintPrice: payload.price,
+        feePercentage: payload.feePercentage,
+        feeRecipient: payload.feeRecipient,
+        externalUrl: payload.externalUrl,
+        whitelist: currentCollection?.whitelist,
+        maxMintsPerWallet: currentCollection?.maxMintsPerWallet,
+        delayedReveal: currentCollection?.delayedReveal,
+        paymentTokens: currentCollection?.paymentTokens
       };
+
+      // Validate deployment configuration
+      const validation = realBlockchainDeploymentService.validateDeploymentConfig(deploymentConfig);
+      if (!validation.valid) {
+        throw new Error(`Invalid deployment configuration: ${validation.errors.join(', ')}`);
+      }
+
+      setDeployStatus('Creating deployment instructions...');
+
+      // Create deployment instructions
+      const instructionsResult = await realBlockchainDeploymentService.createDeploymentInstructions(
+        deploymentConfig,
+        publicKey.toString()
+      );
+
+      if (!instructionsResult.success) {
+        throw new Error(instructionsResult.error || 'Failed to create deployment instructions');
+      }
+
+      console.log('✅ Deployment instructions created:', instructionsResult.instructions);
       
-      const response = await fetch(`${backendUrl}/api/collections/deploy-instructions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(instructionsPayload),
+      setDeployStatus('Instructions created, executing deployment...');
+
+      // Execute deployment with wallet signing
+      const deploymentResult = await realBlockchainDeploymentService.executeDeployment(
+        instructionsResult.instructions!,
+        publicKey.toString(),
+        async (transaction: Transaction) => {
+          // Use the wallet's signTransaction method
+          return await sendTransaction(transaction, connection);
+        }
+      );
+
+      if (!deploymentResult.success) {
+        throw new Error(deploymentResult.error || 'Deployment failed');
+      }
+
+      console.log('✅ Deployment successful:', deploymentResult);
+
+      setDeployStatus(`Collection "${collectionData.name}" deployed successfully! 
+        Collection: ${deploymentResult.collectionAddress}
+        Transaction: ${deploymentResult.transactionSignature}
+        Explorer: ${deploymentResult.explorerUrl}`);
+      
+      // Enable the collection for minting
+      await adminControlService.updateCollection(collectionData.name, {
+        ...collectionData,
+        isActive: true,
+        mintingEnabled: true,
+        collectionAddress: deploymentResult.collectionAddress,
+        mintAddress: deploymentResult.mintAddress,
+        metadataAddress: deploymentResult.metadataAddress,
+        masterEditionAddress: deploymentResult.masterEditionAddress,
+        transactionSignature: deploymentResult.transactionSignature
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to get deployment instructions');
-      }
-
-      const result = await response.json();
       
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to create deployment instructions');
-      }
-
-      setDeployStatus('Please sign the transaction to deploy your collection...');
-
-      // Sign and send the transaction
-      const transaction = new Transaction();
-      
-      // Add instructions to transaction
-      for (const instruction of result.instructions) {
-        transaction.add(instruction);
-      }
-
-      // Send and confirm transaction
-      const signature = await sendTransaction(transaction, connection);
-      
-      setDeployStatus(`Collection "${collectionData.name}" deployed successfully! Transaction: ${signature}`);
+      setDeployStatus(`Collection deployed and enabled for minting! 
+        Collection: ${deploymentResult.collectionAddress}
+        Explorer: ${deploymentResult.explorerUrl}`);
     } catch (error) {
       setDeployStatus('Deployment failed. Please try again.');
       console.error('Deployment error:', error);
