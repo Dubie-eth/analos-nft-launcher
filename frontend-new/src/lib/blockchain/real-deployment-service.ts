@@ -70,23 +70,33 @@ export class RealBlockchainDeploymentService {
     walletAddress: string
   ): Promise<TransactionInstruction[]> {
     const instructions: TransactionInstruction[] = [];
-    const walletPubkey = new PublicKey(walletAddress);
     
     try {
-      // Create a very simple memo with just basic collection info to avoid crashes
-      const simpleCollectionData = {
-        name: config.name,
-        symbol: config.symbol,
-        maxSupply: config.maxSupply,
-        mintPrice: config.mintPrice,
+      // Validate wallet address first
+      console.log('🔍 Validating wallet address:', walletAddress);
+      const walletPubkey = new PublicKey(walletAddress);
+      console.log('✅ Wallet address is valid');
+      
+      // Validate and clean config data to prevent invalid public key errors
+      const cleanConfig = {
+        name: config.name || 'Unknown Collection',
+        symbol: config.symbol || 'UNK',
+        maxSupply: config.maxSupply || 1000,
+        mintPrice: config.mintPrice || 1,
+        feePercentage: config.feePercentage || 2.5,
+        // Use wallet address as fee recipient if feeRecipient is empty or invalid
+        feeRecipient: this.validatePublicKey(config.feeRecipient) ? config.feeRecipient : walletAddress,
+        externalUrl: config.externalUrl || '',
         deployedAt: new Date().toISOString(),
         type: 'collection_deployment'
       };
       
-      const dataBuffer = Buffer.from(JSON.stringify(simpleCollectionData), 'utf8');
+      console.log('📝 Creating memo with cleaned data:', cleanConfig);
+      const dataBuffer = Buffer.from(JSON.stringify(cleanConfig), 'utf8');
       
       // Only create memo if data is small enough (memo has size limits)
       if (dataBuffer.length < 1000) {
+        console.log('📦 Creating memo instruction');
         const memoInstruction = new TransactionInstruction({
           keys: [
             { pubkey: walletPubkey, isSigner: true, isWritable: false }
@@ -96,9 +106,11 @@ export class RealBlockchainDeploymentService {
         });
         
         instructions.push(memoInstruction);
+        console.log('✅ Memo instruction added');
       }
       
       // Add a simple transfer instruction to make it a meaningful transaction
+      console.log('💰 Creating transfer instruction');
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: walletPubkey,
         toPubkey: walletPubkey, // Transfer to self (no actual funds moved)
@@ -106,19 +118,46 @@ export class RealBlockchainDeploymentService {
       });
       
       instructions.push(transferInstruction);
+      console.log('✅ Transfer instruction added');
       
     } catch (error) {
-      console.error('Error creating collection instructions:', error);
-      // Fallback to just a simple transfer if anything fails
-      const fallbackInstruction = SystemProgram.transfer({
-        fromPubkey: walletPubkey,
-        toPubkey: walletPubkey,
-        lamports: 1000,
-      });
-      instructions.push(fallbackInstruction);
+      console.error('❌ Error creating collection instructions:', error);
+      console.error('Config received:', config);
+      console.error('Wallet address:', walletAddress);
+      
+      // Try to create a minimal fallback instruction
+      try {
+        const fallbackWalletPubkey = new PublicKey(walletAddress);
+        const fallbackInstruction = SystemProgram.transfer({
+          fromPubkey: fallbackWalletPubkey,
+          toPubkey: fallbackWalletPubkey,
+          lamports: 1000,
+        });
+        instructions.push(fallbackInstruction);
+        console.log('✅ Fallback instruction created');
+      } catch (fallbackError) {
+        console.error('❌ Fallback instruction also failed:', fallbackError);
+        throw new Error(`Invalid wallet address or configuration: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
     
     return instructions;
+  }
+
+  /**
+   * Validate if a string is a valid public key
+   */
+  private validatePublicKey(address: string): boolean {
+    if (!address || address.trim() === '') {
+      return false;
+    }
+    
+    try {
+      new PublicKey(address);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
