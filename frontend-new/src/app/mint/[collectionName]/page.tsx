@@ -25,6 +25,8 @@ import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { blockchainFirstService } from '@/lib/blockchain-first-service';
+import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
+import { adminControlService } from '@/lib/admin-control-service';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -68,33 +70,37 @@ function CollectionMintContent() {
         return;
       }
       
-      console.log('📡 Fetching collection from blockchain (blockchain-first):', collectionName);
+      console.log('📡 Fetching collection with blockchain fail-safes:', collectionName);
       
-      // Use blockchain-first service as single source of truth
-      const blockchainState = await blockchainFirstService.getCollectionState(collectionName);
-      
+      // Check admin controls first
+      const mintingCheck = await adminControlService.isMintingAllowed(collectionName);
+      if (!mintingCheck.allowed) {
+        console.warn(`⚠️ Minting not allowed: ${mintingCheck.reason}`);
+        // Still fetch collection data for display, but mark as inactive
+      }
+
+      // Use blockchain fail-safe service as single source of truth
       let blockchainData;
-      if (blockchainState) {
-        // Convert blockchain state to blockchain data format
-        blockchainData = {
-          name: blockchainState.name,
-          totalSupply: blockchainState.totalSupply,
-          currentSupply: blockchainState.currentSupply,
-          mintPrice: blockchainState.mintPrice,
-          paymentToken: blockchainState.paymentToken,
-          mintAddress: blockchainState.mintAddress,
-          collectionAddress: blockchainState.collectionAddress,
-          isActive: true,
-          holders: blockchainState.holders,
-          metadataUri: blockchainState.metadataUri,
-          isRevealed: blockchainState.isRevealed,
-          activePhase: blockchainState.activePhase
-        };
-        console.log('✅ Blockchain-first data fetched:', blockchainState.name, 'Price:', blockchainState.mintPrice, 'Supply:', blockchainState.currentSupply);
-      } else {
-        // Fallback to legacy service
-        console.log('⚠️ Blockchain-first failed, falling back to legacy service');
+      try {
+        blockchainData = await blockchainFailSafeService.getCollectionDataWithFailSafes(collectionName);
+        console.log('✅ Blockchain fail-safe data fetched:', blockchainData.name, 'Price:', blockchainData.mintPrice, 'Supply:', blockchainData.currentSupply);
+        
+        // Override active status based on admin controls
+        if (!mintingCheck.allowed) {
+          blockchainData.isActive = false;
+          console.log('🔒 Collection marked as inactive due to admin controls');
+        }
+        
+      } catch (error) {
+        console.error('❌ All blockchain fail-safes failed:', error);
+        // Final fallback to legacy service
+        console.log('⚠️ Using final fallback to legacy service');
         blockchainData = await blockchainDataService.getCollectionData(collectionName);
+        
+        if (blockchainData) {
+          blockchainData.isActive = false; // Mark as inactive since fail-safes failed
+          blockchainData.source = 'legacy-fallback';
+        }
       }
       
       if (blockchainData) {

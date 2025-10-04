@@ -18,6 +18,7 @@ import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
 import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
 import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
+import AdminControlPanel from '../components/AdminControlPanel';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
@@ -86,6 +87,7 @@ function AdminPageContent() {
   const [showBondingCurveLauncher, setShowBondingCurveLauncher] = useState(false);
   const [showTestEnvironment, setShowTestEnvironment] = useState(false);
   const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
+  const [showAdminControlPanel, setShowAdminControlPanel] = useState(false);
   const [showMintPreview, setShowMintPreview] = useState(false);
 
   useEffect(() => {
@@ -879,6 +881,16 @@ function AdminPageContent() {
                 </p>
 
                 <button
+                  onClick={() => setShowAdminControlPanel(true)}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  🎛️ Admin Control Panel
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Control minting toggles, collection management, and system settings
+                </p>
+
+                <button
                   onClick={() => {
                     if (confirm('⚠️ This will clear all token tracking data. Are you sure?')) {
                       tokenIdTracker.clearAllData();
@@ -1590,6 +1602,29 @@ function AdminPageContent() {
           }}
           onClose={() => setShowMintPreview(false)}
         />
+      )}
+
+      {/* Admin Control Panel Modal */}
+      {showAdminControlPanel && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 rounded-2xl w-full h-full max-w-6xl mx-4 max-h-[95vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-white/20">
+              <h2 className="text-2xl font-bold text-white">
+                🎛️ Admin Control Panel
+              </h2>
+              <button
+                onClick={() => setShowAdminControlPanel(false)}
+                className="text-white/60 hover:text-white text-2xl p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="h-full overflow-y-auto p-6">
+              <AdminControlPanel isAuthorized={isAdmin || false} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
     </>
