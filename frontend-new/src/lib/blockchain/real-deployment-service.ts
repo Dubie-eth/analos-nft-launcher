@@ -336,12 +336,12 @@ export class RealBlockchainDeploymentService {
 
       // Sign transaction with wallet
       console.log('🔐 Requesting wallet signature...');
-      const signature = await signTransaction(transaction);
-      console.log('✅ Transaction signed:', signature);
+      const signedTransaction = await signTransaction(transaction);
+      console.log('✅ Transaction signed');
 
-      // Send transaction to blockchain
+      // Send signed transaction to blockchain
       console.log('📡 Sending transaction to blockchain...');
-      const confirmation = await this.connection.sendRawTransaction(transaction.serialize());
+      const confirmation = await this.connection.sendRawTransaction(signedTransaction.serialize());
       console.log('✅ Transaction sent:', confirmation);
 
       // Wait for confirmation
@@ -370,8 +370,8 @@ export class RealBlockchainDeploymentService {
         mintAddress: collectionAddresses.collectionMint,
         metadataAddress: collectionAddresses.metadataAccount,
         masterEditionAddress: collectionAddresses.masterEdition,
-        transactionSignature: signature,
-        explorerUrl: `https://explorer.analos.io/tx/${signature}`
+        transactionSignature: confirmation,
+        explorerUrl: `https://explorer.analos.io/tx/${confirmation}`
       };
 
       // Log successful deployment
