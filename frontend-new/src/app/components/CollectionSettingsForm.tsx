@@ -7,9 +7,20 @@ import { CollectionSettings } from '@/lib/nft-generator';
 interface CollectionSettingsFormProps {
   settings: CollectionSettings;
   onSettingsChange: (settings: CollectionSettings) => void;
+  revealType?: 'instant' | 'delayed';
+  onRevealTypeChange?: (type: 'instant' | 'delayed') => void;
+  revealDelay?: number;
+  onRevealDelayChange?: (delay: number) => void;
 }
 
-export default function CollectionSettingsForm({ settings, onSettingsChange }: CollectionSettingsFormProps) {
+export default function CollectionSettingsForm({ 
+  settings, 
+  onSettingsChange, 
+  revealType = 'instant',
+  onRevealTypeChange,
+  revealDelay = 24,
+  onRevealDelayChange
+}: CollectionSettingsFormProps) {
   const updateSetting = (field: keyof CollectionSettings, value: any) => {
     onSettingsChange({
       ...settings,
@@ -198,6 +209,81 @@ export default function CollectionSettingsForm({ settings, onSettingsChange }: C
             </div>
           </div>
         </div>
+
+        {/* Reveal Configuration */}
+        {onRevealTypeChange && (
+          <div className="border-b border-gray-200 pb-6">
+            <h4 className="text-lg font-medium text-gray-700 mb-4">Reveal Configuration</h4>
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                    revealType === 'instant'
+                      ? 'border-blue-400 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => onRevealTypeChange('instant')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 ${
+                      revealType === 'instant' ? 'border-blue-400 bg-blue-400' : 'border-gray-300'
+                    }`} />
+                    <div>
+                      <h5 className="font-medium text-gray-800">Instant Reveal</h5>
+                      <p className="text-gray-600 text-sm">
+                        Users see the actual NFT immediately upon minting
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                    revealType === 'delayed'
+                      ? 'border-purple-400 bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => onRevealTypeChange('delayed')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full border-2 ${
+                      revealType === 'delayed' ? 'border-purple-400 bg-purple-400' : 'border-gray-300'
+                    }`} />
+                    <div>
+                      <h5 className="font-medium text-gray-800">Delayed Reveal</h5>
+                      <p className="text-gray-600 text-sm">
+                        Users see a placeholder until reveal date, then get the actual NFT
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {revealType === 'delayed' && onRevealDelayChange && (
+                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Reveal Delay (hours)
+                      </label>
+                      <input
+                        type="number"
+                        value={revealDelay}
+                        onChange={(e) => onRevealDelayChange(parseInt(e.target.value) || 24)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        min="1"
+                        max="168"
+                      />
+                    </div>
+                    <p className="text-gray-600 text-xs">
+                      NFTs will be revealed {revealDelay} hours after minting starts
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Social Media Links */}
         <div>
