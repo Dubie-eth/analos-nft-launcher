@@ -52,8 +52,8 @@ export class AdminControlService {
         this.collections.set('Test', {
           name: 'Test',
           displayName: 'Test Collection',
-          isActive: true, // Enabled for testing
-          mintingEnabled: true, // Minting enabled for testing
+          isActive: false, // DISABLED - hidden from public
+          mintingEnabled: false, // DISABLED - hidden from public
       isTestMode: true,
       totalSupply: 2222, // Match the actual collection size
       mintPrice: 10.00, // TODO: This should be pulled from deployed contract on blockchain
