@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { collectionStatsService, CollectionStats } from '@/lib/collection-stats-service';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
 import { useWallet } from '@solana/wallet-adapter-react';
+import WalletDownloadSection from './WalletDownloadSection';
 
 export default function EnhancedLandingPage() {
   const { publicKey, connected } = useWallet();
@@ -472,6 +473,13 @@ Block Explorer: https://explorer.analos.io`
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Wallet Download & Beta Warning Section */}
+      <section className="py-8 bg-gray-900/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <WalletDownloadSection />
         </div>
       </section>
 

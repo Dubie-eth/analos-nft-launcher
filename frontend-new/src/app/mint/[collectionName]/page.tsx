@@ -22,6 +22,7 @@ import WhitelistStatus from '../../components/WhitelistStatus';
 import StandardLayout from '../../components/StandardLayout';
 import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
+import WalletDownloadSection from '../../components/WalletDownloadSection';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 // Use the blockchain collection data interface
@@ -442,6 +443,9 @@ function CollectionMintContent() {
             <h1 className="text-4xl font-bold text-white">Mint NFTs</h1>
             <WalletMultiButton />
           </div>
+
+          {/* Wallet Download & Beta Warning Section */}
+          <WalletDownloadSection />
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Collection Info */}
