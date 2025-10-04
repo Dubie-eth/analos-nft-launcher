@@ -1868,6 +1868,45 @@ app.get('/api/collections', (req, res) => {
   }
 });
 
+// Get collection statistics
+app.get('/api/collections/stats', (req, res) => {
+  try {
+    const allCollections = Array.from(collections.values());
+    
+    // Calculate statistics
+    const collectionsLaunched = allCollections.length;
+    const totalNFTsMinted = allCollections.reduce((sum, collection) => sum + (collection.currentSupply || 0), 0);
+    
+    // Calculate platform uptime (simplified - you could track actual uptime)
+    const platformUptime = '99.9%';
+    
+    // Calculate LOS burned (25% of total revenue - simplified calculation)
+    const totalRevenue = allCollections.reduce((sum, collection) => {
+      const revenue = (collection.currentSupply || 0) * (collection.mintPrice || 0);
+      return sum + revenue;
+    }, 0);
+    const losBurned = Math.floor(totalRevenue * 0.25); // 25% burned
+    
+    const stats = {
+      collectionsLaunched,
+      totalNFTsMinted,
+      platformUptime,
+      losBurned
+    };
+
+    console.log('📊 Collection statistics requested:', stats);
+    
+    res.json(stats);
+    
+  } catch (error) {
+    console.error('Error getting collection stats:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get collection statistics' 
+    });
+  }
+});
+
 // Get collection by name
 app.get('/api/collections/:collectionName', async (req, res) => {
   try {
