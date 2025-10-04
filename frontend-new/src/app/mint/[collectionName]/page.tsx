@@ -28,6 +28,7 @@ import { blockchainFirstService } from '@/lib/blockchain-first-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { adminControlService } from '@/lib/admin-control-service';
 import { feeManagementService } from '@/lib/fee-management-service';
+import { blockchainPriceService } from '@/lib/blockchain-price-service';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -183,10 +184,29 @@ function CollectionMintContent() {
     }
   }, [collectionName]);
 
+  // Fetch blockchain prices to update collection pricing
+  const fetchBlockchainPrices = useCallback(async () => {
+    try {
+      console.log('💰 Fetching blockchain prices for collection:', collectionName);
+      const blockchainPrice = await blockchainPriceService.getCollectionPriceFromBlockchain(collectionName);
+      if (blockchainPrice) {
+        console.log('✅ Blockchain price fetched:', blockchainPrice);
+        // The admin control service will be updated automatically
+        // Refresh collection info to get updated pricing
+        await fetchCollectionInfo(true);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching blockchain prices:', error);
+    }
+  }, [collectionName, fetchCollectionInfo]);
+
   useEffect(() => {
     setMounted(true);
     if (collectionName) {
       fetchCollectionInfo();
+      
+      // Fetch blockchain prices to ensure we have the latest pricing data
+      fetchBlockchainPrices();
       
       // Only set up real-time updates for supply changes when actively minting
       // Reduced frequency to 60 seconds for better performance

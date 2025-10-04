@@ -48,7 +48,7 @@ export class AdminControlService {
    * Initialize default collections
    */
   private initializeDefaultCollections(): void {
-        // Test collection for development
+        // Test collection for development - PRICE SHOULD BE PULLED FROM BLOCKCHAIN
         this.collections.set('Test', {
           name: 'Test',
           displayName: 'Test Collection',
@@ -56,7 +56,7 @@ export class AdminControlService {
           mintingEnabled: true, // Minting enabled for testing
       isTestMode: true,
       totalSupply: 2222, // Match the actual collection size
-      mintPrice: 10.00,
+      mintPrice: 10.00, // TODO: This should be pulled from deployed contract on blockchain
       paymentToken: 'LOS',
       description: 'Test collection for development and testing purposes',
       imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
@@ -152,6 +152,32 @@ export class AdminControlService {
     }
 
     return collection;
+  }
+
+  /**
+   * Update collection price from blockchain data
+   * This should be called when we have actual contract data
+   */
+  async updateCollectionPriceFromBlockchain(
+    collectionName: string, 
+    blockchainPrice: number,
+    paymentToken: string
+  ): Promise<boolean> {
+    try {
+      const collection = this.collections.get(collectionName);
+      if (collection) {
+        collection.mintPrice = blockchainPrice;
+        collection.paymentToken = paymentToken;
+        collection.lastModified = Date.now();
+        
+        console.log(`✅ Updated ${collectionName} price from blockchain: ${blockchainPrice} ${paymentToken}`);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(`❌ Failed to update ${collectionName} price from blockchain:`, error);
+      return false;
+    }
   }
 
   /**
