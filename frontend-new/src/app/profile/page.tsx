@@ -5,6 +5,9 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { tokenIdTracker } from '../../lib/token-id-tracker';
+import { blockchainFailSafeService } from '../../lib/blockchain-failsafe-service';
+import { adminControlService } from '../../lib/admin-control-service';
+import { feeManagementService } from '../../lib/fee-management-service';
 import Link from 'next/link';
 import StandardLayout from '../components/StandardLayout';
 
@@ -22,6 +25,17 @@ interface UserNFT {
   name: string;
 }
 
+interface CollectionInfo {
+  name: string;
+  totalSupply: number;
+  currentSupply: number;
+  mintPrice: number;
+  paymentToken: string;
+  isActive: boolean;
+  mintingEnabled: boolean;
+  feeBreakdown: any;
+}
+
 export default function ProfilePage() {
   const { connected, publicKey } = useWallet();
   const [nfts, setNfts] = useState<UserNFT[]>([]);
@@ -32,6 +46,8 @@ export default function ProfilePage() {
     totalValue: 0
   });
   const [darkMode, setDarkMode] = useState(false);
+  const [collections, setCollections] = useState<CollectionInfo[]>([]);
+  const [collectionsLoading, setCollectionsLoading] = useState(false);
 
   // Load dark mode preference from localStorage
   useEffect(() => {
@@ -67,6 +83,47 @@ export default function ProfilePage() {
     
     // Log current classes for debugging
     console.log('🌙 Current html classes:', document.documentElement.className);
+  };
+
+  const fetchCollections = async () => {
+    setCollectionsLoading(true);
+    try {
+      const availableCollections = ['Test', 'The LosBros', 'New Collection'];
+      const collectionsData: CollectionInfo[] = [];
+
+      for (const collectionName of availableCollections) {
+        try {
+          // Redirect "The LosBros" to "Test" for development
+          const actualCollectionName = collectionName === 'The LosBros' ? 'Test' : collectionName;
+          
+          // Get collection config from admin service
+          const collection = await adminControlService.getCollection(actualCollectionName);
+          if (collection) {
+            // Get fee breakdown
+            const feeBreakdown = feeManagementService.getFeeBreakdown(actualCollectionName);
+            
+            collectionsData.push({
+              name: collection.displayName,
+              totalSupply: collection.totalSupply,
+              currentSupply: 0, // Will be fetched from blockchain
+              mintPrice: feeBreakdown.totalPrice,
+              paymentToken: collection.paymentToken,
+              isActive: collection.isActive,
+              mintingEnabled: collection.mintingEnabled,
+              feeBreakdown: feeBreakdown
+            });
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch collection ${collectionName}:`, error);
+        }
+      }
+
+      setCollections(collectionsData);
+    } catch (error) {
+      console.error('Error fetching collections:', error);
+    } finally {
+      setCollectionsLoading(false);
+    }
   };
 
   const ANALOS_RPC_URL = 'https://rpc.analos.io';
@@ -125,8 +182,8 @@ export default function ProfilePage() {
               nftList.push(nft);
               collectionSet.add(tokenInfo.collectionName);
             } else {
-              // Fallback for NFTs not in tracker (assign to The LosBros collection)
-              const fallbackCollection = 'The LosBros';
+              // Fallback for NFTs not in tracker (assign to Test collection)
+              const fallbackCollection = 'Test';
               const fallbackTokenId = nftList.length + 1;
               
               const nft: UserNFT = {
@@ -168,6 +225,9 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    // Fetch collections on mount
+    fetchCollections();
+    
     if (connected && publicKey) {
       fetchUserNFTs();
     }
@@ -442,6 +502,61 @@ export default function ProfilePage() {
             </p>
           </div>
         </div>
+
+        {/* Available Collections */}
+        {collections.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">🎨 Available Collections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {collections.map((collection, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{collection.name}</h3>
+                    <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      collection.isActive && collection.mintingEnabled 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                    }`}>
+                      {collection.isActive && collection.mintingEnabled ? 'Active' : 'Inactive'}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-300">Supply:</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {collection.currentSupply}/{collection.totalSupply}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-300">Price:</span>
+                      <span className="font-semibold text-purple-600 dark:text-purple-400">
+                        {collection.mintPrice.toFixed(2)} {collection.paymentToken}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500 dark:text-gray-300">Platform Fee:</span>
+                      <span className="text-gray-600 dark:text-gray-300">
+                        {collection.feeBreakdown.platformFeePercentage}%
+                      </span>
+                    </div>
+                    
+                    <Link 
+                      href={`/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      className={`w-full py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-200 block text-center ${
+                        collection.isActive && collection.mintingEnabled
+                          ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white hover:from-purple-600 hover:to-blue-700'
+                          : 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                      }`}
+                    >
+                      {collection.isActive && collection.mintingEnabled ? '✨ Mint Now' : '🔒 Coming Soon'}
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
