@@ -72,6 +72,44 @@ export default function GeneratorWhitelistManager({ isAdmin = false }: Generator
     }
   };
 
+  const savePhaseChanges = async () => {
+    if (!editingPhase) return;
+    
+    setLoading(true);
+    try {
+      // Update the phase in the whitelist service
+      const success = generatorWhitelistService.updateWhitelistPhase(editingPhase.id, editingPhase);
+      
+      if (success) {
+        loadWhitelistPhases();
+        setEditingPhase(null);
+        alert('Phase updated successfully!');
+      } else {
+        alert('Failed to update phase');
+      }
+    } catch (error) {
+      console.error('Error saving phase changes:', error);
+      alert('Failed to save changes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePhase = (phaseId: string) => {
+    const phase = whitelistPhases.find(p => p.id === phaseId);
+    if (!phase) return;
+
+    if (confirm(`Are you sure you want to delete the phase "${phase.name}"? This action cannot be undone.`)) {
+      const success = generatorWhitelistService.removeWhitelistPhase(phaseId);
+      if (success) {
+        loadWhitelistPhases();
+        alert('Phase deleted successfully!');
+      } else {
+        alert('Failed to delete phase');
+      }
+    }
+  };
+
   const getPhaseStatusColor = (phase: GeneratorWhitelistPhase) => {
     if (phase.isActive) return 'bg-green-500/20 text-green-300';
     if (phase.isUpcoming) return 'bg-yellow-500/20 text-yellow-300';
@@ -214,9 +252,17 @@ export default function GeneratorWhitelistManager({ isAdmin = false }: Generator
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEditingPhase(phase)}
-                      className="text-blue-400 hover:text-blue-300"
+                      className="text-blue-400 hover:text-blue-300 p-1 hover:bg-blue-500/20 rounded transition-colors"
+                      title="Edit Phase"
                     >
                       <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deletePhase(phase.id)}
+                      className="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/20 rounded transition-colors"
+                      title="Delete Phase"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 )}
@@ -375,6 +421,340 @@ export default function GeneratorWhitelistManager({ isAdmin = false }: Generator
           </div>
         </div>
       </div>
+
+      {/* Edit Phase Modal */}
+      {editingPhase && (
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Edit Whitelist Phase</h2>
+                <button
+                  onClick={() => setEditingPhase(null)}
+                  className="text-white/60 hover:text-white text-2xl p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Basic Information</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">Phase Name</label>
+                      <input
+                        type="text"
+                        value={editingPhase.name}
+                        onChange={(e) => setEditingPhase({...editingPhase, name: e.target.value})}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-white/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">Description</label>
+                      <input
+                        type="text"
+                        value={editingPhase.description}
+                        onChange={(e) => setEditingPhase({...editingPhase, description: e.target.value})}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-white/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date Range */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Schedule</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">Start Date</label>
+                      <input
+                        type="datetime-local"
+                        value={editingPhase.startDate.toISOString().slice(0, 16)}
+                        onChange={(e) => setEditingPhase({...editingPhase, startDate: new Date(e.target.value)})}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">End Date</label>
+                      <input
+                        type="datetime-local"
+                        value={editingPhase.endDate.toISOString().slice(0, 16)}
+                        onChange={(e) => setEditingPhase({...editingPhase, endDate: new Date(e.target.value)})}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Token Requirements */}
+                {editingPhase.requirements.tokenHoldings && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Token Requirements</h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">Token Symbol</label>
+                        <input
+                          type="text"
+                          value={editingPhase.requirements.tokenHoldings.tokenSymbol}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            requirements: {
+                              ...editingPhase.requirements,
+                              tokenHoldings: {
+                                ...editingPhase.requirements.tokenHoldings!,
+                                tokenSymbol: e.target.value
+                              }
+                            }
+                          })}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">Minimum Balance</label>
+                        <input
+                          type="number"
+                          value={editingPhase.requirements.tokenHoldings.minimumBalance}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            requirements: {
+                              ...editingPhase.requirements,
+                              tokenHoldings: {
+                                ...editingPhase.requirements.tokenHoldings!,
+                                minimumBalance: parseInt(e.target.value) || 0
+                              }
+                            }
+                          })}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">Token Address</label>
+                        <input
+                          type="text"
+                          value={editingPhase.requirements.tokenHoldings.tokenAddress}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            requirements: {
+                              ...editingPhase.requirements,
+                              tokenHoldings: {
+                                ...editingPhase.requirements.tokenHoldings!,
+                                tokenAddress: e.target.value
+                              }
+                            }
+                          })}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Social Requirements */}
+                {editingPhase.requirements.socialVerification && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Social Verification</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">Minimum Score</label>
+                        <input
+                          type="number"
+                          value={editingPhase.requirements.socialVerification.minimumScore}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            requirements: {
+                              ...editingPhase.requirements,
+                              socialVerification: {
+                                ...editingPhase.requirements.socialVerification!,
+                                minimumScore: parseInt(e.target.value) || 0
+                              }
+                            }
+                          })}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-white/70 mb-2">Bonus Multiplier</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={editingPhase.requirements.socialVerification.bonusMultiplier}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            requirements: {
+                              ...editingPhase.requirements,
+                              socialVerification: {
+                                ...editingPhase.requirements.socialVerification!,
+                                bonusMultiplier: parseFloat(e.target.value) || 1.0
+                              }
+                            }
+                          })}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editingPhase.requirements.socialVerification.required}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            requirements: {
+                              ...editingPhase.requirements,
+                              socialVerification: {
+                                ...editingPhase.requirements.socialVerification!,
+                                required: e.target.checked
+                              }
+                            }
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-white/70">Social verification required</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Benefits */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Benefits</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white/70 mb-2">Max Collections per Wallet</label>
+                      <input
+                        type="number"
+                        value={editingPhase.benefits.maxCollectionsPerWallet}
+                        onChange={(e) => setEditingPhase({
+                          ...editingPhase, 
+                          benefits: {
+                            ...editingPhase.benefits,
+                            maxCollectionsPerWallet: parseInt(e.target.value) || 1
+                          }
+                        })}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editingPhase.benefits.priorityAccess}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            benefits: {
+                              ...editingPhase.benefits,
+                              priorityAccess: e.target.checked
+                            }
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-white/70">Priority Access</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editingPhase.benefits.advancedFeatures}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            benefits: {
+                              ...editingPhase.benefits,
+                              advancedFeatures: e.target.checked
+                            }
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-white/70">Advanced Features</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editingPhase.benefits.customPricing}
+                          onChange={(e) => setEditingPhase({
+                            ...editingPhase, 
+                            benefits: {
+                              ...editingPhase.benefits,
+                              customPricing: e.target.checked
+                            }
+                          })}
+                          className="rounded"
+                        />
+                        <span className="text-white/70">Custom Pricing</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phase Status */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Phase Status</h3>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editingPhase.isActive}
+                        onChange={(e) => setEditingPhase({
+                          ...editingPhase, 
+                          isActive: e.target.checked,
+                          isUpcoming: e.target.checked ? false : editingPhase.isUpcoming,
+                          isCompleted: e.target.checked ? false : editingPhase.isCompleted
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-white/70">Active</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editingPhase.isUpcoming}
+                        onChange={(e) => setEditingPhase({
+                          ...editingPhase, 
+                          isUpcoming: e.target.checked,
+                          isActive: e.target.checked ? false : editingPhase.isActive,
+                          isCompleted: e.target.checked ? false : editingPhase.isCompleted
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-white/70">Upcoming</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={editingPhase.isCompleted}
+                        onChange={(e) => setEditingPhase({
+                          ...editingPhase, 
+                          isCompleted: e.target.checked,
+                          isActive: e.target.checked ? false : editingPhase.isActive,
+                          isUpcoming: e.target.checked ? false : editingPhase.isUpcoming
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-white/70">Completed</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-8">
+                <button
+                  onClick={() => setEditingPhase(null)}
+                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={savePhaseChanges}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

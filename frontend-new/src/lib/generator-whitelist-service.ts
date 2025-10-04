@@ -600,6 +600,56 @@ export class GeneratorWhitelistService {
   getCurrentConfig(): GeneratorAccessConfig {
     return { ...this.accessConfig };
   }
+
+  /**
+   * Update a specific whitelist phase
+   */
+  updateWhitelistPhase(phaseId: string, updates: Partial<GeneratorWhitelistPhase>): boolean {
+    const phaseIndex = this.accessConfig.whitelistPhases.findIndex(phase => phase.id === phaseId);
+    if (phaseIndex === -1) return false;
+
+    // Update the phase
+    this.accessConfig.whitelistPhases[phaseIndex] = {
+      ...this.accessConfig.whitelistPhases[phaseIndex],
+      ...updates
+    };
+
+    console.log(`✅ Updated whitelist phase: ${phaseId}`);
+    return true;
+  }
+
+  /**
+   * Add a new whitelist phase
+   */
+  addWhitelistPhase(phase: Omit<GeneratorWhitelistPhase, 'statistics'>): boolean {
+    const newPhase: GeneratorWhitelistPhase = {
+      ...phase,
+      statistics: {
+        totalEligibleWallets: 0,
+        totalCollectionsCreated: 0,
+        remainingSlots: 1000, // Default remaining slots
+        totalVolume: 0
+      }
+    };
+
+    this.accessConfig.whitelistPhases.push(newPhase);
+    console.log(`✅ Added new whitelist phase: ${phase.name}`);
+    return true;
+  }
+
+  /**
+   * Remove a whitelist phase
+   */
+  removeWhitelistPhase(phaseId: string): boolean {
+    const phaseIndex = this.accessConfig.whitelistPhases.findIndex(phase => phase.id === phaseId);
+    if (phaseIndex === -1) return false;
+
+    const removedPhase = this.accessConfig.whitelistPhases[phaseIndex];
+    this.accessConfig.whitelistPhases.splice(phaseIndex, 1);
+    
+    console.log(`✅ Removed whitelist phase: ${removedPhase.name}`);
+    return true;
+  }
 }
 
 export const generatorWhitelistService = new GeneratorWhitelistService();
