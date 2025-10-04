@@ -115,18 +115,18 @@ export class BlockchainDataService {
         return null;
       }
 
-      // Fetch minted NFTs from blockchain
+      // Fetch minted NFTs from blockchain with caching
       const mintedNFTs = await this.getMintedNFTsFromBlockchain(collectionName);
       
-      // Calculate current supply
-      // Calculate current supply from minted NFTs or fallback to token tracker
+      // Calculate current supply from actual blockchain data
       let currentSupply = mintedNFTs.length;
       
-      // Define collectionId for token tracker
-      const collectionId = `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`;
+      console.log(`🔍 Scanning blockchain for minted NFTs in collection: ${collectionName}`);
       
-      // Check token tracker for minted NFTs
+      // If no NFTs found from blockchain scan, try to get from token tracker as fallback
       if (currentSupply === 0) {
+        const collectionId = `collection_${actualCollectionName.toLowerCase().replace(/\s+/g, '_')}`;
+        
         if (tokenIdTracker.collections[collectionId]) {
           const trackerCollection = tokenIdTracker.collections[collectionId];
           currentSupply = trackerCollection.mintedCount || 0;
@@ -135,12 +135,8 @@ export class BlockchainDataService {
           console.log(`📊 No token tracker data found for ${collectionId}`);
           console.log(`📊 Available collections:`, Object.keys(tokenIdTracker.collections));
           
-          // TEMPORARY FIX: If this is "The LosBros" and we can't find the data,
-          // assume 10 NFTs were minted (based on your previous reports)
-          if (actualCollectionName === 'The LosBros') {
-            currentSupply = 10; // You mentioned having 10 minted NFTs before
-            console.log(`📊 TEMPORARY FIX: Setting supply to 10 for The LosBros collection`);
-          }
+          // If still no data, perform a more thorough blockchain scan
+          currentSupply = await this.performThoroughBlockchainScan(actualCollectionName, collectionConfig);
         }
       }
       
@@ -349,6 +345,101 @@ export class BlockchainDataService {
         paymentToken: 'LOL',
         isActive: true
       };
+    }
+  }
+
+  /**
+   * Perform a thorough blockchain scan for minted NFTs
+   */
+  private async performThoroughBlockchainScan(collectionName: string, collectionConfig: any): Promise<number> {
+    console.log(`🔍 Performing thorough blockchain scan for: ${collectionName}`);
+    
+    try {
+      // Check cache first for this scan
+      const scanCacheKey = `blockchain_scan_${collectionName}`;
+      const cachedScan = this.getFromCache(scanCacheKey);
+      if (cachedScan && cachedScan.scanResult) {
+        console.log(`📋 Using cached blockchain scan result: ${cachedScan.scanResult.mintedCount} NFTs`);
+        return cachedScan.scanResult.mintedCount;
+      }
+
+      let totalMinted = 0;
+      
+      // Method 1: Scan by collection authority/creator
+      if (collectionConfig.collectionAddress) {
+        try {
+          console.log(`🔍 Scanning by collection address: ${collectionConfig.collectionAddress}`);
+          
+          // Get all token accounts for this collection
+          const collectionPubkey = new PublicKey(collectionConfig.collectionAddress);
+          const tokenAccounts = await this.connection.getProgramAccounts(new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), {
+            filters: [
+              {
+                dataSize: 165, // Token account size
+              },
+              {
+                memcmp: {
+                  offset: 0,
+                  bytes: collectionPubkey.toBase58(),
+                },
+              },
+            ],
+          });
+          
+          totalMinted = tokenAccounts.length;
+          console.log(`📊 Found ${totalMinted} NFTs via collection address scan`);
+          
+        } catch (error) {
+          console.warn('⚠️ Collection address scan failed:', error);
+        }
+      }
+      
+      // Method 2: If collection scan failed, try mint authority scan
+      if (totalMinted === 0 && collectionConfig.mintAddress) {
+        try {
+          console.log(`🔍 Scanning by mint address: ${collectionConfig.mintAddress}`);
+          
+          const mintPubkey = new PublicKey(collectionConfig.mintAddress);
+          const tokenAccounts = await this.connection.getProgramAccounts(new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), {
+            filters: [
+              {
+                dataSize: 165, // Token account size
+              },
+              {
+                memcmp: {
+                  offset: 0,
+                  bytes: mintPubkey.toBase58(),
+                },
+              },
+            ],
+          });
+          
+          totalMinted = tokenAccounts.length;
+          console.log(`📊 Found ${totalMinted} NFTs via mint address scan`);
+          
+        } catch (error) {
+          console.warn('⚠️ Mint address scan failed:', error);
+        }
+      }
+      
+      // Cache the scan result for 5 minutes
+      const scanResult = {
+        mintedCount: totalMinted,
+        timestamp: Date.now(),
+        collectionName
+      };
+      
+      this.cache.set(scanCacheKey, {
+        data: { scanResult },
+        timestamp: Date.now()
+      });
+      
+      console.log(`✅ Blockchain scan completed: ${totalMinted} NFTs found for ${collectionName}`);
+      return totalMinted;
+      
+    } catch (error) {
+      console.error('❌ Thorough blockchain scan failed:', error);
+      return 0;
     }
   }
 

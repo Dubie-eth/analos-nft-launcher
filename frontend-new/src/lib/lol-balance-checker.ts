@@ -145,8 +145,13 @@ export class LOLBalanceChecker {
             tokenAccount: accountInfo.pubkey.toString()
           };
           
-          // Cache the result
-          this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          // Try to cache the result (don't fail if caching fails)
+          try {
+            const cacheKey = `${walletAddress}-${minimumRequired}`;
+            this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          } catch (cacheError) {
+            console.warn('⚠️ Failed to cache LOL balance result:', cacheError);
+          }
           
           return result;
         }
@@ -186,8 +191,13 @@ export class LOLBalanceChecker {
             tokenAccount: accountInfo.pubkey.toString()
           };
           
-          // Cache the result
-          this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          // Try to cache the result (don't fail if caching fails)
+          try {
+            const cacheKey = `${walletAddress}-${minimumRequired}`;
+            this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          } catch (cacheError) {
+            console.warn('⚠️ Failed to cache LOL balance result:', cacheError);
+          }
           
           return result;
         }
