@@ -6,6 +6,7 @@
 
 import { bondingCurveSecurity } from './bonding-curve-security';
 import { escrowWalletService } from './escrow-wallet-service';
+import { bondingCurveWhitelistService } from './bonding-curve-whitelist-service';
 
 export interface BondingCurveConfig {
   virtualLOSReserves: number; // Virtual $LOS reserves
@@ -280,8 +281,19 @@ export class BondingCurveService {
         };
       }
 
-      // Calculate quote first
-      const quote = this.calculateBuyQuote(collection.config, collection.state, losAmount);
+      // Check whitelist eligibility and get pricing
+      const whitelistPricing = bondingCurveWhitelistService.getBondingCurvePrice(
+        collectionId,
+        collection.state.currentPrice,
+        userWallet
+      );
+
+      // Use whitelist price if available, otherwise use base price
+      const effectivePrice = whitelistPricing.isWhitelistActive ? whitelistPricing.price : collection.state.currentPrice;
+      const adjustedLosAmount = (losAmount / collection.state.currentPrice) * effectivePrice;
+
+      // Calculate quote with adjusted amount
+      const quote = this.calculateBuyQuote(collection.config, collection.state, adjustedLosAmount);
       
       // Comprehensive security validation using new security service
       const securityCheck = bondingCurveSecurity.checkTradeAllowed(
@@ -289,7 +301,7 @@ export class BondingCurveService {
         quote.outputAmount,
         collection.config.virtualNFTSupply,
         quote.priceImpact,
-        losAmount
+        adjustedLosAmount
       );
 
       if (!securityCheck.allowed) {

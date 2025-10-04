@@ -5,6 +5,8 @@ import { adminControlService, CollectionConfig, AdminSettings } from '@/lib/admi
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { whitelistMonitoringService, WhitelistStats, WhitelistPhase } from '@/lib/whitelist-monitoring-service';
 import BlockchainCollectionService from '@/lib/blockchain-collection-service';
+import BondingCurveAdminPanel from './BondingCurveAdminPanel';
+import MasterBondingCurveDashboard from './MasterBondingCurveDashboard';
 
 interface AdminControlPanelProps {
   isAuthorized: boolean;
@@ -658,6 +660,19 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
           </div>
         </div>
       )}
+
+      {/* Master Bonding Curve Dashboard */}
+      <MasterBondingCurveDashboard isAuthorized={isAuthorized} />
+
+      {/* Individual Collection Bonding Curve Controls */}
+      {blockchainCollections.map((collection) => (
+        <BondingCurveAdminPanel
+          key={collection.id}
+          collectionId={collection.id}
+          collectionName={collection.name}
+          isAuthorized={isAuthorized}
+        />
+      ))}
     </div>
   );
 }
