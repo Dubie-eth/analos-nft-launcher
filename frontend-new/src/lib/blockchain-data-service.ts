@@ -248,9 +248,9 @@ export class BlockchainDataService {
       
       if (!collectionData) {
         return {
-          totalSupply: 4200,
+          totalSupply: 2222,
           currentSupply: 0,
-          remainingSupply: 4200,
+          remainingSupply: 2222,
           mintedPercentage: 0
         };
       }
@@ -269,9 +269,9 @@ export class BlockchainDataService {
     } catch (error) {
       console.error('❌ Error getting collection supply:', error);
       return {
-        totalSupply: 4200,
+        totalSupply: 2222,
         currentSupply: 0,
-        remainingSupply: 4200,
+        remainingSupply: 2222,
         mintedPercentage: 0
       };
     }

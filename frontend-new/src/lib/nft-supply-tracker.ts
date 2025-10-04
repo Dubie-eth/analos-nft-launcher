@@ -36,7 +36,7 @@ export class NFTSupplyTracker {
       // Get all minted NFTs for this collection
       const mintedNFTs = await this.getMintedNFTs(collectionName);
       
-      const totalSupply = 4200; // This should come from smart contract
+      const totalSupply = 2222; // This should come from smart contract
       const currentSupply = mintedNFTs.length;
       const remainingSupply = Math.max(0, totalSupply - currentSupply);
       const mintedPercentage = totalSupply > 0 ? (currentSupply / totalSupply) * 100 : 0;
@@ -62,9 +62,9 @@ export class NFTSupplyTracker {
     } catch (error) {
       console.error('❌ Error fetching collection supply:', error);
       return {
-        totalSupply: 4200,
+        totalSupply: 2222,
         currentSupply: 0,
-        remainingSupply: 4200,
+        remainingSupply: 2222,
         mintedPercentage: 0,
         lastUpdated: Date.now()
       };
@@ -146,9 +146,9 @@ export class NFTSupplyTracker {
 
       // Fallback if no collection found in token tracker
       return {
-        totalSupply: 4200,
+        totalSupply: 2222,
         currentSupply: 0,
-        remainingSupply: 4200,
+        remainingSupply: 2222,
         mintedPercentage: 0,
         lastUpdated: Date.now()
       };
@@ -156,9 +156,9 @@ export class NFTSupplyTracker {
     } catch (error) {
       console.error('❌ Error getting supply from token tracker:', error);
       return {
-        totalSupply: 4200,
+        totalSupply: 2222,
         currentSupply: 0,
-        remainingSupply: 4200,
+        remainingSupply: 2222,
         mintedPercentage: 0,
         lastUpdated: Date.now()
       };
@@ -187,9 +187,9 @@ export class NFTSupplyTracker {
     } catch (error) {
       console.error('❌ Error updating supply after mint:', error);
       return {
-        totalSupply: 4200,
+        totalSupply: 2222,
         currentSupply: 0,
-        remainingSupply: 4200,
+        remainingSupply: 2222,
         mintedPercentage: 0,
         lastUpdated: Date.now()
       };
@@ -210,9 +210,9 @@ export class NFTSupplyTracker {
     } catch (error) {
       console.error('❌ Error getting real-time supply:', error);
       return {
-        totalSupply: 4200,
+        totalSupply: 2222,
         currentSupply: 0,
-        remainingSupply: 4200,
+        remainingSupply: 2222,
         mintedPercentage: 0,
         lastUpdated: Date.now()
       };

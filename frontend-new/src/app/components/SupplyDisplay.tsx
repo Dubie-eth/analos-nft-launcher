@@ -12,8 +12,8 @@ interface SupplyDisplayProps {
 export default function SupplyDisplay({ collectionName, className = '' }: SupplyDisplayProps) {
   const [supplyData, setSupplyData] = useState({
     currentSupply: 0,
-    totalSupply: 4200,
-    remainingSupply: 4200,
+    totalSupply: 2222,
+    remainingSupply: 2222,
     mintedPercentage: 0,
     isSoldOut: false,
     lastUpdated: new Date().toLocaleTimeString()
