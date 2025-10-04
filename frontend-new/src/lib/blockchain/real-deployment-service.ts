@@ -71,61 +71,94 @@ export class RealBlockchainDeploymentService {
   ): Promise<TransactionInstruction[]> {
     const instructions: TransactionInstruction[] = [];
     
+    console.log('🚀 [DEBUG] Starting createCollectionInstructions');
+    console.log('🚀 [DEBUG] Wallet address received:', walletAddress);
+    console.log('🚀 [DEBUG] Config received:', JSON.stringify(config, null, 2));
+    
     try {
-      // Validate wallet address first
-      console.log('🔍 Validating wallet address:', walletAddress);
-      const walletPubkey = new PublicKey(walletAddress);
-      console.log('✅ Wallet address is valid');
+      // Step 1: Validate wallet address
+      console.log('🔍 [DEBUG] Step 1: Validating wallet address');
+      console.log('🔍 [DEBUG] Wallet address type:', typeof walletAddress);
+      console.log('🔍 [DEBUG] Wallet address length:', walletAddress?.length);
+      console.log('🔍 [DEBUG] Wallet address trimmed:', walletAddress?.trim());
       
-      // Validate and clean config data to prevent invalid public key errors
+      if (!walletAddress || walletAddress.trim() === '') {
+        throw new Error('Wallet address is empty or null');
+      }
+      
+      const walletPubkey = new PublicKey(walletAddress);
+      console.log('✅ [DEBUG] Wallet address validation successful');
+      
+      // Step 2: Clean config data
+      console.log('🔍 [DEBUG] Step 2: Cleaning config data');
+      console.log('🔍 [DEBUG] Original feeRecipient:', config.feeRecipient);
+      console.log('🔍 [DEBUG] feeRecipient type:', typeof config.feeRecipient);
+      
       const cleanConfig = {
         name: config.name || 'Unknown Collection',
         symbol: config.symbol || 'UNK',
         maxSupply: config.maxSupply || 1000,
         mintPrice: config.mintPrice || 1,
         feePercentage: config.feePercentage || 2.5,
-        // Use wallet address as fee recipient if feeRecipient is empty or invalid
-        feeRecipient: this.validatePublicKey(config.feeRecipient) ? config.feeRecipient : walletAddress,
+        feeRecipient: walletAddress, // Always use wallet address for safety
         externalUrl: config.externalUrl || '',
         deployedAt: new Date().toISOString(),
         type: 'collection_deployment'
       };
       
-      console.log('📝 Creating memo with cleaned data:', cleanConfig);
-      const dataBuffer = Buffer.from(JSON.stringify(cleanConfig), 'utf8');
+      console.log('✅ [DEBUG] Config cleaned successfully');
+      console.log('📝 [DEBUG] Clean config:', JSON.stringify(cleanConfig, null, 2));
       
-      // Only create memo if data is small enough (memo has size limits)
+      // Step 3: Create memo instruction
+      console.log('🔍 [DEBUG] Step 3: Creating memo instruction');
+      const dataBuffer = Buffer.from(JSON.stringify(cleanConfig), 'utf8');
+      console.log('📊 [DEBUG] Data buffer length:', dataBuffer.length);
+      
       if (dataBuffer.length < 1000) {
-        console.log('📦 Creating memo instruction');
+        console.log('📦 [DEBUG] Creating memo instruction with Memo program');
+        
+        // Try to create Memo program public key
+        console.log('🔍 [DEBUG] Creating Memo program public key');
+        const memoProgramId = new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2');
+        console.log('✅ [DEBUG] Memo program public key created successfully');
+        
         const memoInstruction = new TransactionInstruction({
           keys: [
             { pubkey: walletPubkey, isSigner: true, isWritable: false }
           ],
-          programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'), // Memo program
+          programId: memoProgramId,
           data: dataBuffer
         });
         
         instructions.push(memoInstruction);
-        console.log('✅ Memo instruction added');
+        console.log('✅ [DEBUG] Memo instruction added successfully');
+      } else {
+        console.log('⚠️ [DEBUG] Data too large for memo, skipping');
       }
       
-      // Add a simple transfer instruction to make it a meaningful transaction
-      console.log('💰 Creating transfer instruction');
+      // Step 4: Create transfer instruction
+      console.log('🔍 [DEBUG] Step 4: Creating transfer instruction');
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: walletPubkey,
-        toPubkey: walletPubkey, // Transfer to self (no actual funds moved)
-        lamports: 1000, // Small amount to make it a real transaction
+        toPubkey: walletPubkey,
+        lamports: 1000,
       });
       
       instructions.push(transferInstruction);
-      console.log('✅ Transfer instruction added');
+      console.log('✅ [DEBUG] Transfer instruction added successfully');
+      
+      console.log('🎉 [DEBUG] All instructions created successfully');
+      return instructions;
       
     } catch (error) {
-      console.error('❌ Error creating collection instructions:', error);
-      console.error('Config received:', config);
-      console.error('Wallet address:', walletAddress);
+      console.error('❌ [DEBUG] Error in createCollectionInstructions:', error);
+      console.error('❌ [DEBUG] Error message:', error instanceof Error ? error.message : String(error));
+      console.error('❌ [DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      console.error('❌ [DEBUG] Config at error:', JSON.stringify(config, null, 2));
+      console.error('❌ [DEBUG] Wallet address at error:', walletAddress);
       
-      // Try to create a minimal fallback instruction
+      // Try minimal fallback
+      console.log('🔄 [DEBUG] Attempting minimal fallback');
       try {
         const fallbackWalletPubkey = new PublicKey(walletAddress);
         const fallbackInstruction = SystemProgram.transfer({
@@ -134,14 +167,13 @@ export class RealBlockchainDeploymentService {
           lamports: 1000,
         });
         instructions.push(fallbackInstruction);
-        console.log('✅ Fallback instruction created');
+        console.log('✅ [DEBUG] Fallback instruction created');
+        return instructions;
       } catch (fallbackError) {
-        console.error('❌ Fallback instruction also failed:', fallbackError);
-        throw new Error(`Invalid wallet address or configuration: ${error instanceof Error ? error.message : String(error)}`);
+        console.error('❌ [DEBUG] Fallback also failed:', fallbackError);
+        throw new Error(`Deployment failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
-    
-    return instructions;
   }
 
   /**
