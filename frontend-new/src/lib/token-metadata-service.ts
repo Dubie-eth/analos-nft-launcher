@@ -276,7 +276,16 @@ export class TokenMetadataService {
     }
 
     const displayAmount = Number(rawAmount) / Math.pow(10, cached.decimals);
-    return displayAmount.toFixed(cached.decimals);
+    
+    // For display purposes, limit to 2 decimal places for most tokens
+    // but allow more for very small amounts
+    if (displayAmount >= 1) {
+      return displayAmount.toFixed(2);
+    } else if (displayAmount >= 0.01) {
+      return displayAmount.toFixed(4);
+    } else {
+      return displayAmount.toFixed(6);
+    }
   }
 
   /**
