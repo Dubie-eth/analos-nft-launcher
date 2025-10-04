@@ -139,10 +139,12 @@ export default function WhitelistStatus({
     }
 
     // Check wallet eligibility using the phase service
+    // Convert raw balance to formatted balance for comparison
+    const formattedBalance = lolBalanceInfo ? Number(lolBalanceInfo.balance) / Math.pow(10, 9) : 0;
     const eligibility = await whitelistPhaseService.checkWalletEligibility(
       walletAddress, 
       activePhase,
-      lolBalanceInfo?.balance // Pass the actual LOL balance
+      formattedBalance // Pass the formatted LOL balance
     );
 
     // Get remaining mints for this phase

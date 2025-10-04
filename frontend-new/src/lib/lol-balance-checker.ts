@@ -20,6 +20,8 @@ export interface LOLBalanceInfo {
 export class LOLBalanceChecker {
   private connection: Connection;
   private lolTokenMint: string;
+  private cache: Map<string, { data: LOLBalanceInfo; timestamp: number }> = new Map();
+  private readonly CACHE_DURATION = 30000; // 30 seconds cache
 
   constructor() {
     // Use Analos RPC
@@ -33,6 +35,14 @@ export class LOLBalanceChecker {
    * Check user's $LOL token balance
    */
   async checkLOLBalance(walletAddress: string, minimumRequired: number = 1000): Promise<LOLBalanceInfo> {
+    // Check cache first
+    const cacheKey = `${walletAddress}-${minimumRequired}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+      console.log('📋 Using cached LOL balance for:', walletAddress);
+      return cached.data;
+    }
+
     try {
       console.log('🔍 Checking LOL balance for wallet:', walletAddress);
       
@@ -125,7 +135,7 @@ export class LOLBalanceChecker {
           const hasMinimumBalance = balance >= minimumRequiredRaw;
           const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, verifiedDecimals));
 
-          return {
+          const result = {
             balance,
             balanceFormatted,
             hasMinimumBalance,
@@ -134,6 +144,11 @@ export class LOLBalanceChecker {
             tokenMint: this.lolTokenMint,
             tokenAccount: accountInfo.pubkey.toString()
           };
+          
+          // Cache the result
+          this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          
+          return result;
         }
       }
 
@@ -161,7 +176,7 @@ export class LOLBalanceChecker {
           const hasMinimumBalance = balance >= minimumRequiredRaw;
           const shortfall = Math.max(0, (minimumRequiredRaw - balance) / Math.pow(10, verifiedDecimals));
 
-          return {
+          const result = {
             balance,
             balanceFormatted,
             hasMinimumBalance,
@@ -170,6 +185,11 @@ export class LOLBalanceChecker {
             tokenMint: this.lolTokenMint,
             tokenAccount: accountInfo.pubkey.toString()
           };
+          
+          // Cache the result
+          this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+          
+          return result;
         }
       }
 

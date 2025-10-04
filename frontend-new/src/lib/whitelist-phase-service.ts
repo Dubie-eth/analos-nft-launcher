@@ -39,12 +39,12 @@ export class WhitelistPhaseService {
     {
       id: 'phase_2_holders',
       name: 'Holders Phase',
-      enabled: false, // Will be enabled after OGs phase
-      startDate: '2025-10-04T00:00:00Z',
-      endDate: '2025-10-04T12:00:00Z',
+      enabled: true, // Enabled for next phase
+      startDate: '2025-10-11T00:00:00Z',
+      endDate: '2025-10-18T23:59:59Z',
       priceMultiplier: 0.5, // 50% of base price = 2100.345 $LOS
       maxMintsPerWallet: 5, // HARDCODED: Max 5 mints per wallet
-      description: 'All $LOL token holders',
+      description: 'All $LOL token holders (100K+ $LOL)',
       requirements: {
         tokenMint: 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6',
         minBalance: 100000, // 100,000 $LOL tokens
@@ -54,8 +54,8 @@ export class WhitelistPhaseService {
     {
       id: 'phase_3_public',
       name: 'Public Phase',
-      enabled: false, // Will be enabled after Holders phase
-      startDate: '2025-10-04T12:00:00Z',
+      enabled: true, // Enabled for final phase
+      startDate: '2025-10-19T00:00:00Z',
       endDate: '2025-12-31T23:59:59Z',
       priceMultiplier: 1.0, // Full price = 4200.69 $LOS
       maxMintsPerWallet: 10, // HARDCODED: Max 10 mints per wallet

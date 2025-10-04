@@ -520,6 +520,12 @@ function CollectionMintContent() {
                   setWhitelistRemainingMints(remainingMints);
                   setIsWhitelisted(whitelisted);
                   console.log('🎯 Whitelist mint status updated:', { canMint, remainingMints, whitelisted });
+                  
+                  // Auto-adjust quantity if it exceeds whitelist limit
+                  if (whitelisted && remainingMints > 0 && mintQuantity > remainingMints) {
+                    setMintQuantity(remainingMints);
+                    console.log('🔧 Auto-adjusted quantity to whitelist limit:', remainingMints);
+                  }
                 }}
               />
 
@@ -578,9 +584,15 @@ function CollectionMintContent() {
                         {mintQuantity}
                       </span>
                       <button
-                        onClick={() => setMintQuantity(Math.min(10, mintQuantity + 1))}
+                        onClick={() => {
+                          // Respect whitelist mint limits
+                          const maxAllowed = whitelistRemainingMints !== undefined && whitelistRemainingMints > 0 
+                            ? Math.min(10, whitelistRemainingMints) 
+                            : 10;
+                          setMintQuantity(Math.min(maxAllowed, mintQuantity + 1));
+                        }}
                         className="bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-lg transition-colors"
-                        disabled={mintQuantity >= 10}
+                        disabled={mintQuantity >= (whitelistRemainingMints !== undefined && whitelistRemainingMints > 0 ? Math.min(10, whitelistRemainingMints) : 10)}
                       >
                         +
                       </button>
