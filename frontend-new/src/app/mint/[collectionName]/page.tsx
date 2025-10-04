@@ -3,7 +3,7 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import RealMintButton from '../../components/RealMintButton';
@@ -32,6 +32,7 @@ import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { blockchainFirstService } from '@/lib/blockchain-first-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { adminControlService } from '@/lib/admin-control-service';
+import { adminPreviewService } from '@/lib/admin-preview-service';
 import { feeManagementService } from '@/lib/fee-management-service';
 import { mplHybrid404Service } from '@/lib/mpl-hybrid-404-service';
 import { dlmmBondingCurveService } from '@/lib/dlmm-bonding-curve-service';
@@ -46,7 +47,13 @@ type CollectionInfo = BlockchainCollectionData;
 function CollectionMintContent() {
   const { publicKey, connected, signTransaction } = useWallet();
   const params = useParams();
+  const searchParams = useSearchParams();
   const collectionName = decodeURIComponent(params.collectionName as string);
+  
+  // Check for preview mode
+  const isPreviewMode = searchParams.get('preview') === 'true';
+  const adminWallet = searchParams.get('admin') || '';
+  const sessionId = searchParams.get('session') || '';
   
   const [collection, setCollection] = useState<CollectionInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,9 +101,17 @@ function CollectionMintContent() {
 
       // Check admin controls first
       const mintingCheck = await adminControlService.isMintingAllowed(actualCollectionName);
-      if (!mintingCheck.allowed) {
+      
+      // Check if this is preview mode for an admin
+      const isAdminPreview = isPreviewMode && adminWallet && 
+        adminControlService.isAdminWallet(adminWallet) &&
+        adminPreviewService.validatePreviewSession(actualCollectionName, adminWallet, sessionId);
+      
+      if (!mintingCheck.allowed && !isAdminPreview) {
         console.warn(`⚠️ Minting not allowed: ${mintingCheck.reason}`);
         // Still fetch collection data for display, but mark as inactive
+      } else if (isAdminPreview) {
+        console.log(`🔍 Preview mode: Bypassing admin controls for ${actualCollectionName}`);
       }
 
       // Use admin control service as primary source of truth

@@ -49,9 +49,57 @@ export class AdminControlService {
   private readonly CACHE_DURATION = 30000; // 30 seconds
 
   constructor() {
+    this.loadCollectionsFromLocalStorage();
+    this.loadSettingsFromLocalStorage();
     this.initializeDefaultCollections();
     this.initializeDefaultSettings();
     console.log('🎛️ Admin Control Service initialized');
+  }
+
+  private loadCollectionsFromLocalStorage(): void {
+    if (typeof window !== 'undefined') {
+      const storedCollections = localStorage.getItem('admin_collections_config');
+      if (storedCollections) {
+        try {
+          const parsedCollections = JSON.parse(storedCollections);
+          this.collections = new Map(Object.entries(parsedCollections));
+          console.log('📋 Collections loaded from local storage:', this.collections.size);
+        } catch (error) {
+          console.error('❌ Error parsing collections from local storage:', error);
+          localStorage.removeItem('admin_collections_config'); // Clear corrupted data
+        }
+      }
+    }
+  }
+
+  private saveCollectionsToLocalStorage(): void {
+    if (typeof window !== 'undefined') {
+      const collectionsObject = Object.fromEntries(this.collections);
+      localStorage.setItem('admin_collections_config', JSON.stringify(collectionsObject));
+      console.log('💾 Collections saved to local storage:', this.collections.size);
+    }
+  }
+
+  private loadSettingsFromLocalStorage(): void {
+    if (typeof window !== 'undefined') {
+      const storedSettings = localStorage.getItem('admin_settings_config');
+      if (storedSettings) {
+        try {
+          this.adminSettings = { ...this.adminSettings, ...JSON.parse(storedSettings) };
+          console.log('⚙️ Admin settings loaded from local storage');
+        } catch (error) {
+          console.error('❌ Error parsing settings from local storage:', error);
+          localStorage.removeItem('admin_settings_config'); // Clear corrupted data
+        }
+      }
+    }
+  }
+
+  private saveSettingsToLocalStorage(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_settings_config', JSON.stringify(this.adminSettings));
+      console.log('💾 Admin settings saved to local storage');
+    }
   }
 
   /**
@@ -288,6 +336,9 @@ export class AdminControlService {
 
       this.collections.set(collectionName, updatedCollection);
       
+      // Save to localStorage
+      this.saveCollectionsToLocalStorage();
+      
       // Clear cache
       this.clearCollectionCache(collectionName);
       
@@ -451,6 +502,9 @@ export class AdminControlService {
       };
 
       this.collections.set(config.name, collection);
+      
+      // Save to localStorage
+      this.saveCollectionsToLocalStorage();
       
       console.log(`✅ New collection created: ${config.name}`);
       return true;

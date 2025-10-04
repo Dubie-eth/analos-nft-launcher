@@ -14,6 +14,7 @@ import PricingModal from '../components/PricingModal';
 import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import { adminControlService } from '../../lib/admin-control-service';
+import { adminPreviewService } from '../../lib/admin-preview-service';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
@@ -996,7 +997,14 @@ function AdminPageContent() {
                   </button>
                   
                   <button
-                    onClick={() => setShowMintPreview(true)}
+                    onClick={() => {
+                      if (publicKey) {
+                        const previewUrl = adminPreviewService.getPreviewUrl(collectionData.name, publicKey.toString());
+                        window.open(previewUrl, '_blank');
+                      } else {
+                        setShowMintPreview(true);
+                      }
+                    }}
                     disabled={!collectionData.name.trim()}
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-base"
                   >
