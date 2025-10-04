@@ -12,6 +12,34 @@ export interface PaymentToken {
   accepted: boolean;
 }
 
+export interface WhitelistConfig {
+  enabled: boolean;
+  addresses: string[];
+  phases: Array<{
+    name: string;
+    startTime: string;
+    endTime: string;
+    maxMintsPerWallet: number;
+    price: number;
+    addresses: string[];
+    phaseType: 'address' | 'token' | 'mixed';
+    tokenRequirements: Array<{
+      tokenMint: string;
+      minAmount: number;
+      decimals: number;
+      tokenSymbol: string;
+    }>;
+  }>;
+}
+
+export interface DelayedRevealConfig {
+  enabled: boolean;
+  type: 'manual' | 'automatic' | 'completion';
+  revealTime: string;
+  revealAtCompletion: boolean;
+  placeholderImage: string;
+}
+
 export interface CollectionConfig {
   name: string;
   displayName: string;
@@ -26,6 +54,10 @@ export interface CollectionConfig {
   imageUrl: string;
   createdAt: number;
   lastModified: number;
+  // Advanced settings
+  whitelist?: WhitelistConfig;
+  maxMintsPerWallet?: number;
+  delayedReveal?: DelayedRevealConfig;
 }
 
 export interface AdminSettings {

@@ -297,6 +297,20 @@ function AdminPageContent() {
           isActive: safeCollection.isActive !== false,
           mintingEnabled: safeCollection.mintingEnabled !== false,
           isTestMode: safeCollection.isTestMode || false,
+          // Include whitelist and advanced settings
+          whitelist: safeCollection.whitelist || {
+            enabled: false,
+            addresses: [],
+            phases: []
+          },
+          maxMintsPerWallet: safeCollection.maxMintsPerWallet || 10,
+          delayedReveal: safeCollection.delayedReveal || {
+            enabled: false,
+            type: 'manual',
+            revealTime: '',
+            revealAtCompletion: false,
+            placeholderImage: ''
+          },
           lastModified: Date.now()
         };
         
@@ -486,7 +500,40 @@ function AdminPageContent() {
     try {
       // First, ensure the collection is saved to admin control service
       console.log('💾 Ensuring collection is saved before deployment...');
-      await updateCollection(collectionData);
+      
+      // Save collection to admin control service
+      if (collectionData.name) {
+        const existingCollection = await adminControlService.getCollection(collectionData.name);
+        
+        const collectionDataForSave = {
+          name: collectionData.name,
+          displayName: collectionData.name,
+          description: collectionData.description || '',
+          imageUrl: collectionData.image ? URL.createObjectURL(collectionData.image) : '',
+          totalSupply: collectionData.maxSupply || 0,
+          mintPrice: collectionData.price || 0,
+          paymentToken: collectionData.paymentToken || 'LOS',
+          paymentTokens: collectionData.paymentTokens || [],
+          isActive: true, // Enable for deployment
+          mintingEnabled: true, // Enable for deployment
+          isTestMode: false,
+          lastModified: Date.now()
+        };
+        
+        let success = false;
+        
+        if (existingCollection) {
+          success = await adminControlService.updateCollection(collectionData.name, collectionDataForSave);
+        } else {
+          success = await adminControlService.createCollection(collectionDataForSave);
+        }
+        
+        if (!success) {
+          throw new Error('Failed to save collection to admin control service');
+        }
+        
+        console.log('✅ Collection saved successfully before deployment');
+      }
       
       setDeployStatus('Collection saved, now deploying to blockchain...');
       // Convert image to base64 for JSON payload
@@ -615,7 +662,22 @@ function AdminPageContent() {
         feeRecipient: collectionData.feeRecipient || publicKey.toString(),
         symbol: collectionData.symbol,
         externalUrl: collectionData.externalUrl,
-        image: imageBase64
+        image: imageBase64,
+        // Include whitelist information from currentCollection
+        whitelist: currentCollection?.whitelist || {
+          enabled: false,
+          addresses: [],
+          phases: []
+        },
+        maxMintsPerWallet: currentCollection?.maxMintsPerWallet || 10,
+        delayedReveal: currentCollection?.delayedReveal || {
+          enabled: false,
+          type: 'manual',
+          revealTime: '',
+          revealAtCompletion: false,
+          placeholderImage: ''
+        },
+        paymentTokens: currentCollection?.paymentTokens || []
       };
 
       console.log('💾 Saving collection with payload:', payload);
