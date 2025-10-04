@@ -24,6 +24,7 @@ import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
+import { blockchainFirstService } from '@/lib/blockchain-first-service';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -67,10 +68,34 @@ function CollectionMintContent() {
         return;
       }
       
-      console.log('📡 Fetching collection from blockchain (single source of truth):', collectionName);
+      console.log('📡 Fetching collection from blockchain (blockchain-first):', collectionName);
       
-      // Get real blockchain data
-      const blockchainData = await blockchainDataService.getCollectionData(collectionName);
+      // Use blockchain-first service as single source of truth
+      const blockchainState = await blockchainFirstService.getCollectionState(collectionName);
+      
+      let blockchainData;
+      if (blockchainState) {
+        // Convert blockchain state to blockchain data format
+        blockchainData = {
+          name: blockchainState.name,
+          totalSupply: blockchainState.totalSupply,
+          currentSupply: blockchainState.currentSupply,
+          mintPrice: blockchainState.mintPrice,
+          paymentToken: blockchainState.paymentToken,
+          mintAddress: blockchainState.mintAddress,
+          collectionAddress: blockchainState.collectionAddress,
+          isActive: true,
+          holders: blockchainState.holders,
+          metadataUri: blockchainState.metadataUri,
+          isRevealed: blockchainState.isRevealed,
+          activePhase: blockchainState.activePhase
+        };
+        console.log('✅ Blockchain-first data fetched:', blockchainState.name, 'Price:', blockchainState.mintPrice, 'Supply:', blockchainState.currentSupply);
+      } else {
+        // Fallback to legacy service
+        console.log('⚠️ Blockchain-first failed, falling back to legacy service');
+        blockchainData = await blockchainDataService.getCollectionData(collectionName);
+      }
       
       if (blockchainData) {
         // Convert blockchain data to collection format

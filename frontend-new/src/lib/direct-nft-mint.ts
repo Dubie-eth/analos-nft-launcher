@@ -20,6 +20,7 @@ import {
 } from '@solana/spl-token';
 import { tokenMetadataService } from './token-metadata-service';
 import { tokenIdTracker } from './token-id-tracker';
+import { blockchainFirstService } from './blockchain-first-service';
 
 export interface DirectNFTMintData {
   name: string;
@@ -231,6 +232,39 @@ export class DirectNFTMintService {
     } catch (error) {
       console.error('❌ Error creating REAL NFT mint transaction:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Log mint event to blockchain via smart contract
+   */
+  async logMintEvent(
+    collectionName: string,
+    walletAddress: string,
+    tokenIds: string[],
+    mintPrice: number,
+    phase: string,
+    transactionSignature: string
+  ): Promise<void> {
+    try {
+      console.log(`📝 Logging mint events to blockchain for ${tokenIds.length} NFTs`);
+      
+      // Log each minted NFT to the smart contract
+      for (const tokenId of tokenIds) {
+        await blockchainFirstService.logMintEvent(
+          collectionName,
+          walletAddress,
+          tokenId,
+          mintPrice,
+          phase
+        );
+      }
+      
+      console.log(`✅ All mint events logged to blockchain via smart contract`);
+      
+    } catch (error) {
+      console.error('❌ Error logging mint events to blockchain:', error);
+      // Don't throw - logging failure shouldn't break minting
     }
   }
 

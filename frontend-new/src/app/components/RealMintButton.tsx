@@ -111,6 +111,26 @@ export default function RealMintButton({
         console.log('🔗 Transaction:', result.signature);
         console.log('🌐 Explorer:', result.explorerUrl);
         
+        // Log mint events to blockchain via smart contract
+        try {
+          const tokenIds = mintKeypairs.map(keypair => keypair.publicKey.toBase58());
+          const phase = whitelistStatus?.isWhitelisted ? 'whitelist' : 'public';
+          
+          await directMintService.logMintEvent(
+            collectionName,
+            publicKey.toBase58(),
+            tokenIds,
+            totalCost / quantity, // Price per NFT
+            phase,
+            result.signature
+          );
+          
+          console.log('✅ Mint events logged to blockchain via smart contract');
+        } catch (loggingError) {
+          console.warn('⚠️ Failed to log mint events to blockchain:', loggingError);
+          // Don't fail the mint if logging fails
+        }
+        
         onMintSuccess({
           success: true,
           transactionSignature: result.signature,
