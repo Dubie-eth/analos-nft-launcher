@@ -58,7 +58,7 @@ export default function BondingCurveMintButton({
       );
 
       if (result.success) {
-        const successMessage = `Successfully minted ${result.nftsReceived} NFT(s) via bonding curve!`;
+        let successMessage = `Successfully minted ${result.nftsReceived} NFT(s) via bonding curve!`;
         if (result.revealTriggered) {
           successMessage += ' 🎉 Collection revealed!';
         }
