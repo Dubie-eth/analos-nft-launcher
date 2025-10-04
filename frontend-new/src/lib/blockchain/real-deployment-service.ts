@@ -63,8 +63,7 @@ export class RealBlockchainDeploymentService {
   }
 
   /**
-   * Create simple collection deployment instructions
-   * For now, we'll create a basic transfer instruction that will work
+   * Create collection deployment instructions with all configuration data
    */
   private async createCollectionInstructions(
     config: DeploymentConfig,
@@ -73,36 +72,105 @@ export class RealBlockchainDeploymentService {
     const instructions: TransactionInstruction[] = [];
     const walletPubkey = new PublicKey(walletAddress);
     
-    // Create a simple transfer instruction as a proof of concept
-    // This will demonstrate that the transaction works and can be signed
-    const transferInstruction = SystemProgram.transfer({
+    // Generate a unique collection account address
+    const collectionAccount = Keypair.generate();
+    
+    // Calculate space needed for collection data (including whitelist and multi-token config)
+    const collectionData = this.encodeCollectionData(config);
+    const dataSize = collectionData.length;
+    const accountSpace = Math.max(dataSize + 100, 1000); // Add buffer space
+    
+    // 1. Create collection account to store all configuration
+    const createAccountInstruction = SystemProgram.createAccount({
       fromPubkey: walletPubkey,
-      toPubkey: walletPubkey, // Transfer to self (no actual funds moved)
-      lamports: 0, // No actual transfer, just testing transaction structure
+      newAccountPubkey: collectionAccount.publicKey,
+      lamports: await this.connection.getMinimumBalanceForRentExemption(accountSpace),
+      space: accountSpace,
+      programId: SystemProgram.programId, // Using SystemProgram for now, would be custom program in production
     });
     
-    instructions.push(transferInstruction);
+    instructions.push(createAccountInstruction);
+    
+    // 2. Initialize collection data instruction
+    const initializeCollectionInstruction = new TransactionInstruction({
+      keys: [
+        { pubkey: collectionAccount.publicKey, isSigner: false, isWritable: true },
+        { pubkey: walletPubkey, isSigner: true, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      programId: SystemProgram.programId,
+      data: collectionData
+    });
+    
+    instructions.push(initializeCollectionInstruction);
     
     return instructions;
   }
 
   /**
-   * Encode collection data for on-chain storage
+   * Encode collection data for on-chain storage including all configuration
    */
   private encodeCollectionData(config: DeploymentConfig): Buffer {
-    // Create a simple data structure that fits within the account space
+    // Create comprehensive data structure with all collection configuration
     const collectionData = {
+      // Basic collection info
       name: config.name,
       symbol: config.symbol,
       description: config.description,
       image: config.image,
+      externalUrl: config.externalUrl,
+      
+      // Supply and pricing
       maxSupply: config.maxSupply,
       mintPrice: config.mintPrice,
       feePercentage: config.feePercentage,
+      
+      // Creator and deployment info
       creator: config.feeRecipient,
       deployedAt: new Date().toISOString(),
       platform: 'Analos NFT Launcher',
-      version: '1.0.0'
+      version: '1.0.0',
+      
+      // Whitelist configuration
+      whitelist: config.whitelist ? {
+        enabled: config.whitelist.enabled,
+        addresses: config.whitelist.addresses,
+        phases: config.whitelist.phases.map(phase => ({
+          name: phase.name,
+          startTime: phase.startTime,
+          endTime: phase.endTime,
+          maxMintsPerWallet: phase.maxMintsPerWallet,
+          price: phase.price,
+          addresses: phase.addresses,
+          phaseType: phase.phaseType,
+          tokenRequirements: phase.tokenRequirements || []
+        }))
+      } : null,
+      
+      // Multi-token payment configuration
+      paymentTokens: config.paymentTokens ? config.paymentTokens.map(token => ({
+        tokenMint: token.tokenMint,
+        symbol: token.symbol,
+        decimals: token.decimals,
+        priceMultiplier: token.priceMultiplier,
+        minBalanceForWhitelist: token.minBalanceForWhitelist,
+        isEnabled: token.isEnabled
+      })) : [],
+      
+      // Advanced settings
+      maxMintsPerWallet: config.maxMintsPerWallet,
+      delayedReveal: config.delayedReveal ? {
+        enabled: config.delayedReveal.enabled,
+        type: config.delayedReveal.type,
+        revealTime: config.delayedReveal.revealTime,
+        revealAtCompletion: config.delayedReveal.revealAtCompletion,
+        placeholderImage: config.delayedReveal.placeholderImage
+      } : null,
+      
+      // Metadata for recovery
+      onChainData: true,
+      dataVersion: '1.0.0',
+      lastUpdated: new Date().toISOString()
     };
     
     // Encode as JSON and then as Buffer
@@ -119,7 +187,8 @@ export class RealBlockchainDeploymentService {
     metadataAccount: string;
     masterEdition: string;
   } {
-    // Generate deterministic addresses based on current timestamp for uniqueness
+    // In a real implementation, we would extract the actual account addresses from the instructions
+    // For now, we'll generate deterministic addresses based on current timestamp for uniqueness
     const timestamp = Date.now();
     const collectionMint = `So${timestamp.toString().padStart(32, '0')}`;
     const metadataAccount = `So${(timestamp + 1).toString().padStart(32, '0')}`;
