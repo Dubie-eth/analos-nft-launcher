@@ -6,6 +6,9 @@ import { collectionStatsService, CollectionStats } from '@/lib/collection-stats-
 import { isAuthorizedAdmin } from '@/lib/admin-config';
 import { useWallet } from '@solana/wallet-adapter-react';
 import WalletDownloadSection from './WalletDownloadSection';
+import { adminControlService } from '@/lib/admin-control-service';
+import { feeManagementService } from '@/lib/fee-management-service';
+import { blockchainDataService } from '@/lib/blockchain-data-service';
 
 export default function EnhancedLandingPage() {
   const { publicKey, connected } = useWallet();
@@ -15,6 +18,13 @@ export default function EnhancedLandingPage() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentRoadmapItem, setCurrentRoadmapItem] = useState(0);
   const [collectionStats, setCollectionStats] = useState<CollectionStats | null>(null);
+  const [featuredCollection, setFeaturedCollection] = useState({
+    name: 'LosBros Collection',
+    totalSupply: 2222,
+    mintPrice: 4200.69,
+    paymentToken: 'LOS',
+    currentSupply: 0
+  });
 
   useEffect(() => {
     setIsVisible(true);
@@ -47,6 +57,53 @@ export default function EnhancedLandingPage() {
     // Refresh stats every 30 seconds
     const statsInterval = setInterval(fetchStats, 30000);
     return () => clearInterval(statsInterval);
+  }, []);
+
+  // Fetch featured collection data
+  useEffect(() => {
+    const fetchFeaturedCollection = async () => {
+      try {
+        console.log('📊 Fetching featured collection data for landing page...');
+        
+        // Get "The LosBros" collection data from admin control service
+        const collection = await adminControlService.getCollection('The LosBros');
+        if (collection) {
+          const feeBreakdown = feeManagementService.getFeeBreakdown('The LosBros');
+          
+          // Try to get current supply from blockchain
+          let currentSupply = 0;
+          try {
+            const blockchainData = await blockchainDataService.getCollectionData('The LosBros');
+            currentSupply = blockchainData?.currentSupply || 0;
+          } catch (error) {
+            console.warn('Failed to fetch blockchain supply for featured collection:', error);
+          }
+          
+          setFeaturedCollection({
+            name: collection.displayName,
+            totalSupply: collection.totalSupply,
+            mintPrice: feeBreakdown.totalPrice,
+            paymentToken: collection.paymentToken,
+            currentSupply: currentSupply
+          });
+          
+          console.log('✅ Featured collection data updated:', {
+            name: collection.displayName,
+            totalSupply: collection.totalSupply,
+            mintPrice: feeBreakdown.totalPrice,
+            currentSupply
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching featured collection data:', error);
+      }
+    };
+
+    fetchFeaturedCollection();
+    
+    // Refresh every 60 seconds
+    const collectionInterval = setInterval(fetchFeaturedCollection, 60000);
+    return () => clearInterval(collectionInterval);
   }, []);
 
   const features = [
@@ -422,7 +479,7 @@ Block Explorer: https://explorer.analos.io`
           <div className="bg-gradient-to-r from-purple-600/10 to-blue-600/10 border border-purple-400/20 rounded-3xl p-12 backdrop-blur-sm">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-white mb-6">LosBros Collection</h3>
+                <h3 className="text-3xl font-bold text-white mb-6">{featuredCollection.name}</h3>
                 <p className="text-gray-300 mb-8 text-lg leading-relaxed">
                   An exclusive collection featuring 126 unique traits across 6 categories: 
                   Background, Clothes, Eyes, Hats, Mouth, and Skin. Each NFT is carefully 
@@ -439,12 +496,12 @@ Block Explorer: https://explorer.analos.io`
                     <div className="text-gray-400">Trait Categories</div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-                    <div className="text-3xl font-bold text-white mb-2">2,222</div>
+                    <div className="text-3xl font-bold text-white mb-2">{featuredCollection.totalSupply.toLocaleString()}</div>
                     <div className="text-gray-400">Total Supply</div>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-                    <div className="text-3xl font-bold text-white mb-2">4,200.69</div>
-                    <div className="text-gray-400">$LOS Mint Price</div>
+                    <div className="text-3xl font-bold text-white mb-2">{featuredCollection.mintPrice.toFixed(2)}</div>
+                    <div className="text-gray-400">${featuredCollection.paymentToken} Mint Price</div>
                   </div>
                 </div>
 

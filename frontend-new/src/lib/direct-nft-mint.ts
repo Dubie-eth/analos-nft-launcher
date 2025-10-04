@@ -121,6 +121,28 @@ export class DirectNFTMintService {
         } else if (collectionData.paymentToken === 'LOS' || !collectionData.paymentToken) {
           // Native LOS payment - FALLBACK ONLY
           console.log('💰 Processing native LOS payment:', totalCost, 'LOS');
+          console.log('🔍 Payer address:', payer.toBase58());
+          console.log('🔍 Fee recipient:', '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+          console.log('🔍 Amount in lamports:', totalCost * Math.pow(10, 6));
+          
+          // Check if accounts exist before creating transfer
+          try {
+            const payerInfo = await this.connection.getAccountInfo(payer);
+            const recipientInfo = await this.connection.getAccountInfo(new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'));
+            
+            if (!payerInfo) {
+              throw new Error('Payer account not found on blockchain');
+            }
+            if (!recipientInfo) {
+              throw new Error('Recipient account not found on blockchain');
+            }
+            
+            console.log('✅ Both accounts exist on blockchain');
+          } catch (accountError) {
+            console.error('❌ Account verification failed:', accountError);
+            throw accountError;
+          }
+          
           const paymentInstruction = SystemProgram.transfer({
             fromPubkey: payer,
             toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
