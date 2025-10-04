@@ -8,6 +8,7 @@ import BlockchainCollectionService from '@/lib/blockchain-collection-service';
 import BondingCurveAdminPanel from './BondingCurveAdminPanel';
 import MasterBondingCurveDashboard from './MasterBondingCurveDashboard';
 import BondingCurveRevealManager from './BondingCurveRevealManager';
+import SecureEscrowWalletManager from './SecureEscrowWalletManager';
 
 interface AdminControlPanelProps {
   isAuthorized: boolean;
@@ -661,6 +662,9 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
           </div>
         </div>
       )}
+
+      {/* Secure Escrow Wallet Manager */}
+      <SecureEscrowWalletManager />
 
       {/* Master Bonding Curve Dashboard */}
       <MasterBondingCurveDashboard isAuthorized={isAuthorized} />
