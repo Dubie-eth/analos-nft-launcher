@@ -117,25 +117,6 @@ export class BlockchainCollectionService {
       // In a real implementation, this would scan the blockchain for all deployed collections
       const collections: BlockchainCollectionData[] = [
         {
-          id: 'collection_test', // Test collection ID
-          name: 'Test',
-          symbol: 'TEST',
-          description: 'Test collection for development and testing purposes',
-          imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 10.00,
-          totalSupply: 2222,
-          currentSupply: 0,
-          isActive: true, // This will be filtered by admin controls
-          feePercentage: 2.5,
-          externalUrl: 'https://launchonlos.fun/',
-          feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-          deployedAt: new Date().toISOString(),
-          mintAddress: '11111111111111111111111111111114',
-          metadataAddress: '11111111111111111111111111111115',
-          masterEditionAddress: '11111111111111111111111111111116',
-          arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
-        },
-        {
           id: 'collection_the_losbros', // Use consistent ID format
           name: 'The LosBros',
           symbol: '$LBS',

@@ -78,8 +78,8 @@ export class AdminControlService {
     this.collections.set('The LosBros', {
       name: 'The LosBros',
       displayName: 'The LosBros - Featured Collection',
-      isActive: true, // ENABLED for deployment
-      mintingEnabled: true, // ENABLED for deployment
+      isActive: false, // DISABLED until actually deployed to blockchain
+      mintingEnabled: false, // DISABLED until actually deployed to blockchain
       isTestMode: false,
       totalSupply: 2222,
       mintPrice: 4200.69,
