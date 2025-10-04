@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { blockchainDeploymentService, DeploymentConfig } from '@/lib/blockchain-deployment-service';
+import { realBlockchainDeploymentService, RealDeploymentConfig } from '@/lib/real-blockchain-deployment-service';
 import { adminControlService } from '@/lib/admin-control-service';
 
 interface CollectionDeploymentProps {
@@ -35,7 +35,7 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
       setDeploymentStatus('Building deployment configuration...');
 
       // Create deployment configuration
-      const deploymentConfig: DeploymentConfig = {
+      const deploymentConfig: RealDeploymentConfig = {
         collectionName: adminConfig.name,
         symbol: '$LBS', // Default symbol for The LosBros
         description: adminConfig.description,
@@ -48,8 +48,8 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
 
       setDeploymentStatus('Deploying to Analos blockchain...');
 
-      // Deploy to blockchain
-      const result = await blockchainDeploymentService.deployCollection(
+      // Deploy to REAL blockchain
+      const result = await realBlockchainDeploymentService.deployCollectionToBlockchain(
         deploymentConfig,
         publicKey.toString()
       );
@@ -113,6 +113,16 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
                 {deploymentResult.escrowWallet && (
                   <div className="text-gray-300">
                     Escrow Wallet: <code className="text-blue-400">{deploymentResult.escrowWallet}</code>
+                  </div>
+                )}
+                {deploymentResult.transactionIds && deploymentResult.transactionIds.length > 0 && (
+                  <div className="text-gray-300">
+                    <div className="font-medium mb-1">Blockchain Transactions:</div>
+                    {deploymentResult.transactionIds.map((txId, index) => (
+                      <div key={index} className="text-xs">
+                        TX {index + 1}: <code className="text-green-400">{txId}</code>
+                      </div>
+                    ))}
                   </div>
                 )}
               </>

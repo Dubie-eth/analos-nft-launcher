@@ -23,6 +23,7 @@ import StandardLayout from '../../components/StandardLayout';
 import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
+import DeploymentStatus from '../../components/DeploymentStatus';
 import SocialVerification from '../../components/SocialVerification';
 import BondingCurveMintButton from '../../components/BondingCurveMintButton';
 import Hybrid404TradingInterface from '../../components/Hybrid404TradingInterface';
@@ -591,6 +592,11 @@ function CollectionMintContent() {
                     {loading ? '🔄' : '↻'} Update
                   </button>
                 </div>
+              </div>
+
+              {/* Deployment Status */}
+              <div className="mb-6">
+                <DeploymentStatus collectionName={collection.name} />
               </div>
 
               {/* Supply Progress */}
