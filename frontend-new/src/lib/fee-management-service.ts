@@ -72,35 +72,50 @@ export class FeeManagementService {
 
   /**
    * Calculate fee structure for a collection
+   * IMPORTANT: Fees are deducted FROM the set price, not added on top
+   * User pays the full price, but creator receives (price - fees)
    */
   calculateFees(collectionName: string): FeeStructure {
     const config = this.collectionFees.get(collectionName);
     if (!config) {
       console.warn(`⚠️ Fee configuration not found for collection: ${collectionName}, using default`);
       // Return default fee structure instead of throwing error
+      const totalPrice = 10.00; // User pays this amount
+      const totalFeePercentage = 3.5; // 2.5% + 1.0%
+      const platformFee = (totalPrice * 2.5) / (100 + totalFeePercentage);
+      const creatorFee = (totalPrice * 1.0) / (100 + totalFeePercentage);
+      const basePrice = totalPrice - platformFee - creatorFee; // Creator receives this
+      
       return {
-        basePrice: 10.00,
-        platformFee: 0.25,
+        basePrice,
+        platformFee,
         platformFeePercentage: 2.5,
-        creatorFee: 0.10,
+        creatorFee,
         creatorFeePercentage: 1.0,
-        totalPrice: 10.35,
+        totalPrice,
         platformWallet: this.PLATFORM_WALLET,
         creatorWallet: 'DEFAULT_CREATOR_WALLET'
       };
     }
 
-    const platformFee = (config.basePrice * config.platformFeePercentage) / 100;
-    const creatorFee = (config.basePrice * config.creatorFeePercentage) / 100;
-    const totalPrice = config.basePrice + platformFee + creatorFee;
+    // CHANGED: The set price IS the total price user pays
+    const totalPrice = config.basePrice; // This is what the user pays (never exceeds)
+    const totalFeePercentage = config.platformFeePercentage + config.creatorFeePercentage;
+    
+    // Calculate fees as a portion of the total price
+    const platformFee = (totalPrice * config.platformFeePercentage) / (100 + totalFeePercentage);
+    const creatorFee = (totalPrice * config.creatorFeePercentage) / (100 + totalFeePercentage);
+    
+    // Creator receives: total price minus all fees
+    const basePrice = totalPrice - platformFee - creatorFee;
 
     return {
-      basePrice: config.basePrice,
-      platformFee,
+      basePrice, // Amount creator receives (after fees deducted)
+      platformFee, // Amount platform receives
       platformFeePercentage: config.platformFeePercentage,
-      creatorFee,
+      creatorFee, // Amount sent to creator's fee wallet
       creatorFeePercentage: config.creatorFeePercentage,
-      totalPrice,
+      totalPrice, // Amount user pays (this is the set price, never exceeds)
       platformWallet: config.platformWallet,
       creatorWallet: config.creatorWallet
     };

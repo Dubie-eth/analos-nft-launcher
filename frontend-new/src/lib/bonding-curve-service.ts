@@ -1,10 +1,11 @@
 /**
  * Bonding Curve Service - NFT bonding curve system similar to pump.fun
  * Uses $LOS pairing with DLMM-like structure for NFT trading
- * Integrated with comprehensive security measures
+ * Integrated with comprehensive security measures and escrow wallet system
  */
 
 import { bondingCurveSecurity } from './bonding-curve-security';
+import { escrowWalletService } from './escrow-wallet-service';
 
 export interface BondingCurveConfig {
   virtualLOSReserves: number; // Virtual $LOS reserves

@@ -116,13 +116,23 @@ export class BlockchainCollectionService {
           id: 'collection_the_losbros', // Use consistent ID format
           name: 'The LosBros',
           symbol: '$LBS',
-          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
+          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. 🎯 BONDING CURVE MINT: Price increases with each mint! Reveal at bonding cap completion. First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 4200.69, // Updated to 4,200.69 $LOS
+          mintPrice: 4200.69, // Base price - increases with bonding curve
           totalSupply: 2222,
           currentSupply: 15, // Updated with actual minted count
         isActive: true,
-        isRevealLater: true, // This is a reveal later collection
+        isRevealLater: true, // Reveal at bonding cap completion
+        isBondingCurve: true, // 🎯 THIS IS NOW A BONDING CURVE COLLECTION
+        bondingCurveConfig: {
+          virtualLOSReserves: 100000, // Starting virtual reserves
+          virtualNFTSupply: 2222, // Total supply
+          realNFTSupply: 0, // Starts at 0
+          bondingCap: 50000, // Reveal when 50,000 $LOS raised
+          feePercentage: 3.5, // Total fees (platform + creator)
+          creatorFeePercentage: 1.0, // Creator fee
+          platformFeePercentage: 2.5 // Platform fee
+        },
         freeMintPhase: {
           enabled: true,
           maxFreeMints: 100, // First 100 NFTs are free
@@ -131,6 +141,7 @@ export class BlockchainCollectionService {
         },
         feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
+          escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
           mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
@@ -301,7 +312,17 @@ export class BlockchainCollectionService {
           totalSupply: 2222,
           currentSupply: 15, // Updated with actual minted count
         isActive: true,
-        isRevealLater: true, // This is a reveal later collection
+        isRevealLater: true, // Reveal at bonding cap completion
+        isBondingCurve: true, // 🎯 THIS IS NOW A BONDING CURVE COLLECTION
+        bondingCurveConfig: {
+          virtualLOSReserves: 100000, // Starting virtual reserves
+          virtualNFTSupply: 2222, // Total supply
+          realNFTSupply: 0, // Starts at 0
+          bondingCap: 50000, // Reveal when 50,000 $LOS raised
+          feePercentage: 3.5, // Total fees (platform + creator)
+          creatorFeePercentage: 1.0, // Creator fee
+          platformFeePercentage: 2.5 // Platform fee
+        },
         freeMintPhase: {
           enabled: true,
           maxFreeMints: 100, // First 100 NFTs are free
@@ -310,6 +331,7 @@ export class BlockchainCollectionService {
         },
         feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
+          escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
           mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
