@@ -42,6 +42,26 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
     launchType: 'regular' as 'regular' | 'bonding_curve'
   });
 
+  // Debounced input handler
+  const [inputTimeout, setInputTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  const handleNewCollectionChange = (field: string, value: any) => {
+    // Clear existing timeout
+    if (inputTimeout) {
+      clearTimeout(inputTimeout);
+    }
+    
+    // Set new timeout for debounced update
+    const timeout = setTimeout(() => {
+      setNewCollection(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }, 300); // 300ms debounce
+    
+    setInputTimeout(timeout);
+  };
+
   // Bonding curve configuration state
   const [bondingCurveConfig, setBondingCurveConfig] = useState({
     bondingCap: 10000000, // 10M $LOS
@@ -64,6 +84,15 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
       loadAdminData();
     }
   }, [isAuthorized]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (inputTimeout) {
+        clearTimeout(inputTimeout);
+      }
+    };
+  }, [inputTimeout]);
 
   const loadAdminData = async () => {
     setLoading(true);
@@ -642,7 +671,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                         <input
                           type="text"
                           value={newCollection.name}
-                          onChange={(e) => setNewCollection({...newCollection, name: e.target.value})}
+                          onChange={(e) => handleNewCollectionChange('name', e.target.value)}
                           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                           placeholder="new-collection"
                         />
@@ -653,7 +682,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                         <input
                           type="text"
                           value={newCollection.displayName}
-                          onChange={(e) => setNewCollection({...newCollection, displayName: e.target.value})}
+                          onChange={(e) => handleNewCollectionChange('displayName', e.target.value)}
                           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                           placeholder="New Collection"
                         />
@@ -666,7 +695,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                         <input
                           type="number"
                           value={newCollection.totalSupply}
-                          onChange={(e) => setNewCollection({...newCollection, totalSupply: parseInt(e.target.value) || 0})}
+                          onChange={(e) => handleNewCollectionChange('totalSupply', parseInt(e.target.value) || 0)}
                           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                           placeholder="1000"
                         />
@@ -676,7 +705,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                         <label className="block text-sm font-medium text-gray-300 mb-2">Payment Token</label>
                         <select
                           value={newCollection.paymentToken}
-                          onChange={(e) => setNewCollection({...newCollection, paymentToken: e.target.value as 'LOS' | 'LOL'})}
+                          onChange={(e) => handleNewCollectionChange('paymentToken', e.target.value as 'LOS' | 'LOL')}
                           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                         >
                           <option value="LOL">$LOL</option>
@@ -689,7 +718,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                       <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
                       <textarea
                         value={newCollection.description}
-                        onChange={(e) => setNewCollection({...newCollection, description: e.target.value})}
+                        onChange={(e) => handleNewCollectionChange('description', e.target.value)}
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                         rows={3}
                         placeholder="Collection description..."
@@ -745,7 +774,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                         type="number"
                         step="0.01"
                         value={newCollection.mintPrice}
-                        onChange={(e) => setNewCollection({...newCollection, mintPrice: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => handleNewCollectionChange('mintPrice', parseFloat(e.target.value) || 0)}
                         className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                         placeholder="50.00"
                       />

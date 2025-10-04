@@ -133,6 +133,15 @@ function AdminPageContent() {
     }
   }, [collections]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (inputTimeout) {
+        clearTimeout(inputTimeout);
+      }
+    };
+  }, [inputTimeout]);
+
   const fetchCollections = async () => {
     try {
       console.log('📡 Fetching collections from admin control service for admin panel...');
@@ -440,16 +449,29 @@ function AdminPageContent() {
     );
   };
 
+  // Debounced input change handler to prevent excessive updates
+  const [inputTimeout, setInputTimeout] = useState<NodeJS.Timeout | null>(null);
+  
   const handleInputChange = (field: keyof CollectionData, value: string | number | File | null) => {
-    console.log(`📝 Updating ${field} to:`, value, 'Type:', typeof value);
-    setCollectionData(prev => {
-      const newData = {
-        ...prev,
-        [field]: value
-      };
-      console.log('📊 New collection data:', newData);
-      return newData;
-    });
+    // Clear existing timeout
+    if (inputTimeout) {
+      clearTimeout(inputTimeout);
+    }
+    
+    // Set new timeout for debounced update
+    const timeout = setTimeout(() => {
+      console.log(`📝 Updating ${field} to:`, value, 'Type:', typeof value);
+      setCollectionData(prev => {
+        const newData = {
+          ...prev,
+          [field]: value
+        };
+        console.log('📊 New collection data:', newData);
+        return newData;
+      });
+    }, 300); // 300ms debounce
+    
+    setInputTimeout(timeout);
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
