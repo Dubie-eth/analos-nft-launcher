@@ -76,7 +76,18 @@ export class FeeManagementService {
   calculateFees(collectionName: string): FeeStructure {
     const config = this.collectionFees.get(collectionName);
     if (!config) {
-      throw new Error(`Fee configuration not found for collection: ${collectionName}`);
+      console.warn(`⚠️ Fee configuration not found for collection: ${collectionName}, using default`);
+      // Return default fee structure instead of throwing error
+      return {
+        basePrice: 10.00,
+        platformFee: 0.25,
+        platformFeePercentage: 2.5,
+        creatorFee: 0.10,
+        creatorFeePercentage: 1.0,
+        totalPrice: 10.35,
+        platformWallet: this.PLATFORM_WALLET,
+        creatorWallet: 'DEFAULT_CREATOR_WALLET'
+      };
     }
 
     const platformFee = (config.basePrice * config.platformFeePercentage) / 100;

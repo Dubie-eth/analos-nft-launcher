@@ -48,12 +48,12 @@ export class AdminControlService {
    * Initialize default collections
    */
   private initializeDefaultCollections(): void {
-    // Test collection for development
-    this.collections.set('Test', {
-      name: 'Test',
-      displayName: 'Test Collection',
-      isActive: false, // Disabled during development
-      mintingEnabled: false, // Minting disabled
+        // Test collection for development
+        this.collections.set('Test', {
+          name: 'Test',
+          displayName: 'Test Collection',
+          isActive: true, // Enabled for testing
+          mintingEnabled: true, // Minting enabled for testing
       isTestMode: true,
       totalSupply: 100,
       mintPrice: 10.00,
@@ -104,7 +104,7 @@ export class AdminControlService {
    */
   private initializeDefaultSettings(): void {
     this.adminSettings = {
-      globalMintingEnabled: false, // Start with minting disabled
+        globalMintingEnabled: true, // Enable minting for testing
       testModeEnabled: true,
       maintenanceMode: false,
       emergencyStop: false,
