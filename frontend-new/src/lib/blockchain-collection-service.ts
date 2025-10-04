@@ -13,6 +13,7 @@ export interface BlockchainCollectionData {
   currentSupply: number;
   isActive: boolean;
   is404Enabled?: boolean; // NEW: MPL-Hybrid 404 trading enabled
+  isDLMMBondingCurve?: boolean; // NEW: DLMM bonding curve enabled
   feePercentage: number;
   externalUrl: string;
   feeRecipient: string;
@@ -71,7 +72,8 @@ export class BlockchainCollectionService {
         totalSupply: 2222,
         currentSupply: 15, // Updated with actual minted count
         isActive: true,
-        is404Enabled: true, // NEW: This collection uses MPL-Hybrid 404 trading
+        is404Enabled: false, // Disabled in favor of DLMM bonding curve
+        isDLMMBondingCurve: true, // NEW: This collection uses DLMM bonding curve
         isRevealLater: true, // This is a reveal later collection
         feePercentage: 2.5,
         externalUrl: 'https://launchonlos.fun/',

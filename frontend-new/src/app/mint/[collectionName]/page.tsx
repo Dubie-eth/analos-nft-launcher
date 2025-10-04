@@ -26,12 +26,14 @@ import WalletDownloadSection from '../../components/WalletDownloadSection';
 import SocialVerification from '../../components/SocialVerification';
 import BondingCurveMintButton from '../../components/BondingCurveMintButton';
 import Hybrid404TradingInterface from '../../components/Hybrid404TradingInterface';
+import DLMMBondingCurveInterface from '../../components/DLMMBondingCurveInterface';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { blockchainFirstService } from '@/lib/blockchain-first-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { adminControlService } from '@/lib/admin-control-service';
 import { feeManagementService } from '@/lib/fee-management-service';
 import { mplHybrid404Service } from '@/lib/mpl-hybrid-404-service';
+import { dlmmBondingCurveService } from '@/lib/dlmm-bonding-curve-service';
 import { blockchainPriceService } from '@/lib/blockchain-price-service';
 import BondingCurveStatus from '../../components/BondingCurveStatus';
 import BondingCurveGuide from '../../components/BondingCurveGuide';
@@ -751,8 +753,13 @@ function CollectionMintContent() {
                     />
                   )}
 
-                  {/* 404 Trading vs Regular Mint Button */}
-                  {collection.is404Enabled ? (
+                  {/* DLMM Bonding Curve vs 404 Trading vs Regular Mint */}
+                  {dlmmBondingCurveService.getBondingCurveConfig(collection.id) ? (
+                    <DLMMBondingCurveInterface
+                      collectionId={collection.id}
+                      collectionName={collection.name}
+                    />
+                  ) : collection.is404Enabled ? (
                     <Hybrid404TradingInterface
                       collectionId={collection.id}
                       collectionName={collection.name}
