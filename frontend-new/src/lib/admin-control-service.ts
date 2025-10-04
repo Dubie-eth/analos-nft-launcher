@@ -181,6 +181,84 @@ export class AdminControlService {
   }
 
   /**
+   * Toggle global minting (EMERGENCY CONTROL)
+   */
+  async toggleGlobalMinting(enabled: boolean): Promise<boolean> {
+    try {
+      console.log(`🚨 EMERGENCY: Toggling global minting to ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      
+      this.adminSettings.globalMintingEnabled = enabled;
+      this.adminSettings.lastModified = Date.now();
+      
+      // Clear all caches when toggling global settings
+      this.clearCache();
+      
+      console.log(`✅ Global minting ${enabled ? 'ENABLED' : 'DISABLED'} - All collections affected`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error toggling global minting:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Toggle maintenance mode (EMERGENCY CONTROL)
+   */
+  async toggleMaintenanceMode(enabled: boolean): Promise<boolean> {
+    try {
+      console.log(`🚨 MAINTENANCE: Setting maintenance mode to ${enabled ? 'ON' : 'OFF'}`);
+      
+      this.adminSettings.maintenanceMode = enabled;
+      this.adminSettings.lastModified = Date.now();
+      
+      // If enabling maintenance mode, also disable global minting
+      if (enabled) {
+        this.adminSettings.globalMintingEnabled = false;
+        console.log('🔒 Maintenance mode enabled - Global minting automatically disabled');
+      }
+      
+      // Clear all caches when toggling maintenance mode
+      this.clearCache();
+      
+      console.log(`✅ Maintenance mode ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error toggling maintenance mode:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Emergency stop - disable everything
+   */
+  async emergencyStop(): Promise<boolean> {
+    try {
+      console.log('🚨 EMERGENCY STOP ACTIVATED - Disabling all operations');
+      
+      this.adminSettings.globalMintingEnabled = false;
+      this.adminSettings.maintenanceMode = true;
+      this.adminSettings.emergencyStop = true;
+      this.adminSettings.lastModified = Date.now();
+      
+      // Disable all collections
+      for (const [name, collection] of this.collections) {
+        collection.mintingEnabled = false;
+        collection.isActive = false;
+        collection.lastModified = Date.now();
+      }
+      
+      // Clear all caches
+      this.clearCache();
+      
+      console.log('✅ EMERGENCY STOP COMPLETE - All operations disabled');
+      return true;
+    } catch (error) {
+      console.error('❌ Error during emergency stop:', error);
+      return false;
+    }
+  }
+
+  /**
    * Update collection settings
    */
   async updateCollection(collectionName: string, updates: Partial<CollectionConfig>): Promise<boolean> {

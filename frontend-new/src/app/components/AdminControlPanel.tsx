@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { adminControlService, CollectionConfig, AdminSettings } from '@/lib/admin-control-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
+import { whitelistMonitoringService, WhitelistStats, WhitelistPhase } from '@/lib/whitelist-monitoring-service';
 
 interface AdminControlPanelProps {
   isAuthorized: boolean;
@@ -15,6 +16,8 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
   const [loading, setLoading] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string>('');
   const [showCreateCollection, setShowCreateCollection] = useState(false);
+  const [whitelistStats, setWhitelistStats] = useState<WhitelistStats | null>(null);
+  const [activePhases, setActivePhases] = useState<WhitelistPhase[]>([]);
 
   // New collection form state
   const [newCollection, setNewCollection] = useState({
@@ -36,15 +39,19 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      const [collectionsData, settingsData, statusData] = await Promise.all([
+      const [collectionsData, settingsData, statusData, whitelistStatsData, activePhasesData] = await Promise.all([
         adminControlService.getCollections(),
         adminControlService.getAdminSettings(),
-        adminControlService.getSystemStatus()
+        adminControlService.getSystemStatus(),
+        whitelistMonitoringService.getWhitelistStats(),
+        whitelistMonitoringService.getActivePhases()
       ]);
 
       setCollections(collectionsData);
       setAdminSettings(settingsData);
       setSystemStatus(statusData);
+      setWhitelistStats(whitelistStatsData);
+      setActivePhases(activePhasesData);
     } catch (error) {
       console.error('❌ Error loading admin data:', error);
     } finally {
@@ -54,11 +61,45 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
 
   const toggleGlobalMinting = async (enabled: boolean) => {
     try {
+      setLoading(true);
       await adminControlService.toggleGlobalMinting(enabled);
       await loadAdminData();
       console.log(`✅ Global minting ${enabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
       console.error('❌ Error toggling global minting:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleMaintenanceMode = async (enabled: boolean) => {
+    try {
+      setLoading(true);
+      await adminControlService.toggleMaintenanceMode(enabled);
+      await loadAdminData();
+      console.log(`✅ Maintenance mode ${enabled ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      console.error('❌ Error toggling maintenance mode:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const emergencyStop = async () => {
+    if (!confirm('🚨 EMERGENCY STOP: This will disable ALL operations across the platform. Are you sure?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await adminControlService.emergencyStop();
+      await loadAdminData();
+      console.log('🚨 EMERGENCY STOP ACTIVATED');
+      alert('🚨 EMERGENCY STOP ACTIVATED - All operations disabled');
+    } catch (error) {
+      console.error('❌ Error during emergency stop:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -170,13 +211,14 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
             </div>
             <button
               onClick={() => toggleGlobalMinting(!adminSettings?.globalMintingEnabled)}
+              disabled={loading}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 adminSettings?.globalMintingEnabled
                   ? 'bg-green-600 hover:bg-green-700 text-white'
                   : 'bg-red-600 hover:bg-red-700 text-white'
-              }`}
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {adminSettings?.globalMintingEnabled ? 'ENABLED' : 'DISABLED'}
+              {loading ? '...' : (adminSettings?.globalMintingEnabled ? 'ENABLED' : 'DISABLED')}
             </button>
           </div>
 
@@ -186,14 +228,15 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
               <p className="text-gray-400 text-sm">Temporarily disable all operations</p>
             </div>
             <button
-              onClick={() => adminControlService.updateAdminSettings({ maintenanceMode: !adminSettings?.maintenanceMode })}
+              onClick={() => toggleMaintenanceMode(!adminSettings?.maintenanceMode)}
+              disabled={loading}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 adminSettings?.maintenanceMode
                   ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                   : 'bg-gray-600 hover:bg-gray-700 text-white'
-              }`}
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {adminSettings?.maintenanceMode ? 'ON' : 'OFF'}
+              {loading ? '...' : (adminSettings?.maintenanceMode ? 'ON' : 'OFF')}
             </button>
           </div>
 
@@ -203,16 +246,122 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
               <p className="text-gray-400 text-sm">Immediately halt all operations</p>
             </div>
             <button
-              onClick={() => adminControlService.updateAdminSettings({ emergencyStop: !adminSettings?.emergencyStop })}
+              onClick={emergencyStop}
+              disabled={loading}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 adminSettings?.emergencyStop
                   ? 'bg-red-600 hover:bg-red-700 text-white'
                   : 'bg-gray-600 hover:bg-gray-700 text-white'
-              }`}
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {adminSettings?.emergencyStop ? 'ACTIVE' : 'INACTIVE'}
+              {loading ? '...' : (adminSettings?.emergencyStop ? 'ACTIVE' : 'EMERGENCY STOP')}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Whitelist Phase Monitoring */}
+      <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+        <h3 className="text-white font-bold text-lg mb-4">📊 Whitelist Phase Monitoring</h3>
+        
+        {whitelistStats && (
+          <div className="mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-400">{whitelistStats.totalPhases}</div>
+                <div className="text-sm text-gray-400">Total Phases</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-400">{whitelistStats.activePhases}</div>
+                <div className="text-sm text-gray-400">Active</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-400">{whitelistStats.completedPhases}</div>
+                <div className="text-sm text-gray-400">Completed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-400">{whitelistStats.upcomingPhases}</div>
+                <div className="text-sm text-gray-400">Upcoming</div>
+              </div>
+            </div>
+            
+            <div className="bg-gray-800/50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white font-medium">Overall Progress</span>
+                <span className="text-green-400 font-bold">{whitelistStats.totalMinted}/{whitelistStats.totalMaxMints}</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${whitelistStats.overallProgress}%` }}
+                ></div>
+              </div>
+              <div className="text-right text-sm text-gray-400 mt-1">
+                {whitelistStats.overallProgress.toFixed(1)}%
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Active Phases */}
+        <div className="space-y-4">
+          <h4 className="text-white font-medium text-lg">Active Phases</h4>
+          {activePhases.length > 0 ? (
+            activePhases.map((phase) => (
+              <div key={phase.id} className="bg-gray-800/50 border border-gray-600 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h5 className="text-white font-medium">{phase.name}</h5>
+                    <p className="text-gray-400 text-sm">{phase.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      phase.priceMultiplier === 0 ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
+                    }`}>
+                      {phase.priceMultiplier === 0 ? 'FREE' : `${phase.priceMultiplier}x`}
+                    </span>
+                    <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-600 text-white">
+                      {phase.minimumLolBalance.toLocaleString()}+ $LOL
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-400">{phase.mintedCount}</div>
+                    <div className="text-xs text-gray-400">Minted</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-400">{phase.maxMints}</div>
+                    <div className="text-xs text-gray-400">Max Mints</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-yellow-400">{phase.remainingMints}</div>
+                    <div className="text-xs text-gray-400">Remaining</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-400">{phase.eligibleWallets}</div>
+                    <div className="text-xs text-gray-400">Eligible</div>
+                  </div>
+                </div>
+                
+                <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
+                  <div 
+                    className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(phase.mintedCount / phase.maxMints) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>Progress: {((phase.mintedCount / phase.maxMints) * 100).toFixed(1)}%</span>
+                  <span>{phase.maxMintsPerWallet} max per wallet</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <p>No active whitelist phases</p>
+            </div>
+          )}
         </div>
       </div>
 
