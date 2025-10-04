@@ -247,7 +247,9 @@ export default function DLMMBondingCurveInterface({
       {bondingCurve.tokenHolderRewards.enabled && (
         <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-6">
           <h4 className="text-green-400 font-medium mb-3">🎁 Token Holder Rewards</h4>
-          <div className="space-y-2 text-sm text-green-300">
+          
+          {/* Basic Reward Info */}
+          <div className="space-y-2 text-sm text-green-300 mb-4">
             <div className="flex justify-between">
               <span>Reward Percentage:</span>
               <span className="text-white">{bondingCurve.tokenHolderRewards.rewardPercentage}%</span>
@@ -260,10 +262,38 @@ export default function DLMMBondingCurveInterface({
               <span>Reward Token:</span>
               <span className="text-white">${bondingCurve.tokenHolderRewards.rewardToken}</span>
             </div>
-            <p className="text-xs text-green-400 mt-2">
-              Hold {bondingCurve.tokenHolderRewards.minimumHoldings.toLocaleString()} $LOL to qualify for {bondingCurve.tokenHolderRewards.rewardPercentage}% of your mint funds back!
-            </p>
           </div>
+
+          {/* Reward Tiers */}
+          <div className="space-y-2 text-xs">
+            <h5 className="text-green-400 font-medium">Reward Tiers:</h5>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-gray-800/50 rounded p-2">
+                <div className="text-purple-400 font-medium">🐋 Whale</div>
+                <div>≥{bondingCurve.tokenHolderRewards.rewardTiers.whale.minHoldings.toLocaleString()} $LOL</div>
+                <div>{bondingCurve.tokenHolderRewards.rewardTiers.whale.rewardMultiplier}x multiplier</div>
+              </div>
+              <div className="bg-gray-800/50 rounded p-2">
+                <div className="text-blue-400 font-medium">💎 Diamond</div>
+                <div>≥{bondingCurve.tokenHolderRewards.rewardTiers.diamond.minHoldings.toLocaleString()} $LOL</div>
+                <div>{bondingCurve.tokenHolderRewards.rewardTiers.diamond.rewardMultiplier}x multiplier</div>
+              </div>
+              <div className="bg-gray-800/50 rounded p-2">
+                <div className="text-yellow-400 font-medium">🥇 Gold</div>
+                <div>≥{bondingCurve.tokenHolderRewards.rewardTiers.gold.minHoldings.toLocaleString()} $LOL</div>
+                <div>{bondingCurve.tokenHolderRewards.rewardTiers.gold.rewardMultiplier}x multiplier</div>
+              </div>
+              <div className="bg-gray-800/50 rounded p-2">
+                <div className="text-gray-400 font-medium">🥈 Silver</div>
+                <div>≥{bondingCurve.tokenHolderRewards.rewardTiers.silver.minHoldings.toLocaleString()} $LOL</div>
+                <div>{bondingCurve.tokenHolderRewards.rewardTiers.silver.rewardMultiplier}x multiplier</div>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs text-green-400 mt-3">
+            Hold tokens to qualify for tiered rewards! Higher tiers get better multipliers on your mint fund returns.
+          </p>
         </div>
       )}
 

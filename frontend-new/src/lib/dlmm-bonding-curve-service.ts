@@ -43,6 +43,22 @@ export interface BondingCurveConfig {
     rewardPercentage: number; // Percentage of mint funds to airdrop back
     minimumHoldings: number; // Minimum token holdings to qualify
     rewardToken: 'LOS' | 'LOL';
+    
+    // Enhanced reward tiers
+    rewardTiers: {
+      whale: { minHoldings: number; rewardMultiplier: number; maxReward: number; };
+      diamond: { minHoldings: number; rewardMultiplier: number; maxReward: number; };
+      gold: { minHoldings: number; rewardMultiplier: number; maxReward: number; };
+      silver: { minHoldings: number; rewardMultiplier: number; maxReward: number; };
+    };
+    
+    // Distribution settings
+    distributionSettings: {
+      autoDistribute: boolean; // Auto-distribute rewards after bonding completion
+      distributionDelay: number; // Delay in hours before distribution
+      maxRewardPerWallet: number; // Maximum reward per wallet (prevents gaming)
+      vestingPeriod: number; // Vesting period in days (0 = immediate)
+    };
   };
   
   // Status
@@ -128,7 +144,39 @@ export class DLMMBondingCurveService {
         enabled: true,
         rewardPercentage: 15, // 15% of mint funds airdropped back
         minimumHoldings: 100000, // Minimum 100K $LOL to qualify
-        rewardToken: 'LOS'
+        rewardToken: 'LOS',
+        
+        // Enhanced reward tiers
+        rewardTiers: {
+          whale: { 
+            minHoldings: 10000000, // 10M $LOL
+            rewardMultiplier: 2.0, // 2x base reward
+            maxReward: 500000 // Max 500K $LOS reward
+          },
+          diamond: { 
+            minHoldings: 5000000, // 5M $LOL
+            rewardMultiplier: 1.5, // 1.5x base reward
+            maxReward: 250000 // Max 250K $LOS reward
+          },
+          gold: { 
+            minHoldings: 1000000, // 1M $LOL
+            rewardMultiplier: 1.25, // 1.25x base reward
+            maxReward: 100000 // Max 100K $LOS reward
+          },
+          silver: { 
+            minHoldings: 100000, // 100K $LOL
+            rewardMultiplier: 1.0, // 1x base reward
+            maxReward: 50000 // Max 50K $LOS reward
+          }
+        },
+        
+        // Distribution settings
+        distributionSettings: {
+          autoDistribute: true, // Auto-distribute rewards after bonding completion
+          distributionDelay: 24, // 24 hours delay before distribution
+          maxRewardPerWallet: 1000000, // Max 1M $LOS per wallet (prevents gaming)
+          vestingPeriod: 0 // Immediate distribution (no vesting)
+        }
       },
       
       // Status
@@ -604,6 +652,180 @@ export class DLMMBondingCurveService {
       totalRaised: bondingCurve.currentLOSRaised,
       totalSold: bondingCurve.currentNFTSold,
       remainingToCap: bondingCurve.bondingCap - bondingCurve.currentLOSRaised
+    };
+  }
+
+  /**
+   * Calculate reward tier for a wallet based on token holdings
+   */
+  getRewardTier(collectionId: string, walletAddress: string, tokenBalance: number): {
+    tier: 'whale' | 'diamond' | 'gold' | 'silver' | 'none';
+    multiplier: number;
+    maxReward: number;
+    eligible: boolean;
+  } {
+    const bondingCurve = this.bondingCurves.get(collectionId);
+    if (!bondingCurve || !bondingCurve.tokenHolderRewards.enabled) {
+      return { tier: 'none', multiplier: 0, maxReward: 0, eligible: false };
+    }
+
+    const tiers = bondingCurve.tokenHolderRewards.rewardTiers;
+    
+    // Check tiers in descending order (whale first)
+    if (tokenBalance >= tiers.whale.minHoldings) {
+      return {
+        tier: 'whale',
+        multiplier: tiers.whale.rewardMultiplier,
+        maxReward: tiers.whale.maxReward,
+        eligible: true
+      };
+    } else if (tokenBalance >= tiers.diamond.minHoldings) {
+      return {
+        tier: 'diamond',
+        multiplier: tiers.diamond.rewardMultiplier,
+        maxReward: tiers.diamond.maxReward,
+        eligible: true
+      };
+    } else if (tokenBalance >= tiers.gold.minHoldings) {
+      return {
+        tier: 'gold',
+        multiplier: tiers.gold.rewardMultiplier,
+        maxReward: tiers.gold.maxReward,
+        eligible: true
+      };
+    } else if (tokenBalance >= tiers.silver.minHoldings) {
+      return {
+        tier: 'silver',
+        multiplier: tiers.silver.rewardMultiplier,
+        maxReward: tiers.silver.maxReward,
+        eligible: true
+      };
+    }
+
+    return { tier: 'none', multiplier: 0, maxReward: 0, eligible: false };
+  }
+
+  /**
+   * Calculate detailed reward for a wallet
+   */
+  calculateDetailedReward(
+    collectionId: string,
+    walletAddress: string,
+    tokenBalance: number,
+    mintAmount: number,
+    totalCost: number
+  ): {
+    eligible: boolean;
+    tier: string;
+    baseReward: number;
+    tierMultiplier: number;
+    finalReward: number;
+    maxReward: number;
+    cappedReward: number;
+    rewardToken: string;
+  } {
+    const bondingCurve = this.bondingCurves.get(collectionId);
+    if (!bondingCurve || !bondingCurve.tokenHolderRewards.enabled) {
+      return {
+        eligible: false,
+        tier: 'none',
+        baseReward: 0,
+        tierMultiplier: 0,
+        finalReward: 0,
+        maxReward: 0,
+        cappedReward: 0,
+        rewardToken: 'LOS'
+      };
+    }
+
+    const tierInfo = this.getRewardTier(collectionId, walletAddress, tokenBalance);
+    if (!tierInfo.eligible) {
+      return {
+        eligible: false,
+        tier: 'none',
+        baseReward: 0,
+        tierMultiplier: 0,
+        finalReward: 0,
+        maxReward: 0,
+        cappedReward: 0,
+        rewardToken: bondingCurve.tokenHolderRewards.rewardToken
+      };
+    }
+
+    // Calculate base reward (percentage of mint cost)
+    const baseReward = (totalCost * bondingCurve.tokenHolderRewards.rewardPercentage) / 100;
+    
+    // Apply tier multiplier
+    const finalReward = baseReward * tierInfo.multiplier;
+    
+    // Apply caps
+    const cappedReward = Math.min(
+      finalReward,
+      tierInfo.maxReward,
+      bondingCurve.tokenHolderRewards.distributionSettings.maxRewardPerWallet
+    );
+
+    return {
+      eligible: true,
+      tier: tierInfo.tier,
+      baseReward,
+      tierMultiplier: tierInfo.multiplier,
+      finalReward,
+      maxReward: tierInfo.maxReward,
+      cappedReward,
+      rewardToken: bondingCurve.tokenHolderRewards.rewardToken
+    };
+  }
+
+  /**
+   * Get reward distribution statistics
+   */
+  getRewardDistributionStats(collectionId: string): {
+    totalRewardPool: number;
+    estimatedParticipants: number;
+    averageReward: number;
+    tierBreakdown: {
+      whale: { count: number; totalReward: number; };
+      diamond: { count: number; totalReward: number; };
+      gold: { count: number; totalReward: number; };
+      silver: { count: number; totalReward: number; };
+    };
+  } {
+    const bondingCurve = this.bondingCurves.get(collectionId);
+    if (!bondingCurve || !bondingCurve.tokenHolderRewards.enabled) {
+      return {
+        totalRewardPool: 0,
+        estimatedParticipants: 0,
+        averageReward: 0,
+        tierBreakdown: {
+          whale: { count: 0, totalReward: 0 },
+          diamond: { count: 0, totalReward: 0 },
+          gold: { count: 0, totalReward: 0 },
+          silver: { count: 0, totalReward: 0 }
+        }
+      };
+    }
+
+    // Calculate total reward pool (15% of total raised)
+    const totalRewardPool = (bondingCurve.currentLOSRaised * bondingCurve.tokenHolderRewards.rewardPercentage) / 100;
+    
+    // Estimate participants (mock data - in real implementation, would query blockchain)
+    const estimatedParticipants = Math.floor(bondingCurve.currentNFTSold * 0.3); // Assume 30% are token holders
+    const averageReward = estimatedParticipants > 0 ? totalRewardPool / estimatedParticipants : 0;
+
+    // Mock tier breakdown (in real implementation, would analyze actual holders)
+    const tierBreakdown = {
+      whale: { count: Math.floor(estimatedParticipants * 0.05), totalReward: totalRewardPool * 0.3 },
+      diamond: { count: Math.floor(estimatedParticipants * 0.15), totalReward: totalRewardPool * 0.4 },
+      gold: { count: Math.floor(estimatedParticipants * 0.35), totalReward: totalRewardPool * 0.25 },
+      silver: { count: Math.floor(estimatedParticipants * 0.45), totalReward: totalRewardPool * 0.05 }
+    };
+
+    return {
+      totalRewardPool,
+      estimatedParticipants,
+      averageReward,
+      tierBreakdown
     };
   }
 }
