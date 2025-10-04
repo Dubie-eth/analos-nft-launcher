@@ -2221,6 +2221,86 @@ process.on('uncaughtException', (error) => {
 // NFT Generator API routes
 app.use('/api/nft-generator', nftGeneratorRoutes);
 
+// Collections update endpoint for admin panel
+app.post('/api/collections/update', async (req, res) => {
+  try {
+    console.log('📝 Collections update request received:', req.body);
+    
+    const {
+      name,
+      description,
+      price,
+      maxSupply,
+      feePercentage,
+      minimumLolBalance,
+      symbol,
+      paymentToken
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !description || price === undefined || !maxSupply) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: name, description, price, maxSupply'
+      });
+    }
+
+    // Update collection in memory
+    const collectionId = `collection_${name.toLowerCase().replace(/\s+/g, '_')}`;
+    const updatedCollection = {
+      id: collectionId,
+      name: name,
+      symbol: symbol || '$LOS',
+      description: description,
+      imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm', // Default image
+      price: parseFloat(price),
+      maxSupply: parseInt(maxSupply),
+      feePercentage: parseFloat(feePercentage) || 2.5,
+      minimumLolBalance: parseFloat(minimumLolBalance) || 1000000,
+      paymentToken: paymentToken || 'LOS',
+      createdAt: Date.now(),
+      lastModified: Date.now()
+    };
+
+    collections.set(collectionId, updatedCollection);
+    
+    console.log('✅ Collection updated:', collectionId, updatedCollection);
+    
+    res.json({
+      success: true,
+      message: 'Collection updated successfully',
+      collection: updatedCollection
+    });
+    
+  } catch (error) {
+    console.error('❌ Error updating collection:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update collection'
+    });
+  }
+});
+
+// Collections stats endpoint
+app.get('/api/collections/stats', (req, res) => {
+  try {
+    const stats = {
+      collectionsLaunched: collections.size,
+      totalNFTsMinted: 0, // This would be calculated from actual blockchain data
+      platformUptime: '99.9%',
+      losBurned: 0 // This would be tracked from actual burn transactions
+    };
+    
+    res.json(stats);
+  } catch (error) {
+    console.error('❌ Error fetching collection stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch collection stats'
+    });
+  }
+});
+
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
