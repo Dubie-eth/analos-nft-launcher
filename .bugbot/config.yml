@@ -1,0 +1,87 @@
+# Bugbot configuration for NFT Launcher Platform
+# Optimized for blockchain, security, and NFT development
+
+# Custom rules for NFT/blockchain development
+rules:
+  # High-priority blockchain checks
+  - name: "Blockchain Integration Review"
+    pattern: "(?i)(blockchain|rpc|solana|analos|connection|web3)"
+    severity: "high"
+    message: "🔗 Review blockchain integration changes carefully - check RPC handling, connection errors, and transaction logic"
+    
+  # Critical security checks
+  - name: "Security Review Required"
+    pattern: "(?i)(wallet|private.*key|secret|token.*mint|payment|fee|transaction)"
+    severity: "critical"
+    message: "🚨 SECURITY REVIEW REQUIRED: Check for input validation, error handling, and no sensitive data exposure"
+    
+  # Smart contract integration
+  - name: "Smart Contract Integration"
+    pattern: "(?i)(contract|mint|nft|metadata|collection|token.*id)"
+    severity: "high"
+    message: "📋 Review smart contract integration - verify metadata handling, token IDs, and collection logic"
+    
+  # Payment processing
+  - name: "Payment Logic Review"
+    pattern: "(?i)(price|cost|payment|fee|decimal|amount|balance)"
+    severity: "high"
+    message: "💰 Review payment logic - verify decimal handling, fee calculations, and token amounts"
+
+# File-specific review guidelines
+files:
+  "src/lib/*-service.ts":
+    - "🔍 Check for proper error handling and fallbacks"
+    - "🔒 Verify input validation and sanitization"
+    - "📊 Ensure proper logging without sensitive data"
+    - "⚡ Check for performance optimizations"
+    
+  "src/app/mint/**":
+    - "🎯 Test minting functionality thoroughly"
+    - "💳 Verify payment processing accuracy"
+    - "🔗 Check wallet integration security"
+    - "📱 Ensure mobile compatibility"
+    
+  "src/lib/blockchain-*.ts":
+    - "🌐 Verify RPC connection handling"
+    - "🔄 Check for proper retry logic"
+    - "📈 Validate performance and caching"
+    - "🛡️ Ensure fail-safe mechanisms"
+
+# Exclude files from review
+exclude:
+  - "*.md"
+  - "*.json"
+  - "node_modules/**"
+  - ".next/**"
+  - "*.log"
+  - "coverage/**"
+  - "dist/**"
+
+# Custom prompts for different file types
+prompts:
+  blockchain_files: |
+    When reviewing blockchain integration files, focus on:
+    1. Proper error handling for network issues
+    2. Correct decimal handling for token amounts
+    3. Secure wallet address validation
+    4. Proper transaction retry logic
+    5. No hardcoded private keys or sensitive data
+    6. Efficient RPC usage and caching
+    
+  service_files: |
+    When reviewing service files, check for:
+    1. Proper separation of concerns
+    2. Consistent error handling patterns
+    3. Input validation and sanitization
+    4. Proper logging and debugging info
+    5. Performance considerations
+    6. Type safety and null checks
+    
+  frontend_files: |
+    When reviewing frontend files, ensure:
+    1. Proper state management
+    2. Error boundary implementations
+    3. Loading states and user feedback
+    4. Mobile responsiveness
+    5. Accessibility considerations
+    6. Performance optimizations
