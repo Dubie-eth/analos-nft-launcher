@@ -22,6 +22,7 @@ import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
 import TestEnvironmentInterface from '../components/TestEnvironmentInterface';
 import SecurityMonitoringDashboard from '../components/SecurityMonitoringDashboard';
+import WalletSecurityGuard from '../components/WalletSecurityGuard';
 import AdminControlPanel from '../components/AdminControlPanel';
 import AdminStatusIndicator from '../components/AdminStatusIndicator';
 import GeneratorWhitelistManager from '../components/GeneratorWhitelistManager';
@@ -753,7 +754,15 @@ function AdminPageContent() {
   return (
     <>
       <AdminStatusIndicator />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <WalletSecurityGuard 
+        requiredSecurityLevel="high" 
+        requiredBalance={1000000} // 0.001 SOL minimum
+        allowUnauthorized={true}
+        onSecurityViolation={(violation) => {
+          console.warn('Security violation detected:', violation);
+        }}
+      >
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
@@ -1855,6 +1864,7 @@ function AdminPageContent() {
         </div>
       )}
     </div>
+      </WalletSecurityGuard>
     </>
   );
 }

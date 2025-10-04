@@ -24,6 +24,7 @@ import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
 import DeploymentStatus from '../../components/DeploymentStatus';
+import WalletSecurityGuard from '../../components/WalletSecurityGuard';
 import SocialVerification from '../../components/SocialVerification';
 import BondingCurveMintButton from '../../components/BondingCurveMintButton';
 import Hybrid404TradingInterface from '../../components/Hybrid404TradingInterface';
