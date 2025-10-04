@@ -32,8 +32,10 @@ export class LayerProcessor {
           console.log('🖼️ Processing as image file');
           const trait = await this.processImageFile(file);
           if (trait) {
-            const layerName = this.extractLayerName(file.name);
-            console.log(`📂 Extracted layer name: "${layerName}" from file: "${file.name}"`);
+            // Use webkitRelativePath if available for folder uploads
+            const filePath = (file as any).webkitRelativePath || file.name;
+            const layerName = this.extractLayerName(filePath);
+            console.log(`📂 Extracted layer name: "${layerName}" from file: "${filePath}"`);
             if (layerMap.has(layerName)) {
               layerMap.get(layerName)!.push(trait);
             } else {
@@ -138,7 +140,9 @@ export class LayerProcessor {
       return null;
     }
 
-    const traitName = this.extractTraitName(file.name);
+    // Use webkitRelativePath if available for proper path handling
+    const filePath = (file as any).webkitRelativePath || file.name;
+    const traitName = this.extractTraitName(filePath);
     const imageUrl = URL.createObjectURL(file);
 
     return {
@@ -146,7 +150,7 @@ export class LayerProcessor {
       name: traitName,
       image: imageUrl,
       rarity: 100, // Default rarity
-      layer: this.extractLayerName(file.name),
+      layer: this.extractLayerName(filePath),
       file: file
     };
   }
@@ -155,19 +159,19 @@ export class LayerProcessor {
    * Extract layer name from file path/name
    * For folder uploads, this handles the webkitRelativePath properly
    */
-  private extractLayerName(fileName: string): string {
-    console.log(`🔍 Extracting layer name from: "${fileName}"`);
+  private extractLayerName(filePath: string): string {
+    console.log(`🔍 Extracting layer name from: "${filePath}"`);
     
     // For folder uploads with webkitRelativePath, extract the folder name
     // Example: "LosBros/Background/solid_blue.png" -> "Background"
-    const pathParts = fileName.split('/');
+    const pathParts = filePath.split('/');
     console.log(`📂 Path parts:`, pathParts);
     
-    // If there's a folder structure, use the folder name as the layer
-    if (pathParts.length > 1) {
-      const folderName = pathParts[pathParts.length - 2]; // Get the folder name (second to last part)
+    // If there's a folder structure (LosBros/Skin/skin_dark.png), use the folder name as the layer
+    if (pathParts.length >= 2) {
+      const folderName = pathParts[1]; // Get the folder name (index 1: "Skin", "Mouth", "Hats", etc.)
       console.log(`📁 Folder name extracted: "${folderName}"`);
-      if (folderName && folderName !== '.') {
+      if (folderName && folderName !== '.' && folderName !== 'LosBros') {
         const formatted = this.formatLayerName(folderName);
         console.log(`✅ Formatted layer name: "${formatted}"`);
         return formatted;
@@ -175,7 +179,7 @@ export class LayerProcessor {
     }
     
     // Fallback to filename-based extraction
-    const name = fileName.toLowerCase();
+    const name = filePath.toLowerCase();
     
     // Common layer patterns
     if (name.includes('background') || name.includes('bg')) return 'Background';
@@ -187,9 +191,10 @@ export class LayerProcessor {
     if (name.includes('accessory')) return 'Accessory';
     if (name.includes('weapon')) return 'Weapon';
     if (name.includes('special') || name.includes('effect')) return 'Special';
+    if (name.includes('1of1')) return '1of1s';
     
     // Default to first part of filename
-    const parts = fileName.split(/[-_]/);
+    const parts = filePath.split(/[-_]/);
     const result = parts[0] ? this.formatLayerName(parts[0]) : 'Default Layer';
     console.log(`🔄 Fallback layer name: "${result}"`);
     return result;
@@ -209,13 +214,15 @@ export class LayerProcessor {
   /**
    * Extract trait name from file name
    */
-  private extractTraitName(fileName: string): string {
+  private extractTraitName(filePath: string): string {
+    // Get just the filename from the full path
+    const fileName = filePath.split('/').pop() || filePath;
     const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
     const parts = nameWithoutExt.split(/[-_]/);
     
     // Remove layer name if it's the first part
-    const layerName = this.extractLayerName(fileName).toLowerCase();
-    if (parts[0].toLowerCase() === layerName) {
+    const layerName = this.extractLayerName(filePath).toLowerCase();
+    if (parts[0] && parts[0].toLowerCase() === layerName) {
       parts.shift();
     }
     
