@@ -169,35 +169,26 @@ export default function WalletSecurityGuard({
     } finally {
       setIsChecking(false);
     }
-  }, [connected, publicKey, requiredBalance, requiredSecurityLevel, onSecurityViolation]);
+  }, [connected, publicKey?.toString(), requiredBalance, requiredSecurityLevel, onSecurityViolation]);
 
-  // Check security on wallet connection
+  // Check security on wallet connection - only when wallet actually connects/disconnects
   useEffect(() => {
     if (connected && publicKey) {
-      checkWalletSecurity();
-    } else {
-      setSecurityStatus(null);
-    }
-  }, [connected, publicKey, checkWalletSecurity]);
-
-  // Periodic security checks
-  useEffect(() => {
-    if (!connected || !publicKey) return;
-
-    const interval = setInterval(() => {
-      // Only re-check if enough time has passed
+      // Only check if we haven't checked recently or if this is a new wallet
       const now = new Date();
       const timeSinceLastCheck = lastCheckTime 
         ? now.getTime() - lastCheckTime.getTime()
         : Infinity;
-
-      if (timeSinceLastCheck > SECURITY_CONFIG.WALLET_SECURITY.VALIDATION_TIMEOUT) {
+      
+      if (timeSinceLastCheck > 30000) { // Only check if 30+ seconds have passed
         checkWalletSecurity();
       }
-    }, 60000); // Check every minute
+    } else {
+      setSecurityStatus(null);
+    }
+  }, [connected, publicKey?.toString()]); // Only depend on wallet address string, not the object
 
-    return () => clearInterval(interval);
-  }, [connected, publicKey, checkWalletSecurity, lastCheckTime]);
+  // No periodic security checks - only check when wallet connects or when explicitly requested
 
   // Show loading state
   if (isChecking) {
