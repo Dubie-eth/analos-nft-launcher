@@ -1,11 +1,11 @@
 'use client';
 
-import ProfessionalNFTGenerator from '../components/ProfessionalNFTGenerator';
+import NFTGenerator from '../components/NFTGenerator';
 
 export default function GeneratorPage() {
   return (
     <div className="min-h-screen">
-      <ProfessionalNFTGenerator />
+      <NFTGenerator />
     </div>
   );
 }

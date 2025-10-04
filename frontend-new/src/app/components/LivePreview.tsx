@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Eye, RefreshCw, Image } from 'lucide-react';
-import { Layer, GeneratedNFT } from '@/lib/nft-generator';
+import { Layer, GeneratedNFT } from '../../lib/nft-generator';
 
 interface LivePreviewProps {
   layers: Layer[];
@@ -73,7 +73,7 @@ export default function LivePreview({ layers, collectionSettings, generatedNFTs 
         </h3>
         <button 
           onClick={handleRegenerate}
-          className="flex items-center gap-2 px-3 py-1 bg-generator-purple text-white rounded-lg hover:bg-purple-700 transition-colors"
+          className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           Regenerate

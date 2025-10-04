@@ -1,17 +1,18 @@
 import JSZip from 'jszip';
-import { Layer, Trait } from '@/types/nft-generator';
+import { Layer, Trait } from './nft-generator';
 
 export class LayerProcessor {
   /**
    * Process uploaded files and create proper layers
    */
-  async processUploadedFiles(files: File[]): Promise<Layer[]> {
+  async processUploadedFiles(files: FileList): Promise<Layer[]> {
     const layers: Layer[] = [];
     const layerMap = new Map<string, Trait[]>();
 
     console.log('🔄 Processing uploaded files...', files.length);
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       try {
         console.log(`📁 Processing file: ${file.name} (type: ${file.type}, size: ${file.size})`);
         
@@ -152,12 +153,13 @@ export class LayerProcessor {
 
   /**
    * Extract layer name from file path/name
+   * For folder uploads, this handles the webkitRelativePath properly
    */
   private extractLayerName(fileName: string): string {
     console.log(`🔍 Extracting layer name from: "${fileName}"`);
     
-    // For folder uploads, the fileName includes the full path like "LosBros/Background/solid_blue.png"
-    // Extract the folder name (which becomes the layer name)
+    // For folder uploads with webkitRelativePath, extract the folder name
+    // Example: "LosBros/Background/solid_blue.png" -> "Background"
     const pathParts = fileName.split('/');
     console.log(`📂 Path parts:`, pathParts);
     
