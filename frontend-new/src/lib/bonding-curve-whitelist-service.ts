@@ -1,8 +1,10 @@
 /**
  * Bonding Curve Whitelist Service
  * Manages whitelist phases for bonding curve collections
- * Supports token holder benefits and early access tiers
+ * Supports token holder benefits, early access tiers, and social verification
  */
+
+import { socialVerificationService } from './social-verification-service';
 
 export interface BondingCurveWhitelistPhase {
   id: string;
@@ -20,6 +22,14 @@ export interface BondingCurveWhitelistPhase {
     minimumBalance: number; // Minimum token balance required
     tokenSymbol: string; // Token symbol for display
     tokenDecimals: number; // Token decimals
+  };
+  
+  // Social verification requirements
+  socialRequirements: {
+    required: boolean; // Whether social verification is required
+    minimumScore: number; // Minimum social verification score
+    requiredPlatforms: string[]; // Required social platforms (twitter, telegram, discord)
+    bonusMultiplier: number; // Bonus multiplier for social verification
   };
   
   // Bonding curve benefits
@@ -86,6 +96,12 @@ export class BondingCurveWhitelistService {
             tokenSymbol: '$LOL',
             tokenDecimals: 9
           },
+          socialRequirements: {
+            required: true, // Social verification required for whale phase
+            minimumScore: 1000, // High social score required
+            requiredPlatforms: ['twitter'], // Must have verified Twitter
+            bonusMultiplier: 1.5 // 50% bonus for social verification
+          },
           bondingCurveBenefits: {
             priceMultiplier: 0.3, // 70% off - super early pricing
             maxMints: 200, // Only 200 NFTs for whales
@@ -115,6 +131,12 @@ export class BondingCurveWhitelistService {
             minimumBalance: 5000000, // 5M $LOL
             tokenSymbol: '$LOL',
             tokenDecimals: 9
+          },
+          socialRequirements: {
+            required: true,
+            minimumScore: 500,
+            requiredPlatforms: ['twitter'],
+            bonusMultiplier: 1.3
           },
           bondingCurveBenefits: {
             priceMultiplier: 0.5, // 50% off - early pricing
@@ -146,6 +168,12 @@ export class BondingCurveWhitelistService {
             tokenSymbol: '$LOL',
             tokenDecimals: 9
           },
+          socialRequirements: {
+            required: true,
+            minimumScore: 200,
+            requiredPlatforms: ['twitter', 'telegram'],
+            bonusMultiplier: 1.2
+          },
           bondingCurveBenefits: {
             priceMultiplier: 0.7, // 30% off - good pricing
             maxMints: 600, // 600 NFTs for gold holders
@@ -175,6 +203,12 @@ export class BondingCurveWhitelistService {
             minimumBalance: 100000, // 100K $LOL
             tokenSymbol: '$LOL',
             tokenDecimals: 9
+          },
+          socialRequirements: {
+            required: false, // Optional for silver phase
+            minimumScore: 100,
+            requiredPlatforms: [],
+            bonusMultiplier: 1.1
           },
           bondingCurveBenefits: {
             priceMultiplier: 0.85, // 15% off - decent pricing
@@ -223,6 +257,12 @@ export class BondingCurveWhitelistService {
     eligiblePhases: BondingCurveWhitelistPhase[];
     currentPhase: BondingCurveWhitelistPhase | null;
     reason?: string;
+    socialVerification?: {
+      score: number;
+      required: boolean;
+      platforms: string[];
+      bonus: number;
+    };
   }> {
     const config = this.whitelistConfigs.get(collectionId);
     if (!config) {
@@ -251,7 +291,18 @@ export class BondingCurveWhitelistService {
       const balance = await this.getTokenBalance(walletAddress, phase.tokenRequirements.tokenAddress);
       const requiredBalance = phase.tokenRequirements.minimumBalance;
 
+      // Check social verification eligibility
+      const socialEligibility = socialVerificationService.checkWhitelistEligibility(
+        walletAddress, 
+        phase.socialRequirements.minimumScore
+      );
+
       if (balance >= requiredBalance) {
+        // Check social requirements
+        if (phase.socialRequirements.required && !socialEligibility.eligible) {
+          continue; // Skip this phase if social verification required but not met
+        }
+        
         eligiblePhases.push(phase);
       }
     }
@@ -279,11 +330,28 @@ export class BondingCurveWhitelistService {
       };
     }
 
+    // Get social verification data for current phase
+    let socialVerification;
+    if (currentPhase) {
+      const socialEligibility = socialVerificationService.checkWhitelistEligibility(
+        walletAddress,
+        currentPhase.socialRequirements.minimumScore
+      );
+      
+      socialVerification = {
+        score: socialEligibility.currentScore,
+        required: currentPhase.socialRequirements.required,
+        platforms: currentPhase.socialRequirements.requiredPlatforms,
+        bonus: currentPhase.socialRequirements.bonusMultiplier
+      };
+    }
+
     return {
       eligible: eligiblePhases.length > 0,
       eligiblePhases,
       currentPhase,
-      reason: eligiblePhases.length === 0 ? 'No eligible phases' : undefined
+      reason: eligiblePhases.length === 0 ? 'No eligible phases' : undefined,
+      socialVerification
     };
   }
 

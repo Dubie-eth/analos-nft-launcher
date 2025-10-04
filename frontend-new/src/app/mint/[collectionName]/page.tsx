@@ -23,6 +23,7 @@ import StandardLayout from '../../components/StandardLayout';
 import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
+import SocialVerification from '../../components/SocialVerification';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { blockchainFirstService } from '@/lib/blockchain-first-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
@@ -536,6 +537,18 @@ function CollectionMintContent() {
 
           {/* Wallet Download & Beta Warning Section */}
           <WalletDownloadSection />
+
+          {/* Social Verification Section */}
+          {connected && publicKey && (
+            <div className="mb-8">
+              <SocialVerification 
+                walletAddress={publicKey.toString()}
+                onVerificationComplete={(eligible, score) => {
+                  console.log(`Social verification status: eligible=${eligible}, score=${score}`);
+                }}
+              />
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Collection Info */}
