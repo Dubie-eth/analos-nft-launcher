@@ -16,6 +16,8 @@ interface RealMintButtonProps {
   whitelistStatus?: {
     isWhitelisted: boolean;
     priceMultiplier: number;
+    canMint?: boolean;
+    remainingMints?: number;
   };
 }
 
@@ -37,6 +39,18 @@ export default function RealMintButton({
     if (!publicKey || !signTransaction) {
       onMintError('Wallet not connected or does not support signing');
       return;
+    }
+
+    // Check whitelist restrictions
+    if (whitelistStatus && whitelistStatus.isWhitelisted) {
+      if (whitelistStatus.canMint === false) {
+        onMintError('You are not eligible to mint during the whitelist phase');
+        return;
+      }
+      if (whitelistStatus.remainingMints !== undefined && quantity > whitelistStatus.remainingMints) {
+        onMintError(`You can only mint ${whitelistStatus.remainingMints} more NFT(s) during the whitelist phase`);
+        return;
+      }
     }
 
     setMinting(true);
@@ -119,16 +133,30 @@ export default function RealMintButton({
     }
   };
 
+  // Determine if button should be disabled
+  const isDisabled = minting || 
+    !publicKey || 
+    (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) ||
+    (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false);
+
+  // Get disabled reason for tooltip
+  const getDisabledReason = () => {
+    if (!publicKey) return 'Connect your wallet to mint';
+    if (losBalanceInfo && !losBalanceInfo.hasMinimumBalance) return 'You need more $LOS tokens to mint';
+    if (whitelistStatus && whitelistStatus.isWhitelisted && whitelistStatus.canMint === false) return 'You are not eligible to mint during the whitelist phase';
+    return '';
+  };
+
   return (
     <button
       onClick={handleMint}
-      disabled={minting || !publicKey || (losBalanceInfo && !losBalanceInfo.hasMinimumBalance)}
+      disabled={isDisabled}
       className={`w-full py-4 px-8 rounded-lg font-bold text-lg transition-all duration-200 transform ${
-        minting || !publicKey || (losBalanceInfo && !losBalanceInfo.hasMinimumBalance)
+        isDisabled
           ? 'bg-gray-600 cursor-not-allowed opacity-50'
           : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 hover:scale-105'
       }`}
-      title={losBalanceInfo && !losBalanceInfo.hasMinimumBalance ? 'You need more $LOS tokens to mint' : ''}
+      title={getDisabledReason()}
     >
       {minting ? (
         <div className="flex flex-col items-center justify-center space-y-2">

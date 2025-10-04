@@ -29,13 +29,15 @@ interface WhitelistStatusProps {
   collectionName: string;
   basePrice: number;
   onWhitelistPriceChange?: (price: number, multiplier: number, rule: WhitelistRule | null) => void;
+  onWhitelistStatusChange?: (canMint: boolean, remainingMints: number, isWhitelisted: boolean) => void;
 }
 
 export default function WhitelistStatus({ 
   collectionId, 
   collectionName, 
   basePrice,
-  onWhitelistPriceChange 
+  onWhitelistPriceChange,
+  onWhitelistStatusChange 
 }: WhitelistStatusProps) {
   const { publicKey, connected } = useWallet();
   const [whitelistRules, setWhitelistRules] = useState<WhitelistRule[]>([]);
@@ -104,6 +106,7 @@ export default function WhitelistStatus({
     if (!activeRule) {
       setWhitelistStatus(null);
       onWhitelistPriceChange?.(basePrice, 1.0, null);
+      onWhitelistStatusChange?.(true, 999, false); // Allow minting when no whitelist is active
       return;
     }
 
@@ -146,6 +149,7 @@ export default function WhitelistStatus({
 
     setWhitelistStatus(status);
     onWhitelistPriceChange?.(status.whitelistPrice, status.priceMultiplier, activeRule);
+    onWhitelistStatusChange?.(status.canMint, status.remainingMints, status.isWhitelisted);
   };
 
   if (loading) {
@@ -228,7 +232,7 @@ export default function WhitelistStatus({
                 <div>
                   Price: <strong>{whitelistStatus.priceMultiplier === 0 ? 'FREE' : `${whitelistStatus.priceMultiplier}x`}</strong>
                   {whitelistStatus.priceMultiplier !== 0 && (
-                    <span className="ml-1">({whitelistStatus.whitelistPrice.toFixed(2)} $LOS)</span>
+                    <span className="ml-1">({whitelistStatus.whitelistPrice.toFixed(5)} $LOS)</span>
                   )}
                 </div>
               )}

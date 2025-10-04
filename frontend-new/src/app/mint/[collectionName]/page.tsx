@@ -51,6 +51,9 @@ function CollectionMintContent() {
   // Whitelist state
   const [whitelistPrice, setWhitelistPrice] = useState<number | null>(null);
   const [whitelistMultiplier, setWhitelistMultiplier] = useState(1.0);
+  const [canMintFromWhitelist, setCanMintFromWhitelist] = useState(true);
+  const [whitelistRemainingMints, setWhitelistRemainingMints] = useState(999);
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
 
   const fetchCollectionInfo = useCallback(async (forceRefresh = false) => {
     try {
@@ -500,6 +503,12 @@ function CollectionMintContent() {
                   setWhitelistMultiplier(multiplier);
                   console.log('🎯 Whitelist status updated:', { price, multiplier, rule });
                 }}
+                onWhitelistStatusChange={(canMint, remainingMints, whitelisted) => {
+                  setCanMintFromWhitelist(canMint);
+                  setWhitelistRemainingMints(remainingMints);
+                  setIsWhitelisted(whitelisted);
+                  console.log('🎯 Whitelist mint status updated:', { canMint, remainingMints, whitelisted });
+                }}
               />
 
               {collection.externalUrl && (
@@ -573,7 +582,7 @@ function CollectionMintContent() {
                         <span>
                           {whitelistPrice !== null ? (
                             <span className="flex items-center space-x-2">
-                              <span>{effectivePrice.toFixed(2)} {currency}</span>
+                              <span>{effectivePrice.toFixed(5)} {currency}</span>
                               <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
                                 WHITELIST {whitelistMultiplier === 0 ? 'FREE' : `${whitelistMultiplier}x`}
                               </span>
@@ -604,7 +613,7 @@ function CollectionMintContent() {
                       <hr className="border-white/20" />
                       <div className="flex justify-between text-white font-semibold">
                         <span>Total Cost:</span>
-                        <span>{totalCost?.toFixed(2) || '0.00'} {currency}</span>
+                        <span>{totalCost?.toFixed(5) || '0.00'} {currency}</span>
                       </div>
                     </div>
                   </div>
@@ -644,8 +653,10 @@ function CollectionMintContent() {
                       currency={currency}
                       lolBalanceInfo={lolBalanceInfo}
                       whitelistStatus={whitelistPrice !== null ? {
-                        isWhitelisted: true,
-                        priceMultiplier: whitelistMultiplier
+                        isWhitelisted: isWhitelisted,
+                        priceMultiplier: whitelistMultiplier,
+                        canMint: canMintFromWhitelist,
+                        remainingMints: whitelistRemainingMints
                       } : undefined}
                       onMintSuccess={(result) => {
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);

@@ -34,6 +34,10 @@ export class BlockchainDataService {
   private connection: Connection;
   private readonly ANALOS_RPC_URL = 'https://rpc.analos.io';
   
+  // Cache to reduce blockchain calls
+  private cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private readonly CACHE_DURATION = 30000; // 30 seconds cache
+  
   // Known collection addresses on Analos
   private readonly COLLECTION_ADDRESSES = {
     'The LosBros': {
@@ -58,11 +62,37 @@ export class BlockchainDataService {
     console.log('🔗 Blockchain Data Service initialized');
   }
 
+  // Cache helper methods
+  private getFromCache(key: string): any | null {
+    const cached = this.cache.get(key);
+    if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+      console.log('📋 Using cached data for:', key);
+      return cached.data;
+    }
+    return null;
+  }
+
+  private setCache(key: string, data: any): void {
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
+
+  private clearCache(): void {
+    this.cache.clear();
+    console.log('🗑️ Cache cleared');
+  }
+
   /**
    * Get real blockchain data for a collection
    */
   async getCollectionData(collectionName: string): Promise<BlockchainCollectionData | null> {
     try {
+      // Check cache first
+      const cacheKey = `collection_${collectionName}`;
+      const cachedData = this.getFromCache(cacheKey);
+      if (cachedData) {
+        return cachedData;
+      }
+
       console.log('🔗 Fetching real blockchain data for collection:', collectionName);
       
       // Handle URL slug to collection name mapping
@@ -131,6 +161,8 @@ export class BlockchainDataService {
         mintedNFTs: collectionData.mintedNFTs.length
       });
 
+      // Cache the result
+      this.setCache(cacheKey, collectionData);
       return collectionData;
 
     } catch (error) {
