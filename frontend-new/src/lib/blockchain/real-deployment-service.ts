@@ -341,7 +341,23 @@ export class RealBlockchainDeploymentService {
 
       // Send signed transaction to blockchain
       console.log('📡 Sending transaction to blockchain...');
-      const confirmation = await this.connection.sendRawTransaction(signedTransaction.serialize());
+      
+      // Handle different wallet adapter return types
+      let serializedTransaction: Buffer;
+      if (signedTransaction && typeof signedTransaction.serialize === 'function') {
+        // Standard Transaction object
+        serializedTransaction = signedTransaction.serialize();
+      } else if (signedTransaction instanceof Buffer) {
+        // Already serialized buffer
+        serializedTransaction = signedTransaction;
+      } else if (typeof signedTransaction === 'string') {
+        // Base64 encoded string
+        serializedTransaction = Buffer.from(signedTransaction, 'base64');
+      } else {
+        throw new Error('Invalid signed transaction format received from wallet');
+      }
+      
+      const confirmation = await this.connection.sendRawTransaction(serializedTransaction);
       console.log('✅ Transaction sent:', confirmation);
 
       // Wait for confirmation
