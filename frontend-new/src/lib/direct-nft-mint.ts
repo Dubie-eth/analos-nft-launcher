@@ -21,6 +21,8 @@ import {
 import { tokenMetadataService } from './token-metadata-service';
 import { tokenIdTracker } from './token-id-tracker';
 import { blockchainFirstService } from './blockchain-first-service';
+import { tokenIDConsistencyService } from './token-id-consistency-service';
+import { feeManagementService } from './fee-management-service';
 
 export interface DirectNFTMintData {
   name: string;
@@ -203,20 +205,34 @@ export class DirectNFTMintService {
         transaction.add(createATAIx);
         transaction.add(mintToIx);
 
+        // Reserve consistent token ID and lock metadata
+        const lockedMetadata = tokenIDConsistencyService.reserveTokenId(
+          collectionName,
+          mintAddress.toBase58(),
+          payerAddress
+        );
+
+        if (!lockedMetadata) {
+          throw new Error(`Failed to reserve token ID for NFT #${nftNumber}`);
+        }
+
         // Track the NFT in our enhanced token ID system
         const collectionMint = `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`;
         
         // Create collection if it doesn't exist
         if (!tokenIdTracker.getCollectionInfo(collectionMint)) {
-          tokenIdTracker.createCollection(collectionMint, collectionName, 1000, 4200.69);
+          const totalSupply = lockedMetadata.attributes.collection === 'The LosBros' ? 2222 : 1000;
+          tokenIdTracker.createCollection(collectionMint, collectionName, totalSupply, feeManagementService.getTotalMintPrice(collectionName));
         }
         
         const tokenId = tokenIdTracker.addNFT(mintAddress.toBase58(), collectionName, collectionMint, payerAddress);
 
-        console.log(`✅ Added REAL Token Program instructions for NFT #${nftNumber}`);
+        console.log(`✅ Added REAL Token Program instructions for NFT #${lockedMetadata.tokenId}`);
         console.log(`   Mint: ${mintAddress.toBase58()}`);
         console.log(`   ATA: ${associatedTokenAddress.toBase58()}`);
-        console.log(`   Collection: ${collectionName} #${tokenId}`);
+        console.log(`   Collection: ${collectionName} #${lockedMetadata.tokenId}`);
+        console.log(`   Metadata URI: ${lockedMetadata.metadataUri}`);
+        console.log(`   Blockchain Reference: ${lockedMetadata.attributes.blockchain_reference}`);
       }
 
       // Set recent blockhash and fee payer

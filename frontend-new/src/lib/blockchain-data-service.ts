@@ -1,5 +1,7 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { tokenIdTracker } from './token-id-tracker';
+import { adminControlService } from './admin-control-service';
+import { feeManagementService } from './fee-management-service';
 
 export interface BlockchainCollectionData {
   name: string;
@@ -38,24 +40,42 @@ export class BlockchainDataService {
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_DURATION = 300000; // 5 minutes cache - much longer to reduce polling
   
-  // Known collection addresses on Analos
-  private readonly COLLECTION_ADDRESSES = {
-    'The LosBros': {
-      collectionAddress: 'collection_the_losbros', // Use consistent ID for The LosBros
-      mintAddress: 'mint_the_losbros', // Use consistent ID for The LosBros
-      totalSupply: 2222,
-      mintPrice: 4200.69, // Updated to 4,200.69 $LOS
-      paymentToken: 'LOS',
-      isRevealLater: true,
-      revealDate: null, // Will be set when reveal happens
-      freeMintPhase: {
-        enabled: true,
-        maxFreeMints: 100, // First 100 NFTs are free
-        maxPerWallet: 3, // Max 3 free mints per wallet
-        requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
-      }
+  // Collection configurations - will be managed by admin controls and fee management
+  private async getCollectionConfig(collectionName: string) {
+    // Get collection config from admin service
+    const collection = await adminControlService.getCollection(collectionName);
+    if (collection) {
+      // Get total price including all fees from fee management service
+      const totalPrice = feeManagementService.getTotalMintPrice(collectionName);
+      
+      return {
+        collectionAddress: `collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+        mintAddress: `mint_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+        totalSupply: collection.totalSupply,
+        mintPrice: totalPrice, // Total price including platform and creator fees
+        basePrice: collection.mintPrice, // Base price before fees
+        paymentToken: collection.paymentToken,
+        isActive: collection.isActive,
+        mintingEnabled: collection.mintingEnabled,
+        isTestMode: collection.isTestMode,
+        feeBreakdown: feeManagementService.getFeeBreakdown(collectionName)
+      };
     }
-  };
+    
+    // Fallback for unknown collections
+    return {
+      collectionAddress: `collection_${collectionName.toLowerCase().replace(/\s+/g, '_')}`,
+      mintAddress: `mint_${collectionName.toLowerCase().replace(/\s+/g, '_')}`,
+      totalSupply: 1000,
+      mintPrice: 100.00,
+      basePrice: 100.00,
+      paymentToken: 'LOS',
+      isActive: false,
+      mintingEnabled: false,
+      isTestMode: true,
+      feeBreakdown: feeManagementService.getFeeBreakdown(collectionName)
+    };
+  }
 
   constructor(rpcUrl?: string) {
     this.connection = new Connection(rpcUrl || this.ANALOS_RPC_URL, 'confirmed');
