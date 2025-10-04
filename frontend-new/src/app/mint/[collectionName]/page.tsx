@@ -210,7 +210,7 @@ function CollectionMintContent() {
         symbol: collection.symbol || collection.name.substring(0, 4),
         description: collection.description || '',
         image: collection.imageUrl || '',
-        mintPrice: pricingData.mintPrice || collection.mintPrice || 4200.69, // Use real blockchain pricing with fallbacks
+        mintPrice: collection.mintPrice || 4200.69, // Use collection mintPrice directly
         paymentToken: paymentToken || 'LOL' // Ensure paymentToken is never undefined
       };
       
@@ -444,7 +444,18 @@ function CollectionMintContent() {
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-white">Mint NFTs</h1>
-            <WalletMultiButton />
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  blockchainDataService.clearCacheManually();
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                🔄 Refresh Data
+              </button>
+              <WalletMultiButton />
+            </div>
           </div>
 
           {/* Wallet Download & Beta Warning Section */}

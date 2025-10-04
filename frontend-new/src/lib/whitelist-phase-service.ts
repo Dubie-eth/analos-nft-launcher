@@ -25,8 +25,8 @@ export class WhitelistPhaseService {
       id: 'phase_1_ogs',
       name: 'OGs Phase',
       enabled: true,
-      startDate: '2025-10-03T11:11:00Z',
-      endDate: '2025-10-03T23:11:00Z',
+      startDate: '2025-10-03T00:00:00Z',
+      endDate: '2025-10-10T23:59:59Z', // Extended to next week
       priceMultiplier: 0.001, // 0.1% of base price = 4.20069 $LOS
       maxMintsPerWallet: 2, // HARDCODED: Max 2 mints per wallet
       description: 'Early supporters with 1M+ $LOL tokens',

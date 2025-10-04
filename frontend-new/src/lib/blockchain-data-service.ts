@@ -36,7 +36,7 @@ export class BlockchainDataService {
   
   // Cache to reduce blockchain calls
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
-  private readonly CACHE_DURATION = 30000; // 30 seconds cache
+  private readonly CACHE_DURATION = 300000; // 5 minutes cache - much longer to reduce polling
   
   // Known collection addresses on Analos
   private readonly COLLECTION_ADDRESSES = {
@@ -79,6 +79,14 @@ export class BlockchainDataService {
   private clearCache(): void {
     this.cache.clear();
     console.log('🗑️ Cache cleared');
+  }
+
+  /**
+   * Clear cache manually (for refresh button)
+   */
+  public clearCacheManually(): void {
+    console.log('🔄 Manually clearing blockchain data cache');
+    this.cache.clear();
   }
 
   /**

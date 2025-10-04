@@ -29,7 +29,7 @@ export default function WalletDownloadSection() {
             <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
               <h4 className="font-bold text-blue-300 mb-2">💼 Recommended Wallet</h4>
               <p className="mb-3">
-                We recommend using <strong>Backpack Wallet</strong> for the best experience on Analos:
+                We support <strong>Phantom Wallet</strong> and encourage using <strong>Backpack Wallet</strong> for the best experience on Analos:
               </p>
               <a
                 href="https://backpack.app"
@@ -48,7 +48,7 @@ export default function WalletDownloadSection() {
             <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
               <h4 className="font-bold text-yellow-300 mb-2">⚙️ Wallet Setup Instructions</h4>
               <ol className="list-decimal list-inside space-y-1 text-yellow-200">
-                <li>Download Backpack Wallet from backpack.app</li>
+                <li>Download Phantom Wallet from phantom.app or Backpack Wallet from backpack.app</li>
                 <li>Create a new wallet (don't import your main wallet)</li>
                 <li>Set up custom RPC: <code className="bg-black/20 px-1 rounded">https://rpc.analos.io</code></li>
                 <li>Fund with small amount of $LOS for testing</li>

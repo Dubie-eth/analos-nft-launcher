@@ -2,7 +2,7 @@
 
 import React, { FC, ReactNode, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import {
   WalletModalProvider
 } from '@solana/wallet-adapter-react-ui';
@@ -21,9 +21,9 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
 
   const wallets = useMemo(
     () => [
-      new SolflareWalletAdapter(),
-      new TorusWalletAdapter(),
-      new LedgerWalletAdapter(),
+      new PhantomWalletAdapter(),
+      // Note: Backpack wallet is supported but uses browser detection
+      // Users with Backpack installed will see it automatically
     ],
     []
   );
