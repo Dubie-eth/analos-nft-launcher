@@ -34,7 +34,25 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
     mintPrice: 50.00,
     paymentToken: 'LOL',
     description: '',
-    imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+    imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+    launchType: 'regular' as 'regular' | 'bonding_curve'
+  });
+
+  // Bonding curve configuration state
+  const [bondingCurveConfig, setBondingCurveConfig] = useState({
+    bondingCap: 10000000, // 10M $LOS
+    startingPrice: 100,
+    maxPrice: 1000,
+    revealTriggers: {
+      marketCapTrigger: 8000000,
+      nftSoldTrigger: 8000,
+      timeTrigger: 30 // days
+    },
+    tokenHolderRewards: {
+      enabled: true,
+      rewardPercentage: 15,
+      minimumHoldings: 100000
+    }
   });
 
   useEffect(() => {
@@ -141,12 +159,19 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
 
   const createNewCollection = async () => {
     try {
-      const success = await adminControlService.createCollection({
+      const collectionData = {
         ...newCollection,
         isActive: false,
         mintingEnabled: false,
-        isTestMode: false
-      });
+        isTestMode: false,
+        // Add bonding curve configuration if selected
+        ...(newCollection.launchType === 'bonding_curve' && {
+          isDLMMBondingCurve: true,
+          bondingCurveConfig: bondingCurveConfig
+        })
+      };
+
+      const success = await adminControlService.createCollection(collectionData);
 
       if (success) {
         setShowCreateCollection(false);
@@ -157,10 +182,26 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
           mintPrice: 50.00,
           paymentToken: 'LOL',
           description: '',
-          imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+          imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          launchType: 'regular'
+        });
+        setBondingCurveConfig({
+          bondingCap: 10000000,
+          startingPrice: 100,
+          maxPrice: 1000,
+          revealTriggers: {
+            marketCapTrigger: 8000000,
+            nftSoldTrigger: 8000,
+            timeTrigger: 30
+          },
+          tokenHolderRewards: {
+            enabled: true,
+            rewardPercentage: 15,
+            minimumHoldings: 100000
+          }
         });
         await loadAdminData();
-        console.log('✅ New collection created');
+        console.log(`✅ New ${newCollection.launchType} collection created`);
       }
     } catch (error) {
       console.error('❌ Error creating collection:', error);
@@ -571,93 +612,236 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
 
       {/* Create New Collection Modal */}
       {showCreateCollection && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-white font-bold text-lg mb-4">Create New Collection</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Collection Name</label>
-                <input
-                  type="text"
-                  value={newCollection.name}
-                  onChange={(e) => setNewCollection({...newCollection, name: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-                  placeholder="new-collection"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Display Name</label>
-                <input
-                  type="text"
-                  value={newCollection.displayName}
-                  onChange={(e) => setNewCollection({...newCollection, displayName: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-                  placeholder="New Collection"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Total Supply</label>
-                  <input
-                    type="number"
-                    value={newCollection.totalSupply}
-                    onChange={(e) => setNewCollection({...newCollection, totalSupply: parseInt(e.target.value)})}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-                  />
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-2xl font-bold text-white mb-6">Create New Collection</h3>
+              
+              <div className="space-y-6">
+                {/* Basic Collection Info */}
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-4">📋 Basic Collection Information</h4>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Collection Name</label>
+                        <input
+                          type="text"
+                          value={newCollection.name}
+                          onChange={(e) => setNewCollection({...newCollection, name: e.target.value})}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                          placeholder="new-collection"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Display Name</label>
+                        <input
+                          type="text"
+                          value={newCollection.displayName}
+                          onChange={(e) => setNewCollection({...newCollection, displayName: e.target.value})}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                          placeholder="New Collection"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Total Supply</label>
+                        <input
+                          type="number"
+                          value={newCollection.totalSupply}
+                          onChange={(e) => setNewCollection({...newCollection, totalSupply: parseInt(e.target.value) || 0})}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                          placeholder="1000"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Payment Token</label>
+                        <select
+                          value={newCollection.paymentToken}
+                          onChange={(e) => setNewCollection({...newCollection, paymentToken: e.target.value as 'LOS' | 'LOL'})}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                        >
+                          <option value="LOL">$LOL</option>
+                          <option value="LOS">$LOS</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                      <textarea
+                        value={newCollection.description}
+                        onChange={(e) => setNewCollection({...newCollection, description: e.target.value})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                        rows={3}
+                        placeholder="Collection description..."
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Mint Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={newCollection.mintPrice}
-                    onChange={(e) => setNewCollection({...newCollection, mintPrice: parseFloat(e.target.value)})}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-                  />
+                {/* Launch Type Selection */}
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h4 className="text-white font-medium mb-4">🚀 Launch Type</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div 
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        newCollection.launchType === 'regular' 
+                          ? 'border-blue-500 bg-blue-900/20' 
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                      onClick={() => setNewCollection({...newCollection, launchType: 'regular'})}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">🎯</div>
+                        <div>
+                          <div className="text-white font-medium">Regular NFT</div>
+                          <div className="text-gray-400 text-sm">Fixed price minting</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                        newCollection.launchType === 'bonding_curve' 
+                          ? 'border-purple-500 bg-purple-900/20' 
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                      onClick={() => setNewCollection({...newCollection, launchType: 'bonding_curve'})}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">📈</div>
+                        <div>
+                          <div className="text-white font-medium">Bonding Curve</div>
+                          <div className="text-gray-400 text-sm">Progressive pricing</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Regular NFT Configuration */}
+                  {newCollection.launchType === 'regular' && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Mint Price ({newCollection.paymentToken})</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={newCollection.mintPrice}
+                        onChange={(e) => setNewCollection({...newCollection, mintPrice: parseFloat(e.target.value) || 0})}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                        placeholder="50.00"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Bonding Curve Configuration */}
+                {newCollection.launchType === 'bonding_curve' && (
+                  <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+                    <h4 className="text-purple-400 font-medium mb-4">📈 Bonding Curve Configuration</h4>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Bonding Cap</label>
+                          <input
+                            type="number"
+                            value={bondingCurveConfig.bondingCap}
+                            onChange={(e) => setBondingCurveConfig({...bondingCurveConfig, bondingCap: parseInt(e.target.value) || 0})}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                            placeholder="10000000"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">Total $LOS to raise</div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Starting Price</label>
+                          <input
+                            type="number"
+                            value={bondingCurveConfig.startingPrice}
+                            onChange={(e) => setBondingCurveConfig({...bondingCurveConfig, startingPrice: parseInt(e.target.value) || 0})}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                            placeholder="100"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">Initial price per NFT</div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Max Price</label>
+                          <input
+                            type="number"
+                            value={bondingCurveConfig.maxPrice}
+                            onChange={(e) => setBondingCurveConfig({...bondingCurveConfig, maxPrice: parseInt(e.target.value) || 0})}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                            placeholder="1000"
+                          />
+                          <div className="text-xs text-gray-400 mt-1">Peak price per NFT</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gray-800/50 rounded-lg p-4">
+                        <h5 className="text-white font-medium mb-3">🎁 Token Holder Rewards</h5>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Reward Percentage</label>
+                            <input
+                              type="number"
+                              value={bondingCurveConfig.tokenHolderRewards.rewardPercentage}
+                              onChange={(e) => setBondingCurveConfig({
+                                ...bondingCurveConfig, 
+                                tokenHolderRewards: {
+                                  ...bondingCurveConfig.tokenHolderRewards,
+                                  rewardPercentage: parseInt(e.target.value) || 0
+                                }
+                              })}
+                              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                              placeholder="15"
+                            />
+                            <div className="text-xs text-gray-400 mt-1">% of mint funds returned</div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Minimum Holdings</label>
+                            <input
+                              type="number"
+                              value={bondingCurveConfig.tokenHolderRewards.minimumHoldings}
+                              onChange={(e) => setBondingCurveConfig({
+                                ...bondingCurveConfig, 
+                                tokenHolderRewards: {
+                                  ...bondingCurveConfig.tokenHolderRewards,
+                                  minimumHoldings: parseInt(e.target.value) || 0
+                                }
+                              })}
+                              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                              placeholder="100000"
+                            />
+                            <div className="text-xs text-gray-400 mt-1">Minimum $LOL to qualify</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Payment Token</label>
-                <select
-                  value={newCollection.paymentToken}
-                  onChange={(e) => setNewCollection({...newCollection, paymentToken: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
+              
+              <div className="flex space-x-4 mt-6">
+                <button
+                  onClick={() => setShowCreateCollection(false)}
+                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
                 >
-                  <option value="LOS">LOS</option>
-                  <option value="LOL">LOL</option>
-                </select>
+                  Cancel
+                </button>
+                <button
+                  onClick={createNewCollection}
+                  disabled={loading || !newCollection.name || !newCollection.displayName}
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Creating...' : `Create ${newCollection.launchType === 'bonding_curve' ? 'Bonding Curve' : 'Regular'} Collection`}
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Description</label>
-                <textarea
-                  value={newCollection.description}
-                  onChange={(e) => setNewCollection({...newCollection, description: e.target.value})}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-                  rows={3}
-                  placeholder="Collection description..."
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 mt-6">
-              <button
-                onClick={createNewCollection}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Create Collection
-              </button>
-              <button
-                onClick={() => setShowCreateCollection(false)}
-                className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </div>
