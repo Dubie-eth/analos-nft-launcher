@@ -478,7 +478,8 @@ function CollectionMintContent() {
   
   // Calculate cost using fee breakdown from fee management service
   const feeBreakdown = collection.feeBreakdown || feeManagementService.getFeeBreakdown(collection.name);
-  const effectivePrice = whitelistPrice !== null ? whitelistPrice : feeBreakdown.totalPrice;
+  // Only use whitelist price if user is actually whitelisted AND whitelist price exists
+  const effectivePrice = (whitelistPrice !== null && isWhitelisted) ? whitelistPrice : feeBreakdown.totalPrice;
   let totalCost = effectivePrice * mintQuantity;
   let currency = collection.paymentToken === 'LOL' ? '$LOL' : '$LOS';
   
@@ -670,7 +671,7 @@ function CollectionMintContent() {
                       <div className="flex justify-between text-white/80">
                         <span>Total Price per NFT:</span>
                         <span>
-                          {whitelistPrice !== null ? (
+                          {(whitelistPrice !== null && isWhitelisted) ? (
                             <span className="flex flex-col items-end space-y-1">
                               <span className="flex items-center space-x-2">
                                 <span className="text-white/60 line-through">{feeBreakdown.totalPrice.toFixed(2)} {currency}</span>
@@ -734,7 +735,7 @@ function CollectionMintContent() {
                       totalCost={totalCost}
                       currency={currency}
                       lolBalanceInfo={lolBalanceInfo}
-                      whitelistStatus={whitelistPrice !== null ? {
+                      whitelistStatus={(whitelistPrice !== null && isWhitelisted) ? {
                         isWhitelisted: isWhitelisted,
                         priceMultiplier: whitelistMultiplier,
                         canMint: canMintFromWhitelist,
