@@ -10,6 +10,7 @@ import MasterBondingCurveDashboard from './MasterBondingCurveDashboard';
 import BondingCurveRevealManager from './BondingCurveRevealManager';
 import SecureEscrowWalletManager from './SecureEscrowWalletManager';
 import CollectionDeployment from './CollectionDeployment';
+import GeneratorWhitelistManager from './GeneratorWhitelistManager';
 
 interface AdminControlPanelProps {
   isAuthorized: boolean;
@@ -862,6 +863,12 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
 
       {/* Secure Escrow Wallet Manager */}
       <SecureEscrowWalletManager />
+
+      {/* Generator Whitelist Manager */}
+      <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+        <h3 className="text-white font-bold text-lg mb-6">🎨 NFT Generator Access Control</h3>
+        <GeneratorWhitelistManager isAdmin={isAuthorized} />
+      </div>
 
       {/* Master Bonding Curve Dashboard */}
       <MasterBondingCurveDashboard isAuthorized={isAuthorized} />

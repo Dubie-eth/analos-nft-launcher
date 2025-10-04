@@ -7,7 +7,19 @@ import NFTGenerator from './NFTGenerator';
 import SingleImageCollection from './SingleImageCollection';
 import MultipleImageCollection from './MultipleImageCollection';
 
-export default function DeploymentOrchestrator() {
+interface DeploymentOrchestratorProps {
+  walletConnected?: boolean;
+  walletAddress?: string;
+  onWalletConnect?: (connected: boolean, address?: string) => void;
+  onSocialVerificationRequest?: () => void;
+}
+
+export default function DeploymentOrchestrator({ 
+  walletConnected = false, 
+  walletAddress = '', 
+  onWalletConnect,
+  onSocialVerificationRequest 
+}: DeploymentOrchestratorProps) {
   const [selectedStrategy, setSelectedStrategy] = useState<DeploymentStrategy | null>(null);
   const [currentStep, setCurrentStep] = useState<'strategy' | 'deployment' | 'complete'>('strategy');
 
