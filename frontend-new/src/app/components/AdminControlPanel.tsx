@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { adminControlService, CollectionConfig, AdminSettings } from '@/lib/admin-control-service';
 import { blockchainFailSafeService } from '@/lib/blockchain-failsafe-service';
 import { whitelistMonitoringService, WhitelistStats, WhitelistPhase } from '@/lib/whitelist-monitoring-service';
@@ -42,24 +42,12 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
     launchType: 'regular' as 'regular' | 'bonding_curve'
   });
 
-  // Debounced input handler
-  const inputTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+  // Simple input handler - no debouncing to avoid initialization issues
   const handleNewCollectionChange = (field: string, value: any) => {
-    // Clear existing timeout
-    if (inputTimeoutRef.current) {
-      clearTimeout(inputTimeoutRef.current);
-    }
-    
-    // Set new timeout for debounced update
-    const timeout = setTimeout(() => {
-      setNewCollection(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }, 300); // 300ms debounce
-    
-    inputTimeoutRef.current = timeout;
+    setNewCollection(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // Bonding curve configuration state
@@ -85,14 +73,6 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
     }
   }, [isAuthorized]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (inputTimeoutRef.current) {
-        clearTimeout(inputTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const loadAdminData = async () => {
     setLoading(true);
