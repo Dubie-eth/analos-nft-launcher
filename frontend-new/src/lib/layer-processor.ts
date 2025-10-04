@@ -13,8 +13,11 @@ export class LayerProcessor {
 
     for (const file of files) {
       try {
+        console.log(`📁 Processing file: ${file.name} (type: ${file.type}, size: ${file.size})`);
+        
         // Handle ZIP files
         if (file.type === 'application/zip' || file.name.endsWith('.zip')) {
+          console.log('📦 Processing as ZIP file');
           const zipLayers = await this.processZipFile(file);
           for (const layer of zipLayers) {
             if (layerMap.has(layer.name)) {
@@ -25,14 +28,18 @@ export class LayerProcessor {
           }
         } else {
           // Handle individual image files
+          console.log('🖼️ Processing as image file');
           const trait = await this.processImageFile(file);
           if (trait) {
             const layerName = this.extractLayerName(file.name);
+            console.log(`📂 Extracted layer name: "${layerName}" from file: "${file.name}"`);
             if (layerMap.has(layerName)) {
               layerMap.get(layerName)!.push(trait);
             } else {
               layerMap.set(layerName, [trait]);
             }
+          } else {
+            console.log(`⚠️ Could not process image file: ${file.name}`);
           }
         }
       } catch (error) {
@@ -42,7 +49,9 @@ export class LayerProcessor {
 
     // Convert map to layers array
     let order = 0;
+    console.log(`📊 Layer map entries: ${layerMap.size}`);
     for (const [layerName, traits] of layerMap.entries()) {
+      console.log(`📂 Layer "${layerName}": ${traits.length} traits`);
       if (traits.length > 0) {
         layers.push({
           id: `layer_${order}`,
@@ -145,7 +154,19 @@ export class LayerProcessor {
    * Extract layer name from file path/name
    */
   private extractLayerName(fileName: string): string {
-    // Try to extract from folder structure or naming convention
+    // For folder uploads, the fileName includes the full path like "LosBros/Background/solid_blue.png"
+    // Extract the folder name (which becomes the layer name)
+    const pathParts = fileName.split('/');
+    
+    // If there's a folder structure, use the folder name as the layer
+    if (pathParts.length > 1) {
+      const folderName = pathParts[pathParts.length - 2]; // Get the folder name (second to last part)
+      if (folderName && folderName !== '.') {
+        return this.formatLayerName(folderName);
+      }
+    }
+    
+    // Fallback to filename-based extraction
     const name = fileName.toLowerCase();
     
     // Common layer patterns
@@ -161,7 +182,18 @@ export class LayerProcessor {
     
     // Default to first part of filename
     const parts = fileName.split(/[-_]/);
-    return parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : 'Default Layer';
+    return parts[0] ? this.formatLayerName(parts[0]) : 'Default Layer';
+  }
+
+  /**
+   * Format layer name for display
+   */
+  private formatLayerName(name: string): string {
+    // Remove common prefixes and format nicely
+    let formatted = name.replace(/^[0-9]+_/, ''); // Remove leading numbers
+    formatted = formatted.replace(/_/g, ' '); // Replace underscores with spaces
+    formatted = formatted.replace(/\b\w/g, l => l.toUpperCase()); // Capitalize words
+    return formatted;
   }
 
   /**

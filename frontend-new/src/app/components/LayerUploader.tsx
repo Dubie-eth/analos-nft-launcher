@@ -83,21 +83,22 @@ export default function LayerUploader({ onFilesUploaded, fileInputRef }: LayerUp
         </h4>
         
         <p className="text-gray-500 mb-4">
-          Upload individual images or ZIP files containing organized folders
+          Upload individual images or entire folders with organized traits
         </p>
         
         <button
           onClick={() => fileInputRef.current?.click()}
           className="bg-gradient-to-r from-generator-purple to-generator-blue hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
         >
-          Choose Files
+          Choose Files or Folder
         </button>
         
         <input
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.zip"
+          webkitdirectory=""
+          accept=".png,.jpg,.jpeg,.gif,.webp,.svg"
           onChange={handleInputChange}
           className="hidden"
         />
@@ -110,7 +111,8 @@ export default function LayerUploader({ onFilesUploaded, fileInputRef }: LayerUp
           <div>
             <h5 className="font-medium text-blue-800 mb-2">Upload Guidelines:</h5>
             <ul className="text-sm text-blue-700 space-y-1">
-              <li>• <strong>ZIP files:</strong> Organize traits in folders (e.g., "Backgrounds", "Eyes", "Mouth")</li>
+              <li>• <strong>Folder upload:</strong> Select entire folders to maintain organization (e.g., "Backgrounds", "Eyes", "Mouth")</li>
+              <li>• <strong>Drag & drop:</strong> Drag folders directly onto the upload area</li>
               <li>• <strong>Individual files:</strong> Use descriptive names like "background_sunset.png"</li>
               <li>• <strong>Supported formats:</strong> PNG, JPG, JPEG, GIF, WebP, SVG</li>
               <li>• <strong>File size:</strong> Recommended under 5MB per image</li>
