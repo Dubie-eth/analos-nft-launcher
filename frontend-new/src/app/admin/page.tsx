@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Transaction, Connection } from '@solana/web3.js';
 import ImageUpdateModal from '../components/ImageUpdateModal';
 import NFTRevealModal from '../components/NFTRevealModal';
 import AdvancedMintingSettings from '../components/AdvancedMintingSettings';
@@ -44,7 +45,8 @@ interface CollectionData {
 }
 
 function AdminPageContent() {
-  const { publicKey, connected, connecting } = useWallet();
+  const { publicKey, connected, connecting, sendTransaction } = useWallet();
+  const connection = new Connection('https://rpc.analos.io', 'confirmed');
   
   // Admin access control using centralized configuration
   const isAdmin = connected && publicKey && isAuthorizedAdmin(publicKey.toString());
@@ -280,8 +282,10 @@ function AdminPageContent() {
       if (safeCollection.name) {
         console.log('💾 Saving collection updates to admin control service:', safeCollection.name);
         
-        // Update the collection in admin control service
-        const success = await adminControlService.updateCollection(safeCollection.name, {
+        // Check if collection exists, if not create it
+        const existingCollection = await adminControlService.getCollection(safeCollection.name);
+        
+        const collectionData = {
           name: safeCollection.name,
           displayName: safeCollection.displayName || safeCollection.name,
           description: safeCollection.description || '',
@@ -294,7 +298,17 @@ function AdminPageContent() {
           mintingEnabled: safeCollection.mintingEnabled !== false,
           isTestMode: safeCollection.isTestMode || false,
           lastModified: Date.now()
-        });
+        };
+        
+        let success = false;
+        
+        if (existingCollection) {
+          // Update existing collection
+          success = await adminControlService.updateCollection(safeCollection.name, collectionData);
+        } else {
+          // Create new collection
+          success = await adminControlService.createCollection(collectionData);
+        }
         
         if (success) {
           console.log('✅ Collection saved successfully to admin control service');
@@ -467,9 +481,14 @@ function AdminPageContent() {
     }
 
     setDeploying(true);
-    setDeployStatus('Deploying collection to Analos blockchain...');
+    setDeployStatus('Saving collection and deploying to Analos blockchain...');
 
     try {
+      // First, ensure the collection is saved to admin control service
+      console.log('💾 Ensuring collection is saved before deployment...');
+      await updateCollection(collectionData);
+      
+      setDeployStatus('Collection saved, now deploying to blockchain...');
       // Convert image to base64 for JSON payload
       let imageBase64 = '';
       if (collectionData.image) {
@@ -496,24 +515,47 @@ function AdminPageContent() {
       console.log('🚀 Deploying collection with payload:', payload);
       console.log('💰 Price being sent:', payload.price, 'Type:', typeof payload.price);
 
-      // Call backend API
+      // Get deployment instructions from backend
       const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
       console.log('Backend URL:', backendUrl);
-      const response = await fetch(`${backendUrl}/api/collections/deploy`, {
+      
+      const instructionsPayload = {
+        ...payload,
+        walletAddress: publicKey.toString()
+      };
+      
+      const response = await fetch(`${backendUrl}/api/collections/deploy-instructions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(instructionsPayload),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to deploy collection');
+        throw new Error('Failed to get deployment instructions');
       }
 
       const result = await response.json();
       
-      setDeployStatus(`Collection "${collectionData.name}" deployed successfully! Mint URL: ${result.mintUrl}`);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create deployment instructions');
+      }
+
+      setDeployStatus('Please sign the transaction to deploy your collection...');
+
+      // Sign and send the transaction
+      const transaction = new Transaction();
+      
+      // Add instructions to transaction
+      for (const instruction of result.instructions) {
+        transaction.add(instruction);
+      }
+
+      // Send and confirm transaction
+      const signature = await sendTransaction(transaction, connection);
+      
+      setDeployStatus(`Collection "${collectionData.name}" deployed successfully! Transaction: ${signature}`);
     } catch (error) {
       setDeployStatus('Deployment failed. Please try again.');
       console.error('Deployment error:', error);
