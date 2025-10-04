@@ -19,15 +19,23 @@ export class AnalosExplorerIntegration implements ExplorerIntegration {
 
   // Render a grid of NFTs
   renderNFTGrid(nfts: AnalosNFT[], container: HTMLElement): void {
+    // Clear container safely
     container.innerHTML = '';
 
     if (nfts.length === 0) {
-      container.innerHTML = `
-        <div class="no-nfts">
-          <h3>No NFTs Found</h3>
-          <p>No NFTs match your search criteria.</p>
-        </div>
-      `;
+      // Safe no NFTs message without innerHTML
+      const noNFTsDiv = document.createElement('div');
+      noNFTsDiv.className = 'no-nfts';
+      
+      const title = document.createElement('h3');
+      title.textContent = 'No NFTs Found';
+      
+      const message = document.createElement('p');
+      message.textContent = 'No NFTs match your search criteria.';
+      
+      noNFTsDiv.appendChild(title);
+      noNFTsDiv.appendChild(message);
+      container.appendChild(noNFTsDiv);
       return;
     }
 

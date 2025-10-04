@@ -1,17 +1,158 @@
 /**
- * Security utilities for safe HTML rendering and input validation
+ * Security utilities for input validation and XSS prevention
  */
 
 /**
- * Safely escape HTML to prevent XSS attacks
+ * Sanitize HTML content to prevent XSS attacks
  */
-export function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+export function sanitizeHtml(input: string): string {
+  if (!input) return '';
+  
+  // Remove potentially dangerous HTML tags and attributes
+  const dangerousTags = /<script[^>]*>.*?<\/script>/gi;
+  const dangerousAttributes = /on\w+\s*=\s*["'][^"']*["']/gi;
+  const dangerousProtocols = /javascript:|data:|vbscript:/gi;
+  
+  let sanitized = input
+    .replace(dangerousTags, '')
+    .replace(dangerousAttributes, '')
+    .replace(dangerousProtocols, '');
+  
+  // Escape remaining HTML entities
+  sanitized = sanitized
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+  
+  return sanitized;
+}
+
+/**
+ * Validate collection name input
+ */
+export function validateCollectionName(name: string): { isValid: boolean; error?: string } {
+  if (!name || name.trim().length === 0) {
+    return { isValid: false, error: 'Collection name is required' };
+  }
+  
+  if (name.length < 2) {
+    return { isValid: false, error: 'Collection name must be at least 2 characters' };
+  }
+  
+  if (name.length > 50) {
+    return { isValid: false, error: 'Collection name must be less than 50 characters' };
+  }
+  
+  // Allow only alphanumeric, spaces, and common punctuation
+  const validPattern = /^[a-zA-Z0-9\s\-_.,!?()]+$/;
+  if (!validPattern.test(name)) {
+    return { isValid: false, error: 'Collection name contains invalid characters' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * Validate collection symbol input
+ */
+export function validateCollectionSymbol(symbol: string): { isValid: boolean; error?: string } {
+  if (!symbol || symbol.trim().length === 0) {
+    return { isValid: false, error: 'Symbol is required' };
+  }
+  
+  if (symbol.length < 2 || symbol.length > 10) {
+    return { isValid: false, error: 'Symbol must be between 2 and 10 characters' };
+  }
+  
+  // Allow only alphanumeric characters
+  const validPattern = /^[A-Z0-9]+$/;
+  if (!validPattern.test(symbol)) {
+    return { isValid: false, error: 'Symbol must contain only uppercase letters and numbers' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * Validate URL input
+ */
+export function validateUrl(url: string): { isValid: boolean; error?: string } {
+  if (!url || url.trim().length === 0) {
+    return { isValid: true }; // URL is optional
+  }
+  
+  try {
+    const urlObj = new URL(url);
+    // Only allow HTTP and HTTPS protocols
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return { isValid: false, error: 'URL must use HTTP or HTTPS protocol' };
+    }
+    
+    // Check for suspicious domains or patterns
+    const suspiciousPatterns = [
+      /javascript:/i,
+      /data:/i,
+      /vbscript:/i,
+      /file:/i,
+      /ftp:/i
+    ];
+    
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(url)) {
+        return { isValid: false, error: 'Invalid URL format' };
+      }
+    }
+    
+    return { isValid: true };
+  } catch {
+    return { isValid: false, error: 'Invalid URL format' };
+  }
+}
+
+/**
+ * Validate wallet address input
+ */
+export function validateWalletAddress(address: string): { isValid: boolean; error?: string } {
+  if (!address || address.trim().length === 0) {
+    return { isValid: true }; // Wallet address is optional
+  }
+  
+  // Basic Solana address validation (44 characters, base58)
+  const base58Pattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  if (!base58Pattern.test(address)) {
+    return { isValid: false, error: 'Invalid wallet address format' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * Validate numeric input with min/max constraints
+ */
+export function validateNumericInput(
+  value: string | number, 
+  min: number, 
+  max: number, 
+  fieldName: string
+): { isValid: boolean; error?: string; sanitizedValue?: number } {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
+  if (isNaN(numValue)) {
+    return { isValid: false, error: `${fieldName} must be a valid number` };
+  }
+  
+  if (numValue < min) {
+    return { isValid: false, error: `${fieldName} must be at least ${min}` };
+  }
+  
+  if (numValue > max) {
+    return { isValid: false, error: `${fieldName} must be no more than ${max}` };
+  }
+  
+  return { isValid: true, sanitizedValue: numValue };
 }
 
 /**
@@ -19,7 +160,7 @@ export function escapeHtml(unsafe: string): string {
  */
 export function createSafeElement(tag: string, textContent: string, className?: string): HTMLElement {
   const element = document.createElement(tag);
-  element.textContent = textContent;
+  element.textContent = sanitizeHtml(textContent);
   if (className) {
     element.className = className;
   }
@@ -27,145 +168,45 @@ export function createSafeElement(tag: string, textContent: string, className?: 
 }
 
 /**
- * Safely set text content (prevents XSS)
- */
-export function setSafeTextContent(element: HTMLElement, text: string): void {
-  element.textContent = text;
-}
-
-/**
- * Validate and sanitize user input
- */
-export function sanitizeInput(input: string, maxLength: number = 1000): string {
-  if (typeof input !== 'string') {
-    return '';
-  }
-  
-  // Remove any potential script tags and dangerous characters
-  const sanitized = input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
-    .trim();
-  
-  // Limit length
-  return sanitized.substring(0, maxLength);
-}
-
-/**
- * Validate wallet address format
- */
-export function isValidWalletAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') {
-    return false;
-  }
-  
-  // Solana wallet addresses are base58 encoded and typically 32-44 characters
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-  return base58Regex.test(address);
-}
-
-/**
- * Validate token mint address format
- */
-export function isValidTokenMint(mint: string): boolean {
-  return isValidWalletAddress(mint); // Same format as wallet addresses
-}
-
-/**
  * Rate limiting utility
  */
-export class RateLimiter {
+class RateLimiter {
   private requests: Map<string, number[]> = new Map();
   
-  constructor(private maxRequests: number, private timeWindow: number) {}
-  
-  isAllowed(key: string): boolean {
+  isAllowed(key: string, maxRequests: number, windowMs: number): boolean {
     const now = Date.now();
     const requests = this.requests.get(key) || [];
     
-    // Remove old requests outside the time window
-    const validRequests = requests.filter(time => now - time < this.timeWindow);
+    // Remove old requests outside the window
+    const validRequests = requests.filter(time => now - time < windowMs);
     
-    if (validRequests.length >= this.maxRequests) {
+    if (validRequests.length >= maxRequests) {
       return false;
     }
     
-    // Add current request
     validRequests.push(now);
     this.requests.set(key, validRequests);
-    
     return true;
   }
 }
 
-/**
- * File upload validation
- */
-export function validateFileUpload(file: File): { valid: boolean; error?: string } {
-  // Check file size (max 10MB)
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-    return { valid: false, error: 'File size too large. Maximum 10MB allowed.' };
-  }
-  
-  // Check file type (only images)
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
-    return { valid: false, error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.' };
-  }
-  
-  // Check file name for suspicious patterns
-  const suspiciousPatterns = /[<>:"/\\|?*\x00-\x1f]/;
-  if (suspiciousPatterns.test(file.name)) {
-    return { valid: false, error: 'Invalid file name. Contains unsafe characters.' };
-  }
-  
-  return { valid: true };
-}
+export const rateLimiter = new RateLimiter();
 
 /**
- * Validate collection name
+ * Content Security Policy helpers
  */
-export function validateCollectionName(name: string): { valid: boolean; error?: string } {
-  if (!name || typeof name !== 'string') {
-    return { valid: false, error: 'Collection name is required' };
-  }
-  
-  const sanitized = sanitizeInput(name, 100);
-  if (sanitized.length < 1) {
-    return { valid: false, error: 'Collection name cannot be empty' };
-  }
-  
-  if (sanitized.length > 100) {
-    return { valid: false, error: 'Collection name too long. Maximum 100 characters.' };
-  }
-  
-  // Check for potentially dangerous patterns
-  const dangerousPatterns = /[<>:"/\\|?*\x00-\x1f]/;
-  if (dangerousPatterns.test(sanitized)) {
-    return { valid: false, error: 'Collection name contains invalid characters.' };
-  }
-  
-  return { valid: true, sanitized };
-}
-
-/**
- * Validate collection description
- */
-export function validateCollectionDescription(description: string): { valid: boolean; error?: string } {
-  if (!description || typeof description !== 'string') {
-    return { valid: false, error: 'Collection description is required' };
-  }
-  
-  const sanitized = sanitizeInput(description, 1000);
-  if (sanitized.length < 1) {
-    return { valid: false, error: 'Collection description cannot be empty' };
-  }
-  
-  if (sanitized.length > 1000) {
-    return { valid: false, error: 'Collection description too long. Maximum 1000 characters.' };
-  }
-  
-  return { valid: true, sanitized };
-}
+export const CSP_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://rpc.analos.io https://api.coingecko.com https://price.jup.ag",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://rpc.analos.io https://api.coingecko.com https://price.jup.ag https://analos-nft-launcher-production-f3da.up.railway.app",
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests"
+  ].join('; ')
+};

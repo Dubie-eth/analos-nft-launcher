@@ -188,7 +188,11 @@ export class AnalosNFTSDK {
       throw new Error(`Container with id "${containerId}" not found`);
     }
 
-    container.innerHTML = '<div class="loading">Loading NFTs...</div>';
+    // Safe loading message without innerHTML
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+    loadingDiv.textContent = 'Loading NFTs...';
+    container.appendChild(loadingDiv);
 
     try {
       const nfts = await this.client.getNFTs(options?.filters);
@@ -197,43 +201,64 @@ export class AnalosNFTSDK {
         const stats = await this.getMarketplaceStats();
         const statsContainer = document.createElement('div');
         statsContainer.className = 'nft-stats';
-        statsContainer.innerHTML = `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-              <h3 style="color: white; margin-bottom: 0.5rem;">Total NFTs</h3>
-              <p style="color: #8B5CF6; font-size: 2rem; font-weight: bold;">${stats.totalNFTs}</p>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-              <h3 style="color: white; margin-bottom: 0.5rem;">Collections</h3>
-              <p style="color: #3B82F6; font-size: 2rem; font-weight: bold;">${stats.totalCollections}</p>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-              <h3 style="color: white; margin-bottom: 0.5rem;">Total Volume</h3>
-              <p style="color: #10B981; font-size: 2rem; font-weight: bold;">${stats.totalVolume}</p>
-            </div>
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 0.5rem; text-align: center;">
-              <h3 style="color: white; margin-bottom: 0.5rem;">Avg Price</h3>
-              <p style="color: #F59E0B; font-size: 2rem; font-weight: bold;">${stats.averagePrice}</p>
-            </div>
-          </div>
-        `;
+        // Create stats grid safely without innerHTML
+        const statsGrid = document.createElement('div');
+        statsGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;';
+        
+        // Create stat cards safely
+        const statData = [
+          { title: 'Total NFTs', value: stats.totalNFTs.toString(), color: '#8B5CF6' },
+          { title: 'Collections', value: stats.totalCollections.toString(), color: '#3B82F6' },
+          { title: 'Total Volume', value: stats.totalVolume.toString(), color: '#10B981' },
+          { title: 'Avg Price', value: stats.averagePrice.toString(), color: '#F59E0B' }
+        ];
+        
+        statData.forEach(stat => {
+          const statDiv = document.createElement('div');
+          statDiv.style.cssText = 'background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 0.5rem; text-align: center;';
+          
+          const title = document.createElement('h3');
+          title.style.cssText = 'color: white; margin-bottom: 0.5rem;';
+          title.textContent = stat.title;
+          
+          const value = document.createElement('p');
+          value.style.cssText = `color: ${stat.color}; font-size: 2rem; font-weight: bold;`;
+          value.textContent = stat.value;
+          
+          statDiv.appendChild(title);
+          statDiv.appendChild(value);
+          statsGrid.appendChild(statDiv);
+        });
+        
+        statsContainer.appendChild(statsGrid);
         container.appendChild(statsContainer);
       }
 
       if (options?.showSearch) {
         const searchContainer = document.createElement('div');
         searchContainer.className = 'nft-search';
-        searchContainer.innerHTML = `
-          <div style="margin-bottom: 2rem;">
-            <input type="text" placeholder="Search NFTs..." style="width: 100%; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 0.5rem; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;">
-          </div>
-        `;
+        // Create search container safely without innerHTML
+        const searchDiv = document.createElement('div');
+        searchDiv.style.cssText = 'margin-bottom: 2rem;';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Search NFTs...';
+        searchInput.style.cssText = 'width: 100%; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 0.5rem; background: rgba(255, 255, 255, 0.1); color: white; font-size: 1rem;';
+        
+        searchDiv.appendChild(searchInput);
+        searchContainer.appendChild(searchDiv);
         container.appendChild(searchContainer);
       }
 
       this.explorer.renderNFTGrid(nfts.data, container);
     } catch (error) {
-      container.innerHTML = `<div class="error">Error loading NFTs: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+      // Safe error display without innerHTML
+      container.innerHTML = '';
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = `Error loading NFTs: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      container.appendChild(errorDiv);
     }
   }
 
@@ -243,7 +268,11 @@ export class AnalosNFTSDK {
       throw new Error(`Container with id "${containerId}" not found`);
     }
 
-    container.innerHTML = '<div class="loading">Loading Collections...</div>';
+    // Safe loading message without innerHTML
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading';
+    loadingDiv.textContent = 'Loading Collections...';
+    container.appendChild(loadingDiv);
 
     try {
       const collections = await this.getPopularCollections();
@@ -259,10 +288,16 @@ export class AnalosNFTSDK {
         this.explorer.renderCollectionCard(collection, grid);
       });
 
+      // Clear container safely
       container.innerHTML = '';
       container.appendChild(grid);
     } catch (error) {
-      container.innerHTML = `<div class="error">Error loading collections: ${error instanceof Error ? error.message : 'Unknown error'}</div>`;
+      // Safe error display without innerHTML
+      container.innerHTML = '';
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = `Error loading collections: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      container.appendChild(errorDiv);
     }
   }
 }
