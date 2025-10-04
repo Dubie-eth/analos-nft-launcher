@@ -322,14 +322,14 @@ function CollectionMintContent() {
       
       console.log('📝 REAL NFT transaction created with Token Program instructions, requesting wallet signature...');
       
-      setMintStatus('Please sign the NFT minting transaction in your wallet...');
-      
-      // Create connection for transaction handling
-      const connection = new Connection('https://rpc.analos.io', {
-        commitment: 'confirmed',
-        wsEndpoint: undefined,
-      });
-      
+        setMintStatus('Please sign the NFT minting transaction in your wallet...');
+        
+        // Create connection for transaction handling
+        const connection = new Connection('https://rpc.analos.io', {
+          commitment: 'confirmed',
+          wsEndpoint: undefined,
+        });
+
       console.log('🔑 Mint keypairs generated:', mintKeypairs.length);
       
       // Sign the transaction with both wallet and mint keypairs
@@ -343,16 +343,16 @@ function CollectionMintContent() {
       console.log('✅ REAL NFT transaction signed by wallet and mint keypairs');
       
       // Send the transaction
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       console.log('🎉 REAL NFT transaction sent to blockchain!');
       console.log('🔗 Transaction signature:', signature);
-      
-      setMintStatus('NFT minting transaction sent! Confirming...');
-      
-      // Wait for confirmation
-      try {
-        await connection.confirmTransaction(signature, 'confirmed');
-        console.log('✅ NFT minting transaction confirmed:', signature);
+        
+        setMintStatus('NFT minting transaction sent! Confirming...');
+
+        // Wait for confirmation
+        try {
+          await connection.confirmTransaction(signature, 'confirmed');
+          console.log('✅ NFT minting transaction confirmed:', signature);
         
         // Update the collection supply after successful minting
         const collectionId = `collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`;
@@ -369,7 +369,7 @@ function CollectionMintContent() {
           }));
         }
         
-        setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
         
         // Refresh collection data from blockchain after successful mint
         setTimeout(async () => {
@@ -389,11 +389,11 @@ function CollectionMintContent() {
           }
         }, 2000); // Wait 2 seconds for blockchain to update
         
-      } catch (confirmError) {
-        console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);
-        setMintStatus(`NFT minting transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
-      }
-      
+        } catch (confirmError) {
+          console.log('⚠️ Confirmation timeout, but NFT minting transaction was sent:', signature);
+          setMintStatus(`NFT minting transaction sent! Check explorer: https://explorer.analos.io/tx/${signature}. Confirmation may take longer.`);
+        }
+
       console.log('🎉 NFT minted successfully!');
       console.log('🔗 Transaction:', signature);
       console.log('🌐 Explorer:', directMintService.getExplorerUrl(signature));
@@ -439,7 +439,7 @@ function CollectionMintContent() {
               await nftSupplyTracker.updateSupplyAfterMint(collection.name, mintQuantity);
             }
           }
-        } else {
+      } else {
           console.log('⚠️ Blockchain verification failed:', verificationResult.error);
           setMintStatus(`⚠️ NFT transaction sent but verification failed: ${verificationResult.error}`);
         }
@@ -469,7 +469,7 @@ function CollectionMintContent() {
         } else if (error.message.includes('Insufficient funds')) {
           setMintStatus('Minting failed: Insufficient LOS balance for transaction.');
         } else {
-          setMintStatus(`Minting failed: ${error.message}`);
+        setMintStatus(`Minting failed: ${error.message}`);
         }
       } else {
         setMintStatus('Minting failed. Please try again.');
@@ -521,8 +521,8 @@ function CollectionMintContent() {
   return (
     <MobileOptimizedLayout>
       <StandardLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold text-white">Mint NFTs</h1>
@@ -536,8 +536,8 @@ function CollectionMintContent() {
               >
                 🔄 Refresh Data
               </button>
-              <WalletMultiButton />
-            </div>
+            <WalletMultiButton />
+          </div>
           </div>
 
           {/* Wallet Download & Beta Warning Section */}

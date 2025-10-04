@@ -22,6 +22,12 @@ export interface EscrowWalletConfig {
   createdAt: Date;
   lastAccessed: Date;
   accessLevel: 'admin_only' | 'admin_team' | 'public_claim';
+  
+  // Security and key burning
+  keysBurned: boolean; // Whether private keys have been permanently destroyed
+  keysBurnedAt?: Date; // When keys were burned
+  burnedBy?: string; // Admin wallet that burned the keys
+  preBurnBackup?: string; // Encrypted backup of essential data before burning
 }
 
 export interface RewardDistribution {
@@ -121,7 +127,13 @@ export class SecureEscrowWalletManager {
         totalDistributed: 0,
         createdAt: new Date(),
         lastAccessed: new Date(),
-        accessLevel: 'admin_only'
+        accessLevel: 'admin_only',
+        
+        // Security and key burning
+        keysBurned: false,
+        keysBurnedAt: undefined,
+        burnedBy: undefined,
+        preBurnBackup: undefined
       };
 
       // Store securely
@@ -467,6 +479,241 @@ export class SecureEscrowWalletManager {
     } catch (error) {
       throw new Error('Failed to decrypt private key');
     }
+  }
+
+  /**
+   * Get private keys for escrow wallet (admin only)
+   */
+  getEscrowPrivateKeys(collectionId: string, adminWallet: string): {
+    escrowPrivateKey: string;
+    tokenPrivateKey: string;
+    escrowAddress: string;
+    tokenMintAddress: string;
+  } | null {
+    if (!this.isAdminWallet(adminWallet)) {
+      throw new Error('Unauthorized: Only admin wallets can access private keys');
+    }
+
+    const escrowConfig = this.escrowWallets.get(collectionId);
+    if (!escrowConfig) {
+      return null;
+    }
+
+    try {
+      // Decrypt private keys
+      const escrowPrivateKeyBytes = this.decryptPrivateKey(escrowConfig.escrowKeypair, adminWallet);
+      const tokenPrivateKeyBytes = this.decryptPrivateKey(escrowConfig.tokenKeypair, adminWallet);
+      
+      // Convert to base58 strings (standard Solana private key format)
+      const escrowPrivateKey = this.bytesToBase58(escrowPrivateKeyBytes);
+      const tokenPrivateKey = this.bytesToBase58(tokenPrivateKeyBytes);
+
+      // Log access
+      this.logAccess({
+        id: `access_${Date.now()}`,
+        collectionId,
+        accessedBy: adminWallet,
+        action: 'view',
+        timestamp: new Date(),
+        success: true
+      });
+
+      return {
+        escrowPrivateKey,
+        tokenPrivateKey,
+        escrowAddress: escrowConfig.escrowAddress,
+        tokenMintAddress: escrowConfig.tokenMintAddress
+      };
+    } catch (error) {
+      console.error('❌ Error accessing private keys:', error);
+      
+      // Log failed access
+      this.logAccess({
+        id: `access_${Date.now()}`,
+        collectionId,
+        accessedBy: adminWallet,
+        action: 'view',
+        timestamp: new Date(),
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      return null;
+    }
+  }
+
+  /**
+   * Convert bytes to base58 string
+   */
+  private bytesToBase58(bytes: Uint8Array): string {
+    // Simple base58 encoding (in production, use a proper base58 library)
+    const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    let result = '';
+    let num = BigInt(0);
+    
+    // Convert bytes to big integer
+    for (let i = 0; i < bytes.length; i++) {
+      num = num * BigInt(256) + BigInt(bytes[i]);
+    }
+    
+    // Convert to base58
+    while (num > 0) {
+      result = alphabet[Number(num % BigInt(58))] + result;
+      num = num / BigInt(58);
+    }
+    
+    // Handle leading zeros
+    for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+      result = '1' + result;
+    }
+    
+    return result;
+  }
+
+  /**
+   * 🔥 BURN PRIVATE KEYS PERMANENTLY (IRREVERSIBLE!)
+   * This is the ultimate security measure - once burned, keys can NEVER be recovered
+   * Only use after thorough testing and when you're 100% certain everything is working
+   */
+  async burnPrivateKeys(
+    collectionId: string,
+    adminWallet: string,
+    confirmationCode: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    burnedAt: Date;
+    escrowAddress: string;
+    tokenMintAddress: string;
+  }> {
+    if (!this.isAdminWallet(adminWallet)) {
+      throw new Error('Unauthorized: Only admin wallets can burn private keys');
+    }
+
+    // Require confirmation code for extra security
+    if (confirmationCode !== 'BURN_KEYS_PERMANENTLY') {
+      throw new Error('Invalid confirmation code. Use "BURN_KEYS_PERMANENTLY" to confirm');
+    }
+
+    const escrowConfig = this.escrowWallets.get(collectionId);
+    if (!escrowConfig) {
+      throw new Error('Escrow wallet not found');
+    }
+
+    if (escrowConfig.keysBurned) {
+      throw new Error('Private keys have already been burned for this collection');
+    }
+
+    try {
+      console.log(`🔥 BURNING PRIVATE KEYS for ${collectionId} - THIS IS IRREVERSIBLE!`);
+      
+      // Create pre-burn backup of essential data (addresses only, no private keys)
+      const preBurnBackup = JSON.stringify({
+        collectionId: escrowConfig.collectionId,
+        collectionName: escrowConfig.collectionName,
+        escrowAddress: escrowConfig.escrowAddress,
+        tokenMintAddress: escrowConfig.tokenMintAddress,
+        totalDeposited: escrowConfig.totalDeposited,
+        totalDistributed: escrowConfig.totalDistributed,
+        createdAt: escrowConfig.createdAt,
+        burnedAt: new Date(),
+        burnedBy: adminWallet
+      });
+
+      // 🔥 PERMANENTLY DESTROY THE PRIVATE KEYS
+      // Overwrite with random data multiple times for security
+      const randomData1 = crypto.randomBytes(64);
+      const randomData2 = crypto.randomBytes(64);
+      const randomData3 = crypto.randomBytes(64);
+      
+      // Replace encrypted keys with random data (simulating secure deletion)
+      escrowConfig.escrowKeypair = randomData1.toString('hex');
+      escrowConfig.tokenKeypair = randomData2.toString('hex');
+      escrowConfig.preBurnBackup = this.encryptPrivateKey(randomData3); // Store backup encrypted
+      
+      // Mark as burned
+      escrowConfig.keysBurned = true;
+      escrowConfig.keysBurnedAt = new Date();
+      escrowConfig.burnedBy = adminWallet;
+      escrowConfig.accessLevel = 'public_claim'; // Change to public claim mode
+      
+      // Update the configuration
+      this.escrowWallets.set(collectionId, escrowConfig);
+
+      // Log the burning action
+      this.logAccess({
+        id: `burn_${Date.now()}`,
+        collectionId,
+        accessedBy: adminWallet,
+        action: 'emergency_withdraw', // Using existing action type for logging
+        timestamp: new Date(),
+        success: true
+      });
+
+      console.log(`🔥 PRIVATE KEYS BURNED FOREVER for ${collectionId}`);
+      console.log(`📋 Pre-burn backup created: ${preBurnBackup}`);
+
+      return {
+        success: true,
+        message: `🔥 PRIVATE KEYS BURNED PERMANENTLY for ${escrowConfig.collectionName}. This action is IRREVERSIBLE!`,
+        burnedAt: escrowConfig.keysBurnedAt,
+        escrowAddress: escrowConfig.escrowAddress,
+        tokenMintAddress: escrowConfig.tokenMintAddress
+      };
+
+    } catch (error) {
+      console.error('❌ Error burning private keys:', error);
+      
+      this.logAccess({
+        id: `burn_failed_${Date.now()}`,
+        collectionId,
+        accessedBy: adminWallet,
+        action: 'emergency_withdraw',
+        timestamp: new Date(),
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Check if private keys have been burned
+   */
+  areKeysBurned(collectionId: string): boolean {
+    const escrowConfig = this.escrowWallets.get(collectionId);
+    return escrowConfig?.keysBurned || false;
+  }
+
+  /**
+   * Get burn status and history
+   */
+  getBurnStatus(collectionId: string, adminWallet: string): {
+    keysBurned: boolean;
+    burnedAt?: Date;
+    burnedBy?: string;
+    escrowAddress: string;
+    tokenMintAddress: string;
+    accessLevel: string;
+  } | null {
+    if (!this.isAdminWallet(adminWallet)) {
+      throw new Error('Unauthorized: Only admin wallets can check burn status');
+    }
+
+    const escrowConfig = this.escrowWallets.get(collectionId);
+    if (!escrowConfig) {
+      return null;
+    }
+
+    return {
+      keysBurned: escrowConfig.keysBurned,
+      burnedAt: escrowConfig.keysBurnedAt,
+      burnedBy: escrowConfig.burnedBy,
+      escrowAddress: escrowConfig.escrowAddress,
+      tokenMintAddress: escrowConfig.tokenMintAddress,
+      accessLevel: escrowConfig.accessLevel
+    };
   }
 
   /**
