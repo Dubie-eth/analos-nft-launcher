@@ -316,11 +316,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Retrieve collection data from blockchain (for when website is down)
    */
-  async getCollectionFromBlockchain(collectionMint: string): Promise<{
-    success: boolean;
-    collectionData?: any;
-    error?: string;
-  }> {
+  getCollectionFromBlockchain = async (collectionMint: string) => {
     try {
       console.log('🔍 Retrieving collection data from blockchain:', collectionMint);
       
@@ -358,15 +354,15 @@ export class RealBlockchainDeploymentService {
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
-  }
+  };
 
   /**
    * Create deployment instructions for a collection
    */
-  async createDeploymentInstructions(
+  createDeploymentInstructions = async (
     config: DeploymentConfig,
     walletAddress: string
-  ): Promise<{ success: boolean; instructions?: DeploymentInstructions; error?: string }> {
+  ) => {
     try {
       console.log('🚀 Creating deployment instructions for:', config.name);
 
@@ -443,11 +439,11 @@ export class RealBlockchainDeploymentService {
   /**
    * Execute deployment with wallet signing
    */
-  async executeDeployment(
+  executeDeployment = async (
     instructions: DeploymentInstructions,
     walletAddress: string,
     signTransaction: (transaction: Transaction) => Promise<string>
-  ): Promise<DeploymentResult> {
+  ) => {
     try {
       console.log('🚀 Executing blockchain deployment...');
 
@@ -476,16 +472,16 @@ export class RealBlockchainDeploymentService {
         explorerUrl: ''
       };
     }
-  }
+  };
 
   /**
    * Perform simple deployment without complex validation to prevent crashes
    */
-  private async performSimpleDeployment(
+  performSimpleDeployment = async (
     instructions: DeploymentInstructions,
     walletAddress: string,
     signTransaction: (transaction: Transaction) => Promise<string>
-  ): Promise<DeploymentResult> {
+  ) => {
     // Create transaction
     const transaction = new Transaction();
     
@@ -595,7 +591,7 @@ export class RealBlockchainDeploymentService {
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
-  }
+  };
 
   /**
    * Validate deployment configuration
@@ -649,7 +645,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Get deployment status
    */
-  async getDeploymentStatus(collectionAddress: string) {
+  getDeploymentStatus = async (collectionAddress: string) => {
     try {
       // Mock deployment status check
       // In a real implementation, this would query the blockchain
@@ -666,7 +662,7 @@ export class RealBlockchainDeploymentService {
         status: 'failed'
       } as any;
     }
-  }
+  };
 
   /**
    * Calculate deployment costs
@@ -699,7 +695,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Get connection status
    */
-  async getConnectionStatus() {
+  getConnectionStatus = async () => {
     try {
       const slot = await this.connection.getSlot();
       const blockHeight = await this.connection.getBlockHeight();
@@ -719,7 +715,7 @@ export class RealBlockchainDeploymentService {
         blockHeight: 0
       } as any;
     }
-  }
+  };
 }
 
 // Export singleton instance
