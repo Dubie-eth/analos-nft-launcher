@@ -277,6 +277,8 @@ export class WorkingDeploymentService {
       console.log('🎨 Minting NFT to Analos blockchain...');
       console.log('📋 NFT Data:', nftData);
       console.log('👤 Owner:', ownerAddress);
+      console.log('👤 Owner type:', typeof ownerAddress);
+      console.log('👤 Owner length:', ownerAddress?.length);
 
       // Generate a unique NFT ID
       const nftId = `nft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -284,10 +286,18 @@ export class WorkingDeploymentService {
       // Create transaction
       const transaction = new Transaction();
 
+      // Validate owner address before creating PublicKey
+      let ownerPublicKey: PublicKey;
+      try {
+        ownerPublicKey = new PublicKey(ownerAddress);
+      } catch (error) {
+        throw new Error(`Invalid owner address: ${ownerAddress}`);
+      }
+
       // Get recent blockhash
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
-      transaction.feePayer = new PublicKey(ownerAddress);
+      transaction.feePayer = ownerPublicKey;
 
       // Store NFT metadata in memo instruction
       const metadata = {
@@ -307,7 +317,7 @@ export class WorkingDeploymentService {
 
       const memoInstruction = new TransactionInstruction({
         keys: [
-          { pubkey: new PublicKey(ownerAddress), isSigner: true, isWritable: false }
+          { pubkey: ownerPublicKey, isSigner: true, isWritable: false }
         ],
         programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'),
         data: Buffer.from(JSON.stringify(metadata), 'utf8')
