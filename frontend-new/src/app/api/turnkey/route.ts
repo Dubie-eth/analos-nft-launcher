@@ -17,10 +17,10 @@ export async function POST(request: NextRequest) {
     // Build the URL
     const url = `${TURNKEY_API_URL}${endpoint}`;
     
-    // Prepare headers
+    // Prepare headers - Turnkey uses different authentication
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${privateKey}`,
+      'X-API-Key': privateKey,
       'X-Organization-Id': orgId,
     };
 
@@ -71,10 +71,10 @@ export async function GET(request: NextRequest) {
     // Build the URL
     const url = `${TURNKEY_API_URL}${endpoint}`;
     
-    // Prepare headers
+    // Prepare headers - Turnkey uses different authentication
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${privateKey}`,
+      'X-API-Key': privateKey,
       'X-Organization-Id': orgId,
     };
 
