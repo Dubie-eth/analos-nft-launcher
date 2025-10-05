@@ -130,7 +130,7 @@ const LaunchCollectionPage: React.FC = () => {
     { id: 1, title: 'Basic Info', description: 'Collection details and metadata', completed: currentStep > 1 },
     { id: 2, title: 'Traits', description: 'Upload trait files for generation', completed: currentStep > 2 },
     { id: 3, title: 'Hosting', description: 'Choose image hosting method', completed: currentStep > 3 },
-    { id: 4, title: 'Platform Fees', description: 'Configure platform and creator fees', completed: currentStep > 4 },
+    { id: 4, title: 'Creator Fee Dashboard', description: 'Configure platform and creator fees', completed: currentStep > 4 },
     { id: 5, title: 'Socials & Whitelist', description: 'Configure social verification and whitelist', completed: currentStep > 5 },
     { id: 6, title: 'Preview', description: 'Preview your mint page', completed: currentStep > 6 },
     { id: 7, title: 'Deploy', description: 'Deploy to Analos blockchain', completed: currentStep > 7 },
@@ -941,7 +941,7 @@ const LaunchCollectionPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Platform Fees Configuration</h2>
+              <h2 className="text-3xl font-bold text-white mb-2">Creator Fee Dashboard</h2>
               <p className="text-gray-300">Configure platform and creator fees for your collection</p>
             </div>
 
