@@ -28,6 +28,12 @@ import AdminStatusIndicator from '../components/AdminStatusIndicator';
 import GeneratorWhitelistManager from '../components/GeneratorWhitelistManager';
 import BlockchainCollectionService, { BlockchainCollectionData } from '@/lib/blockchain-collection-service';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
+import { analosNFTMintingService, NFTCreationData } from '@/lib/blockchain/analos-nft-minting-service';
+import NFTOwnershipVerifier from '../components/NFTOwnershipVerifier';
+import NFTCollectionManager from '../components/NFTCollectionManager';
+import { BondingCurveLaunchService } from '@/lib/blockchain/bonding-curve-launch-service';
+import { SnapshotService } from '@/lib/blockchain/snapshot-service';
+import { MarketplaceFeeService } from '@/lib/blockchain/marketplace-fee-service';
 import { tokenIdTracker, CollectionInfo } from '@/lib/token-id-tracker';
 import { isAuthorizedAdmin, getAdminWalletInfo, hasAdminPermission } from '@/lib/admin-config';
 import { feeManagementService } from '@/lib/fee-management-service';
@@ -99,6 +105,7 @@ function AdminPageContent() {
   const [showSecurityDashboard, setShowSecurityDashboard] = useState(false);
   const [showAdminControlPanel, setShowAdminControlPanel] = useState(false);
   const [showMintPreview, setShowMintPreview] = useState(false);
+  const [showNFTCollectionManager, setShowNFTCollectionManager] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -1117,6 +1124,16 @@ function AdminPageContent() {
                 </p>
 
                 <button
+                  onClick={() => setShowNFTCollectionManager(true)}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
+                >
+                  🎨 NFT Collection Manager
+                </button>
+                <p className="text-white/60 text-sm mt-2">
+                  Launch real NFT collections with delayed reveal, bonding curves, and marketplace fees
+                </p>
+
+                <button
                   onClick={() => setShowSecurityDashboard(true)}
                   className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 mt-4"
                 >
@@ -1875,6 +1892,29 @@ function AdminPageContent() {
             
             <div className="flex-1 overflow-y-auto p-6">
               <AdminControlPanel isAuthorized={isAdmin || false} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NFT Collection Manager Modal */}
+      {showNFTCollectionManager && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 rounded-2xl w-full max-w-7xl h-[95vh] flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-white/20 flex-shrink-0">
+              <h2 className="text-2xl font-bold text-white">
+                🎨 NFT Collection Manager
+              </h2>
+              <button
+                onClick={() => setShowNFTCollectionManager(false)}
+                className="text-white/60 hover:text-white text-2xl p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <NFTCollectionManager />
             </div>
           </div>
         </div>
