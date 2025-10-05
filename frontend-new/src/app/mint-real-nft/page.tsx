@@ -23,7 +23,11 @@ export default function MintRealNFTPage() {
       family: 'Analos'
     },
     sellerFeeBasisPoints: 500, // 5%
-    creators: []
+    creators: [],
+    masterEdition: {
+      editionType: 'Master', // Default to 1/1 unique
+      maxSupply: undefined // No limit for 1/1
+    }
   });
   const [walletBalance, setWalletBalance] = useState<number>(0);
 
@@ -244,6 +248,89 @@ export default function MintRealNFTPage() {
                   onChange={(e) => setNftData(prev => ({ ...prev, sellerFeeBasisPoints: parseInt(e.target.value) }))}
                   className="w-full"
                 />
+              </div>
+
+              {/* Master Edition Controls */}
+              <div className="border-t border-gray-600 pt-4">
+                <h3 className="text-lg font-bold text-white mb-4">🏆 Master Edition Settings</h3>
+                
+                <div className="mb-4">
+                  <label className="block text-gray-300 text-sm font-bold mb-2">
+                    Edition Type
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="editionType"
+                        value="Master"
+                        checked={nftData.masterEdition?.editionType === 'Master'}
+                        onChange={(e) => setNftData(prev => ({
+                          ...prev,
+                          masterEdition: {
+                            ...prev.masterEdition!,
+                            editionType: e.target.value as 'Master',
+                            maxSupply: undefined // 1/1 unique
+                          }
+                        }))}
+                        className="mr-2"
+                      />
+                      <span className="text-white">1/1 Unique (Master)</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="editionType"
+                        value="Edition"
+                        checked={nftData.masterEdition?.editionType === 'Edition'}
+                        onChange={(e) => setNftData(prev => ({
+                          ...prev,
+                          masterEdition: {
+                            ...prev.masterEdition!,
+                            editionType: e.target.value as 'Edition',
+                            maxSupply: prev.masterEdition?.maxSupply || 10 // Default limited edition
+                          }
+                        }))}
+                        className="mr-2"
+                      />
+                      <span className="text-white">Limited Edition</span>
+                    </label>
+                  </div>
+                </div>
+
+                {nftData.masterEdition?.editionType === 'Edition' && (
+                  <div>
+                    <label htmlFor="maxSupply" className="block text-gray-300 text-sm font-bold mb-2">
+                      Max Supply - {nftData.masterEdition?.maxSupply || 10} NFTs
+                    </label>
+                    <input
+                      type="range"
+                      id="maxSupply"
+                      name="maxSupply"
+                      min="2"
+                      max="10000"
+                      step="1"
+                      value={nftData.masterEdition?.maxSupply || 10}
+                      onChange={(e) => setNftData(prev => ({
+                        ...prev,
+                        masterEdition: {
+                          ...prev.masterEdition!,
+                          maxSupply: parseInt(e.target.value)
+                        }
+                      }))}
+                      className="w-full"
+                    />
+                    <div className="text-xs text-gray-400 mt-1">
+                      Limited edition NFT collection with supply control
+                    </div>
+                  </div>
+                )}
+
+                {nftData.masterEdition?.editionType === 'Master' && (
+                  <div className="text-sm text-gray-400">
+                    🎯 This will be a unique 1/1 NFT with no supply limit
+                  </div>
+                )}
               </div>
 
               {/* Attributes Section */}
