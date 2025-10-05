@@ -500,7 +500,8 @@ export class AnalosNFTMintingService {
         signersLength: transaction.signers?.length || 'undefined'
       });
       
-      // Sign with required keypairs (mint + master edition if applicable)
+      // Sign with mint keypair only (required for creating the mint account)
+      // Master Edition uses Memo Program, no additional signing needed
       if (!transaction.signers) {
         transaction.signers = [];
       }
@@ -509,13 +510,7 @@ export class AnalosNFTMintingService {
       transaction.sign(mintKeypair);
       console.log('🔧 Signed transaction with mint keypair');
       
-      // Sign with master edition keypair if it exists
-      if (masterEditionKeypair) {
-        transaction.sign(masterEditionKeypair);
-        console.log('🔧 Signed transaction with master edition keypair');
-      }
-      
-      console.log('📝 Transaction now has required signatures for account creation');
+      console.log('📝 Transaction signed for mint account creation');
 
       console.log('🔐 Sending transaction to wallet...');
         console.log('📝 Transaction details:', {
@@ -526,7 +521,7 @@ export class AnalosNFTMintingService {
         const totalInstructions = transaction.instructions.length;
         const nftInstructions = 4;
         const metadataInstructions = 1;
-        const masterEditionInstructions = masterEditionKeypair ? 2 : 0; // create account + store data
+        const masterEditionInstructions = masterEditionKeypair ? 1 : 0; // only memo instruction, no account creation
         console.log(`📊 Total instructions: ${nftInstructions} NFT + ${metadataInstructions} metadata + ${masterEditionInstructions} master edition = ${totalInstructions} instructions`);
 
       console.log('🔍 Debug sendTransaction call:', {
