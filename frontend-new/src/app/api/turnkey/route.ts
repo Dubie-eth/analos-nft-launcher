@@ -4,30 +4,38 @@ const TURNKEY_API_URL = 'https://api.turnkey.com';
 
 export async function POST(request: NextRequest) {
   try {
-    const { endpoint, method, data, orgId, privateKey } = await request.json();
+    const { method, url, data, headers } = await request.json();
 
     // Validate required parameters
-    if (!endpoint || !orgId || !privateKey) {
+    if (!method || !url) {
       return NextResponse.json(
-        { error: 'Missing required parameters: endpoint, orgId, privateKey' },
+        { error: 'Missing required parameters: method, url' },
         { status: 400 }
       );
     }
 
-    // Build the URL
-    const url = `${TURNKEY_API_URL}${endpoint}`;
+    // Extract API key and org ID from headers
+    const apiKey = headers?.['X-API-Key'];
+    const orgId = headers?.['X-Organization-Id'];
     
-    // Prepare headers - Turnkey uses different authentication
-    const headers: HeadersInit = {
+    if (!apiKey || !orgId) {
+      return NextResponse.json(
+        { error: 'Missing required headers: X-API-Key, X-Organization-Id' },
+        { status: 400 }
+      );
+    }
+    
+    // Prepare headers for Turnkey API
+    const turnkeyHeaders: HeadersInit = {
       'Content-Type': 'application/json',
-      'X-API-Key': privateKey,
+      'X-API-Key': apiKey,
       'X-Organization-Id': orgId,
     };
 
     // Make the request to Turnkey API
     const response = await fetch(url, {
       method: method || 'POST',
-      headers,
+      headers: turnkeyHeaders,
       body: data ? JSON.stringify(data) : undefined,
     });
 
@@ -57,31 +65,28 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const endpoint = searchParams.get('endpoint');
+    const url = searchParams.get('url');
+    const apiKey = searchParams.get('apiKey');
     const orgId = searchParams.get('orgId');
-    const privateKey = searchParams.get('privateKey');
 
-    if (!endpoint || !orgId || !privateKey) {
+    if (!url || !apiKey || !orgId) {
       return NextResponse.json(
-        { error: 'Missing required parameters: endpoint, orgId, privateKey' },
+        { error: 'Missing required parameters: url, apiKey, orgId' },
         { status: 400 }
       );
     }
-
-    // Build the URL
-    const url = `${TURNKEY_API_URL}${endpoint}`;
     
-    // Prepare headers - Turnkey uses different authentication
-    const headers: HeadersInit = {
+    // Prepare headers for Turnkey API
+    const turnkeyHeaders: HeadersInit = {
       'Content-Type': 'application/json',
-      'X-API-Key': privateKey,
+      'X-API-Key': apiKey,
       'X-Organization-Id': orgId,
     };
 
     // Make the request to Turnkey API
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: turnkeyHeaders,
     });
 
     if (!response.ok) {
