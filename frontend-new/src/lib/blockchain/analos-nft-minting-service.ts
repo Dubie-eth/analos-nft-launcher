@@ -113,19 +113,13 @@ export class AnalosNFTMintingService {
     mintAddress: PublicKey,
     ownerAddress: PublicKey,
     maxSupply?: number
-  ): Promise<{ instructions: TransactionInstruction[]; masterEditionAddress: PublicKey }> {
+  ): Promise<{ instructions: TransactionInstruction[]; masterEditionAddress: PublicKey; masterEditionKeypair: Keypair }> {
     try {
       console.log('🏆 Creating Analos-compatible Master Edition...');
       
-      // Create a deterministic Master Edition account address using mint address
-      const [masterEditionAddress] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('analos_master_edition'),
-          mintAddress.toBuffer(),
-          Buffer.from('edition')
-        ],
-        SystemProgram.programId // Use SystemProgram for Analos compatibility
-      );
+      // Generate Master Edition keypair for the new account
+      const masterEditionKeypair = Keypair.generate();
+      const masterEditionAddress = masterEditionKeypair.publicKey;
 
       console.log('🎯 Analos Master Edition Address:', masterEditionAddress.toBase58());
       console.log('📊 Max Supply:', maxSupply || 'Unlimited');
@@ -167,7 +161,8 @@ export class AnalosNFTMintingService {
 
       return {
         instructions: [createEditionAccountInstruction, editionDataInstruction],
-        masterEditionAddress
+        masterEditionAddress,
+        masterEditionKeypair
       };
 
     } catch (error) {
@@ -175,7 +170,8 @@ export class AnalosNFTMintingService {
       // Return empty instructions if Master Edition fails
       return {
         instructions: [],
-        masterEditionAddress: PublicKey.default
+        masterEditionAddress: PublicKey.default,
+        masterEditionKeypair: Keypair.generate() // Generate dummy keypair for error case
       };
     }
   }
@@ -371,7 +367,9 @@ export class AnalosNFTMintingService {
         });
         
         masterEditionAddress = masterEditionResult.masterEditionAddress;
+        masterEditionKeypair = masterEditionResult.masterEditionKeypair;
         console.log('✅ Added Analos Master Edition instructions:', transaction.instructions?.length || 'undefined');
+        console.log('🔑 Master Edition keypair captured for signing');
       }
 
       // Step 7: Add metadata instruction with proper compute units
@@ -442,8 +440,17 @@ export class AnalosNFTMintingService {
         console.log('🔧 Initialized transaction.signers array');
       }
       
+      // Sign with mint keypair
       transaction.sign(mintKeypair);
-      console.log('✅ Transaction signed successfully');
+      console.log('🔧 Signed with mint keypair');
+      
+      // Sign with Master Edition keypair if it exists
+      if (masterEditionKeypair) {
+        transaction.sign(masterEditionKeypair);
+        console.log('🔧 Signed with Master Edition keypair');
+      }
+      
+      console.log('✅ Transaction signed successfully with all required signers');
 
       console.log('🔐 Sending transaction to wallet...');
       console.log('📝 Transaction details:', {
@@ -473,12 +480,21 @@ export class AnalosNFTMintingService {
       let signature: string;
       try {
         console.log('🔍 About to call sendTransaction with increased compute units...');
+        
+        // Prepare signers array
+        const signers = [mintKeypair];
+        if (masterEditionKeypair) {
+          signers.push(masterEditionKeypair);
+        }
+        
+        console.log('🔑 Sending with signers:', signers.length, 'keypairs');
+        
         signature = await sendTransaction(transaction, this.connection, {
-          signers: [mintKeypair],
+          signers: signers,
           skipPreflight: false,
           preflightCommitment: 'confirmed',
           maxRetries: 3,
-          // Increase compute units for larger transaction (5 instructions + metadata)
+          // Increase compute units for larger transaction (6 instructions + metadata)
           computeUnits: 400000, // Significantly increased for Master Edition + metadata
           computeUnitPrice: 2000 // Higher priority fee for complex transaction
         });
@@ -489,8 +505,15 @@ export class AnalosNFTMintingService {
         
         // Try without compute unit options
         console.log('🔍 About to call sendTransaction without compute units...');
+        
+        // Prepare signers array for fallback
+        const fallbackSigners = [mintKeypair];
+        if (masterEditionKeypair) {
+          fallbackSigners.push(masterEditionKeypair);
+        }
+        
         signature = await sendTransaction(transaction, this.connection, {
-          signers: [mintKeypair],
+          signers: fallbackSigners,
           skipPreflight: false,
           preflightCommitment: 'confirmed'
         });
