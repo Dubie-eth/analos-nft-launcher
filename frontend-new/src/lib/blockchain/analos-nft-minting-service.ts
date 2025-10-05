@@ -234,41 +234,9 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Step 6: Create Analos-compatible metadata using memo instruction
-      console.log('📝 Creating Analos-compatible metadata...');
-      
-      // Create metadata JSON
-      const nftMetadata = {
-        name: nftData.name,
-        symbol: nftData.symbol,
-        description: nftData.description,
-        image: ipfsResult.url!,
-        external_url: nftData.externalUrl || '',
-        attributes: nftData.attributes || [],
-        properties: {
-          files: [{ uri: ipfsResult.url!, type: 'image/png' }],
-          category: 'image',
-          creators: nftData.creators || [{ address: ownerAddress, verified: false, share: 100 }],
-        },
-        seller_fee_basis_points: nftData.sellerFeeBasisPoints || 500,
-        collection: nftData.collection || null,
-      };
-
-      // Store metadata in a memo instruction (Analos-compatible approach)
-      const metadataInstruction = new TransactionInstruction({
-        keys: [],
-        programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'), // Memo program
-        data: Buffer.from(JSON.stringify({
-          type: 'nft_metadata',
-          mint: mintAddress.toBase58(),
-          metadata: nftMetadata,
-          network: 'analos',
-          version: '1.0.0'
-        }))
-      });
-
-      transaction.add(metadataInstruction);
-      console.log('🔍 Added metadata memo instruction:', transaction.instructions?.length || 'undefined');
+      // Step 6: Skip metadata for now - focus on getting basic NFT minting working again
+      console.log('📝 Skipping metadata creation to restore working NFT minting...');
+      console.log('💡 Basic NFT minting (mint + token account) should work now');
 
       // Add signers - FIXED: Initialize signers array if undefined
       console.log('🔍 Before signing transaction:', {
@@ -334,7 +302,6 @@ export class AnalosNFTMintingService {
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
       console.log('🔗 Token Account:', tokenAccount.toBase58());
-      console.log('📄 Metadata stored in memo instruction');
       console.log('📝 Transaction Signature:', signature);
       console.log('🌐 Explorer URL:', `https://explorer.analos.io/tx/${signature}`);
 
@@ -342,11 +309,10 @@ export class AnalosNFTMintingService {
         success: true,
         mintAddress: mintAddress.toBase58(),
         tokenAccount: tokenAccount.toBase58(),
-        metadataAddress: `memo_${signature}`, // Analos-compatible metadata stored in memo
+        metadataAddress: '', // TODO: Add metadata back once PublicKey issues are resolved
         masterEditionAddress: '', // TODO: Implement Master Edition
         transactionSignature: signature,
-        explorerUrl: `https://explorer.analos.io/tx/${signature}`,
-        metadata: nftMetadata // Include metadata in response
+        explorerUrl: `https://explorer.analos.io/tx/${signature}`
       };
 
     } catch (error) {
