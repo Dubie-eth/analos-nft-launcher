@@ -53,35 +53,11 @@ export default function ExplorerPage() {
   const fetchCollections = async () => {
     setCollectionsLoading(true);
     try {
-      const availableCollections = ['Test', 'The LosBros', 'New Collection'];
+      // No hardcoded collections - only show real, deployed collections
+      // Collections will be dynamically loaded from the blockchain
       const collectionsData: CollectionInfo[] = [];
-
-      for (const collectionName of availableCollections) {
-        try {
-          // Redirect "The LosBros" to "Test" for development
-          const actualCollectionName = collectionName === 'The LosBros' ? 'Test' : collectionName;
-          
-          // Get collection config from admin service
-          const collection = await adminControlService.getCollection(actualCollectionName);
-          if (collection) {
-            // Get fee breakdown
-            const feeBreakdown = feeManagementService.getFeeBreakdown(actualCollectionName);
-            
-            collectionsData.push({
-              name: collection.displayName,
-              totalSupply: collection.totalSupply,
-              currentSupply: 0, // Will be fetched from blockchain
-              mintPrice: feeBreakdown.totalPrice,
-              paymentToken: collection.paymentToken,
-              isActive: collection.isActive,
-              mintingEnabled: collection.mintingEnabled,
-              feeBreakdown: feeBreakdown
-            });
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch collection ${collectionName}:`, error);
-        }
-      }
+      
+      console.log('🔍 Explorer: No collections to display - only showing real deployed collections');
 
       setCollections(collectionsData);
     } catch (error) {
