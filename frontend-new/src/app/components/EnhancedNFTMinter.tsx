@@ -15,7 +15,7 @@ import {
 } from '../../lib/turnkey-integration-service';
 
 export default function EnhancedNFTMinter() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
   const [turnkeyWallet, setTurnkeyWallet] = useState<TurnkeyWallet | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
