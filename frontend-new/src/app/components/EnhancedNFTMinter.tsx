@@ -67,23 +67,37 @@ export default function EnhancedNFTMinter() {
         if (typeof window !== 'undefined') {
           const initialized = await turnkeyIntegrationService.initialize();
           
-          if (!initialized) {
-            throw new Error('Failed to initialize Turnkey service');
-          }
-
-          // Create or get embedded wallet
-          const userId = publicKey.toString();
-          const walletName = `analos-nft-wallet-${userId ? userId.slice(0, 8) : 'unknown'}`;
-          
-          // Check if wallet already exists
-          const existingWallets = await turnkeyIntegrationService.listWallets(userId);
-          
-          if (existingWallets.length > 0) {
-            setTurnkeyWallet(existingWallets[0]);
+          if (initialized) {
+            console.log('✅ Turnkey service ready - attempting to create embedded wallet');
+            
+            try {
+              // Create or get embedded wallet
+              const userId = publicKey.toString();
+              const walletName = `analos-nft-wallet-${userId ? userId.slice(0, 8) : 'unknown'}`;
+              
+              // Check if wallet already exists
+              const existingWallets = await turnkeyIntegrationService.listWallets(userId);
+              
+              if (existingWallets.length > 0) {
+                setTurnkeyWallet(existingWallets[0]);
+              } else {
+                // Create new embedded wallet
+                const newWallet = await turnkeyIntegrationService.createEmbeddedWallet(userId, walletName);
+                setTurnkeyWallet(newWallet);
+              }
+            } catch (walletError) {
+              console.warn('⚠️ Turnkey wallet creation failed, but NFT minting can continue with bypass mode');
+              // Set a placeholder wallet to indicate bypass mode
+              setTurnkeyWallet({
+                walletId: 'bypass-mode',
+                address: publicKey.toString(),
+                publicKey: publicKey.toString(),
+                organizationId: 'bypass',
+                createdAt: new Date().toISOString()
+              });
+            }
           } else {
-            // Create new embedded wallet
-            const newWallet = await turnkeyIntegrationService.createEmbeddedWallet(userId, walletName);
-            setTurnkeyWallet(newWallet);
+            throw new Error('Failed to initialize Turnkey service');
           }
         }
 
@@ -221,6 +235,13 @@ export default function EnhancedNFTMinter() {
             </p>
             <p className="text-gray-300 text-sm">
               Address: {turnkeyWallet.address ? `${turnkeyWallet.address.slice(0, 8)}...${turnkeyWallet.address.slice(-8)}` : 'N/A'}
+            </p>
+          </div>
+        ) : turnkeyWallet?.walletId === 'bypass-mode' ? (
+          <div className="text-center">
+            <p className="text-yellow-300">⚠️ Bypass Mode Active</p>
+            <p className="text-gray-300 text-sm">
+              NFT minting will use your connected wallet directly
             </p>
           </div>
         ) : (
