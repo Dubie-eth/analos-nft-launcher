@@ -176,18 +176,9 @@ export class AnalosNFTMintingService {
     try {
       console.log('🏆 Creating Analos-compatible Master Edition...');
       
-      // Create deterministic Master Edition address (no new account creation needed)
-      const [masterEditionAddress] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('analos_master_edition'),
-          mintAddress.toBuffer(),
-          Buffer.from('edition')
-        ],
-        SystemProgram.programId
-      );
-      
-      // No keypair needed - using deterministic address
-      const masterEditionKeypair = null;
+      // Generate a new keypair for Master Edition (simpler approach)
+      const masterEditionKeypair = Keypair.generate();
+      const masterEditionAddress = masterEditionKeypair.publicKey;
 
       console.log('🎯 Analos Master Edition Address:', masterEditionAddress.toBase58());
       console.log('📊 Max Supply:', maxSupply || 'Unlimited');
@@ -411,14 +402,14 @@ export class AnalosNFTMintingService {
         
         if (nftData.masterEdition) {
           console.log('🏆 Adding Master Edition support...');
-          const masterEditionResult = this.createAnalosMasterEditionInstructions(
+          const masterEditionResult = await this.createAnalosMasterEditionInstructions(
             mintAddress,
             ownerPublicKey,
-            nftData.masterEdition
+            nftData.masterEdition.maxSupply
           );
           
           if (masterEditionResult) {
-            masterEditionKeypair = masterEditionResult.keypair;
+            masterEditionKeypair = masterEditionResult.masterEditionKeypair;
             masterEditionAddress = masterEditionResult.masterEditionAddress;
             
             // Add Master Edition instructions to transaction
