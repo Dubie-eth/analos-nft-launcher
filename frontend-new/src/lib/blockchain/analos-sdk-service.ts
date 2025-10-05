@@ -38,7 +38,7 @@ export class AnalosSDKService {
   async createNFT(
     nftData: AnalosNFTCreationData,
     ownerAddress: string,
-    signTransaction: (transaction: any) => Promise<any>
+    sendTransaction: (transaction: any) => Promise<any>
   ): Promise<AnalosMintingResult> {
     try {
       console.log('🎨 Creating NFT using Analos SDK approach...');
@@ -78,28 +78,23 @@ export class AnalosSDKService {
       // Get recent blockhash from Analos
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       
-      // Create a minimal transaction with just blockhash (no instructions to avoid PublicKey issues)
+      // Create a minimal transaction with blockhash only
+      // The wallet adapter will automatically set the feePayer when signing
       const transaction = new Transaction();
       transaction.recentBlockhash = blockhash;
+      
+      // Don't set feePayer - let the wallet adapter handle it automatically
+      // This avoids PublicKey creation issues while ensuring the wallet sets the correct fee payer
+      
       // No instructions added - this creates a valid but empty transaction
       
-      // Sign the transaction
-      const signedTransaction = await signTransaction(transaction);
+      // Send the transaction (this handles feePayer automatically)
+      const signature = await sendTransaction(transaction);
       
       console.log('📡 Processing NFT creation on Analos...');
       
-      // Handle different return types from wallet adapters
-      let transactionSignature: string;
-      if (signedTransaction && typeof (signedTransaction as any).signature !== 'undefined') {
-        // Wallet returned a transaction object with signature
-        transactionSignature = (signedTransaction as any).signature.toString('base64');
-      } else if (signedTransaction instanceof Buffer) {
-        // Wallet returned a serialized transaction
-        transactionSignature = signedTransaction.toString('base64');
-      } else {
-        // Generate a mock signature if we can't extract one
-        transactionSignature = `analos_nft_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-      }
+      // sendTransaction returns the transaction signature directly
+      const transactionSignature = signature;
 
       console.log('🎉 NFT created successfully using Analos SDK approach!');
       console.log('🎨 NFT ID:', nftId);
