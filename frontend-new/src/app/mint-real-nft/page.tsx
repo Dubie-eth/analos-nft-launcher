@@ -7,7 +7,7 @@ import { analosNFTMintingService, NFTCreationData } from '@/lib/blockchain/analo
 import StandardLayout from '../components/StandardLayout';
 
 export default function MintRealNFTPage() {
-  const { publicKey, connected, sendTransaction } = useWallet();
+  const { publicKey, connected, sendTransaction, signTransaction } = useWallet();
   const [loading, setLoading] = useState(false);
   const [mintingStatus, setMintingStatus] = useState('');
   const [mintResult, setMintResult] = useState<any>(null);
@@ -70,7 +70,15 @@ export default function MintRealNFTPage() {
         publicKey.toString(),
         async (transaction) => {
           setMintingStatus('🔐 Please confirm the transaction in your wallet...');
-          return await sendTransaction(transaction, connection);
+          try {
+            return await sendTransaction(transaction, connection);
+          } catch (error) {
+            console.log('🔍 sendTransaction failed, trying signTransaction approach...');
+            setMintingStatus('🔐 Signing transaction with wallet...');
+            const signedTransaction = await signTransaction!(transaction);
+            setMintingStatus('📡 Sending signed transaction to blockchain...');
+            return await connection.sendRawTransaction(signedTransaction.serialize());
+          }
         }
       );
 
