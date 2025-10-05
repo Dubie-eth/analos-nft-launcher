@@ -227,7 +227,7 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Add signers - FIXED: Need to add mintKeypair as signer for the transaction
+      // Add signers - FIXED: Initialize signers array if undefined
       console.log('🔍 Before signing transaction:', {
         transaction: !!transaction,
         mintKeypair: !!mintKeypair,
@@ -235,7 +235,14 @@ export class AnalosNFTMintingService {
         signersLength: transaction.signers?.length || 'undefined'
       });
       
+      // FIXED: Initialize signers array if it's undefined
+      if (!transaction.signers) {
+        transaction.signers = [];
+        console.log('🔧 Initialized transaction.signers array');
+      }
+      
       transaction.sign(mintKeypair);
+      console.log('✅ Transaction signed successfully');
 
       console.log('🔐 Sending transaction to wallet...');
       console.log('📝 Transaction details:', {
