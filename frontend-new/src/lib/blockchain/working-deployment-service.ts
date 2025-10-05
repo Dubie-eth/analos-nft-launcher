@@ -266,7 +266,7 @@ export class WorkingDeploymentService {
   }
 
   /**
-   * Mint a real NFT to the Analos blockchain (Simplified approach)
+   * Mint a real NFT to the Analos blockchain (Ultra-simplified approach)
    */
   async mintNFT(
     nftData: NFTCreationData,
@@ -277,29 +277,18 @@ export class WorkingDeploymentService {
       console.log('🎨 Minting NFT to Analos blockchain...');
       console.log('📋 NFT Data:', nftData);
       console.log('👤 Owner:', ownerAddress);
-      console.log('👤 Owner type:', typeof ownerAddress);
-      console.log('👤 Owner length:', ownerAddress?.length);
 
       // Generate a unique NFT ID
       const nftId = `nft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Create transaction
+      // Create a simple transaction with just a memo instruction
       const transaction = new Transaction();
-
-      // Validate owner address before creating PublicKey
-      let ownerPublicKey: PublicKey;
-      try {
-        ownerPublicKey = new PublicKey(ownerAddress);
-      } catch (error) {
-        throw new Error(`Invalid owner address: ${ownerAddress}`);
-      }
 
       // Get recent blockhash
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
-      transaction.feePayer = ownerPublicKey;
 
-      // Store NFT metadata in memo instruction
+      // Store NFT metadata in memo instruction (no keys needed for memo)
       const metadata = {
         action: 'create_nft',
         nft_id: nftId,
@@ -315,10 +304,9 @@ export class WorkingDeploymentService {
         type: 'nft_metadata'
       };
 
+      // Use a simple memo instruction without complex PublicKey handling
       const memoInstruction = new TransactionInstruction({
-        keys: [
-          { pubkey: ownerPublicKey, isSigner: true, isWritable: false }
-        ],
+        keys: [], // Memo instructions don't need keys
         programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'),
         data: Buffer.from(JSON.stringify(metadata), 'utf8')
       });
