@@ -22,8 +22,8 @@ import {
 // Metaplex program ID - using hardcoded value since import is failing
 const METAPLEX_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
-// Memo Program ID for storing metadata and edition data
-const MEMO_PROGRAM_ID_STRING = 'MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2';
+// Memo Program ID for storing metadata and edition data (Solana Memo Program ID)
+const MEMO_PROGRAM_ID_STRING = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr';
 
 export interface NFTCreationData {
   name: string;
@@ -197,7 +197,7 @@ export class AnalosNFTMintingService {
         address: masterEditionAddress.toBase58()
       };
 
-      // Use Memo Program to store edition data (no new account creation)
+      // Use Memo Program to store edition data on Analos
       console.log('🔍 Creating edition data instruction...');
       console.log('🔍 MEMO_PROGRAM_ID_STRING:', MEMO_PROGRAM_ID_STRING);
       
