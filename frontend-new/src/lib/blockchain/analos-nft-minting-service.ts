@@ -19,13 +19,8 @@ import {
   createAccount,
   mintTo
 } from '@solana/spl-token';
-import {
-  createCreateMetadataAccountV3Instruction,
-  PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
-} from '@metaplex-foundation/mpl-token-metadata';
-
-// Fallback if import fails
-const METAPLEX_PROGRAM_ID = TOKEN_METADATA_PROGRAM_ID || new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+// Metaplex program ID - using hardcoded value since import is failing
+const METAPLEX_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
 export interface NFTCreationData {
   name: string;
@@ -239,59 +234,12 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Step 6: Create Metaplex Metadata Account
-      console.log('📝 Creating Metaplex Metadata Account...');
+      // Step 6: Skip Metaplex Metadata for now - focus on basic NFT minting
+      console.log('📝 Skipping Metaplex Metadata creation for now...');
+      console.log('💡 Note: NFT will be minted without on-chain metadata for now');
       
-      // Debug all PublicKey objects before using them
-      console.log('🔍 Debugging PublicKey objects:', {
-        TOKEN_METADATA_PROGRAM_ID: TOKEN_METADATA_PROGRAM_ID?.toBase58(),
-        METAPLEX_PROGRAM_ID: METAPLEX_PROGRAM_ID?.toBase58(),
-        mintAddress: mintAddress?.toBase58(),
-        ownerPublicKey: ownerPublicKey?.toBase58(),
-        SystemProgram_programId: SystemProgram.programId?.toBase58(),
-        SYSVAR_RENT_PUBKEY: SYSVAR_RENT_PUBKEY?.toBase58()
-      });
-
-      const [metadataAddress] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('metadata'),
-          METAPLEX_PROGRAM_ID.toBuffer(),
-          mintAddress.toBuffer(),
-        ],
-        METAPLEX_PROGRAM_ID
-      );
-
-      console.log('🔍 Metadata PDA created:', metadataAddress?.toBase58());
-
-      const createMetadataInstruction = createCreateMetadataAccountV3Instruction(
-        {
-          metadata: metadataAddress,
-          mint: mintAddress,
-          mintAuthority: ownerPublicKey,
-          payer: ownerPublicKey,
-          updateAuthority: ownerPublicKey,
-          systemProgram: SystemProgram.programId,
-          rent: SYSVAR_RENT_PUBKEY,
-        },
-        {
-          createMetadataAccountArgsV3: {
-            data: {
-              name: nftData.name,
-              symbol: nftData.symbol,
-              uri: ipfsResult.url!,
-              sellerFeeBasisPoints: nftData.sellerFeeBasisPoints || 500,
-              creators: nftData.creators || [{ address: ownerAddress, verified: false, share: 100 }],
-              collection: null,
-              uses: null,
-            },
-            isMutable: true,
-            collectionDetails: null,
-          },
-        }
-      );
-
-      transaction.add(createMetadataInstruction);
-      console.log('🔍 Added createMetadataInstruction:', transaction.instructions?.length || 'undefined');
+      // TODO: Implement proper Metaplex metadata creation
+      // For now, we'll create a basic NFT without metadata to test the core functionality
 
       // Add signers - FIXED: Initialize signers array if undefined
       console.log('🔍 Before signing transaction:', {
@@ -357,7 +305,6 @@ export class AnalosNFTMintingService {
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
       console.log('🔗 Token Account:', tokenAccount.toBase58());
-      console.log('📄 Metadata Address:', metadataAddress.toBase58());
       console.log('📝 Transaction Signature:', signature);
       console.log('🌐 Explorer URL:', `https://explorer.analos.io/tx/${signature}`);
 
@@ -365,7 +312,7 @@ export class AnalosNFTMintingService {
         success: true,
         mintAddress: mintAddress.toBase58(),
         tokenAccount: tokenAccount.toBase58(),
-        metadataAddress: metadataAddress.toBase58(), // ✅ Metaplex metadata implemented!
+        metadataAddress: '', // TODO: Implement Metaplex metadata creation
         masterEditionAddress: '', // TODO: Implement Master Edition
         transactionSignature: signature,
         explorerUrl: `https://explorer.analos.io/tx/${signature}`
