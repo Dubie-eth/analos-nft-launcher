@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@analosfork/damm-sdk": "^1.0.0",
+    "@analosfork/dynamic-bonding-curve-sdk": "^1.0.3",
     "@coral-xyz/anchor": "^0.31.1",
     "@hello-pangea/dnd": "^18.0.1",
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
