@@ -248,12 +248,23 @@ export class AnalosNFTMintingService {
         transaction: !!transaction,
         connection: !!this.connection,
         mintKeypair: !!mintKeypair,
-        sendTransactionType: typeof sendTransaction
+        sendTransactionType: typeof sendTransaction,
+        transactionInstructions: transaction.instructions?.length,
+        transactionSigners: transaction.signers?.length,
+        transactionRecentBlockhash: !!transaction.recentBlockhash
+      });
+
+      console.log('🔍 Transaction object details:', {
+        instructions: transaction.instructions,
+        signers: transaction.signers,
+        recentBlockhash: transaction.recentBlockhash,
+        feePayer: transaction.feePayer
       });
 
       // Step 6: Send transaction with proper signers
       let signature: string;
       try {
+        console.log('🔍 About to call sendTransaction with options...');
         signature = await sendTransaction(transaction, this.connection, {
           signers: [mintKeypair],
           skipPreflight: false,
@@ -265,6 +276,7 @@ export class AnalosNFTMintingService {
         console.log('🔍 Trying alternative approach...');
         
         // Try without options first
+        console.log('🔍 About to call sendTransaction without options...');
         signature = await sendTransaction(transaction, this.connection);
         console.log('✅ Alternative approach worked:', signature);
       }
