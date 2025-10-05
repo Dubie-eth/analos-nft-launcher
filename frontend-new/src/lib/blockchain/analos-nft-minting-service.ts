@@ -238,6 +238,16 @@ export class AnalosNFTMintingService {
 
       // Step 6: Create Metaplex Metadata Account
       console.log('📝 Creating Metaplex Metadata Account...');
+      
+      // Debug all PublicKey objects before using them
+      console.log('🔍 Debugging PublicKey objects:', {
+        TOKEN_METADATA_PROGRAM_ID: TOKEN_METADATA_PROGRAM_ID?.toBase58(),
+        mintAddress: mintAddress?.toBase58(),
+        ownerPublicKey: ownerPublicKey?.toBase58(),
+        SystemProgram_programId: SystemProgram.programId?.toBase58(),
+        SYSVAR_RENT_PUBKEY: SYSVAR_RENT_PUBKEY?.toBase58()
+      });
+
       const [metadataAddress] = PublicKey.findProgramAddressSync(
         [
           Buffer.from('metadata'),
@@ -246,6 +256,8 @@ export class AnalosNFTMintingService {
         ],
         TOKEN_METADATA_PROGRAM_ID
       );
+
+      console.log('🔍 Metadata PDA created:', metadataAddress?.toBase58());
 
       const createMetadataInstruction = createCreateMetadataAccountV3Instruction(
         {
