@@ -24,6 +24,9 @@ import {
   PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
 } from '@metaplex-foundation/mpl-token-metadata';
 
+// Fallback if import fails
+const METAPLEX_PROGRAM_ID = TOKEN_METADATA_PROGRAM_ID || new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+
 export interface NFTCreationData {
   name: string;
   symbol: string;
@@ -242,6 +245,7 @@ export class AnalosNFTMintingService {
       // Debug all PublicKey objects before using them
       console.log('🔍 Debugging PublicKey objects:', {
         TOKEN_METADATA_PROGRAM_ID: TOKEN_METADATA_PROGRAM_ID?.toBase58(),
+        METAPLEX_PROGRAM_ID: METAPLEX_PROGRAM_ID?.toBase58(),
         mintAddress: mintAddress?.toBase58(),
         ownerPublicKey: ownerPublicKey?.toBase58(),
         SystemProgram_programId: SystemProgram.programId?.toBase58(),
@@ -251,10 +255,10 @@ export class AnalosNFTMintingService {
       const [metadataAddress] = PublicKey.findProgramAddressSync(
         [
           Buffer.from('metadata'),
-          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          METAPLEX_PROGRAM_ID.toBuffer(),
           mintAddress.toBuffer(),
         ],
-        TOKEN_METADATA_PROGRAM_ID
+        METAPLEX_PROGRAM_ID
       );
 
       console.log('🔍 Metadata PDA created:', metadataAddress?.toBase58());
