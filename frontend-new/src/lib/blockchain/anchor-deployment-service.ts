@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { AnchorProvider, Program, BN, Wallet } from '@coral-xyz/anchor';
 
 // Import the Anchor program types (these would be generated from the Anchor program)
