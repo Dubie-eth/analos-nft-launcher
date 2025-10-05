@@ -106,55 +106,72 @@ export class AnalosNFTMintingService {
   }
 
   /**
-   * Create Master Edition account for limited edition NFTs
+   * Create Analos-compatible Master Edition using SystemProgram
+   * This creates a custom account to store edition information on Analos
    */
-  private async createMasterEditionInstructions(
+  private async createAnalosMasterEditionInstructions(
     mintAddress: PublicKey,
     ownerAddress: PublicKey,
     maxSupply?: number
   ): Promise<{ instructions: TransactionInstruction[]; masterEditionAddress: PublicKey }> {
     try {
-      console.log('🏆 Creating Master Edition instructions...');
+      console.log('🏆 Creating Analos-compatible Master Edition...');
       
-      // Derive Master Edition address
+      // Create a deterministic Master Edition account address using mint address
       const [masterEditionAddress] = PublicKey.findProgramAddressSync(
         [
-          Buffer.from('metadata'),
-          METAPLEX_PROGRAM_ID.toBuffer(),
+          Buffer.from('analos_master_edition'),
           mintAddress.toBuffer(),
           Buffer.from('edition')
         ],
-        METAPLEX_PROGRAM_ID
+        SystemProgram.programId // Use SystemProgram for Analos compatibility
       );
 
-      console.log('🎯 Master Edition Address:', masterEditionAddress.toBase58());
+      console.log('🎯 Analos Master Edition Address:', masterEditionAddress.toBase58());
       console.log('📊 Max Supply:', maxSupply || 'Unlimited');
 
-      // For now, we'll create a simple instruction that stores edition info
-      // In a full implementation, this would use Metaplex Master Edition instructions
+      // Calculate rent for the Master Edition account
+      const editionAccountSize = 256; // Size for edition data
+      const rentExemption = await this.connection.getMinimumBalanceForRentExemption(editionAccountSize);
+
+      // Create the Master Edition account
+      const createEditionAccountInstruction = SystemProgram.createAccount({
+        fromPubkey: ownerAddress,
+        newAccountPubkey: masterEditionAddress,
+        space: editionAccountSize,
+        lamports: rentExemption,
+        programId: SystemProgram.programId,
+      });
+
+      // Create edition data instruction using SystemProgram
       const editionData = {
-        type: 'master_edition',
+        type: 'analos_master_edition',
         mint: mintAddress.toBase58(),
+        owner: ownerAddress.toBase58(),
         maxSupply: maxSupply || null,
         currentSupply: 0,
         editionType: maxSupply ? 'Limited Edition' : '1/1 Unique',
         network: 'analos',
-        version: '1.0.0'
+        version: '1.0.0',
+        created_at: new Date().toISOString()
       };
 
-      const editionInstruction = new TransactionInstruction({
-        keys: [],
-        programId: METAPLEX_PROGRAM_ID,
+      const editionDataInstruction = new TransactionInstruction({
+        keys: [
+          { pubkey: masterEditionAddress, isSigner: false, isWritable: true },
+          { pubkey: ownerAddress, isSigner: true, isWritable: false }
+        ],
+        programId: SystemProgram.programId,
         data: Buffer.from(JSON.stringify(editionData))
       });
 
       return {
-        instructions: [editionInstruction],
+        instructions: [createEditionAccountInstruction, editionDataInstruction],
         masterEditionAddress
       };
 
     } catch (error) {
-      console.log('⚠️ Master Edition creation failed:', error);
+      console.log('⚠️ Analos Master Edition creation failed:', error);
       // Return empty instructions if Master Edition fails
       return {
         instructions: [],
@@ -336,11 +353,13 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Step 6: Add Master Edition instructions if specified
+      // Step 6: Add Analos-compatible Master Edition instructions
       let masterEditionAddress = PublicKey.default;
+      let masterEditionKeypair: Keypair | null = null;
+      
       if (nftData.masterEdition) {
-        console.log('🏆 Adding Master Edition instructions...');
-        const masterEditionResult = await this.createMasterEditionInstructions(
+        console.log('🏆 Adding Analos-compatible Master Edition instructions...');
+        const masterEditionResult = await this.createAnalosMasterEditionInstructions(
           mintAddress,
           ownerPublicKey,
           nftData.masterEdition.maxSupply
@@ -352,13 +371,13 @@ export class AnalosNFTMintingService {
         });
         
         masterEditionAddress = masterEditionResult.masterEditionAddress;
-        console.log('✅ Added Master Edition instructions:', transaction.instructions?.length || 'undefined');
+        console.log('✅ Added Analos Master Edition instructions:', transaction.instructions?.length || 'undefined');
       }
 
       // Step 7: Add metadata instruction with proper compute units
       console.log('📝 Adding metadata instruction with increased compute units...');
       
-      // Create metadata JSON
+      // Create metadata JSON with Master Edition info
       const nftMetadata = {
         name: nftData.name,
         symbol: nftData.symbol,
@@ -375,7 +394,14 @@ export class AnalosNFTMintingService {
         collection: nftData.collection || null,
         mint_address: mintAddress.toBase58(),
         network: 'analos',
-        version: '1.0.0'
+        version: '1.0.0',
+        // Include Master Edition info in metadata
+        master_edition: nftData.masterEdition ? {
+          maxSupply: nftData.masterEdition.maxSupply,
+          editionType: nftData.masterEdition.editionType,
+          network: 'analos',
+          note: 'Master Edition info stored in metadata'
+        } : null
       };
 
       // Add metadata instruction with increased compute units
@@ -452,9 +478,9 @@ export class AnalosNFTMintingService {
           skipPreflight: false,
           preflightCommitment: 'confirmed',
           maxRetries: 3,
-          // Increase compute units for metadata instruction
-          computeUnits: 200000, // Increased from default ~200k to handle metadata
-          computeUnitPrice: 1000 // Priority fee in micro-lamports
+          // Increase compute units for larger transaction (5 instructions + metadata)
+          computeUnits: 400000, // Significantly increased for Master Edition + metadata
+          computeUnitPrice: 2000 // Higher priority fee for complex transaction
         });
         console.log('✅ Transaction sent successfully (with compute units):', signature);
       } catch (error) {
