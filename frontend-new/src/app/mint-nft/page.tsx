@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
 import { workingDeploymentService, NFTCreationData } from '@/lib/blockchain/working-deployment-service';
@@ -22,8 +22,25 @@ export default function MintNFTPage() {
       family: 'Analos'
     }
   });
+  const [walletBalance, setWalletBalance] = useState<number>(0);
 
   const connection = new Connection('https://rpc.analos.io', 'confirmed');
+
+  // Check wallet balance when connected
+  React.useEffect(() => {
+    const checkBalance = async () => {
+      if (publicKey) {
+        try {
+          const balance = await connection.getBalance(publicKey);
+          setWalletBalance(balance / 1e9); // Convert lamports to SOL
+        } catch (error) {
+          console.error('Error checking balance:', error);
+        }
+      }
+    };
+
+    checkBalance();
+  }, [publicKey, connection]);
 
   const handleMintNFT = async () => {
     if (!publicKey || !signTransaction) {
@@ -33,6 +50,11 @@ export default function MintNFTPage() {
 
     if (!nftData.name || !nftData.symbol || !nftData.description || !nftData.image) {
       setMintingStatus('❌ Please fill in all required fields');
+      return;
+    }
+
+    if (walletBalance < 0.001) {
+      setMintingStatus('❌ Insufficient SOL balance. You need at least 0.001 SOL for transaction fees.');
       return;
     }
 
@@ -120,6 +142,9 @@ export default function MintNFTPage() {
               <div className="mt-4 bg-green-500/20 border border-green-500/50 rounded-lg p-3 inline-block">
                 <p className="text-green-200 text-sm">
                   ✅ Connected: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+                </p>
+                <p className="text-green-200 text-sm">
+                  💰 Balance: {walletBalance.toFixed(4)} SOL
                 </p>
               </div>
             </div>

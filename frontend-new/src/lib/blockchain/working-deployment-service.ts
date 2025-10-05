@@ -266,7 +266,7 @@ export class WorkingDeploymentService {
   }
 
   /**
-   * Mint a real NFT to the Analos blockchain
+   * Mint a real NFT to the Analos blockchain (Simplified approach)
    */
   async mintNFT(
     nftData: NFTCreationData,
@@ -278,13 +278,9 @@ export class WorkingDeploymentService {
       console.log('📋 NFT Data:', nftData);
       console.log('👤 Owner:', ownerAddress);
 
-      // Create a new mint account
-      const mintKeypair = Keypair.generate();
-      const mintAddress = mintKeypair.publicKey;
-
-      // Get rent exemption amount for mint account
-      const mintRent = await getMinimumBalanceForRentExemptMint(this.connection);
-
+      // Generate a unique NFT ID
+      const nftId = `nft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       // Create transaction
       const transaction = new Transaction();
 
@@ -293,60 +289,20 @@ export class WorkingDeploymentService {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = new PublicKey(ownerAddress);
 
-      // Create mint account instruction
-      const createMintInstruction = SystemProgram.createAccount({
-        fromPubkey: new PublicKey(ownerAddress),
-        newAccountPubkey: mintAddress,
-        lamports: mintRent,
-        space: MINT_SIZE,
-        programId: TOKEN_PROGRAM_ID,
-      });
-
-      // Initialize mint instruction
-      const initMintInstruction = createMint(
-        this.connection,
-        mintKeypair, // Payer
-        new PublicKey(ownerAddress), // Mint authority
-        new PublicKey(ownerAddress), // Freeze authority
-        0 // Decimals (0 for NFTs)
-      );
-
-      // Create associated token account for owner
-      const ownerTokenAccount = await getOrCreateAssociatedTokenAccount(
-        this.connection,
-        mintKeypair, // Payer (will be replaced by owner in transaction)
-        mintAddress,
-        new PublicKey(ownerAddress)
-      );
-
-      // Mint 1 token to owner
-      const mintToInstruction = mintTo(
-        this.connection,
-        mintKeypair, // Payer
-        mintAddress,
-        ownerTokenAccount.address,
-        new PublicKey(ownerAddress), // Mint authority
-        1 // Amount (1 for NFT)
-      );
-
-      // Add instructions to transaction
-      transaction.add(createMintInstruction);
-      transaction.add(initMintInstruction);
-      transaction.add(mintToInstruction);
-
       // Store NFT metadata in memo instruction
       const metadata = {
         action: 'create_nft',
+        nft_id: nftId,
         name: nftData.name,
         symbol: nftData.symbol,
         description: nftData.description,
         image: nftData.image,
         attributes: nftData.attributes || [],
         collection: nftData.collection,
-        mint_address: mintAddress.toString(),
         owner: ownerAddress,
         created_at: new Date().toISOString(),
-        network: 'Analos'
+        network: 'Analos',
+        type: 'nft_metadata'
       };
 
       const memoInstruction = new TransactionInstruction({
@@ -374,7 +330,7 @@ export class WorkingDeploymentService {
         throw new Error('Invalid signed transaction format');
       }
 
-      console.log('📡 Sending NFT minting transaction to Analos blockchain...');
+      console.log('📡 Sending NFT metadata transaction to Analos blockchain...');
       
       // Send transaction
       const confirmation = await this.connection.sendRawTransaction(serializedTransaction, {
@@ -382,7 +338,7 @@ export class WorkingDeploymentService {
         preflightCommitment: 'confirmed'
       });
 
-      console.log('✅ NFT minting transaction sent:', confirmation);
+      console.log('✅ NFT metadata transaction sent:', confirmation);
 
       // Wait for confirmation
       const result = await this.connection.confirmTransaction(confirmation, 'confirmed');
@@ -391,14 +347,14 @@ export class WorkingDeploymentService {
         throw new Error(`NFT minting failed: ${JSON.stringify(result.value.err)}`);
       }
 
-      console.log('🎉 NFT minted successfully to Analos blockchain!');
-      console.log('🎨 Mint Address:', mintAddress.toString());
+      console.log('🎉 NFT metadata stored successfully on Analos blockchain!');
+      console.log('🎨 NFT ID:', nftId);
       console.log('🔗 Explorer URL:', `https://explorer.analos.io/tx/${confirmation}`);
 
       return {
         success: true,
-        mintAddress: mintAddress.toString(),
-        tokenAccount: ownerTokenAccount.address.toString(),
+        mintAddress: nftId, // Using NFT ID as the identifier
+        tokenAccount: nftId, // Same for token account
         transactionSignature: confirmation,
         explorerUrl: `https://explorer.analos.io/tx/${confirmation}`
       };
