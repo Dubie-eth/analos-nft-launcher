@@ -119,8 +119,8 @@ class TurnkeyIntegrationService {
 
       return {
         walletId: walletResponse.walletId,
-        address: walletResponse.accounts[0].address,
-        publicKey: walletResponse.accounts[0].publicKey,
+        address: walletResponse.accounts?.[0]?.address || walletResponse.address || '',
+        publicKey: walletResponse.accounts?.[0]?.publicKey || walletResponse.publicKey || '',
         organizationId: response.subOrgId,
         userId: userId,
         createdAt: new Date().toISOString()
@@ -375,28 +375,31 @@ class TurnkeyIntegrationService {
         };
       }
       
-      if (endpoint.includes('/v1/sub_organizations')) {
+      if (endpoint.includes('/v1/sub_organizations') || endpoint.includes('/v1/sub-orgs')) {
         return {
           success: true,
-          subOrganizations: [{
-            subOrganizationId: `sub_org_${Date.now()}`,
-            subOrganizationName: 'Analos NFT Users',
-            createdAt: new Date().toISOString(),
-            status: 'ACTIVE'
-          }]
+          subOrgId: `sub_org_${Date.now()}`,
+          subOrganizationId: `sub_org_${Date.now()}`,
+          subOrganizationName: 'Analos NFT Users',
+          createdAt: new Date().toISOString(),
+          status: 'ACTIVE'
         };
       }
       
       if (endpoint.includes('/v1/wallets')) {
         return {
           success: true,
-          wallets: [{
-            walletId: `wallet_${Date.now()}`,
-            address: this.apiKey.slice(0, 44), // Use part of API key as mock address
+          walletId: `wallet_${Date.now()}`,
+          address: this.apiKey.slice(0, 44), // Use part of API key as mock address
+          publicKey: this.apiKey.slice(0, 44),
+          accounts: [{
+            address: this.apiKey.slice(0, 44),
             publicKey: this.apiKey.slice(0, 44),
-            createdAt: new Date().toISOString(),
-            status: 'ACTIVE'
-          }]
+            curve: 'CURVE_ED25519',
+            path: "m/44'/501'/0'/0'"
+          }],
+          createdAt: new Date().toISOString(),
+          status: 'ACTIVE'
         };
       }
       
