@@ -65,9 +65,9 @@ export default function TurnkeyTest() {
       
       setTestResult(`✅ Test wallet created successfully!
       
-Wallet ID: ${wallet.walletId}
-Address: ${wallet.address}
-Public Key: ${wallet.publicKey.slice(0, 20)}...`);
+Wallet ID: ${wallet.walletId || 'N/A'}
+Address: ${wallet.address || 'N/A'}
+Public Key: ${wallet.publicKey ? wallet.publicKey.slice(0, 20) + '...' : 'N/A'}`);
     } catch (error) {
       setTestResult(`❌ Error creating wallet: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {

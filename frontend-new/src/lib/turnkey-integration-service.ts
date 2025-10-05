@@ -391,17 +391,23 @@ class TurnkeyIntegrationService {
       
       if (endpoint.includes('/v1/wallets')) {
         // Check if this is a GET request (listing wallets) or POST request (creating wallet)
+        // Debug logging
+        console.log('DEBUG: this.apiKey before slice:', this.apiKey, typeof this.apiKey);
+        
+        // Ensure we have a valid string to slice
+        const mockKey = this.apiKey || '169521489ff474ee3ff3ff4688fb44c87c3d9cb12d2e557f3c7c700ce229c387';
+        
         if (method === 'GET') {
           // Return array of wallets for listing
           return {
             success: true,
             wallets: [{
               walletId: `wallet_${Date.now()}`,
-              address: this.apiKey.slice(0, 44),
-              publicKey: this.apiKey.slice(0, 44),
+              address: mockKey.slice(0, 44),
+              publicKey: mockKey.slice(0, 44),
               accounts: [{
-                address: this.apiKey.slice(0, 44),
-                publicKey: this.apiKey.slice(0, 44),
+                address: mockKey.slice(0, 44),
+                publicKey: mockKey.slice(0, 44),
                 curve: 'CURVE_ED25519',
                 path: "m/44'/501'/0'/0'"
               }],
@@ -414,11 +420,11 @@ class TurnkeyIntegrationService {
           return {
             success: true,
             walletId: `wallet_${Date.now()}`,
-            address: this.apiKey.slice(0, 44),
-            publicKey: this.apiKey.slice(0, 44),
+            address: mockKey.slice(0, 44),
+            publicKey: mockKey.slice(0, 44),
             accounts: [{
-              address: this.apiKey.slice(0, 44),
-              publicKey: this.apiKey.slice(0, 44),
+              address: mockKey.slice(0, 44),
+              publicKey: mockKey.slice(0, 44),
               curve: 'CURVE_ED25519',
               path: "m/44'/501'/0'/0'"
             }],
