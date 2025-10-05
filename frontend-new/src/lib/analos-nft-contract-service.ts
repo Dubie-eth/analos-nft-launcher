@@ -4,7 +4,7 @@
  * Includes dynamic metadata updates and marketplace compatibility
  */
 
-import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey, Keypair, Transaction, SystemProgram, TransactionInstruction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { 
   getAssociatedTokenAddress, 
   createMint, 
