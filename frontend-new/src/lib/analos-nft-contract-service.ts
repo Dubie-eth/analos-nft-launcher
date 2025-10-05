@@ -120,20 +120,23 @@ class AnalosNFTContractService {
           lamports: 1000, // Small amount to pay for transaction
         })
       );
-      
-      // Get recent blockhash and set it on the transaction
-      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = config.creator;
 
       // Sign and send transaction
       let signedTransaction: Transaction;
       
       if (signTransaction) {
+        // Get fresh blockhash right before signing
+        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = config.creator;
+        
         // Use wallet adapter to sign the transaction
         signedTransaction = await signTransaction(transaction);
       } else {
         // Fallback for testing
+        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = config.creator;
         signedTransaction = transaction;
       }
       
@@ -187,20 +190,23 @@ class AnalosNFTContractService {
           lamports: 1000, // Small amount to pay for transaction
         })
       );
-      
-      // Get recent blockhash and set it on the transaction
-      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = owner;
 
       // Sign and send transaction
       let signedTransaction: Transaction;
       
       if (signTransaction) {
+        // Get fresh blockhash right before signing
+        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = owner;
+        
         // Use wallet adapter to sign the transaction
         signedTransaction = await signTransaction(transaction);
       } else {
         // Fallback for testing
+        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = owner;
         signedTransaction = transaction;
       }
       
