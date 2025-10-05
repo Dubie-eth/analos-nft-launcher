@@ -358,27 +358,39 @@ class TurnkeyIntegrationService {
     const url = this.buildUrl(endpoint, subOrgId, walletId);
     
     try {
-      // For now, let's simulate a successful response since Turnkey API might have authentication issues
-      console.log(`🧪 Simulating Turnkey API request: ${method} ${endpoint}`);
-      
-      // Simulate a successful response for testing
-      if (endpoint === '/v1/organizations') {
-        return {
-          success: true,
-          organizations: [{
-            organizationId: this.orgId,
-            organizationName: 'Analos NFT Launcher',
-            createdAt: new Date().toISOString(),
-            status: 'ACTIVE'
-          }]
-        };
+      // Use our API proxy to avoid CORS issues
+      const proxyUrl = method === 'GET' 
+        ? `/api/turnkey?endpoint=${encodeURIComponent(endpoint)}&orgId=${encodeURIComponent(this.orgId)}&privateKey=${encodeURIComponent(this.apiKey)}`
+        : '/api/turnkey';
+
+      const config: RequestInit = {
+        method: method === 'GET' ? 'GET' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+
+      if (method !== 'GET' && data) {
+        config.body = JSON.stringify({
+          endpoint,
+          method,
+          data,
+          orgId: this.orgId,
+          privateKey: this.apiKey
+        });
       }
+
+      const response = await fetch(proxyUrl, config);
       
-      // For other endpoints, return a generic success
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       return {
         success: true,
-        message: `Simulated successful ${method} request to ${endpoint}`,
-        data: data || {}
+        ...result.data
       };
 
     } catch (error) {
