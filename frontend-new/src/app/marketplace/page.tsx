@@ -16,12 +16,16 @@ export default function MarketplacePage() {
               🏪 NFT Marketplace
             </h1>
             <p className="text-xl text-gray-300 mb-8">
-              Spin the wheel for prizes, trade NFTs, and discover collections with memo-based metadata and soft staking utilities
+              Spin the wheel for prizes! Trade NFTs and discover collections with memo-based metadata and soft staking utilities
             </p>
           </div>
 
-          {/* Spinning Wheel Game */}
+          {/* Spinning Wheel Game - Main Feature */}
           <div className="mb-12">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">🎰 Featured Game</h2>
+              <p className="text-gray-300">Connect your wallet and start spinning for prizes!</p>
+            </div>
             <SpinningWheelGame />
           </div>
 
@@ -56,14 +60,12 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                <Link 
-                  href="https://analos-marketplace.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105"
+                <button 
+                  disabled
+                  className="inline-block bg-gradient-to-r from-purple-500 to-blue-600 text-white font-bold py-3 px-8 rounded-lg opacity-75 cursor-not-allowed"
                 >
-                  Launch Enhanced Marketplace
-                </Link>
+                  Enhanced Marketplace (Coming Soon)
+                </button>
               </div>
             </div>
 
@@ -141,14 +143,12 @@ export default function MarketplacePage() {
             <p className="text-gray-300 mb-6">
               Ready to trade NFTs with advanced utilities?
             </p>
-            <Link 
-              href="https://analos-marketplace.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 px-12 rounded-lg transition-all duration-200 transform hover:scale-105 text-lg"
+            <button 
+              disabled
+              className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-4 px-12 rounded-lg opacity-75 cursor-not-allowed text-lg"
             >
-              🚀 Launch Marketplace
-            </Link>
+              🚀 Marketplace (Integrated Above)
+            </button>
           </div>
         </div>
       </div>
