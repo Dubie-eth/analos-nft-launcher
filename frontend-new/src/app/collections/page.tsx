@@ -13,6 +13,8 @@ interface Collection {
   externalUrl?: string;
   maxSupply: number;
   mintPrice: number;
+  pricingToken: 'LOS' | 'SOL' | 'CUSTOM';
+  customTokenSymbol?: string;
   royalty: number;
   creatorAddress: string;
   mintAddress: string;
@@ -21,6 +23,8 @@ interface Collection {
   shareUrl: string;
   referralCode: string;
   deployedAt: string;
+  mintType: 'standard' | 'bonding-curve';
+  revealType: 'instant' | 'delayed';
   stats: {
     totalMinted: number;
     totalHolders: number;
@@ -192,7 +196,7 @@ const CollectionsPage: React.FC = () => {
                       />
                       <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1">
                         <span className="text-white text-sm font-medium">
-                          {collection.mintPrice} SOL
+                          {collection.mintPrice} {collection.pricingToken === 'CUSTOM' ? collection.customTokenSymbol : collection.pricingToken}
                         </span>
                       </div>
                       <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1">
@@ -214,6 +218,22 @@ const CollectionsPage: React.FC = () => {
                             : collection.description
                           }
                         </p>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            collection.mintType === 'standard' 
+                              ? 'bg-blue-500/20 text-blue-300' 
+                              : 'bg-purple-500/20 text-purple-300'
+                          }`}>
+                            {collection.mintType === 'standard' ? '🎨 Standard' : '📈 Bonding Curve'}
+                          </span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            collection.revealType === 'instant' 
+                              ? 'bg-green-500/20 text-green-300' 
+                              : 'bg-orange-500/20 text-orange-300'
+                          }`}>
+                            {collection.revealType === 'instant' ? '⚡ Instant' : '🔒 Delayed'}
+                          </span>
+                        </div>
                         <p className="text-gray-400 text-xs">
                           Symbol: {collection.symbol} • Launched {formatDate(collection.deployedAt)}
                         </p>

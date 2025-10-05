@@ -14,8 +14,20 @@ interface CollectionConfig {
   externalUrl: string;
   maxSupply: number;
   mintPrice: number;
+  pricingToken: 'LOS' | 'SOL' | 'CUSTOM';
+  customTokenAddress?: string;
+  customTokenSymbol?: string;
   royalty: number;
   creatorAddress: string;
+  mintType: 'standard' | 'bonding-curve';
+  revealType: 'instant' | 'delayed';
+  delayedRevealSettings?: {
+    revealDate: Date;
+    revealTrigger: 'date' | 'supply' | 'manual';
+    triggerSupply?: number;
+    placeholderImage?: string;
+    revealMessage?: string;
+  };
 }
 
 interface TraitFile {
@@ -62,8 +74,20 @@ const LaunchCollectionPage: React.FC = () => {
     externalUrl: '',
     maxSupply: 1000,
     mintPrice: 0.1,
+    pricingToken: 'LOS',
+    customTokenAddress: '',
+    customTokenSymbol: '',
     royalty: 5.0,
-    creatorAddress: ''
+    creatorAddress: '',
+    mintType: 'standard',
+    revealType: 'instant',
+    delayedRevealSettings: {
+      revealDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      revealTrigger: 'date',
+      triggerSupply: 100,
+      placeholderImage: '',
+      revealMessage: 'Collection will be revealed soon!'
+    }
   });
 
   const [traitFiles, setTraitFiles] = useState<TraitFile[]>([]);
@@ -160,6 +184,10 @@ const LaunchCollectionPage: React.FC = () => {
       const newCollection = {
         ...deployedCollectionData,
         id: deployedCollectionData.collectionAddress,
+        pricingToken: collectionConfig.pricingToken,
+        customTokenSymbol: collectionConfig.customTokenSymbol,
+        mintType: collectionConfig.mintType,
+        revealType: collectionConfig.revealType,
         stats: {
           totalMinted: 0,
           totalHolders: 0,
@@ -262,15 +290,44 @@ const LaunchCollectionPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-white text-sm font-medium mb-2">Mint Price (SOL)</label>
-                <input
-                  type="number"
-                  value={collectionConfig.mintPrice}
-                  onChange={(e) => setCollectionConfig(prev => ({ ...prev, mintPrice: parseFloat(e.target.value) || 0 }))}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  min="0"
-                  step="0.01"
-                />
+                <label className="block text-white text-sm font-medium mb-2">Mint Price</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    value={collectionConfig.mintPrice}
+                    onChange={(e) => setCollectionConfig(prev => ({ ...prev, mintPrice: parseFloat(e.target.value) || 0 }))}
+                    className="flex-1 px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    min="0"
+                    step="0.01"
+                  />
+                  <select
+                    value={collectionConfig.pricingToken}
+                    onChange={(e) => setCollectionConfig(prev => ({ ...prev, pricingToken: e.target.value as any }))}
+                    className="px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="LOS">$LOS</option>
+                    <option value="SOL">SOL</option>
+                    <option value="CUSTOM">Custom Token</option>
+                  </select>
+                </div>
+                {collectionConfig.pricingToken === 'CUSTOM' && (
+                  <div className="mt-3 space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Custom Token Address"
+                      value={collectionConfig.customTokenAddress || ''}
+                      onChange={(e) => setCollectionConfig(prev => ({ ...prev, customTokenAddress: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Token Symbol (e.g., USDC, USDT)"
+                      value={collectionConfig.customTokenSymbol || ''}
+                      onChange={(e) => setCollectionConfig(prev => ({ ...prev, customTokenSymbol: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -297,6 +354,173 @@ const LaunchCollectionPage: React.FC = () => {
                   step="0.1"
                 />
               </div>
+
+              <div>
+                <label className="block text-white text-sm font-medium mb-2">Mint Type *</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      collectionConfig.mintType === 'standard'
+                        ? 'bg-purple-500/20 border-purple-500'
+                        : 'bg-white/10 border-white/20 hover:bg-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, mintType: 'standard' }))}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">🎨</div>
+                      <h3 className="text-white font-semibold">Standard NFT</h3>
+                      <p className="text-gray-300 text-sm">Traditional NFT minting</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      collectionConfig.mintType === 'bonding-curve'
+                        ? 'bg-purple-500/20 border-purple-500'
+                        : 'bg-white/10 border-white/20 hover:bg-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, mintType: 'bonding-curve' }))}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">📈</div>
+                      <h3 className="text-white font-semibold">Bonding Curve</h3>
+                      <p className="text-gray-300 text-sm">Dynamic pricing model</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-white text-sm font-medium mb-2">Reveal Type *</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      collectionConfig.revealType === 'instant'
+                        ? 'bg-purple-500/20 border-purple-500'
+                        : 'bg-white/10 border-white/20 hover:bg-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, revealType: 'instant' }))}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">⚡</div>
+                      <h3 className="text-white font-semibold">Instant Reveal</h3>
+                      <p className="text-gray-300 text-sm">Images revealed immediately</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                      collectionConfig.revealType === 'delayed'
+                        ? 'bg-purple-500/20 border-purple-500'
+                        : 'bg-white/10 border-white/20 hover:bg-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, revealType: 'delayed' }))}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">🔒</div>
+                      <h3 className="text-white font-semibold">Delayed Reveal</h3>
+                      <p className="text-gray-300 text-sm">Images revealed later</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {collectionConfig.revealType === 'delayed' && (
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <h3 className="text-white font-semibold mb-4">Delayed Reveal Settings</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">Reveal Trigger</label>
+                      <select
+                        value={collectionConfig.delayedRevealSettings?.revealTrigger || 'date'}
+                        onChange={(e) => setCollectionConfig(prev => ({
+                          ...prev,
+                          delayedRevealSettings: {
+                            ...prev.delayedRevealSettings!,
+                            revealTrigger: e.target.value as any
+                          }
+                        }))}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="date">Specific Date</option>
+                        <option value="supply">Supply Threshold</option>
+                        <option value="manual">Manual Trigger</option>
+                      </select>
+                    </div>
+
+                    {collectionConfig.delayedRevealSettings?.revealTrigger === 'date' && (
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Reveal Date</label>
+                        <input
+                          type="datetime-local"
+                          value={collectionConfig.delayedRevealSettings?.revealDate?.toISOString().slice(0, 16) || ''}
+                          onChange={(e) => setCollectionConfig(prev => ({
+                            ...prev,
+                            delayedRevealSettings: {
+                              ...prev.delayedRevealSettings!,
+                              revealDate: new Date(e.target.value)
+                            }
+                          }))}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                      </div>
+                    )}
+
+                    {collectionConfig.delayedRevealSettings?.revealTrigger === 'supply' && (
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Supply Threshold</label>
+                        <input
+                          type="number"
+                          value={collectionConfig.delayedRevealSettings?.triggerSupply || 100}
+                          onChange={(e) => setCollectionConfig(prev => ({
+                            ...prev,
+                            delayedRevealSettings: {
+                              ...prev.delayedRevealSettings!,
+                              triggerSupply: parseInt(e.target.value) || 100
+                            }
+                          }))}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          min="1"
+                          max={collectionConfig.maxSupply}
+                        />
+                        <p className="text-gray-400 text-xs mt-1">Collection will reveal when this many NFTs are minted</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">Placeholder Image URL</label>
+                      <input
+                        type="url"
+                        value={collectionConfig.delayedRevealSettings?.placeholderImage || ''}
+                        onChange={(e) => setCollectionConfig(prev => ({
+                          ...prev,
+                          delayedRevealSettings: {
+                            ...prev.delayedRevealSettings!,
+                            placeholderImage: e.target.value
+                          }
+                        }))}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="https://example.com/placeholder.png"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">Reveal Message</label>
+                      <textarea
+                        value={collectionConfig.delayedRevealSettings?.revealMessage || ''}
+                        onChange={(e) => setCollectionConfig(prev => ({
+                          ...prev,
+                          delayedRevealSettings: {
+                            ...prev.delayedRevealSettings!,
+                            revealMessage: e.target.value
+                          }
+                        }))}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Message shown before reveal..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -558,11 +782,31 @@ const LaunchCollectionPage: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span>Price:</span>
-                      <span>{collectionConfig.mintPrice} SOL</span>
+                      <span>{collectionConfig.mintPrice} {collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenSymbol : collectionConfig.pricingToken}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Supply:</span>
                       <span>{collectionConfig.maxSupply}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Mint Type:</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        collectionConfig.mintType === 'standard' 
+                          ? 'bg-blue-500/20 text-blue-300' 
+                          : 'bg-purple-500/20 text-purple-300'
+                      }`}>
+                        {collectionConfig.mintType === 'standard' ? '🎨 Standard' : '📈 Bonding Curve'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Reveal:</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        collectionConfig.revealType === 'instant' 
+                          ? 'bg-green-500/20 text-green-300' 
+                          : 'bg-orange-500/20 text-orange-300'
+                      }`}>
+                        {collectionConfig.revealType === 'instant' ? '⚡ Instant' : '🔒 Delayed'}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Royalty:</span>
