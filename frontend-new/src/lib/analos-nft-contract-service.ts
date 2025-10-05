@@ -128,9 +128,23 @@ class AnalosNFTContractService {
       let signedTransaction: Transaction;
       
       if (signTransaction) {
-        // Get fresh blockhash right before signing
-        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
-        transaction.recentBlockhash = blockhash;
+        // Get fresh blockhash with retry for Analos compatibility
+        let blockhash: string;
+        let retries = 3;
+        
+        while (retries > 0) {
+          try {
+            const blockhashResponse = await this.connection.getLatestBlockhash('finalized');
+            blockhash = blockhashResponse.blockhash;
+            break;
+          } catch (error) {
+            retries--;
+            if (retries === 0) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+          }
+        }
+        
+        transaction.recentBlockhash = blockhash!;
         transaction.feePayer = config.creator;
         
         // Note: Priority fees removed to simplify transaction for wallet compatibility
@@ -233,9 +247,23 @@ class AnalosNFTContractService {
       let signedTransaction: Transaction;
       
       if (signTransaction) {
-        // Get fresh blockhash right before signing
-        const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
-        transaction.recentBlockhash = blockhash;
+        // Get fresh blockhash with retry for Analos compatibility
+        let blockhash: string;
+        let retries = 3;
+        
+        while (retries > 0) {
+          try {
+            const blockhashResponse = await this.connection.getLatestBlockhash('finalized');
+            blockhash = blockhashResponse.blockhash;
+            break;
+          } catch (error) {
+            retries--;
+            if (retries === 0) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+          }
+        }
+        
+        transaction.recentBlockhash = blockhash!;
         transaction.feePayer = owner;
         
         // Note: Priority fees removed to simplify transaction for wallet compatibility
