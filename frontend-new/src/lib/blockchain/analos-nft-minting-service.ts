@@ -217,13 +217,22 @@ export class AnalosNFTMintingService {
 
       transaction.add(mintToInstruction);
 
-      // Add signers
+      // Add signers - FIXED: Need to add mintKeypair as signer for the transaction
       transaction.sign(mintKeypair);
 
       console.log('🔐 Sending transaction to wallet...');
+      console.log('📝 Transaction details:', {
+        instructions: transaction.instructions.length,
+        signers: transaction.signers.length,
+        recentBlockhash: transaction.recentBlockhash
+      });
 
-      // Step 6: Send transaction
-      const signature = await sendTransaction(transaction);
+      // Step 6: Send transaction with proper signers
+      const signature = await sendTransaction(transaction, {
+        signers: [mintKeypair],
+        skipPreflight: false,
+        preflightCommitment: 'confirmed'
+      });
 
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
