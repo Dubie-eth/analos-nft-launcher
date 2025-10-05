@@ -600,7 +600,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Validate deployment configuration
    */
-  validateDeploymentConfig(config) {
+  validateDeploymentConfig(config: any) {
     const errors: string[] = [];
 
     // Validate required fields
@@ -671,7 +671,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Calculate deployment costs
    */
-  calculateDeploymentCosts(config) {
+  calculateDeploymentCosts(config: any) {
     // Mock cost calculation
     // In a real implementation, this would calculate actual costs
     const accountCreation = 0.05 * LAMPORTS_PER_SOL; // 0.05 SOL for account creation
