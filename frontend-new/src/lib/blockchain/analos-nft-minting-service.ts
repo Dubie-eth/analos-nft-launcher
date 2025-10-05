@@ -349,33 +349,21 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Step 6: Add Analos-compatible Master Edition instructions
+      // Step 6: Skip Master Edition for now to get basic NFT minting working
       let masterEditionAddress = PublicKey.default;
       let masterEditionKeypair: Keypair | null = null;
       
       if (nftData.masterEdition) {
-        console.log('🏆 Adding Analos-compatible Master Edition instructions...');
-        const masterEditionResult = await this.createAnalosMasterEditionInstructions(
-          mintAddress,
-          ownerPublicKey,
-          nftData.masterEdition.maxSupply
-        );
-        
-        // Add Master Edition instructions to transaction
-        masterEditionResult.instructions.forEach(instruction => {
-          transaction.add(instruction);
-        });
-        
-        masterEditionAddress = masterEditionResult.masterEditionAddress;
-        masterEditionKeypair = masterEditionResult.masterEditionKeypair;
-        console.log('✅ Added Analos Master Edition instructions:', transaction.instructions?.length || 'undefined');
-        console.log('🔑 Master Edition keypair captured for signing');
+        console.log('🏆 Skipping Master Edition for now - focusing on basic NFT minting');
+        console.log('📝 Master Edition will be added back after basic minting works');
+        // Skip Master Edition instructions for now
       }
 
-      // Step 7: Add metadata instruction with proper compute units
-      console.log('📝 Adding metadata instruction with increased compute units...');
+      // Step 7: Skip metadata instruction for now to get basic NFT minting working
+      console.log('📝 Skipping metadata instruction for now - focusing on basic NFT minting');
+      console.log('📝 Metadata will be added back after basic minting works');
       
-      // Create metadata JSON with Master Edition info
+      // Store metadata separately for now
       const nftMetadata = {
         name: nftData.name,
         symbol: nftData.symbol,
@@ -401,31 +389,8 @@ export class AnalosNFTMintingService {
           note: 'Master Edition info stored in metadata'
         } : null
       };
-
-      // Add metadata instruction with increased compute units
-      try {
-        const metadataData = Buffer.from(JSON.stringify({
-          type: 'nft_metadata',
-          mint: mintAddress.toBase58(),
-          metadata: nftMetadata,
-          network: 'analos',
-          version: '1.0.0'
-        }));
-
-        // Use Memo Program instead of SystemProgram - it's designed for arbitrary data
-        const metadataInstruction = new TransactionInstruction({
-          keys: [
-            { pubkey: ownerPublicKey, isSigner: true, isWritable: false }
-          ],
-          programId: new PublicKey(MEMO_PROGRAM_ID_STRING),
-          data: metadataData
-        });
-
-        transaction.add(metadataInstruction);
-        console.log('✅ Added metadata instruction with increased compute units:', transaction.instructions?.length || 'undefined');
-      } catch (error) {
-        console.log('⚠️ Metadata instruction failed, continuing without metadata:', error);
-      }
+      
+      console.log('📄 Metadata prepared for separate storage:', nftMetadata);
 
       // Add signers - FIXED: Initialize signers array if undefined
       console.log('🔍 Before signing transaction:', {
