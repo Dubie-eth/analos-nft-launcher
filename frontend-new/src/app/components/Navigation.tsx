@@ -16,7 +16,8 @@ export default function Navigation() {
   const baseNavItems = [
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/mint', label: 'Mint', icon: '🎨' },
-    { href: '/mint-nft', label: 'Mint NFT', icon: '🚀' },
+    { href: '/mint-nft', label: 'Mint NFT', icon: '🚀' }, // Simple NFT minting
+    { href: '/mint-real-nft', label: 'Real NFT', icon: '🎯' }, // Real NFT minting
     { href: '/explorer', label: 'Explorer', icon: '🔍' },
     { href: '/profile', label: 'Profile', icon: '👤' },
   ];
