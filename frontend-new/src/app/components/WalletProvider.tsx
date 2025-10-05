@@ -15,20 +15,42 @@ interface Props {
 }
 
 export const WalletContextProvider: FC<Props> = ({ children }) => {
-  // You can also provide a custom RPC endpoint.
-  // Use HTTP-only to avoid WebSocket connection issues
+  // Use Analos RPC endpoint - same as working mint page
   const endpoint = 'https://rpc.analos.io';
 
   const wallets = useMemo(
-    () => [
-      new BackpackWalletAdapter(),
-    ],
+    () => {
+      console.log('🔧 Initializing wallet adapters...');
+      
+      // Create a fresh Backpack adapter instance
+      const backpackAdapter = new BackpackWalletAdapter({
+        // Force a unique name to avoid conflicts
+        name: 'Backpack Analos',
+      });
+      
+      console.log('✅ Backpack wallet adapter configured with name:', backpackAdapter.name);
+      console.log('🌐 RPC Endpoint:', endpoint);
+      
+      return [backpackAdapter];
+    },
     []
   );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
+      <WalletProvider 
+        wallets={wallets} 
+        autoConnect={false}
+        onError={(error) => {
+          console.error('❌ Wallet error:', error);
+        }}
+        onConnect={(publicKey) => {
+          console.log('✅ Wallet connected successfully:', publicKey?.toString());
+        }}
+        onDisconnect={() => {
+          console.log('🔌 Wallet disconnected');
+        }}
+      >
         <WalletModalProvider>
           {children}
         </WalletModalProvider>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useWalletModal, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
@@ -70,28 +70,7 @@ export default function Navigation() {
 
           {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
-            {connected ? (
-              <div className="flex items-center space-x-3">
-                <div className="hidden sm:block">
-                  <div className="text-sm text-gray-600">
-                    {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-                  </div>
-                </div>
-                <button
-                  onClick={disconnect}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                >
-                  Disconnect
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setVisible(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
-              >
-                Connect Wallet
-              </button>
-            )}
+            <WalletMultiButton className="!bg-gradient-to-r !from-blue-500 !to-purple-600 hover:!from-blue-600 hover:!to-purple-700 !text-white !px-4 !py-2 !rounded-lg !text-sm !font-medium !transition-all !duration-200 transform hover:!scale-105" />
           </div>
         </div>
 
