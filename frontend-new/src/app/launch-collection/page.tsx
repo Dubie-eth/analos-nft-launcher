@@ -67,11 +67,26 @@ interface WhitelistPhase {
 }
 
 interface PlatformFees {
-  platformFee: number; // Percentage
-  creatorRoyalty: number; // Percentage
-  marketplaceFee: number; // Percentage
-  referralFee: number; // Percentage
-  feeRecipient: string; // Wallet address for platform fees
+  platformFee: number; // Platform fee (like pump.fun)
+  tradingFee: number; // Trading fee (like pump.fun)
+  creatorFee: number; // Creator/deployer fee
+  communityFee: number; // Community treasury fee (optional)
+  feeRecipient: string; // Platform fee wallet
+  creatorRecipient: string; // Creator/deployer wallet
+  communityRecipient: string; // Community treasury wallet (optional)
+}
+
+interface BondingCurveConfig {
+  type: 'linear' | 'exponential' | 'logarithmic' | 's-curve' | 'custom';
+  name: string;
+  description: string;
+  startingPrice: number;
+  endingPrice: number;
+  curveParameters?: {
+    steepness?: number;
+    inflectionPoint?: number;
+    maxSupply?: number;
+  };
 }
 
 interface LaunchStep {
@@ -116,15 +131,64 @@ const LaunchCollectionPage: React.FC = () => {
   });
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
   const [platformFees, setPlatformFees] = useState<PlatformFees>({
-    platformFee: 2.5, // 2.5% platform fee
-    creatorRoyalty: 5.0, // 5% creator royalty
-    marketplaceFee: 1.0, // 1% marketplace fee
-    referralFee: 1.0, // 1% referral fee
-    feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW' // Platform fee wallet
+    platformFee: 1.0, // 1% platform fee (like pump.fun)
+    tradingFee: 1.0, // 1% trading fee (like pump.fun)
+    creatorFee: 1.0, // 1% creator/deployer fee
+    communityFee: 0.0, // 0% community fee (optional)
+    feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Platform fee wallet
+    creatorRecipient: '', // Will be set to deployer wallet
+    communityRecipient: '' // Community treasury wallet (optional)
   });
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<string>('');
   const [deployedCollection, setDeployedCollection] = useState<any>(null);
+  const [bondingCurveConfig, setBondingCurveConfig] = useState<BondingCurveConfig>({
+    type: 'linear',
+    name: 'Linear Growth',
+    description: 'Steady price increase over time',
+    startingPrice: 0.01,
+    endingPrice: 1.0
+  });
+  const [showBondingCurveSelector, setShowBondingCurveSelector] = useState(false);
+
+  // Available bonding curve options
+  const bondingCurveOptions: BondingCurveConfig[] = [
+    {
+      type: 'linear',
+      name: 'Linear Growth',
+      description: 'Steady, predictable price increase over time',
+      startingPrice: 0.01,
+      endingPrice: 1.0
+    },
+    {
+      type: 'exponential',
+      name: 'Exponential Growth',
+      description: 'Rapid price increase as supply grows',
+      startingPrice: 0.01,
+      endingPrice: 10.0
+    },
+    {
+      type: 'logarithmic',
+      name: 'Logarithmic Growth',
+      description: 'Fast initial growth, then levels off',
+      startingPrice: 0.01,
+      endingPrice: 5.0
+    },
+    {
+      type: 's-curve',
+      name: 'S-Curve Growth',
+      description: 'Slow start, rapid middle, slow finish',
+      startingPrice: 0.01,
+      endingPrice: 3.0
+    },
+    {
+      type: 'custom',
+      name: 'Custom Curve',
+      description: 'Define your own pricing parameters',
+      startingPrice: 0.01,
+      endingPrice: 2.0
+    }
+  ];
 
   const steps: LaunchStep[] = [
     { id: 1, title: 'Basic Info', description: 'Collection details and metadata', completed: currentStep > 1 },
@@ -138,6 +202,12 @@ const LaunchCollectionPage: React.FC = () => {
   ];
 
   const nextStep = () => {
+    // If on step 1 and bonding curve is selected, show bonding curve selector
+    if (currentStep === 1 && collectionConfig.mintType === 'bonding-curve') {
+      setShowBondingCurveSelector(true);
+      return;
+    }
+    
     if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     }
@@ -147,6 +217,13 @@ const LaunchCollectionPage: React.FC = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleBondingCurveSelection = (curve: BondingCurveConfig) => {
+    setBondingCurveConfig(curve);
+    setShowBondingCurveSelector(false);
+    // Move to step 2 after selecting bonding curve
+    setCurrentStep(2);
   };
 
   const handleTraitUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -946,11 +1023,17 @@ const LaunchCollectionPage: React.FC = () => {
             </div>
 
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+              {/* Pump.fun/Bonk.fun Style Fee Structure */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-2">🚀 Pump.fun/Bonk.fun Style Fee Structure</h3>
+                <p className="text-gray-300 text-sm">Configure fees similar to pump.fun and bonk.fun platforms</p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
-                      Platform Fee (%)
+                      Platform Fee (%) - <span className="text-green-400">Recommended: 1%</span>
                     </label>
                     <input
                       type="number"
@@ -958,111 +1041,145 @@ const LaunchCollectionPage: React.FC = () => {
                       onChange={(e) => setPlatformFees(prev => ({ ...prev, platformFee: parseFloat(e.target.value) || 0 }))}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       min="0"
-                      max="25"
+                      max="5"
                       step="0.1"
                     />
-                    <p className="text-gray-400 text-xs mt-1">Fee collected by the platform for hosting and services</p>
+                    <p className="text-gray-400 text-xs mt-1">Fee collected by Analos platform for hosting and services</p>
                   </div>
 
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
-                      Creator Royalty (%)
+                      Trading Fee (%) - <span className="text-green-400">Recommended: 1%</span>
                     </label>
                     <input
                       type="number"
-                      value={platformFees.creatorRoyalty}
-                      onChange={(e) => setPlatformFees(prev => ({ ...prev, creatorRoyalty: parseFloat(e.target.value) || 0 }))}
+                      value={platformFees.tradingFee}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, tradingFee: parseFloat(e.target.value) || 0 }))}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       min="0"
-                      max="25"
+                      max="5"
                       step="0.1"
                     />
-                    <p className="text-gray-400 text-xs mt-1">Royalty you receive from secondary sales</p>
+                    <p className="text-gray-400 text-xs mt-1">Fee on all trading transactions (like pump.fun)</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
-                      Marketplace Fee (%)
+                      Creator/Deployer Fee (%) - <span className="text-blue-400">Recommended: 1%</span>
                     </label>
                     <input
                       type="number"
-                      value={platformFees.marketplaceFee}
-                      onChange={(e) => setPlatformFees(prev => ({ ...prev, marketplaceFee: parseFloat(e.target.value) || 0 }))}
+                      value={platformFees.creatorFee}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, creatorFee: parseFloat(e.target.value) || 0 }))}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       min="0"
-                      max="25"
+                      max="5"
                       step="0.1"
                     />
-                    <p className="text-gray-400 text-xs mt-1">Fee for marketplace transactions</p>
+                    <p className="text-gray-400 text-xs mt-1">Fee paid to token creator/deployer</p>
                   </div>
 
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
-                      Referral Fee (%)
+                      Community Fee (%) - <span className="text-yellow-400">Optional</span>
                     </label>
                     <input
                       type="number"
-                      value={platformFees.referralFee}
-                      onChange={(e) => setPlatformFees(prev => ({ ...prev, referralFee: parseFloat(e.target.value) || 0 }))}
+                      value={platformFees.communityFee}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, communityFee: parseFloat(e.target.value) || 0 }))}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       min="0"
-                      max="25"
+                      max="5"
                       step="0.1"
                     />
-                    <p className="text-gray-400 text-xs mt-1">Fee for referral program participants</p>
+                    <p className="text-gray-400 text-xs mt-1">Fee for community treasury (optional)</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6">
-                <label className="block text-white text-sm font-medium mb-2">
-                  Platform Fee Recipient
-                </label>
-                <input
-                  type="text"
-                  value={platformFees.feeRecipient}
-                  onChange={(e) => setPlatformFees(prev => ({ ...prev, feeRecipient: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Platform fee wallet address"
-                />
-                <p className="text-gray-400 text-xs mt-1">Wallet address that receives platform fees</p>
+              {/* Fee Recipients */}
+              <div className="mt-6 space-y-4">
+                <h4 className="text-white font-medium">Fee Recipients</h4>
+                
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2">
+                    Creator/Deployer Wallet Address
+                  </label>
+                  <input
+                    type="text"
+                    value={platformFees.creatorRecipient}
+                    onChange={(e) => setPlatformFees(prev => ({ ...prev, creatorRecipient: e.target.value }))}
+                    placeholder={publicKey?.toString() || "Enter creator wallet address"}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="text-gray-400 text-xs mt-1">Wallet that will receive creator fees</p>
+                </div>
+
+                {platformFees.communityFee > 0 && (
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Community Treasury Wallet Address (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={platformFees.communityRecipient}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, communityRecipient: e.target.value }))}
+                      placeholder="Enter community treasury wallet address"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                    <p className="text-gray-400 text-xs mt-1">Wallet for community governance funds</p>
+                  </div>
+                )}
               </div>
+
             </div>
 
-            {/* Fee Breakdown */}
+            {/* Fee Breakdown - Pump.fun/Bonk.fun Style */}
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-semibold text-white mb-4">Fee Breakdown</h3>
+              <h3 className="text-xl font-semibold text-white mb-4">📊 Fee Breakdown</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-300">Platform Fee:</span>
-                  <span className="text-white font-medium">{platformFees.platformFee}%</span>
+                <div className="flex justify-between items-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                  <span className="text-gray-300">Platform Fee (Analos):</span>
+                  <span className="text-green-400 font-medium">{platformFees.platformFee}%</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-300">Creator Royalty:</span>
-                  <span className="text-white font-medium">{platformFees.creatorRoyalty}%</span>
+                <div className="flex justify-between items-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <span className="text-gray-300">Trading Fee (Analos):</span>
+                  <span className="text-blue-400 font-medium">{platformFees.tradingFee}%</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-300">Marketplace Fee:</span>
-                  <span className="text-white font-medium">{platformFees.marketplaceFee}%</span>
+                <div className="flex justify-between items-center p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                  <span className="text-gray-300">Creator/Deployer Fee:</span>
+                  <span className="text-purple-400 font-medium">{platformFees.creatorFee}%</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                  <span className="text-gray-300">Referral Fee:</span>
-                  <span className="text-white font-medium">{platformFees.referralFee}%</span>
-                </div>
+                {platformFees.communityFee > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <span className="text-gray-300">Community Fee:</span>
+                    <span className="text-yellow-400 font-medium">{platformFees.communityFee}%</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30">
                   <span className="text-white font-semibold">Total Fees:</span>
                   <span className="text-white font-bold">
-                    {(platformFees.platformFee + platformFees.creatorRoyalty + platformFees.marketplaceFee + platformFees.referralFee).toFixed(1)}%
+                    {(platformFees.platformFee + platformFees.tradingFee + platformFees.creatorFee + platformFees.communityFee).toFixed(1)}%
                   </span>
                 </div>
               </div>
               
-              {platformFees.platformFee + platformFees.creatorRoyalty + platformFees.marketplaceFee + platformFees.referralFee > 25 && (
+              {/* Fee Distribution Info */}
+              <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <h4 className="text-blue-400 font-medium mb-2">💰 Fee Distribution</h4>
+                <p className="text-gray-300 text-sm">
+                  Platform fees ({platformFees.platformFee + platformFees.tradingFee}%) go to Analos for hosting and trading infrastructure.
+                  Creator fees ({platformFees.creatorFee}%) go to the token deployer.
+                  {platformFees.communityFee > 0 && ` Community fees (${platformFees.communityFee}%) go to community treasury.`}
+                </p>
+              </div>
+              
+              {(platformFees.platformFee + platformFees.tradingFee + platformFees.creatorFee + platformFees.communityFee) > 5 && (
                 <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
                   <p className="text-red-300 text-sm">
-                    ⚠️ Total fees exceed 25%. Consider reducing some fees to maintain competitive pricing.
+                    ⚠️ Total fees exceed 5%. Consider reducing some fees to maintain competitive pricing (recommended total: 3% like pump.fun).
                   </p>
                 </div>
               )}
@@ -1476,6 +1593,64 @@ const LaunchCollectionPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Bonding Curve Selector Modal */}
+        {showBondingCurveSelector && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-white mb-2">📈 Choose Your Bonding Curve</h2>
+                <p className="text-gray-300">Select the pricing model that best fits your collection</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {bondingCurveOptions.map((curve) => (
+                  <div
+                    key={curve.type}
+                    onClick={() => handleBondingCurveSelection(curve)}
+                    className="bg-white/10 hover:bg-white/20 border border-white/20 hover:border-purple-500 rounded-xl p-6 cursor-pointer transition-all duration-200 transform hover:scale-105"
+                  >
+                    <div className="text-center">
+                      <div className="text-3xl mb-3">
+                        {curve.type === 'linear' && '📈'}
+                        {curve.type === 'exponential' && '🚀'}
+                        {curve.type === 'logarithmic' && '📊'}
+                        {curve.type === 's-curve' && '🌊'}
+                        {curve.type === 'custom' && '⚙️'}
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-2">{curve.name}</h3>
+                      <p className="text-gray-300 text-sm mb-4">{curve.description}</p>
+                      
+                      <div className="bg-white/10 rounded-lg p-3 mb-4">
+                        <div className="flex justify-between text-sm text-white/80 mb-1">
+                          <span>Starting Price:</span>
+                          <span>{curve.startingPrice} {collectionConfig.pricingToken}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-white/80">
+                          <span>Ending Price:</span>
+                          <span>{curve.endingPrice} {collectionConfig.pricingToken}</span>
+                        </div>
+                      </div>
+
+                      <button className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200">
+                        Select This Curve
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <button
+                  onClick={() => setShowBondingCurveSelector(false)}
+                  className="bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200"
+                >
+                  Back to Basic Info
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </StandardLayout>
   );
