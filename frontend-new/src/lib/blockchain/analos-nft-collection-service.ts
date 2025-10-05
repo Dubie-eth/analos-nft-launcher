@@ -6,7 +6,8 @@ import {
   Keypair
 } from '@solana/web3.js';
 import { 
-  createMint,
+  createInitializeMintInstruction,
+  createMintToInstruction,
   createAccount,
   mintTo,
   getAssociatedTokenAddress,
@@ -100,9 +101,8 @@ export class AnalosNFTCollectionService {
 
       transaction.add(createMintInstruction);
 
-      // Initialize collection mint instruction
-      const initializeMintInstruction = createMint(
-        creatorPublicKey, // mint authority
+      // Initialize collection mint instruction - FIXED: Use createInitializeMintInstruction
+      const initializeMintInstruction = createInitializeMintInstruction(
         collectionMint,   // mint address
         0,                // decimals (0 for NFTs)
         creatorPublicKey, // mint authority
@@ -217,9 +217,8 @@ export class AnalosNFTCollectionService {
 
       transaction.add(createMintInstruction);
 
-      // Initialize NFT mint instruction
-      const initializeMintInstruction = createMint(
-        ownerPublicKey, // mint authority
+      // Initialize NFT mint instruction - FIXED: Use createInitializeMintInstruction
+      const initializeMintInstruction = createInitializeMintInstruction(
         nftMint,        // mint address
         0,              // decimals (0 for NFTs)
         ownerPublicKey, // mint authority
@@ -238,8 +237,8 @@ export class AnalosNFTCollectionService {
 
       transaction.add(createTokenAccountInstruction);
 
-      // Mint token instruction (1 token for NFT)
-      const mintToInstruction = mintTo(
+      // Mint token instruction (1 token for NFT) - FIXED: Use createMintToInstruction
+      const mintToInstruction = createMintToInstruction(
         nftMint,        // mint
         tokenAccount,   // destination
         ownerPublicKey, // authority

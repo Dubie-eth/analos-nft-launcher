@@ -8,14 +8,15 @@ import {
   LAMPORTS_PER_SOL
 } from '@solana/web3.js';
 import { 
-  createMint,
-  createAccount,
-  mintTo,
+  createInitializeMintInstruction,
+  createMintToInstruction,
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
   MINT_SIZE,
-  getMinimumBalanceForRentExemptMint
+  getMinimumBalanceForRentExemptMint,
+  createAccount,
+  mintTo
 } from '@solana/spl-token';
 
 export interface NFTCreationData {
@@ -185,9 +186,8 @@ export class AnalosNFTMintingService {
 
       transaction.add(createMintInstruction);
 
-      // Initialize mint instruction
-      const initializeMintInstruction = createMint(
-        ownerPublicKey, // mint authority
+      // Initialize mint instruction - FIXED: Use createInitializeMintInstruction
+      const initializeMintInstruction = createInitializeMintInstruction(
         mintAddress,    // mint address
         0,              // decimals (0 for NFTs)
         ownerPublicKey, // mint authority
@@ -206,8 +206,8 @@ export class AnalosNFTMintingService {
 
       transaction.add(createTokenAccountInstruction);
 
-      // Mint token instruction (1 token for NFT)
-      const mintToInstruction = mintTo(
+      // Mint token instruction (1 token for NFT) - FIXED: Use createMintToInstruction
+      const mintToInstruction = createMintToInstruction(
         mintAddress,    // mint
         tokenAccount,   // destination
         ownerPublicKey, // authority
