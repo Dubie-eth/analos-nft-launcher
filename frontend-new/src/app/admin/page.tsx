@@ -16,7 +16,7 @@ import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import { adminControlService } from '../../lib/admin-control-service';
 import { adminPreviewService } from '../../lib/admin-preview-service';
-import { realBlockchainDeploymentService } from '../../lib/blockchain/real-deployment-service';
+import { properDeploymentService } from '../../lib/blockchain/proper-deployment-service';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
@@ -580,31 +580,42 @@ function AdminPageContent() {
         paymentTokens: currentCollection?.paymentTokens
       };
 
-      // Validate deployment configuration
-      const validation = realBlockchainDeploymentService.validateDeploymentConfig(deploymentConfig);
-      if (!validation.valid) {
-        throw new Error(`Invalid deployment configuration: ${validation.errors.join(', ')}`);
-      }
+      setDeployStatus('Creating collection configuration...');
 
-      setDeployStatus('Creating deployment instructions...');
+      // Create collection configuration
+      const collectionConfig = {
+        name: deploymentConfig.name,
+        symbol: deploymentConfig.symbol,
+        description: deploymentConfig.description,
+        imageUri: deploymentConfig.image || '',
+        externalUrl: deploymentConfig.externalUrl,
+        maxSupply: deploymentConfig.maxSupply,
+        mintPrice: new (await import('@coral-xyz/anchor')).BN(deploymentConfig.mintPrice * 1e9), // Convert SOL to lamports
+        feePercentage: deploymentConfig.feePercentage,
+        feeRecipient: new (await import('@solana/web3.js')).PublicKey(deploymentConfig.feeRecipient),
+        creator: publicKey,
+        deployedAt: new (await import('@coral-xyz/anchor')).BN(Date.now()),
+        platform: 'Analos NFT Launcher',
+        version: '1.0.0'
+      };
 
-      // Create deployment instructions
-      const instructionsResult = await realBlockchainDeploymentService.createDeploymentInstructions(
-        deploymentConfig,
-        publicKey.toString()
+      const createResult = await properDeploymentService.createCollection(
+        collectionConfig,
+        deploymentConfig.whitelist?.phases || [],
+        deploymentConfig.paymentTokens || []
       );
 
-      if (!instructionsResult.success) {
-        throw new Error(instructionsResult.error || 'Failed to create deployment instructions');
+      if (!createResult.success) {
+        throw new Error(createResult.error || 'Failed to create collection');
       }
 
-      console.log('✅ Deployment instructions created:', instructionsResult.instructions);
+      console.log('✅ Collection created:', createResult);
       
-      setDeployStatus('Instructions created, executing deployment...');
+      setDeployStatus('Deploying to blockchain...');
 
-      // Execute deployment with wallet signing
-      const deploymentResult = await realBlockchainDeploymentService.executeDeployment(
-        instructionsResult.instructions!,
+      // Deploy collection to blockchain
+      const deploymentResult = await properDeploymentService.deployCollection(
+        createResult.collectionAddress!,
         publicKey.toString(),
         async (transaction: Transaction) => {
           // Use the wallet's signTransaction method
