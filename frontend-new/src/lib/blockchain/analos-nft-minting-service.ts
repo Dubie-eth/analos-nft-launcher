@@ -359,11 +359,10 @@ export class AnalosNFTMintingService {
         // Skip Master Edition instructions for now
       }
 
-      // Step 7: Skip metadata instruction for now to get basic NFT minting working
-      console.log('📝 Skipping metadata instruction for now - focusing on basic NFT minting');
-      console.log('📝 Metadata will be added back after basic minting works');
-      
-      // Store metadata separately for now
+        // Step 7: Add on-chain metadata using Memo Program
+        console.log('📝 Adding on-chain metadata instruction...');
+        
+        // Create metadata for on-chain storage
       const nftMetadata = {
         name: nftData.name,
         symbol: nftData.symbol,
@@ -390,7 +389,19 @@ export class AnalosNFTMintingService {
         } : null
       };
       
-      console.log('📄 Metadata prepared for separate storage:', nftMetadata);
+        console.log('📄 Metadata prepared for on-chain storage:', nftMetadata);
+        
+        // Create on-chain metadata instruction using Memo Program
+        const metadataInstruction = new TransactionInstruction({
+          keys: [],
+          programId: new PublicKey(MEMO_PROGRAM_ID_STRING),
+          data: Buffer.from(JSON.stringify(nftMetadata), 'utf8')
+        });
+        
+        // Add metadata instruction to transaction
+        transaction.add(metadataInstruction);
+        console.log('✅ Added metadata instruction to transaction');
+        console.log('📊 Transaction now has 5 instructions (4 NFT + 1 metadata)');
 
       // Add signers - FIXED: Initialize signers array if undefined
       console.log('🔍 Before signing transaction:', {
@@ -411,11 +422,12 @@ export class AnalosNFTMintingService {
       console.log('📝 Transaction now has required signatures for account creation');
 
       console.log('🔐 Sending transaction to wallet...');
-      console.log('📝 Transaction details:', {
-        instructions: transaction.instructions.length,
-        signers: transaction.signers?.length || 0,
-        recentBlockhash: transaction.recentBlockhash
-      });
+        console.log('📝 Transaction details:', {
+          instructions: transaction.instructions.length,
+          signers: transaction.signers?.length || 0,
+          recentBlockhash: transaction.recentBlockhash
+        });
+        console.log('📊 Total instructions: 4 NFT + 1 metadata = 5 instructions');
 
       console.log('🔍 Debug sendTransaction call:', {
         transaction: !!transaction,
@@ -486,7 +498,7 @@ export class AnalosNFTMintingService {
         success: true,
         mintAddress: mintAddress.toBase58(),
         tokenAccount: tokenAccount.toBase58(),
-        metadataAddress: `system_${signature}`, // Metadata stored via SystemProgram instruction
+        metadataAddress: `memo_${signature}`, // Metadata stored via Memo Program instruction
         masterEditionAddress: masterEditionAddress.toBase58(), // Master Edition address
         transactionSignature: signature,
         explorerUrl: `https://explorer.analos.io/tx/${signature}`,
