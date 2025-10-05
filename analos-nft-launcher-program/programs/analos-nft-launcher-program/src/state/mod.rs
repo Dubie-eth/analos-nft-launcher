@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::pubkey::Pubkey;
 
-#[derive(Accounts)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct CollectionConfig {
     pub name: String,
     pub symbol: String,
@@ -18,7 +18,7 @@ pub struct CollectionConfig {
     pub version: String,
 }
 
-#[derive(Accounts)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct WhitelistPhase {
     pub name: String,
     pub start_time: i64,
@@ -30,13 +30,13 @@ pub struct WhitelistPhase {
     pub token_requirements: Vec<TokenRequirement>,
 }
 
-#[derive(Accounts)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct TokenRequirement {
     pub token_mint: Pubkey,
     pub min_balance: u64,
 }
 
-#[derive(Accounts)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct PaymentToken {
     pub token_mint: Pubkey,
     pub symbol: String,
@@ -46,7 +46,7 @@ pub struct PaymentToken {
     pub is_enabled: bool,
 }
 
-#[derive(Accounts)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct DelayedReveal {
     pub enabled: bool,
     pub reveal_type: u8, // 0 = instant, 1 = time_based, 2 = completion_based

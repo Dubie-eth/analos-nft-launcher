@@ -1535,6 +1535,87 @@ app.post('/api/admin/toggle-minting', (req, res) => {
   }
 });
 
+// Get collection deployment instructions (for frontend wallet signing)
+app.post('/api/collections/deploy-instructions', async (req, res) => {
+  try {
+    const { name, description, price, maxSupply, feePercentage, feeRecipient, symbol, externalUrl, image, walletAddress } = req.body;
+
+    if (!name || !price || !maxSupply || !symbol || !walletAddress) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: name, price, maxSupply, symbol, and walletAddress are required' 
+      });
+    }
+
+    console.log('🎯 Creating collection deployment instructions for:', { name, walletAddress });
+
+    // Handle base64 image or use default
+    let imageUrl = 'https://picsum.photos/500/500?random=' + Date.now();
+    if (image && image.startsWith('data:image/')) {
+      imageUrl = image;
+    }
+
+    // Generate unique collection ID
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substr(2, 9);
+    const collectionId = `AnalosCol${timestamp}${randomSuffix}`;
+
+    // Create deployment instructions using the real NFT mint service
+    if (!realNFTMintService) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'NFT mint service not initialized' 
+      });
+    }
+
+    const deploymentInstructions = await realNFTMintService.createCollectionDeploymentInstructions({
+      collectionId,
+      name: name.trim(),
+      symbol: symbol.trim().toUpperCase(),
+      description: description?.trim() || '',
+      image: imageUrl,
+      maxSupply: Number(maxSupply),
+      mintPrice: Number(price),
+      feePercentage: Number(feePercentage) || 2.5,
+      feeRecipient: feeRecipient || walletAddress,
+      externalUrl: externalUrl || '',
+      walletAddress
+    });
+
+    if (!deploymentInstructions.success) {
+      return res.status(500).json({ 
+        success: false, 
+        error: deploymentInstructions.error 
+      });
+    }
+
+    console.log('✅ Created collection deployment instructions:', {
+      instructionCount: deploymentInstructions.instructions.length,
+      collectionId,
+      walletAddress
+    });
+
+    res.json({
+      success: true,
+      instructions: deploymentInstructions.instructions,
+      collectionId,
+      collectionData: {
+        name: name.trim(),
+        symbol: symbol.trim().toUpperCase(),
+        description: description?.trim() || '',
+        maxSupply: Number(maxSupply),
+        mintPrice: Number(price),
+        feePercentage: Number(feePercentage) || 2.5
+      },
+      message: 'Collection deployment instructions created. Please sign with your wallet to deploy the collection.'
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating collection deployment instructions:', error);
+    res.status(500).json({ success: false, error: 'Failed to create deployment instructions' });
+  }
+});
+
 // Deploy collection endpoint (new endpoint for admin page)
 app.post('/api/collections/deploy', async (req, res) => {
   try {

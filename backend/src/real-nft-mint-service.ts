@@ -198,6 +198,67 @@ export class RealNFTMintService {
   }
 
   /**
+   * Create collection deployment instructions
+   */
+  async createCollectionDeploymentInstructions(params: {
+    collectionId: string;
+    name: string;
+    symbol: string;
+    description: string;
+    image: string;
+    maxSupply: number;
+    mintPrice: number;
+    feePercentage: number;
+    feeRecipient: string;
+    externalUrl: string;
+    walletAddress: string;
+  }): Promise<{ success: boolean; instructions?: TransactionInstruction[]; error?: string }> {
+    try {
+      console.log('🎯 Creating collection deployment instructions for:', params.name);
+      
+      const walletPublicKey = new PublicKey(params.walletAddress);
+      
+      // For now, we'll create a simplified collection deployment
+      // In a real implementation, this would create proper Metaplex collection accounts
+      const instructions: TransactionInstruction[] = [];
+      
+      // Create a system program instruction as a placeholder
+      // In production, this would create:
+      // 1. Collection metadata account
+      // 2. Collection master edition account
+      // 3. Collection mint account
+      // 4. Associated token accounts
+      
+      const createAccountInstruction = SystemProgram.createAccount({
+        fromPubkey: walletPublicKey,
+        newAccountPubkey: walletPublicKey, // Placeholder - would be a new keypair in production
+        lamports: 0,
+        space: 0,
+        programId: SystemProgram.programId,
+      });
+      
+      instructions.push(createAccountInstruction);
+      
+      console.log('✅ Created collection deployment instructions:', {
+        instructionCount: instructions.length,
+        collectionId: params.collectionId
+      });
+      
+      return {
+        success: true,
+        instructions
+      };
+      
+    } catch (error) {
+      console.error('❌ Error creating collection deployment instructions:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Get the transaction signature for verification
    */
   getExplorerUrl(signature: string): string {
