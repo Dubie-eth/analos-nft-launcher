@@ -175,10 +175,14 @@ export class AnalosNFTMintingService {
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       
+      // FIXED: Explicitly set feePayer to the owner's public key
+      transaction.feePayer = ownerPublicKey;
+      
       console.log('🔍 Transaction created:', {
         transaction: !!transaction,
         blockhash: !!blockhash,
-        instructionsLength: transaction.instructions?.length || 'undefined'
+        instructionsLength: transaction.instructions?.length || 'undefined',
+        feePayer: transaction.feePayer?.toBase58()
       });
 
       // Create mint account instruction
@@ -265,7 +269,7 @@ export class AnalosNFTMintingService {
         instructions: transaction.instructions,
         signers: transaction.signers,
         recentBlockhash: transaction.recentBlockhash,
-        feePayer: transaction.feePayer
+        feePayer: transaction.feePayer?.toBase58() || 'undefined'
       });
 
       // Step 6: Send transaction with proper signers
