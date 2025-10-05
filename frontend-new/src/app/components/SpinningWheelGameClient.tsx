@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
+import { spinningWheelService, Prize, SpinResult, BurnToEarnEligibility } from '../../lib/spinning-wheel-service';
 
-// Interfaces imported from service
+// Constants from service
+const HOUSE_EDGE = 0.15;
+const MIN_SPIN_COST = 0.1;
+const MAX_SPIN_COST = 10;
 
-export default function SpinningWheelGame() {
+export default function SpinningWheelGameClient() {
   const { publicKey, connected, signTransaction } = useWallet();
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [spinCost, setSpinCost] = useState(1);
@@ -49,11 +52,6 @@ export default function SpinningWheelGame() {
 
     loadInitialData();
   }, [publicKey, connected]);
-
-  // Constants from service
-  const HOUSE_EDGE = 0.15;
-  const MIN_SPIN_COST = 0.1;
-  const MAX_SPIN_COST = 10;
 
   const handleSpin = async () => {
     if (!publicKey || !connected || !signTransaction) {

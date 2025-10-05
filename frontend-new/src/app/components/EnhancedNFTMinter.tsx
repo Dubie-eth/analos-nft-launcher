@@ -63,26 +63,28 @@ export default function EnhancedNFTMinter() {
       setError(null);
 
       try {
-        // Initialize Turnkey service
-        const initialized = await turnkeyIntegrationService.initialize();
-        
-        if (!initialized) {
-          throw new Error('Failed to initialize Turnkey service');
-        }
+        // Initialize Turnkey service (only on client-side)
+        if (typeof window !== 'undefined') {
+          const initialized = await turnkeyIntegrationService.initialize();
+          
+          if (!initialized) {
+            throw new Error('Failed to initialize Turnkey service');
+          }
 
-        // Create or get embedded wallet
-        const userId = publicKey.toString();
-        const walletName = `analos-nft-wallet-${userId.slice(0, 8)}`;
-        
-        // Check if wallet already exists
-        const existingWallets = await turnkeyIntegrationService.listWallets(userId);
-        
-        if (existingWallets.length > 0) {
-          setTurnkeyWallet(existingWallets[0]);
-        } else {
-          // Create new embedded wallet
-          const newWallet = await turnkeyIntegrationService.createEmbeddedWallet(userId, walletName);
-          setTurnkeyWallet(newWallet);
+          // Create or get embedded wallet
+          const userId = publicKey.toString();
+          const walletName = `analos-nft-wallet-${userId.slice(0, 8)}`;
+          
+          // Check if wallet already exists
+          const existingWallets = await turnkeyIntegrationService.listWallets(userId);
+          
+          if (existingWallets.length > 0) {
+            setTurnkeyWallet(existingWallets[0]);
+          } else {
+            // Create new embedded wallet
+            const newWallet = await turnkeyIntegrationService.createEmbeddedWallet(userId, walletName);
+            setTurnkeyWallet(newWallet);
+          }
         }
 
       } catch (err) {

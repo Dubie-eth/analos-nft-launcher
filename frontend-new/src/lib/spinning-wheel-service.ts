@@ -127,6 +127,9 @@ class SpinningWheelService {
   }
 
   private loadGameStats(): void {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') return;
+    
     // Load stats from localStorage or blockchain
     const savedStats = localStorage.getItem('spinning_wheel_stats');
     if (savedStats) {
@@ -139,6 +142,9 @@ class SpinningWheelService {
   }
 
   private saveGameStats(): void {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem('spinning_wheel_stats', JSON.stringify(this.gameStats));
   }
 
@@ -186,10 +192,16 @@ class SpinningWheelService {
   }
 
   private savePrizes(): void {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem('spinning_wheel_prizes', JSON.stringify(this.prizes));
   }
 
   private loadPrizes(): void {
+    // Only access localStorage on client-side
+    if (typeof window === 'undefined') return;
+    
     const savedPrizes = localStorage.getItem('spinning_wheel_prizes');
     if (savedPrizes) {
       try {

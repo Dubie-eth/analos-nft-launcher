@@ -3,8 +3,18 @@
 import React from 'react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
-import SpinningWheelGame from '@/app/components/SpinningWheelGame';
-import EnhancedNFTMinter from '@/app/components/EnhancedNFTMinter';
+import dynamic from 'next/dynamic';
+
+// Dynamic imports to avoid SSR issues
+const SpinningWheelGameClient = dynamic(() => import('@/app/components/SpinningWheelGameClient'), {
+  ssr: false,
+  loading: () => <div className="text-center text-white">Loading spinning wheel...</div>
+});
+
+const EnhancedNFTMinter = dynamic(() => import('@/app/components/EnhancedNFTMinter'), {
+  ssr: false,
+  loading: () => <div className="text-center text-white">Loading NFT minter...</div>
+});
 
 export default function MarketplacePage() {
   return (
@@ -36,7 +46,7 @@ export default function MarketplacePage() {
               <h2 className="text-2xl font-bold text-white mb-2">🎰 Featured Game</h2>
               <p className="text-gray-300">Connect your wallet and start spinning for prizes!</p>
             </div>
-            <SpinningWheelGame />
+            <SpinningWheelGameClient />
           </div>
 
           {/* Marketplace Options */}
