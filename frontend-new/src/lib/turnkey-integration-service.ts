@@ -346,7 +346,7 @@ class TurnkeyIntegrationService {
   }
 
   /**
-   * Make authenticated request to Turnkey API
+   * Make authenticated request to Turnkey API via our proxy
    */
   private async makeRequest(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
@@ -357,31 +357,40 @@ class TurnkeyIntegrationService {
   ): Promise<any> {
     const url = this.buildUrl(endpoint, subOrgId, walletId);
     
-    const headers: HeadersInit = {
-      'Authorization': `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json',
-    };
-
-    const config: RequestInit = {
-      method,
-      headers,
-    };
-
-    if (data && (method === 'POST' || method === 'PUT')) {
-      config.body = JSON.stringify(data);
-    }
-
     try {
-      const response = await fetch(url, config);
+      // Use our API proxy to avoid CORS issues
+      const proxyUrl = method === 'GET' 
+        ? `/api/turnkey?endpoint=${encodeURIComponent(endpoint)}&orgId=${encodeURIComponent(this.orgId)}&privateKey=${encodeURIComponent(this.apiKey)}`
+        : '/api/turnkey';
+
+      const config: RequestInit = {
+        method: method === 'GET' ? 'GET' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      };
+
+      if (method !== 'GET' && data) {
+        config.body = JSON.stringify({
+          endpoint,
+          method,
+          data,
+          orgId: this.orgId,
+          privateKey: this.apiKey
+        });
+      }
+
+      const response = await fetch(proxyUrl, config);
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const result = await response.json();
       return {
         success: true,
-        ...result
+        ...result.data
       };
 
     } catch (error) {
