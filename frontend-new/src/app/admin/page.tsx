@@ -600,7 +600,7 @@ function AdminPageContent() {
         feeRecipient: deploymentConfig.feeRecipient && deploymentConfig.feeRecipient.trim() 
           ? new (await import('@solana/web3.js')).PublicKey(deploymentConfig.feeRecipient)
           : publicKey,
-        creator: publicKey,
+        creator: new (await import('@solana/web3.js')).PublicKey(publicKey.toString()),
         deployedAt: new (await import('@coral-xyz/anchor')).BN(Date.now()),
         platform: 'Analos NFT Launcher',
         version: '1.0.0'
