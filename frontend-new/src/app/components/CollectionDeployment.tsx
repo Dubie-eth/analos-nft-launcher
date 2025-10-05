@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { properDeploymentService, CollectionConfig } from '@/lib/blockchain/proper-deployment-service';
+import { anchorDeploymentService, CollectionConfig } from '@/lib/blockchain/anchor-deployment-service';
 import { adminControlService } from '@/lib/admin-control-service';
 
 interface CollectionDeploymentProps {
@@ -48,8 +48,8 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
 
       setDeploymentStatus('Deploying to Analos blockchain...');
 
-      // Deploy to REAL blockchain
-      const result = await properDeploymentService.deployCollection(
+          // Deploy to REAL blockchain using Anchor
+          const result = await anchorDeploymentService.deployCollection(
         'collection_address_placeholder',
         publicKey.toString(),
         async (transaction) => {

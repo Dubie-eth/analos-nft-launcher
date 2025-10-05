@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { properDeploymentService } from '@/lib/blockchain/proper-deployment-service';
+import { anchorDeploymentService } from '@/lib/blockchain/anchor-deployment-service';
 import { adminControlService } from '@/lib/admin-control-service';
 
 interface DeploymentStatusProps {
@@ -37,7 +37,7 @@ export default function DeploymentStatus({ collectionName }: DeploymentStatusPro
       setLoading(true);
       
       // Check if collection is deployed
-      const status = await properDeploymentService.getConnectionStatus();
+      const status = await anchorDeploymentService.getConnectionStatus();
       setDeploymentInfo(status);
       
       // Also check admin config

@@ -16,7 +16,7 @@ import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import { adminControlService } from '../../lib/admin-control-service';
 import { adminPreviewService } from '../../lib/admin-preview-service';
-import { properDeploymentService } from '../../lib/blockchain/proper-deployment-service';
+import { anchorDeploymentService } from '../../lib/blockchain/anchor-deployment-service';
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
@@ -606,7 +606,24 @@ function AdminPageContent() {
         version: '1.0.0'
       };
 
-      const createResult = await properDeploymentService.createCollection(
+      // Initialize Anchor provider first
+      console.log('🔧 Initializing Anchor provider...');
+      const wallet = {
+        publicKey: publicKey,
+        signTransaction: async (transaction: Transaction) => {
+          return await sendTransaction(transaction, connection);
+        },
+        signAllTransactions: async (transactions: Transaction[]) => {
+          return Promise.all(transactions.map(tx => sendTransaction(tx, connection)));
+        }
+      };
+
+      const providerInitialized = await anchorDeploymentService.initializeProvider(wallet);
+      if (!providerInitialized) {
+        throw new Error('Failed to initialize Anchor provider');
+      }
+
+      const createResult = await anchorDeploymentService.createCollection(
         collectionConfig,
         deploymentConfig.whitelist?.phases || [],
         deploymentConfig.paymentTokens || []
@@ -616,12 +633,12 @@ function AdminPageContent() {
         throw new Error(createResult.error || 'Failed to create collection');
       }
 
-      console.log('✅ Collection created:', createResult);
+      console.log('✅ Collection created with Anchor:', createResult);
       
-      setDeployStatus('Deploying to blockchain...');
+      setDeployStatus('Deploying to blockchain with Anchor...');
 
-      // Deploy collection to blockchain
-      const deploymentResult = await properDeploymentService.deployCollection(
+      // Deploy collection to blockchain using Anchor
+      const deploymentResult = await anchorDeploymentService.deployCollection(
         createResult.collectionAddress!,
         publicKey.toString(),
         async (transaction: Transaction) => {
