@@ -5,7 +5,8 @@ import {
   SystemProgram,
   TransactionInstruction,
   Keypair,
-  LAMPORTS_PER_SOL
+  LAMPORTS_PER_SOL,
+  SYSVAR_RENT_PUBKEY
 } from '@solana/web3.js';
 import { 
   createInitializeMintInstruction,
@@ -18,6 +19,10 @@ import {
   createAccount,
   mintTo
 } from '@solana/spl-token';
+import {
+  createCreateMetadataAccountV3Instruction,
+  PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
+} from '@metaplex-foundation/mpl-token-metadata';
 
 export interface NFTCreationData {
   name: string;
@@ -231,6 +236,47 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
+      // Step 6: Create Metaplex Metadata Account
+      console.log('📝 Creating Metaplex Metadata Account...');
+      const [metadataAddress] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          mintAddress.toBuffer(),
+        ],
+        TOKEN_METADATA_PROGRAM_ID
+      );
+
+      const createMetadataInstruction = createCreateMetadataAccountV3Instruction(
+        {
+          metadata: metadataAddress,
+          mint: mintAddress,
+          mintAuthority: ownerPublicKey,
+          payer: ownerPublicKey,
+          updateAuthority: ownerPublicKey,
+          systemProgram: SystemProgram.programId,
+          rent: SYSVAR_RENT_PUBKEY,
+        },
+        {
+          createMetadataAccountArgsV3: {
+            data: {
+              name: nftData.name,
+              symbol: nftData.symbol,
+              uri: ipfsResult.url!,
+              sellerFeeBasisPoints: nftData.sellerFeeBasisPoints || 500,
+              creators: nftData.creators || [{ address: ownerAddress, verified: false, share: 100 }],
+              collection: null,
+              uses: null,
+            },
+            isMutable: true,
+            collectionDetails: null,
+          },
+        }
+      );
+
+      transaction.add(createMetadataInstruction);
+      console.log('🔍 Added createMetadataInstruction:', transaction.instructions?.length || 'undefined');
+
       // Add signers - FIXED: Initialize signers array if undefined
       console.log('🔍 Before signing transaction:', {
         transaction: !!transaction,
@@ -295,6 +341,7 @@ export class AnalosNFTMintingService {
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
       console.log('🔗 Token Account:', tokenAccount.toBase58());
+      console.log('📄 Metadata Address:', metadataAddress.toBase58());
       console.log('📝 Transaction Signature:', signature);
       console.log('🌐 Explorer URL:', `https://explorer.analos.io/tx/${signature}`);
 
@@ -302,7 +349,7 @@ export class AnalosNFTMintingService {
         success: true,
         mintAddress: mintAddress.toBase58(),
         tokenAccount: tokenAccount.toBase58(),
-        metadataAddress: '', // TODO: Implement Metaplex metadata
+        metadataAddress: metadataAddress.toBase58(), // ✅ Metaplex metadata implemented!
         masterEditionAddress: '', // TODO: Implement Master Edition
         transactionSignature: signature,
         explorerUrl: `https://explorer.analos.io/tx/${signature}`
