@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { analosNFTMintingService, NFTCreationData } from '@/lib/blockchain/analos-nft-minting-service';
+import NFTOwnershipVerifier from '../components/NFTOwnershipVerifier';
 import StandardLayout from '../components/StandardLayout';
 
 export default function MintRealNFTPage() {
@@ -415,6 +416,14 @@ export default function MintRealNFTPage() {
                   >
                     View on Analos Explorer
                   </a>
+                </div>
+                
+                {/* NFT Ownership Verification */}
+                <div className="mt-4">
+                  <NFTOwnershipVerifier 
+                    mintAddress={mintResult.mintAddress}
+                    className="bg-white/10 border border-white/20"
+                  />
                 </div>
               </div>
             )}
