@@ -111,16 +111,16 @@ class AnalosNFTContractService {
       
       const transaction = new Transaction();
       
-      // Require LOS payment to establish the collection
-      // This creates a real payment flow and ensures sufficient balance for minting
-      const collectionPaymentAmount = config.mintPrice * 1000000; // Convert LOS to lamports (assuming 6 decimals)
+      // FREE deployment - only cover transaction costs
+      // This aligns with the pricing structure: FREE deployment, 4% primary sales commission
+      const transactionCostAmount = 100000; // 0.1 LOS to cover transaction fees
       const platformWallet = new PublicKey(process.env.NEXT_PUBLIC_PLATFORM_WALLET || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
       
       transaction.add(
         SystemProgram.transfer({
           fromPubkey: config.creator,
-          toPubkey: platformWallet, // Send LOS to platform wallet to fund collection
-          lamports: collectionPaymentAmount,
+          toPubkey: platformWallet, // Send minimal LOS to cover transaction fees
+          lamports: transactionCostAmount,
         })
       );
 
@@ -157,7 +157,9 @@ class AnalosNFTContractService {
       
       console.log('✅ Collection created successfully');
       console.log('📝 Transaction signature:', signature);
-      console.log('💰 Collection payment:', collectionPaymentAmount / 1000000, 'LOS');
+      console.log('🆓 FREE deployment (transaction cost only):', transactionCostAmount / 1000000, 'LOS');
+      console.log('💰 4% commission on primary sales, 0% on secondary sales');
+      console.log('🔥 25% of commissions will be burnt for the culture');
       console.log('🎨 Collection ready for NFT minting');
 
       // Return collection info
@@ -194,18 +196,34 @@ class AnalosNFTContractService {
       // Create a unique NFT identifier based on timestamp and owner
       const nftId = `${Date.now()}_${owner.toBase58().slice(0, 8)}`;
       
-      // Require LOS payment for NFT minting
-      // This creates a real payment flow for each NFT mint
-      const nftPaymentAmount = 1000000; // 1 LOS in lamports (assuming 6 decimals)
+      // NFT minting with 4% commission model
+      // This implements the pricing structure: 4% primary sales commission, 25% burn
+      const nftPriceInLamports = collectionMint.equals(owner) ? 1000000 : 0; // Only charge if not the creator
+      const commissionAmount = Math.floor(nftPriceInLamports * 0.04); // 4% commission
+      const burnAmount = Math.floor(commissionAmount * 0.25); // 25% of commission gets burnt
+      const platformAmount = commissionAmount - burnAmount; // Remaining goes to platform
+      
       const platformWallet = new PublicKey(process.env.NEXT_PUBLIC_PLATFORM_WALLET || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
       
-      transaction.add(
-        SystemProgram.transfer({
-          fromPubkey: owner,
-          toPubkey: platformWallet, // Send LOS to platform wallet for NFT mint
-          lamports: nftPaymentAmount,
-        })
-      );
+      if (nftPriceInLamports > 0) {
+        transaction.add(
+          SystemProgram.transfer({
+            fromPubkey: owner,
+            toPubkey: platformWallet, // Send commission to platform
+            lamports: platformAmount,
+          })
+        );
+        
+        // Add burn transaction (send to burn address)
+        const burnWallet = new PublicKey('11111111111111111111111111111111'); // System burn address
+        transaction.add(
+          SystemProgram.transfer({
+            fromPubkey: owner,
+            toPubkey: burnWallet, // Burn 25% of commission
+            lamports: burnAmount,
+          })
+        );
+      }
 
       // Sign and send transaction
       let signedTransaction: Transaction;
@@ -240,7 +258,8 @@ class AnalosNFTContractService {
       
       console.log('✅ NFT minted successfully');
       console.log('📝 Transaction signature:', signature);
-      console.log('💰 NFT payment:', nftPaymentAmount / 1000000, 'LOS');
+      console.log('💰 4% commission model implemented');
+      console.log('🔥 25% of commission burnt for the culture');
       console.log('🎨 NFT ID:', nftId);
       console.log('👤 Owner:', owner.toBase58());
 
