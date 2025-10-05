@@ -187,6 +187,11 @@ class AnalosNFTContractService {
         )
       );
 
+      // Get recent blockhash and set it on the transaction
+      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = config.creator;
+
       // Sign and send transaction
       let signedTransaction: Transaction;
       
@@ -323,6 +328,11 @@ class AnalosNFTContractService {
           1 // max supply for NFT
         )
       );
+
+      // Get recent blockhash and set it on the transaction
+      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = owner;
 
       // Sign and send transaction
       let signedTransaction: Transaction;
