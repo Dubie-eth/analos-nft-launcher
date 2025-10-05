@@ -198,13 +198,27 @@ export class AnalosNFTMintingService {
       };
 
       // Use Memo Program to store edition data (no new account creation)
+      console.log('🔍 Creating edition data instruction...');
+      console.log('🔍 MEMO_PROGRAM_ID_STRING:', MEMO_PROGRAM_ID_STRING);
+      
+      let memoProgramId: PublicKey;
+      try {
+        memoProgramId = new PublicKey(MEMO_PROGRAM_ID_STRING);
+        console.log('✅ Memo Program ID created successfully:', memoProgramId.toBase58());
+      } catch (error) {
+        console.error('❌ Failed to create Memo Program ID:', error);
+        throw new Error(`Invalid Memo Program ID: ${MEMO_PROGRAM_ID_STRING}`);
+      }
+      
       const editionDataInstruction = new TransactionInstruction({
         keys: [
           { pubkey: ownerAddress, isSigner: true, isWritable: false }
         ],
-        programId: new PublicKey(MEMO_PROGRAM_ID_STRING),
+        programId: memoProgramId,
         data: Buffer.from(JSON.stringify(editionData))
       });
+      
+      console.log('✅ Edition data instruction created successfully');
 
       return {
         instructions: [editionDataInstruction],
@@ -408,13 +422,17 @@ export class AnalosNFTMintingService {
             nftData.masterEdition.maxSupply
           );
           
-          if (masterEditionResult) {
+          if (masterEditionResult && masterEditionResult.instructions && masterEditionResult.instructions.length > 0) {
             masterEditionKeypair = masterEditionResult.masterEditionKeypair;
             masterEditionAddress = masterEditionResult.masterEditionAddress;
             
             // Add Master Edition instructions to transaction
             transaction.add(...masterEditionResult.instructions);
             console.log('✅ Added Master Edition instructions to transaction');
+          } else {
+            console.log('⚠️ Master Edition creation failed, continuing without Master Edition');
+            masterEditionKeypair = null;
+            masterEditionAddress = PublicKey.default;
           }
         } else {
           console.log('🏆 No Master Edition requested - creating standard NFT');
@@ -453,9 +471,19 @@ export class AnalosNFTMintingService {
         console.log('📄 Metadata prepared for on-chain storage:', nftMetadata);
         
         // Create on-chain metadata instruction using Memo Program
+        console.log('🔍 Creating metadata instruction...');
+        let metadataMemoProgramId: PublicKey;
+        try {
+          metadataMemoProgramId = new PublicKey(MEMO_PROGRAM_ID_STRING);
+          console.log('✅ Metadata Memo Program ID created successfully:', metadataMemoProgramId.toBase58());
+        } catch (error) {
+          console.error('❌ Failed to create Metadata Memo Program ID:', error);
+          throw new Error(`Invalid Memo Program ID for metadata: ${MEMO_PROGRAM_ID_STRING}`);
+        }
+        
         const metadataInstruction = new TransactionInstruction({
           keys: [],
-          programId: new PublicKey(MEMO_PROGRAM_ID_STRING),
+          programId: metadataMemoProgramId,
           data: Buffer.from(JSON.stringify(nftMetadata), 'utf8')
         });
         
