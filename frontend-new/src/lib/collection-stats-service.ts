@@ -58,8 +58,8 @@ class CollectionStatsService {
       
       // Return default stats if fetch fails
       const defaultStats: CollectionStats = {
-        collectionsLaunched: 1, // At least "The LosBros" collection
-        totalNFTsMinted: 15, // Based on your actual minted NFTs
+        collectionsLaunched: 1, // "The LosBros" featured collection
+        totalNFTsMinted: 15, // Based on actual minted NFTs
         platformUptime: '99.9%',
         losBurned: 15750 // 25% of 15 NFTs * 4200.69 LOS = 63010, so 25% = ~15750
       };

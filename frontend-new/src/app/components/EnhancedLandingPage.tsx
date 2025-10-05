@@ -65,7 +65,7 @@ export default function EnhancedLandingPage() {
       try {
         console.log('📊 Fetching featured collection data for landing page...');
         
-        // Get "The LosBros" collection data from admin control service
+        // Get "The LosBros" featured collection data from admin control service
         const collection = await adminControlService.getCollection('The LosBros');
         if (collection) {
           const feeBreakdown = feeManagementService.getFeeBreakdown('The LosBros');

@@ -60,44 +60,10 @@ export class BlockchainCollectionService {
         return null;
       }
 
-      // For now, we'll use mock data since we need to implement the actual smart contract reading
-      // In a real implementation, this would read from the actual smart contract
-      const collectionData: BlockchainCollectionData = {
-        id: mintAddress,
-        name: 'The LosBros',
-        symbol: '$LBS',
-        description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
-        imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-        mintPrice: 4200.69, // Updated to 4,200.69 $LOS
-        totalSupply: 2222,
-        currentSupply: 15, // Updated with actual minted count
-        isActive: true,
-        is404Enabled: false, // Disabled in favor of DLMM bonding curve
-        isDLMMBondingCurve: true, // NEW: This collection uses DLMM bonding curve
-        isRevealLater: true, // This is a reveal later collection
-        feePercentage: 2.5,
-        externalUrl: 'https://launchonlos.fun/',
-        feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-        deployedAt: new Date().toISOString(),
-        mintAddress: mintAddress,
-        metadataAddress: `metadata_${mintAddress}`,
-        masterEditionAddress: `master_edition_${mintAddress}`,
-        arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
-      };
-
-      // Get updated supply data from NFT supply tracker
-      const supplyData = await nftSupplyTracker.getSupplyFromTokenTracker(collectionName);
-      collectionData.currentSupply = supplyData.currentSupply;
-      
-      console.log('✅ Collection data fetched from blockchain:', collectionData);
-      console.log('📊 Updated supply data:', {
-        currentSupply: collectionData.currentSupply,
-        totalSupply: collectionData.totalSupply,
-        remainingSupply: supplyData.remainingSupply,
-        mintedPercentage: supplyData.mintedPercentage.toFixed(2) + '%'
-      });
-      
-      return collectionData;
+      // Return null - no default collections should be returned
+      // Real collections will be fetched from actual blockchain smart contracts
+      console.log('📡 No default collections configured - returning null');
+      return null;
 
     } catch (error) {
       console.error('❌ Error fetching collection from blockchain:', error);
@@ -113,8 +79,8 @@ export class BlockchainCollectionService {
     try {
       console.log('📡 Scanning blockchain for deployed collections...');
       
-      // For now, return mock collections
-      // In a real implementation, this would scan the blockchain for all deployed collections
+      // Return "The LosBros" as the featured platform collection
+      // This will be the collection we launch with the platform
       const collections: BlockchainCollectionData[] = [
         {
           id: 'collection_the_losbros', // Use consistent ID format
@@ -125,25 +91,25 @@ export class BlockchainCollectionService {
           mintPrice: 4200.69, // Base price - increases with bonding curve
           totalSupply: 2222,
           currentSupply: 15, // Updated with actual minted count
-        isActive: true,
-        isRevealLater: true, // Reveal at bonding cap completion
-        isBondingCurve: true, // 🎯 THIS IS NOW A BONDING CURVE COLLECTION
-        bondingCurveConfig: {
-          virtualLOSReserves: 100000, // Starting virtual reserves
-          virtualNFTSupply: 2222, // Total supply
-          realNFTSupply: 0, // Starts at 0
-          bondingCap: 50000, // Reveal when 50,000 $LOS raised
-          feePercentage: 3.5, // Total fees (platform + creator)
-          creatorFeePercentage: 1.0, // Creator fee
-          platformFeePercentage: 2.5 // Platform fee
-        },
-        freeMintPhase: {
-          enabled: true,
-          maxFreeMints: 100, // First 100 NFTs are free
-          maxPerWallet: 3, // Max 3 free mints per wallet
-          requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
-        },
-        feePercentage: 2.5,
+          isActive: true,
+          isRevealLater: true, // Reveal at bonding cap completion
+          isBondingCurve: true, // 🎯 THIS IS NOW A BONDING CURVE COLLECTION
+          bondingCurveConfig: {
+            virtualLOSReserves: 100000, // Starting virtual reserves
+            virtualNFTSupply: 2222, // Total supply
+            realNFTSupply: 0, // Starts at 0
+            bondingCap: 50000, // Reveal when 50,000 $LOS raised
+            feePercentage: 3.5, // Total fees (platform + creator)
+            creatorFeePercentage: 1.0, // Creator fee
+            platformFeePercentage: 2.5 // Platform fee
+          },
+          freeMintPhase: {
+            enabled: true,
+            maxFreeMints: 100, // First 100 NFTs are free
+            maxPerWallet: 3, // Max 3 free mints per wallet
+            requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
+          },
+          feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
           escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
@@ -182,7 +148,7 @@ export class BlockchainCollectionService {
       
       const collections = await this.getAllCollectionsFromBlockchain();
       
-      // Handle URL slug to collection name mapping
+      // Handle URL slug to collection name mapping for "The LosBros"
       let actualCollectionName = collectionName;
       if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'Launch On LOS') {
         actualCollectionName = 'The LosBros';
@@ -303,47 +269,9 @@ export class BlockchainCollectionService {
     try {
       console.log('📡 Scanning blockchain for all collections (including hidden)...');
       
-      // For now, return a mock collection
-      // In a real implementation, this would scan the blockchain for all deployed collections
-      const collections: BlockchainCollectionData[] = [
-        {
-          id: 'collection_the_losbros', // Use consistent ID format
-          name: 'The LosBros',
-          symbol: '$LBS',
-          description: 'The LosBros - The ultimate NFT collection for the Analos ecosystem with 2,222 unique pieces. Reveal later collection with mystery traits! First 100 NFTs FREE for 1M+ $LOL holders (max 3 per wallet).',
-          imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          mintPrice: 4200.69, // Updated to 4,200.69 $LOS
-          totalSupply: 2222,
-          currentSupply: 15, // Updated with actual minted count
-        isActive: true,
-        isRevealLater: true, // Reveal at bonding cap completion
-        isBondingCurve: true, // 🎯 THIS IS NOW A BONDING CURVE COLLECTION
-        bondingCurveConfig: {
-          virtualLOSReserves: 100000, // Starting virtual reserves
-          virtualNFTSupply: 2222, // Total supply
-          realNFTSupply: 0, // Starts at 0
-          bondingCap: 50000, // Reveal when 50,000 $LOS raised
-          feePercentage: 3.5, // Total fees (platform + creator)
-          creatorFeePercentage: 1.0, // Creator fee
-          platformFeePercentage: 2.5 // Platform fee
-        },
-        freeMintPhase: {
-          enabled: true,
-          maxFreeMints: 100, // First 100 NFTs are free
-          maxPerWallet: 3, // Max 3 free mints per wallet
-          requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
-        },
-        feePercentage: 2.5,
-          externalUrl: 'https://launchonlos.fun/',
-          escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
-          feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-          deployedAt: new Date().toISOString(),
-          mintAddress: 'DeployedMintAddressFromBlockchain', // Will be updated after real deployment
-          metadataAddress: 'DeployedMetadataAddressFromBlockchain', // Will be updated after real deployment
-          masterEditionAddress: 'DeployedMasterEditionAddressFromBlockchain', // Will be updated after real deployment
-          arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
-        }
-      ];
+      // Return empty array - no default collections should be returned
+      // Real collections will be fetched from actual blockchain smart contracts
+      const collections: BlockchainCollectionData[] = [];
 
       console.log('✅ Found all collections on blockchain:', collections.length);
       return collections;
