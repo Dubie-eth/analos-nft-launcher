@@ -103,7 +103,7 @@ export class AnalosNFTMintingService {
   async createRealNFT(
     nftData: NFTCreationData,
     ownerAddress: string,
-    sendTransaction: (transaction: Transaction) => Promise<string>
+    sendTransaction: (transaction: Transaction, connection: Connection, options?: any) => Promise<string>
   ): Promise<NFTCreationResult> {
     try {
       console.log('🎨 Creating REAL NFT on Analos blockchain...');
@@ -228,7 +228,7 @@ export class AnalosNFTMintingService {
       });
 
       // Step 6: Send transaction with proper signers
-      const signature = await sendTransaction(transaction, {
+      const signature = await sendTransaction(transaction, this.connection, {
         signers: [mintKeypair],
         skipPreflight: false,
         preflightCommitment: 'confirmed'

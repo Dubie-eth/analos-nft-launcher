@@ -68,7 +68,7 @@ export class AnalosNFTCollectionService {
   async createCollection(
     collectionConfig: CollectionConfig,
     creatorAddress: string,
-    sendTransaction: (transaction: Transaction) => Promise<string>
+    sendTransaction: (transaction: Transaction, connection: Connection, options?: any) => Promise<string>
   ): Promise<CollectionCreationResult> {
     try {
       console.log('🏛️ Creating NFT Collection on Analos...');
@@ -117,7 +117,7 @@ export class AnalosNFTCollectionService {
       console.log('🔐 Sending collection creation transaction...');
 
       // Send transaction
-      const signature = await sendTransaction(transaction);
+      const signature = await sendTransaction(transaction, this.connection);
 
       console.log('🎉 Collection created successfully!');
       console.log('🏛️ Collection Mint:', collectionMint.toBase58());
@@ -171,7 +171,7 @@ export class AnalosNFTCollectionService {
       }>;
     },
     ownerAddress: string,
-    sendTransaction: (transaction: Transaction) => Promise<string>
+    sendTransaction: (transaction: Transaction, connection: Connection, options?: any) => Promise<string>
   ): Promise<{
     success: boolean;
     nftMint?: string;
@@ -254,7 +254,7 @@ export class AnalosNFTCollectionService {
       console.log('🔐 Sending NFT minting transaction...');
 
       // Send transaction
-      const signature = await sendTransaction(transaction);
+      const signature = await sendTransaction(transaction, this.connection);
 
       console.log('🎉 NFT minted to collection successfully!');
       console.log('🎨 NFT Mint:', nftMint.toBase58());
