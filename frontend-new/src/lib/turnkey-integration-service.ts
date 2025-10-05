@@ -364,8 +364,8 @@ class TurnkeyIntegrationService {
       // Use real Turnkey API - let's fix the 404 issue
       console.log(`🔗 Making real Turnkey API request: ${method} ${endpoint}`);
       
-      // Make actual API request to Turnkey via our proxy
-      const response = await fetch('/api/turnkey', {
+      // Temporarily use /api/test to debug the 404 issue
+      const response = await fetch('/api/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
