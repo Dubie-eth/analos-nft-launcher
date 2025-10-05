@@ -133,17 +133,21 @@ class AnalosNFTContractService {
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = config.creator;
         
-        // Add priority fee for faster processing
-        transaction.add(
-          new TransactionInstruction({
-            keys: [],
-            programId: new PublicKey('ComputeBudget111111111111111111111111111111'),
-            data: Buffer.from([2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0]), // Set compute unit price to 100 microlamports
-          })
-        );
+        // Note: Priority fees removed to simplify transaction for wallet compatibility
         
         // Use wallet adapter to sign the transaction
-        signedTransaction = await signTransaction(transaction);
+        try {
+          signedTransaction = await signTransaction(transaction);
+        } catch (error: any) {
+          console.error('❌ Wallet signing error:', error);
+          if (error.message?.includes('Plugin Closed')) {
+            throw new Error('Wallet signing was canceled or closed. Please try again and make sure to approve the transaction in your wallet.');
+          } else if (error.message?.includes('User rejected')) {
+            throw new Error('Transaction was rejected by user. Please try again.');
+          } else {
+            throw new Error(`Wallet signing failed: ${error.message || 'Unknown error'}`);
+          }
+        }
       } else {
         // Fallback for testing
         const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
@@ -234,17 +238,21 @@ class AnalosNFTContractService {
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = owner;
         
-        // Add priority fee for faster processing
-        transaction.add(
-          new TransactionInstruction({
-            keys: [],
-            programId: new PublicKey('ComputeBudget111111111111111111111111111111'),
-            data: Buffer.from([2, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0]), // Set compute unit price to 100 microlamports
-          })
-        );
+        // Note: Priority fees removed to simplify transaction for wallet compatibility
         
         // Use wallet adapter to sign the transaction
-        signedTransaction = await signTransaction(transaction);
+        try {
+          signedTransaction = await signTransaction(transaction);
+        } catch (error: any) {
+          console.error('❌ Wallet signing error:', error);
+          if (error.message?.includes('Plugin Closed')) {
+            throw new Error('Wallet signing was canceled or closed. Please try again and make sure to approve the transaction in your wallet.');
+          } else if (error.message?.includes('User rejected')) {
+            throw new Error('Transaction was rejected by user. Please try again.');
+          } else {
+            throw new Error(`Wallet signing failed: ${error.message || 'Unknown error'}`);
+          }
+        }
       } else {
         // Fallback for testing
         const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
