@@ -113,31 +113,27 @@ export class AnalosNFTMintingService {
     mintAddress: PublicKey,
     ownerAddress: PublicKey,
     maxSupply?: number
-  ): Promise<{ instructions: TransactionInstruction[]; masterEditionAddress: PublicKey; masterEditionKeypair: Keypair }> {
+  ): Promise<{ instructions: TransactionInstruction[]; masterEditionAddress: PublicKey; masterEditionKeypair: Keypair | null }> {
     try {
       console.log('🏆 Creating Analos-compatible Master Edition...');
       
-      // Generate Master Edition keypair for the new account
-      const masterEditionKeypair = Keypair.generate();
-      const masterEditionAddress = masterEditionKeypair.publicKey;
+      // Create deterministic Master Edition address (no new account creation needed)
+      const [masterEditionAddress] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from('analos_master_edition'),
+          mintAddress.toBuffer(),
+          Buffer.from('edition')
+        ],
+        SystemProgram.programId
+      );
+      
+      // No keypair needed - using deterministic address
+      const masterEditionKeypair = null;
 
       console.log('🎯 Analos Master Edition Address:', masterEditionAddress.toBase58());
       console.log('📊 Max Supply:', maxSupply || 'Unlimited');
 
-      // Calculate rent for the Master Edition account
-      const editionAccountSize = 256; // Size for edition data
-      const rentExemption = await this.connection.getMinimumBalanceForRentExemption(editionAccountSize);
-
-      // Create the Master Edition account
-      const createEditionAccountInstruction = SystemProgram.createAccount({
-        fromPubkey: ownerAddress,
-        newAccountPubkey: masterEditionAddress,
-        space: editionAccountSize,
-        lamports: rentExemption,
-        programId: SystemProgram.programId,
-      });
-
-      // Create edition data instruction using SystemProgram
+      // Create edition data instruction using Memo Program (simpler approach)
       const editionData = {
         type: 'analos_master_edition',
         mint: mintAddress.toBase58(),
@@ -147,20 +143,22 @@ export class AnalosNFTMintingService {
         editionType: maxSupply ? 'Limited Edition' : '1/1 Unique',
         network: 'analos',
         version: '1.0.0',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        address: masterEditionAddress.toBase58()
       };
 
+      // Use Memo Program to store edition data (no new account creation)
+      const memoProgramId = new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2');
       const editionDataInstruction = new TransactionInstruction({
         keys: [
-          { pubkey: masterEditionAddress, isSigner: false, isWritable: true },
           { pubkey: ownerAddress, isSigner: true, isWritable: false }
         ],
-        programId: SystemProgram.programId,
+        programId: memoProgramId,
         data: Buffer.from(JSON.stringify(editionData))
       });
 
       return {
-        instructions: [createEditionAccountInstruction, editionDataInstruction],
+        instructions: [editionDataInstruction],
         masterEditionAddress,
         masterEditionKeypair
       };
@@ -171,7 +169,7 @@ export class AnalosNFTMintingService {
       return {
         instructions: [],
         masterEditionAddress: PublicKey.default,
-        masterEditionKeypair: Keypair.generate() // Generate dummy keypair for error case
+        masterEditionKeypair: null // No keypair needed for error case
       };
     }
   }
@@ -434,23 +432,9 @@ export class AnalosNFTMintingService {
         signersLength: transaction.signers?.length || 'undefined'
       });
       
-      // FIXED: Initialize signers array if it's undefined
-      if (!transaction.signers) {
-        transaction.signers = [];
-        console.log('🔧 Initialized transaction.signers array');
-      }
-      
-      // Sign with mint keypair
-      transaction.sign(mintKeypair);
-      console.log('🔧 Signed with mint keypair');
-      
-      // Sign with Master Edition keypair if it exists
-      if (masterEditionKeypair) {
-        transaction.sign(masterEditionKeypair);
-        console.log('🔧 Signed with Master Edition keypair');
-      }
-      
-      console.log('✅ Transaction signed successfully with all required signers');
+      // NOTE: Do NOT pre-sign the transaction - let wallet adapter handle signing
+      console.log('🔧 Preparing transaction for wallet adapter signing');
+      console.log('📝 Transaction will be signed by wallet adapter with required keypairs');
 
       console.log('🔐 Sending transaction to wallet...');
       console.log('📝 Transaction details:', {
@@ -481,13 +465,10 @@ export class AnalosNFTMintingService {
       try {
         console.log('🔍 About to call sendTransaction with increased compute units...');
         
-        // Prepare signers array
+        // Prepare signers array (only mint keypair needed now)
         const signers = [mintKeypair];
-        if (masterEditionKeypair) {
-          signers.push(masterEditionKeypair);
-        }
         
-        console.log('🔑 Sending with signers:', signers.length, 'keypairs');
+        console.log('🔑 Sending with signers:', signers.length, 'keypairs (Master Edition uses deterministic address)');
         
         signature = await sendTransaction(transaction, this.connection, {
           signers: signers,
@@ -506,11 +487,8 @@ export class AnalosNFTMintingService {
         // Try without compute unit options
         console.log('🔍 About to call sendTransaction without compute units...');
         
-        // Prepare signers array for fallback
+        // Prepare signers array for fallback (only mint keypair needed now)
         const fallbackSigners = [mintKeypair];
-        if (masterEditionKeypair) {
-          fallbackSigners.push(masterEditionKeypair);
-        }
         
         signature = await sendTransaction(transaction, this.connection, {
           signers: fallbackSigners,
