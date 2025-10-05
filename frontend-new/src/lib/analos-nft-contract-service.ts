@@ -91,7 +91,10 @@ class AnalosNFTContractService {
   /**
    * Create a new NFT collection with SPL Token Metadata
    */
-  async createCollection(config: CollectionConfig): Promise<{
+  async createCollection(
+    config: CollectionConfig,
+    signTransaction?: (transaction: Transaction) => Promise<Transaction>
+  ): Promise<{
     success: boolean;
     collectionMint: PublicKey;
     collectionMetadata: PublicKey;
@@ -185,7 +188,18 @@ class AnalosNFTContractService {
       );
 
       // Sign and send transaction
-      const signature = await this.connection.sendTransaction(transaction, [collectionMint]);
+      let signedTransaction: Transaction;
+      
+      if (signTransaction) {
+        // Use wallet adapter to sign the transaction
+        signedTransaction = await signTransaction(transaction);
+      } else {
+        // Fallback to manual signing (for testing)
+        transaction.partialSign(collectionMint);
+        signedTransaction = transaction;
+      }
+      
+      const signature = await this.connection.sendRawTransaction(signedTransaction.serialize());
       await this.connection.confirmTransaction(signature);
 
       return {
@@ -209,7 +223,8 @@ class AnalosNFTContractService {
     collectionMint: PublicKey,
     owner: PublicKey,
     metadata: NFTMetadata,
-    updateAuthority: PublicKey
+    updateAuthority: PublicKey,
+    signTransaction?: (transaction: Transaction) => Promise<Transaction>
   ): Promise<MintResult> {
     try {
       // Generate mint keypair
@@ -310,7 +325,18 @@ class AnalosNFTContractService {
       );
 
       // Sign and send transaction
-      const signature = await this.connection.sendTransaction(transaction, [mintKeypair]);
+      let signedTransaction: Transaction;
+      
+      if (signTransaction) {
+        // Use wallet adapter to sign the transaction
+        signedTransaction = await signTransaction(transaction);
+      } else {
+        // Fallback to manual signing (for testing)
+        transaction.partialSign(mintKeypair);
+        signedTransaction = transaction;
+      }
+      
+      const signature = await this.connection.sendRawTransaction(signedTransaction.serialize());
       await this.connection.confirmTransaction(signature);
 
       return {

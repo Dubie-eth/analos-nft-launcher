@@ -130,7 +130,7 @@ export default function EnhancedNFTMinter() {
       
       if (!collectionMint) {
         console.log('Creating collection...');
-        const collectionResult = await analosNFTContractService.createCollection(collectionConfig);
+        const collectionResult = await analosNFTContractService.createCollection(collectionConfig, signTransaction);
         
         if (!collectionResult.success) {
           throw new Error('Failed to create collection');
@@ -151,7 +151,8 @@ export default function EnhancedNFTMinter() {
         collectionMint!,
         publicKey,
         nftMetadata,
-        publicKey
+        publicKey,
+        signTransaction
       );
 
       if (!result.success) {
