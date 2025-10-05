@@ -111,13 +111,16 @@ class AnalosNFTContractService {
       
       const transaction = new Transaction();
       
-      // Create a simple transfer to establish the collection
-      // This creates a transaction record that can be used as a collection identifier
+      // Require LOS payment to establish the collection
+      // This creates a real payment flow and ensures sufficient balance for minting
+      const collectionPaymentAmount = config.mintPrice * 1000000; // Convert LOS to lamports (assuming 6 decimals)
+      const platformWallet = new PublicKey(process.env.NEXT_PUBLIC_PLATFORM_WALLET || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+      
       transaction.add(
         SystemProgram.transfer({
           fromPubkey: config.creator,
-          toPubkey: config.creator, // Self transfer to create transaction record
-          lamports: 1000, // Small amount to pay for transaction
+          toPubkey: platformWallet, // Send LOS to platform wallet to fund collection
+          lamports: collectionPaymentAmount,
         })
       );
 
@@ -154,6 +157,7 @@ class AnalosNFTContractService {
       
       console.log('✅ Collection created successfully');
       console.log('📝 Transaction signature:', signature);
+      console.log('💰 Collection payment:', collectionPaymentAmount / 1000000, 'LOS');
       console.log('🎨 Collection ready for NFT minting');
 
       // Return collection info
@@ -190,13 +194,16 @@ class AnalosNFTContractService {
       // Create a unique NFT identifier based on timestamp and owner
       const nftId = `${Date.now()}_${owner.toBase58().slice(0, 8)}`;
       
-      // Create a simple transfer to establish the NFT ownership
-      // This creates a transaction record that can be used as an NFT identifier
+      // Require LOS payment for NFT minting
+      // This creates a real payment flow for each NFT mint
+      const nftPaymentAmount = 1000000; // 1 LOS in lamports (assuming 6 decimals)
+      const platformWallet = new PublicKey(process.env.NEXT_PUBLIC_PLATFORM_WALLET || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+      
       transaction.add(
         SystemProgram.transfer({
           fromPubkey: owner,
-          toPubkey: owner, // Self transfer to create NFT record
-          lamports: 1000, // Small amount to pay for transaction
+          toPubkey: platformWallet, // Send LOS to platform wallet for NFT mint
+          lamports: nftPaymentAmount,
         })
       );
 
@@ -233,6 +240,7 @@ class AnalosNFTContractService {
       
       console.log('✅ NFT minted successfully');
       console.log('📝 Transaction signature:', signature);
+      console.log('💰 NFT payment:', nftPaymentAmount / 1000000, 'LOS');
       console.log('🎨 NFT ID:', nftId);
       console.log('👤 Owner:', owner.toBase58());
 

@@ -260,7 +260,7 @@ export default function EnhancedNFTMinter() {
             />
           </div>
           <div>
-            <label className="block text-white text-sm font-medium mb-2">Mint Price (LOS)</label>
+            <label className="block text-white text-sm font-medium mb-2">Collection Setup Fee (LOS)</label>
             <input
               type="number"
               step="0.1"
@@ -268,6 +268,9 @@ export default function EnhancedNFTMinter() {
               onChange={(e) => setCollectionConfig(prev => ({ ...prev, mintPrice: parseFloat(e.target.value) }))}
               className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:border-purple-500 focus:outline-none"
             />
+            <p className="text-xs text-gray-400 mt-1">
+              This amount will be sent to the platform to establish your collection
+            </p>
           </div>
         </div>
       </div>
@@ -313,6 +316,28 @@ export default function EnhancedNFTMinter() {
         </div>
       )}
 
+      {/* Payment Summary */}
+      <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+        <h3 className="text-yellow-300 font-medium mb-3">💰 Payment Summary</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-white">Collection Setup Fee:</span>
+            <span className="text-yellow-300 font-medium">{collectionConfig.mintPrice} LOS</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white">NFT Minting Fee:</span>
+            <span className="text-yellow-300 font-medium">1.0 LOS</span>
+          </div>
+          <div className="flex justify-between border-t border-yellow-500/30 pt-2">
+            <span className="text-white font-medium">Total Cost:</span>
+            <span className="text-yellow-300 font-bold">{(collectionConfig.mintPrice + 1.0).toFixed(1)} LOS</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            💡 These payments ensure sufficient balance for blockchain transactions and establish your collection
+          </p>
+        </div>
+      </div>
+
       {/* Action Buttons */}
       <div className="space-y-4">
         <button
@@ -320,7 +345,7 @@ export default function EnhancedNFTMinter() {
           disabled={!connected || !turnkeyWallet || isMinting}
           className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-8 rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
         >
-          {isMinting ? '🎨 Minting NFT...' : '🚀 Mint Professional NFT'}
+          {isMinting ? '🎨 Minting NFT...' : `🚀 Mint Professional NFT (${(collectionConfig.mintPrice + 1.0).toFixed(1)} LOS)`}
         </button>
 
         {mintResult && (
