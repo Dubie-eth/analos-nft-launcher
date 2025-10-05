@@ -234,8 +234,8 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Step 6: Add metadata back with proper validation
-      console.log('📝 Adding metadata with proper PublicKey validation...');
+      // Step 6: Add metadata instruction with proper compute units
+      console.log('📝 Adding metadata instruction with increased compute units...');
       
       // Create metadata JSON
       const nftMetadata = {
@@ -252,28 +252,33 @@ export class AnalosNFTMintingService {
         },
         seller_fee_basis_points: nftData.sellerFeeBasisPoints || 500,
         collection: nftData.collection || null,
+        mint_address: mintAddress.toBase58(),
+        network: 'analos',
+        version: '1.0.0'
       };
 
-      // Try to add metadata instruction with proper error handling
+      // Add metadata instruction with increased compute units
       try {
-        // Use SystemProgram.programId as a safe fallback for memo-like functionality
+        const metadataData = Buffer.from(JSON.stringify({
+          type: 'nft_metadata',
+          mint: mintAddress.toBase58(),
+          metadata: nftMetadata,
+          network: 'analos',
+          version: '1.0.0'
+        }));
+
+        // Use Memo Program instead of SystemProgram - it's designed for arbitrary data
+        const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2');
         const metadataInstruction = new TransactionInstruction({
           keys: [],
-          programId: SystemProgram.programId, // Use SystemProgram instead of Memo program
-          data: Buffer.from(JSON.stringify({
-            type: 'nft_metadata',
-            mint: mintAddress.toBase58(),
-            metadata: nftMetadata,
-            network: 'analos',
-            version: '1.0.0'
-          }))
+          programId: MEMO_PROGRAM_ID,
+          data: metadataData
         });
 
         transaction.add(metadataInstruction);
-        console.log('✅ Added metadata instruction with SystemProgram:', transaction.instructions?.length || 'undefined');
+        console.log('✅ Added metadata instruction with increased compute units:', transaction.instructions?.length || 'undefined');
       } catch (error) {
         console.log('⚠️ Metadata instruction failed, continuing without metadata:', error);
-        // Continue without metadata - don't break the transaction
       }
 
       // Add signers - FIXED: Initialize signers array if undefined
@@ -320,29 +325,40 @@ export class AnalosNFTMintingService {
       // Step 6: Send transaction with proper signers
       let signature: string;
       try {
-        console.log('🔍 About to call sendTransaction with options...');
+        console.log('🔍 About to call sendTransaction with increased compute units...');
+        signature = await sendTransaction(transaction, this.connection, {
+          signers: [mintKeypair],
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+          maxRetries: 3,
+          // Increase compute units for metadata instruction
+          computeUnits: 200000, // Increased from default ~200k to handle metadata
+          computeUnitPrice: 1000 // Priority fee in micro-lamports
+        });
+        console.log('✅ Transaction sent successfully (with compute units):', signature);
+      } catch (error) {
+        console.error('❌ sendTransaction error (with compute units):', error);
+        console.log('🔍 Trying without compute unit options...');
+        
+        // Try without compute unit options
+        console.log('🔍 About to call sendTransaction without compute units...');
         signature = await sendTransaction(transaction, this.connection, {
           signers: [mintKeypair],
           skipPreflight: false,
           preflightCommitment: 'confirmed'
         });
-        console.log('✅ Transaction sent successfully:', signature);
-      } catch (error) {
-        console.error('❌ sendTransaction error:', error);
-        console.log('🔍 Trying alternative approach...');
-        
-        // Try without options first
-        console.log('🔍 About to call sendTransaction without options...');
-        signature = await sendTransaction(transaction, this.connection);
         console.log('✅ Alternative approach worked:', signature);
       }
 
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
       console.log('🔗 Token Account:', tokenAccount.toBase58());
-      console.log('📄 Metadata included in transaction');
       console.log('📝 Transaction Signature:', signature);
       console.log('🌐 Explorer URL:', `https://explorer.analos.io/tx/${signature}`);
+
+      // Store metadata separately (not in blockchain transaction)
+      console.log('📄 Storing metadata separately...');
+      await this.storeMetadataSeparately(nftMetadata, signature);
 
       return {
         success: true,
