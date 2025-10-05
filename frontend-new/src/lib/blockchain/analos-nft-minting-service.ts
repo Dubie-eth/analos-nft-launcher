@@ -101,6 +101,45 @@ export class AnalosNFTMintingService {
   }
 
   /**
+   * Store metadata separately from blockchain transaction
+   * This avoids SystemProgram instruction data limitations
+   */
+  private async storeMetadataSeparately(metadata: any, transactionSignature: string): Promise<void> {
+    try {
+      console.log('📄 Storing NFT metadata separately...');
+      
+      // For now, we'll store it in localStorage as a proof of concept
+      // In production, this could be stored in:
+      // - IPFS (decentralized)
+      // - Database (centralized)
+      // - Separate blockchain transaction with proper program
+      
+      const metadataKey = `nft_metadata_${transactionSignature}`;
+      const metadataStorage = {
+        ...metadata,
+        transaction_signature: transactionSignature,
+        stored_at: new Date().toISOString(),
+        storage_method: 'local_storage'
+      };
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(metadataKey, JSON.stringify(metadataStorage));
+        console.log('✅ Metadata stored in localStorage:', metadataKey);
+      } else {
+        console.log('⚠️ localStorage not available (server-side), metadata prepared for storage');
+      }
+
+      // TODO: Add real storage options here:
+      // await this.storeMetadataToIPFS(metadataStorage);
+      // await this.storeMetadataToDatabase(metadataStorage);
+      
+    } catch (error) {
+      console.log('⚠️ Metadata storage failed (non-critical):', error);
+      // Don't throw - metadata storage failure shouldn't break NFT creation
+    }
+  }
+
+  /**
    * Create a real NFT on Analos blockchain
    */
   async createRealNFT(
