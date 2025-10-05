@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection } from '@solana/web3.js';
-import { workingDeploymentService, NFTCreationData } from '@/lib/blockchain/working-deployment-service';
+import { analosCompatibleService, AnalosNFTCreationData } from '@/lib/blockchain/analos-compatible-service';
 import StandardLayout from '../components/StandardLayout';
 
 export default function MintNFTPage() {
@@ -11,7 +11,7 @@ export default function MintNFTPage() {
   const [loading, setLoading] = useState(false);
   const [mintingStatus, setMintingStatus] = useState('');
   const [mintResult, setMintResult] = useState<any>(null);
-  const [nftData, setNftData] = useState<NFTCreationData>({
+  const [nftData, setNftData] = useState<AnalosNFTCreationData>({
     name: '',
     symbol: '',
     description: '',
@@ -62,7 +62,7 @@ export default function MintNFTPage() {
     setMintingStatus('🎨 Creating NFT on Analos blockchain...');
 
     try {
-      const result = await workingDeploymentService.mintNFT(
+      const result = await analosCompatibleService.createNFT(
         nftData,
         publicKey.toString(),
         async (transaction) => {
@@ -72,7 +72,7 @@ export default function MintNFTPage() {
       );
 
       if (result.success) {
-        setMintingStatus('✅ NFT minted successfully!');
+        setMintingStatus('✅ NFT created successfully on Analos!');
         setMintResult(result);
         console.log('🎉 NFT Mint Result:', result);
       } else {
