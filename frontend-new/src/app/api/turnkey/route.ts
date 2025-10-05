@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const TURNKEY_API_URL = 'https://api.turnkey.com';
 
 export async function POST(request: NextRequest) {
+  console.log('🔗 Turnkey API route called');
   try {
     const { method, url, data, headers } = await request.json();
+    console.log('📝 Request data:', { method, url, headers: headers ? 'present' : 'missing' });
 
     // Validate required parameters
     if (!method || !url) {
