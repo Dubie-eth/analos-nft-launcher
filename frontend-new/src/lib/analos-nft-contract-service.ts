@@ -111,13 +111,20 @@ class AnalosNFTContractService {
       
       const transaction = new Transaction();
       
-      // Create a simple transfer to establish the collection
+      // Create a memo instruction to establish the collection
       // This creates a transaction record that can be used as a collection identifier
+      const memoData = `COLLECTION_CREATED:${config.name}:${Date.now()}`;
       transaction.add(
-        SystemProgram.transfer({
-          fromPubkey: config.creator,
-          toPubkey: config.creator, // Self transfer to create transaction record
-          lamports: 1000, // Small amount to pay for transaction
+        new TransactionInstruction({
+          keys: [
+            {
+              pubkey: config.creator,
+              isSigner: true,
+              isWritable: false,
+            },
+          ],
+          programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxWCqXgDLGmfcHr'), // Memo Program
+          data: Buffer.from(memoData, 'utf8'),
         })
       );
 
@@ -181,13 +188,20 @@ class AnalosNFTContractService {
       // Create a unique NFT identifier based on timestamp and owner
       const nftId = `${Date.now()}_${owner.toBase58().slice(0, 8)}`;
       
-      // For now, create a simple transfer that establishes the NFT ownership
-      // In a full implementation, this would create proper SPL Token accounts
+      // Create a memo instruction to establish the NFT ownership
+      // This creates a transaction record that can be used as an NFT identifier
+      const nftMemoData = `NFT_MINTED:${metadata.name}:${Date.now()}:${owner.toBase58()}`;
       transaction.add(
-        SystemProgram.transfer({
-          fromPubkey: owner,
-          toPubkey: owner, // Self transfer to create NFT record
-          lamports: 1000, // Small amount to pay for transaction
+        new TransactionInstruction({
+          keys: [
+            {
+              pubkey: owner,
+              isSigner: true,
+              isWritable: false,
+            },
+          ],
+          programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxWCqXgDLGmfcHr'), // Memo Program
+          data: Buffer.from(nftMemoData, 'utf8'),
         })
       );
 
