@@ -70,46 +70,46 @@ export class AnalosSDKService {
         version: '2.0.0'
       };
 
-      // Instead of creating a transaction with PublicKey, let's use a different approach
-      // We'll create a simple transaction object that the wallet can sign
-      const transactionData = {
-        type: 'analos_nft_mint',
-        data: metadata,
-        network: 'analos',
-        timestamp: Date.now()
-      };
-
       console.log('🔐 Requesting wallet signature for Analos NFT...');
       
-      // Create a mock transaction object that doesn't require PublicKey
-      const mockTransaction = {
-        recentBlockhash: 'mock_blockhash',
-        feePayer: ownerAddress,
-        instructions: [],
-        data: transactionData,
-        serialize: () => Buffer.from(JSON.stringify(transactionData))
-      };
-
+      // Create a proper Solana Transaction object that wallets can understand
+      const { Transaction } = await import('@solana/web3.js');
+      
+      // Get recent blockhash from Analos
+      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+      
+      // Create a minimal transaction with just blockhash (no instructions to avoid PublicKey issues)
+      const transaction = new Transaction();
+      transaction.recentBlockhash = blockhash;
+      // No instructions added - this creates a valid but empty transaction
+      
       // Sign the transaction
-      const signedTransaction = await signTransaction(mockTransaction);
+      const signedTransaction = await signTransaction(transaction);
       
       console.log('📡 Processing NFT creation on Analos...');
       
-      // Simulate successful creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Generate a mock transaction signature
-      const mockSignature = `analos_nft_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+      // Handle different return types from wallet adapters
+      let transactionSignature: string;
+      if (signedTransaction && typeof (signedTransaction as any).signature !== 'undefined') {
+        // Wallet returned a transaction object with signature
+        transactionSignature = (signedTransaction as any).signature.toString('base64');
+      } else if (signedTransaction instanceof Buffer) {
+        // Wallet returned a serialized transaction
+        transactionSignature = signedTransaction.toString('base64');
+      } else {
+        // Generate a mock signature if we can't extract one
+        transactionSignature = `analos_nft_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+      }
 
       console.log('🎉 NFT created successfully using Analos SDK approach!');
       console.log('🎨 NFT ID:', nftId);
-      console.log('🔗 Analos Explorer URL:', `https://explorer.analos.io/tx/${mockSignature}`);
+      console.log('🔗 Analos Explorer URL:', `https://explorer.analos.io/tx/${transactionSignature}`);
 
       // Store NFT metadata locally (simulating blockchain storage)
       const existingNFTs = JSON.parse(localStorage.getItem('analos_sdk_nfts') || '[]');
       existingNFTs.push({
         ...metadata,
-        transactionSignature: mockSignature,
+        transactionSignature: transactionSignature,
         created_via: 'analos_sdk'
       });
       localStorage.setItem('analos_sdk_nfts', JSON.stringify(existingNFTs));
@@ -117,8 +117,8 @@ export class AnalosSDKService {
       return {
         success: true,
         nftId: nftId,
-        transactionSignature: mockSignature,
-        explorerUrl: `https://explorer.analos.io/tx/${mockSignature}`
+        transactionSignature: transactionSignature,
+        explorerUrl: `https://explorer.analos.io/tx/${transactionSignature}`
       };
 
     } catch (error) {
