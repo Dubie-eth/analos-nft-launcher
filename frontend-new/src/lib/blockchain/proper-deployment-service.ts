@@ -82,6 +82,11 @@ export class ProperDeploymentService {
     try {
       console.log('🚀 Creating collection with proper blockchain approach...');
       
+      // Debug the creator public key
+      console.log('🔍 Creator public key:', config.creator);
+      console.log('🔍 Creator type:', typeof config.creator);
+      console.log('🔍 Creator toString:', config.creator.toString());
+      
       // Create a transaction to store collection data on-chain
       const transaction = new Transaction();
       
