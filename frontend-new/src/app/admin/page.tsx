@@ -561,8 +561,8 @@ function AdminPageContent() {
       console.log('🚀 Deploying collection with payload:', payload);
       console.log('💰 Price being sent:', payload.price, 'Type:', typeof payload.price);
 
-      // Use real blockchain deployment service
-      console.log('🚀 Using real blockchain deployment service...');
+      // Use proper blockchain deployment service
+      console.log('🚀 Using proper blockchain deployment service...');
       
       const deploymentConfig = {
         name: payload.name,
@@ -582,6 +582,11 @@ function AdminPageContent() {
 
       setDeployStatus('Creating collection configuration...');
 
+      // Debug fee recipient
+      console.log('🔍 Fee recipient from config:', deploymentConfig.feeRecipient);
+      console.log('🔍 Fee recipient type:', typeof deploymentConfig.feeRecipient);
+      console.log('🔍 Public key:', publicKey?.toString());
+
       // Create collection configuration
       const collectionConfig = {
         name: deploymentConfig.name,
@@ -592,7 +597,9 @@ function AdminPageContent() {
         maxSupply: deploymentConfig.maxSupply,
         mintPrice: new (await import('@coral-xyz/anchor')).BN(deploymentConfig.mintPrice * 1e9), // Convert SOL to lamports
         feePercentage: deploymentConfig.feePercentage,
-        feeRecipient: new (await import('@solana/web3.js')).PublicKey(deploymentConfig.feeRecipient),
+        feeRecipient: deploymentConfig.feeRecipient && deploymentConfig.feeRecipient.trim() 
+          ? new (await import('@solana/web3.js')).PublicKey(deploymentConfig.feeRecipient)
+          : publicKey,
         creator: publicKey,
         deployedAt: new (await import('@coral-xyz/anchor')).BN(Date.now()),
         platform: 'Analos NFT Launcher',
