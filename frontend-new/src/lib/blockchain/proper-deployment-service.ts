@@ -90,11 +90,10 @@ export class ProperDeploymentService {
       // Create a transaction to store collection data on-chain
       const transaction = new Transaction();
       
-      // Get collection account address (deterministic based on creator)
-      const [collectionAccount] = PublicKey.findProgramAddressSync(
-        [Buffer.from('collection'), config.creator.toBuffer()],
-        SystemProgram.programId // Using system program for now
-      );
+      // Generate a deterministic collection account address
+      // Using a simple hash-based approach instead of PDA
+      const collectionSeed = Buffer.from(`collection_${config.name}_${config.creator.toString()}`);
+      const collectionAccount = new PublicKey(collectionSeed.slice(0, 32));
 
       // Create instruction to store collection data
       const collectionData = {
