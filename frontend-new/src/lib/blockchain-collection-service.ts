@@ -92,26 +92,8 @@ export class BlockchainCollectionService {
           totalSupply: 2222,
           currentSupply: 15, // Updated with actual minted count
           isActive: true,
-          isRevealLater: true, // Reveal at bonding cap completion
-          isBondingCurve: true, // 🎯 THIS IS NOW A BONDING CURVE COLLECTION
-          bondingCurveConfig: {
-            virtualLOSReserves: 100000, // Starting virtual reserves
-            virtualNFTSupply: 2222, // Total supply
-            realNFTSupply: 0, // Starts at 0
-            bondingCap: 50000, // Reveal when 50,000 $LOS raised
-            feePercentage: 3.5, // Total fees (platform + creator)
-            creatorFeePercentage: 1.0, // Creator fee
-            platformFeePercentage: 2.5 // Platform fee
-          },
-          freeMintPhase: {
-            enabled: true,
-            maxFreeMints: 100, // First 100 NFTs are free
-            maxPerWallet: 3, // Max 3 free mints per wallet
-            requiredLOLBalance: 1000000 // Need 1,000,000+ $LOL
-          },
           feePercentage: 2.5,
           externalUrl: 'https://launchonlos.fun/',
-          escrowWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Escrow wallet for bonding curve fees
           feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           deployedAt: new Date().toISOString(),
           mintAddress: 'DeployedMintAddressFromBlockchain', // Will be updated after real deployment
