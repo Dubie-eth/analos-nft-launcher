@@ -131,8 +131,8 @@ const LaunchCollectionPage: React.FC = () => {
   });
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
   const [platformFees, setPlatformFees] = useState<PlatformFees>({
-    platformFee: 1.0, // 1% platform fee (like pump.fun)
-    tradingFee: 1.0, // 1% trading fee (like pump.fun)
+    platformFee: 1.0, // 1% platform fee (fixed, non-adjustable by users)
+    tradingFee: 1.0, // 1% trading fee
     creatorFee: 1.0, // 1% creator/deployer fee
     communityFee: 0.0, // 0% community fee (optional)
     feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Platform fee wallet
@@ -1023,28 +1023,26 @@ const LaunchCollectionPage: React.FC = () => {
             </div>
 
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
-              {/* Pump.fun/Bonk.fun Style Fee Structure */}
+              {/* Creator Fee Structure */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-2">🚀 Pump.fun/Bonk.fun Style Fee Structure</h3>
-                <p className="text-gray-300 text-sm">Configure fees similar to pump.fun and bonk.fun platforms</p>
+                <h3 className="text-lg font-semibold text-white mb-2">💰 Creator Fee Structure</h3>
+                <p className="text-gray-300 text-sm">Configure creator and trading fees for your collection</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
-                      Platform Fee (%) - <span className="text-green-400">Recommended: 1%</span>
+                      Platform Fee (%) - <span className="text-orange-400">Fixed by Platform</span>
                     </label>
                     <input
                       type="number"
                       value={platformFees.platformFee}
-                      onChange={(e) => setPlatformFees(prev => ({ ...prev, platformFee: parseFloat(e.target.value) || 0 }))}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      min="0"
-                      max="5"
-                      step="0.1"
+                      disabled
+                      className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-gray-400 cursor-not-allowed"
+                      readOnly
                     />
-                    <p className="text-gray-400 text-xs mt-1">Fee collected by Analos platform for hosting and services</p>
+                    <p className="text-gray-400 text-xs mt-1">Platform fee (controlled by Analos team)</p>
                   </div>
 
                   <div>
@@ -1060,11 +1058,9 @@ const LaunchCollectionPage: React.FC = () => {
                       max="5"
                       step="0.1"
                     />
-                    <p className="text-gray-400 text-xs mt-1">Fee on all trading transactions (like pump.fun)</p>
+                    <p className="text-gray-400 text-xs mt-1">Fee on all trading transactions</p>
                   </div>
-                </div>
 
-                <div className="space-y-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
                       Creator/Deployer Fee (%) - <span className="text-blue-400">Recommended: 1%</span>
@@ -1080,7 +1076,9 @@ const LaunchCollectionPage: React.FC = () => {
                     />
                     <p className="text-gray-400 text-xs mt-1">Fee paid to token creator/deployer</p>
                   </div>
+                </div>
 
+                <div className="space-y-4">
                   <div>
                     <label className="block text-white text-sm font-medium mb-2">
                       Community Fee (%) - <span className="text-yellow-400">Optional</span>
@@ -1136,16 +1134,16 @@ const LaunchCollectionPage: React.FC = () => {
 
             </div>
 
-            {/* Fee Breakdown - Pump.fun/Bonk.fun Style */}
+            {/* Fee Breakdown */}
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-4">📊 Fee Breakdown</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                <div className="flex justify-between items-center p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
                   <span className="text-gray-300">Platform Fee (Analos):</span>
-                  <span className="text-green-400 font-medium">{platformFees.platformFee}%</span>
+                  <span className="text-orange-400 font-medium">{platformFees.platformFee}%</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                  <span className="text-gray-300">Trading Fee (Analos):</span>
+                  <span className="text-gray-300">Trading Fee:</span>
                   <span className="text-blue-400 font-medium">{platformFees.tradingFee}%</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
@@ -1170,7 +1168,8 @@ const LaunchCollectionPage: React.FC = () => {
               <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                 <h4 className="text-blue-400 font-medium mb-2">💰 Fee Distribution</h4>
                 <p className="text-gray-300 text-sm">
-                  Platform fees ({platformFees.platformFee + platformFees.tradingFee}%) go to Analos for hosting and trading infrastructure.
+                  Platform fees ({platformFees.platformFee}%) are controlled by Analos team.
+                  Trading fees ({platformFees.tradingFee}%) are applied to all transactions.
                   Creator fees ({platformFees.creatorFee}%) go to the token deployer.
                   {platformFees.communityFee > 0 && ` Community fees (${platformFees.communityFee}%) go to community treasury.`}
                 </p>
@@ -1179,7 +1178,7 @@ const LaunchCollectionPage: React.FC = () => {
               {(platformFees.platformFee + platformFees.tradingFee + platformFees.creatorFee + platformFees.communityFee) > 5 && (
                 <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
                   <p className="text-red-300 text-sm">
-                    ⚠️ Total fees exceed 5%. Consider reducing some fees to maintain competitive pricing (recommended total: 3% like pump.fun).
+                    ⚠️ Total fees exceed 5%. Consider reducing some fees to maintain competitive pricing (recommended total: 3%).
                   </p>
                 </div>
               )}

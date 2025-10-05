@@ -19,6 +19,7 @@ export default function Navigation() {
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' }, // Full collection launch wizard
     { href: '/collections', label: 'Collections', icon: '🎨' }, // Browse all collections
+    { href: '/marketplace', label: 'Marketplace', icon: '🏪' }, // NFT Marketplace
     { href: '/explorer', label: 'Explorer', icon: '🔍' },
     { href: '/profile', label: 'Profile', icon: '👤' },
   ];
