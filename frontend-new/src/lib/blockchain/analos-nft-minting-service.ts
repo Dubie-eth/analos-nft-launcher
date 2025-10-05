@@ -400,9 +400,15 @@ export class AnalosNFTMintingService {
         signersLength: transaction.signers?.length || 'undefined'
       });
       
-      // NOTE: Do NOT pre-sign the transaction - let wallet adapter handle signing
-      console.log('🔧 Preparing transaction for wallet adapter signing');
-      console.log('📝 Transaction will be signed by wallet adapter with required keypairs');
+      // Sign with mint keypair first (required for account creation)
+      if (!transaction.signers) {
+        transaction.signers = [];
+      }
+      
+      // Sign with mint keypair (required for creating the mint account)
+      transaction.sign(mintKeypair);
+      console.log('🔧 Signed transaction with mint keypair');
+      console.log('📝 Transaction now has required signatures for account creation');
 
       console.log('🔐 Sending transaction to wallet...');
       console.log('📝 Transaction details:', {
@@ -433,10 +439,10 @@ export class AnalosNFTMintingService {
       try {
         console.log('🔍 About to call sendTransaction with increased compute units...');
         
-        // Prepare signers array (only mint keypair needed now)
-        const signers = [mintKeypair];
+        // Transaction is already signed with mint keypair, wallet adapter will sign with user's wallet
+        const signers: Keypair[] = [];
         
-        console.log('🔑 Sending with signers:', signers.length, 'keypairs (Master Edition uses deterministic address)');
+        console.log('🔑 Transaction pre-signed with mint keypair, wallet adapter will add user signature');
         
         signature = await sendTransaction(transaction, this.connection, {
           signers: signers,
@@ -455,8 +461,8 @@ export class AnalosNFTMintingService {
         // Try without compute unit options
         console.log('🔍 About to call sendTransaction without compute units...');
         
-        // Prepare signers array for fallback (only mint keypair needed now)
-        const fallbackSigners = [mintKeypair];
+        // Transaction is already signed with mint keypair, wallet adapter will sign with user's wallet
+        const fallbackSigners: Keypair[] = [];
         
         signature = await sendTransaction(transaction, this.connection, {
           signers: fallbackSigners,
