@@ -73,7 +73,7 @@ export default function EnhancedNFTMinter() {
 
           // Create or get embedded wallet
           const userId = publicKey.toString();
-          const walletName = `analos-nft-wallet-${userId.slice(0, 8)}`;
+          const walletName = `analos-nft-wallet-${userId ? userId.slice(0, 8) : 'unknown'}`;
           
           // Check if wallet already exists
           const existingWallets = await turnkeyIntegrationService.listWallets(userId);
@@ -210,10 +210,10 @@ export default function EnhancedNFTMinter() {
           <div className="space-y-2">
             <p className="text-green-300">✅ Secure wallet initialized</p>
             <p className="text-gray-300 text-sm">
-              Wallet ID: {turnkeyWallet.walletId.slice(0, 8)}...
+              Wallet ID: {turnkeyWallet.walletId ? turnkeyWallet.walletId.slice(0, 8) + '...' : 'N/A'}
             </p>
             <p className="text-gray-300 text-sm">
-              Address: {turnkeyWallet.address.slice(0, 8)}...{turnkeyWallet.address.slice(-8)}
+              Address: {turnkeyWallet.address ? `${turnkeyWallet.address.slice(0, 8)}...${turnkeyWallet.address.slice(-8)}` : 'N/A'}
             </p>
           </div>
         ) : (
