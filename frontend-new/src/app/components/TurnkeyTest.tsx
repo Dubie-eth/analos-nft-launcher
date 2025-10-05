@@ -14,10 +14,11 @@ export default function TurnkeyTest() {
     // Load credentials from environment
     const envOrgId = process.env.NEXT_PUBLIC_TURNKEY_ORG_ID;
     const envApiKey = process.env.NEXT_PUBLIC_TURNKEY_API_KEY;
+    const envPrivateKey = process.env.NEXT_PUBLIC_TURNKEY_PRIVATE_KEY;
     
-    if (envOrgId && envApiKey) {
+    if (envOrgId) {
       setOrgId(envOrgId);
-      setApiKey(envApiKey);
+      setApiKey(envApiKey || envPrivateKey || 'Not configured');
       setIsConnected(true);
     }
   }, []);
@@ -115,11 +116,15 @@ Public Key: ${wallet.publicKey.slice(0, 20)}...`);
         <div className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
           <h4 className="text-yellow-300 font-medium mb-2">📋 Setup Instructions</h4>
           <ol className="text-gray-300 text-sm space-y-1">
-            <li>1. Create a file called <code className="bg-black/20 px-1 rounded">.env.local</code> in your <code className="bg-black/20 px-1 rounded">frontend-new</code> directory</li>
-            <li>2. Add your Turnkey credentials:</li>
+            <li>1. <strong>Find your Organization ID:</strong></li>
+            <li className="ml-4">• Look at your Turnkey dashboard URL: <code className="bg-black/20 px-1 rounded">app.turnkey.com/dashboard/...</code></li>
+            <li className="ml-4">• The org ID might be in the URL or in organization settings</li>
+            <li className="ml-4">• It usually starts with <code className="bg-black/20 px-1 rounded">org_</code></li>
+            <li>2. Create a file called <code className="bg-black/20 px-1 rounded">.env.local</code> in your <code className="bg-black/20 px-1 rounded">frontend-new</code> directory</li>
+            <li>3. Add your Turnkey credentials:</li>
             <li className="ml-4">• <code className="bg-black/20 px-1 rounded">NEXT_PUBLIC_TURNKEY_ORG_ID=your_org_id</code></li>
-            <li className="ml-4">• <code className="bg-black/20 px-1 rounded">NEXT_PUBLIC_TURNKEY_API_KEY=your_api_key</code></li>
-            <li>3. Restart your development server</li>
+            <li className="ml-4">• <code className="bg-black/20 px-1 rounded">NEXT_PUBLIC_TURNKEY_API_KEY=your_api_key</code> (optional for now)</li>
+            <li>4. Restart your development server</li>
           </ol>
         </div>
       )}

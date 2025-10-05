@@ -11,6 +11,10 @@ const TURNKEY_API_URL = 'https://api.turnkey.com';
 const TURNKEY_ORG_ID = process.env.NEXT_PUBLIC_TURNKEY_ORG_ID;
 const TURNKEY_API_KEY = process.env.NEXT_PUBLIC_TURNKEY_API_KEY;
 
+// Alternative: Use organization-based authentication
+const TURNKEY_PRIVATE_KEY = process.env.NEXT_PUBLIC_TURNKEY_PRIVATE_KEY;
+const TURNKEY_PUBLIC_KEY = process.env.NEXT_PUBLIC_TURNKEY_PUBLIC_KEY;
+
 export interface TurnkeyWallet {
   walletId: string;
   address: string;
@@ -54,7 +58,7 @@ class TurnkeyIntegrationService {
   private baseUrl: string;
 
   constructor() {
-    this.apiKey = TURNKEY_API_KEY || '';
+    this.apiKey = TURNKEY_API_KEY || TURNKEY_PRIVATE_KEY || '';
     this.orgId = TURNKEY_ORG_ID || '';
     this.baseUrl = TURNKEY_API_URL;
   }
