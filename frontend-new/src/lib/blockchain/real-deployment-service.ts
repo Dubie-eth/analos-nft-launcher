@@ -683,14 +683,14 @@ export class RealBlockchainDeploymentService {
   /**
    * Validate URL format
    */
-  private isValidUrl(url: string): boolean {
+  isValidUrl = (url: string) => {
     try {
       new URL(url);
       return true;
     } catch {
       return false;
     }
-  }
+  };
 
   /**
    * Get connection status
