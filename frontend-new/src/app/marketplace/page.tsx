@@ -16,6 +16,11 @@ const EnhancedNFTMinter = dynamic(() => import('@/app/components/EnhancedNFTMint
   loading: () => <div className="text-center text-white">Loading NFT minter...</div>
 });
 
+const TurnkeyTest = dynamic(() => import('@/app/components/TurnkeyTest'), {
+  ssr: false,
+  loading: () => <div className="text-center text-white">Loading Turnkey test...</div>
+});
+
 export default function MarketplacePage() {
   return (
     <StandardLayout>
@@ -29,6 +34,15 @@ export default function MarketplacePage() {
             <p className="text-xl text-gray-300 mb-8">
               Create professional NFTs with SPL metadata, spin the wheel for prizes, and discover collections with advanced utilities
             </p>
+          </div>
+
+          {/* Turnkey Integration Test */}
+          <div className="mb-12">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">🔐 Turnkey Integration Test</h2>
+              <p className="text-gray-300">Test your Turnkey configuration before using the NFT minter</p>
+            </div>
+            <TurnkeyTest />
           </div>
 
           {/* Enhanced NFT Minter - Professional Minting */}
