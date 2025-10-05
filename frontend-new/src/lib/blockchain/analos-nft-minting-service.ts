@@ -174,6 +174,12 @@ export class AnalosNFTMintingService {
       // Add recent blockhash
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
+      
+      console.log('🔍 Transaction created:', {
+        transaction: !!transaction,
+        blockhash: !!blockhash,
+        instructionsLength: transaction.instructions?.length || 'undefined'
+      });
 
       // Create mint account instruction
       const createMintInstruction = SystemProgram.createAccount({
@@ -185,6 +191,7 @@ export class AnalosNFTMintingService {
       });
 
       transaction.add(createMintInstruction);
+      console.log('🔍 Added createMintInstruction:', transaction.instructions?.length || 'undefined');
 
       // Initialize mint instruction - FIXED: Use createInitializeMintInstruction
       const initializeMintInstruction = createInitializeMintInstruction(
@@ -195,6 +202,7 @@ export class AnalosNFTMintingService {
       );
 
       transaction.add(initializeMintInstruction);
+      console.log('🔍 Added initializeMintInstruction:', transaction.instructions?.length || 'undefined');
 
       // Create associated token account instruction
       const createTokenAccountInstruction = createAssociatedTokenAccountInstruction(
@@ -205,6 +213,7 @@ export class AnalosNFTMintingService {
       );
 
       transaction.add(createTokenAccountInstruction);
+      console.log('🔍 Added createTokenAccountInstruction:', transaction.instructions?.length || 'undefined');
 
       // Mint token instruction (1 token for NFT) - FIXED: Use createMintToInstruction
       const mintToInstruction = createMintToInstruction(
@@ -216,8 +225,16 @@ export class AnalosNFTMintingService {
       );
 
       transaction.add(mintToInstruction);
+      console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
       // Add signers - FIXED: Need to add mintKeypair as signer for the transaction
+      console.log('🔍 Before signing transaction:', {
+        transaction: !!transaction,
+        mintKeypair: !!mintKeypair,
+        instructionsLength: transaction.instructions?.length || 'undefined',
+        signersLength: transaction.signers?.length || 'undefined'
+      });
+      
       transaction.sign(mintKeypair);
 
       console.log('🔐 Sending transaction to wallet...');
