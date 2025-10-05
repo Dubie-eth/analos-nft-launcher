@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
+import SpinningWheelGame from '@/app/components/SpinningWheelGame';
 
 export default function MarketplacePage() {
   return (
@@ -15,8 +16,13 @@ export default function MarketplacePage() {
               🏪 NFT Marketplace
             </h1>
             <p className="text-xl text-gray-300 mb-8">
-              Trade, stake, and discover NFTs with memo-based metadata and soft staking utilities
+              Spin the wheel for prizes, trade NFTs, and discover collections with memo-based metadata and soft staking utilities
             </p>
+          </div>
+
+          {/* Spinning Wheel Game */}
+          <div className="mb-12">
+            <SpinningWheelGame />
           </div>
 
           {/* Marketplace Options */}
