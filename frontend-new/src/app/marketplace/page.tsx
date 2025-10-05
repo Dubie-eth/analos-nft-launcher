@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
 import SpinningWheelGame from '@/app/components/SpinningWheelGame';
+import EnhancedNFTMinter from '@/app/components/EnhancedNFTMinter';
 
 export default function MarketplacePage() {
   return (
@@ -16,11 +17,20 @@ export default function MarketplacePage() {
               🏪 NFT Marketplace
             </h1>
             <p className="text-xl text-gray-300 mb-8">
-              Spin the wheel for prizes! Trade NFTs and discover collections with memo-based metadata and soft staking utilities
+              Create professional NFTs with SPL metadata, spin the wheel for prizes, and discover collections with advanced utilities
             </p>
           </div>
 
-          {/* Spinning Wheel Game - Main Feature */}
+          {/* Enhanced NFT Minter - Professional Minting */}
+          <div className="mb-12">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">🚀 Professional NFT Minter</h2>
+              <p className="text-gray-300">Create NFTs with SPL Token Metadata and Turnkey security</p>
+            </div>
+            <EnhancedNFTMinter />
+          </div>
+
+          {/* Spinning Wheel Game - Featured Game */}
           <div className="mb-12">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-white mb-2">🎰 Featured Game</h2>
