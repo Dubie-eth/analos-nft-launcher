@@ -264,10 +264,13 @@ class TurnkeyIntegrationService {
         return [];
       }
 
-      return response.wallets.map((wallet: any) => ({
+      // Handle both array and single wallet responses
+      const wallets = response.wallets || (response.walletId ? [response] : []);
+      
+      return wallets.map((wallet: any) => ({
         walletId: wallet.walletId,
-        address: wallet.accounts[0]?.address || '',
-        publicKey: wallet.accounts[0]?.publicKey || '',
+        address: wallet.accounts?.[0]?.address || wallet.address || '',
+        publicKey: wallet.accounts?.[0]?.publicKey || wallet.publicKey || '',
         organizationId: this.orgId,
         userId: userId,
         createdAt: wallet.createdAt
@@ -387,20 +390,42 @@ class TurnkeyIntegrationService {
       }
       
       if (endpoint.includes('/v1/wallets')) {
-        return {
-          success: true,
-          walletId: `wallet_${Date.now()}`,
-          address: this.apiKey.slice(0, 44), // Use part of API key as mock address
-          publicKey: this.apiKey.slice(0, 44),
-          accounts: [{
+        // Check if this is a GET request (listing wallets) or POST request (creating wallet)
+        if (method === 'GET') {
+          // Return array of wallets for listing
+          return {
+            success: true,
+            wallets: [{
+              walletId: `wallet_${Date.now()}`,
+              address: this.apiKey.slice(0, 44),
+              publicKey: this.apiKey.slice(0, 44),
+              accounts: [{
+                address: this.apiKey.slice(0, 44),
+                publicKey: this.apiKey.slice(0, 44),
+                curve: 'CURVE_ED25519',
+                path: "m/44'/501'/0'/0'"
+              }],
+              createdAt: new Date().toISOString(),
+              status: 'ACTIVE'
+            }]
+          };
+        } else {
+          // Return single wallet for creation
+          return {
+            success: true,
+            walletId: `wallet_${Date.now()}`,
             address: this.apiKey.slice(0, 44),
             publicKey: this.apiKey.slice(0, 44),
-            curve: 'CURVE_ED25519',
-            path: "m/44'/501'/0'/0'"
-          }],
-          createdAt: new Date().toISOString(),
-          status: 'ACTIVE'
-        };
+            accounts: [{
+              address: this.apiKey.slice(0, 44),
+              publicKey: this.apiKey.slice(0, 44),
+              curve: 'CURVE_ED25519',
+              path: "m/44'/501'/0'/0'"
+            }],
+            createdAt: new Date().toISOString(),
+            status: 'ACTIVE'
+          };
+        }
       }
       
       // For other endpoints, return a generic success
