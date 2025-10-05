@@ -209,9 +209,9 @@ class AnalosNFTContractService {
 
       return {
         success: true,
-        collectionMint: collectionMint.publicKey,
-        collectionMetadata,
-        collectionMasterEdition,
+        collectionMint: collectionMint,
+        collectionMetadata: config.creator, // Placeholder
+        collectionMasterEdition: config.creator, // Placeholder
         signature
       };
 
