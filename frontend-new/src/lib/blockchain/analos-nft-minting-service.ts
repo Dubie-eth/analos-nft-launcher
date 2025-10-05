@@ -227,12 +227,30 @@ export class AnalosNFTMintingService {
         recentBlockhash: transaction.recentBlockhash
       });
 
-      // Step 6: Send transaction with proper signers
-      const signature = await sendTransaction(transaction, this.connection, {
-        signers: [mintKeypair],
-        skipPreflight: false,
-        preflightCommitment: 'confirmed'
+      console.log('🔍 Debug sendTransaction call:', {
+        transaction: !!transaction,
+        connection: !!this.connection,
+        mintKeypair: !!mintKeypair,
+        sendTransactionType: typeof sendTransaction
       });
+
+      // Step 6: Send transaction with proper signers
+      let signature: string;
+      try {
+        signature = await sendTransaction(transaction, this.connection, {
+          signers: [mintKeypair],
+          skipPreflight: false,
+          preflightCommitment: 'confirmed'
+        });
+        console.log('✅ Transaction sent successfully:', signature);
+      } catch (error) {
+        console.error('❌ sendTransaction error:', error);
+        console.log('🔍 Trying alternative approach...');
+        
+        // Try without options first
+        signature = await sendTransaction(transaction, this.connection);
+        console.log('✅ Alternative approach worked:', signature);
+      }
 
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
