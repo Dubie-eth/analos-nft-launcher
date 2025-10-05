@@ -349,15 +349,29 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-      // Step 6: Skip Master Edition for now to get basic NFT minting working
-      let masterEditionAddress = PublicKey.default;
-      let masterEditionKeypair: Keypair | null = null;
-      
-      if (nftData.masterEdition) {
-        console.log('🏆 Skipping Master Edition for now - focusing on basic NFT minting');
-        console.log('📝 Master Edition will be added back after basic minting works');
-        // Skip Master Edition instructions for now
-      }
+        // Step 6: Add Master Edition support with proper signing
+        let masterEditionAddress = PublicKey.default;
+        let masterEditionKeypair: Keypair | null = null;
+        
+        if (nftData.masterEdition) {
+          console.log('🏆 Adding Master Edition support...');
+          const masterEditionResult = this.createAnalosMasterEditionInstructions(
+            mintAddress,
+            ownerPublicKey,
+            nftData.masterEdition
+          );
+          
+          if (masterEditionResult) {
+            masterEditionKeypair = masterEditionResult.keypair;
+            masterEditionAddress = masterEditionResult.masterEditionAddress;
+            
+            // Add Master Edition instructions to transaction
+            transaction.add(...masterEditionResult.instructions);
+            console.log('✅ Added Master Edition instructions to transaction');
+          }
+        } else {
+          console.log('🏆 No Master Edition requested - creating standard NFT');
+        }
 
         // Step 7: Add on-chain metadata using Memo Program
         console.log('📝 Adding on-chain metadata instruction...');
@@ -411,7 +425,7 @@ export class AnalosNFTMintingService {
         signersLength: transaction.signers?.length || 'undefined'
       });
       
-      // Sign with mint keypair first (required for account creation)
+      // Sign with required keypairs (mint + master edition if applicable)
       if (!transaction.signers) {
         transaction.signers = [];
       }
@@ -419,6 +433,13 @@ export class AnalosNFTMintingService {
       // Sign with mint keypair (required for creating the mint account)
       transaction.sign(mintKeypair);
       console.log('🔧 Signed transaction with mint keypair');
+      
+      // Sign with master edition keypair if it exists
+      if (masterEditionKeypair) {
+        transaction.sign(masterEditionKeypair);
+        console.log('🔧 Signed transaction with master edition keypair');
+      }
+      
       console.log('📝 Transaction now has required signatures for account creation');
 
       console.log('🔐 Sending transaction to wallet...');
@@ -427,7 +448,11 @@ export class AnalosNFTMintingService {
           signers: transaction.signers?.length || 0,
           recentBlockhash: transaction.recentBlockhash
         });
-        console.log('📊 Total instructions: 4 NFT + 1 metadata = 5 instructions');
+        const totalInstructions = transaction.instructions.length;
+        const nftInstructions = 4;
+        const metadataInstructions = 1;
+        const masterEditionInstructions = masterEditionKeypair ? 2 : 0; // create account + store data
+        console.log(`📊 Total instructions: ${nftInstructions} NFT + ${metadataInstructions} metadata + ${masterEditionInstructions} master edition = ${totalInstructions} instructions`);
 
       console.log('🔍 Debug sendTransaction call:', {
         transaction: !!transaction,
@@ -487,6 +512,9 @@ export class AnalosNFTMintingService {
       console.log('🎉 NFT created successfully on Analos!');
       console.log('🎨 Mint Address:', mintAddress.toBase58());
       console.log('🔗 Token Account:', tokenAccount.toBase58());
+      if (masterEditionKeypair) {
+        console.log('🏆 Master Edition Address:', masterEditionAddress.toBase58());
+      }
       console.log('📝 Transaction Signature:', signature);
       console.log('🌐 Explorer URL:', `https://explorer.analos.io/tx/${signature}`);
 
