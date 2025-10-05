@@ -30,8 +30,8 @@ export default function EnhancedNFTMinter() {
     image: 'https://via.placeholder.com/400',
     maxSupply: 1000,
     mintPrice: 1.0, // 1 LOS
-    creator: publicKey || new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'),
-    updateAuthority: publicKey || new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'),
+    creator: publicKey || new PublicKey('11111111111111111111111111111111'), // Placeholder
+    updateAuthority: publicKey || new PublicKey('11111111111111111111111111111111'), // Placeholder
     sellerFeeBasisPoints: 500, // 5%
     isMutable: true
   });
@@ -112,6 +112,12 @@ export default function EnhancedNFTMinter() {
   const handleMintNFT = async () => {
     if (!connected || !publicKey || !turnkeyWallet) {
       setError('Please connect your wallet and initialize Turnkey');
+      return;
+    }
+
+    // Ensure we have a valid public key for creator and update authority
+    if (collectionConfig.creator.equals(new PublicKey('11111111111111111111111111111111'))) {
+      setError('Please wait for wallet to fully connect');
       return;
     }
 
