@@ -34,6 +34,16 @@ interface TraitFile {
   name: string;
   file: File;
   preview: string;
+  category: string;
+  rarity: number;
+  weight: number;
+}
+
+interface TraitCategory {
+  name: string;
+  files: TraitFile[];
+  required: boolean;
+  maxSelections: number;
 }
 
 interface HostingConfig {
@@ -54,6 +64,14 @@ interface WhitelistPhase {
     discord?: boolean;
     telegram?: boolean;
   };
+}
+
+interface PlatformFees {
+  platformFee: number; // Percentage
+  creatorRoyalty: number; // Percentage
+  marketplaceFee: number; // Percentage
+  referralFee: number; // Percentage
+  feeRecipient: string; // Wallet address for platform fees
 }
 
 interface LaunchStep {
@@ -91,10 +109,19 @@ const LaunchCollectionPage: React.FC = () => {
   });
 
   const [traitFiles, setTraitFiles] = useState<TraitFile[]>([]);
+  const [traitCategories, setTraitCategories] = useState<TraitCategory[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [hostingConfig, setHostingConfig] = useState<HostingConfig>({
     method: 'ipfs'
   });
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
+  const [platformFees, setPlatformFees] = useState<PlatformFees>({
+    platformFee: 2.5, // 2.5% platform fee
+    creatorRoyalty: 5.0, // 5% creator royalty
+    marketplaceFee: 1.0, // 1% marketplace fee
+    referralFee: 1.0, // 1% referral fee
+    feeRecipient: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW' // Platform fee wallet
+  });
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<string>('');
   const [deployedCollection, setDeployedCollection] = useState<any>(null);
@@ -103,14 +130,15 @@ const LaunchCollectionPage: React.FC = () => {
     { id: 1, title: 'Basic Info', description: 'Collection details and metadata', completed: currentStep > 1 },
     { id: 2, title: 'Traits', description: 'Upload trait files for generation', completed: currentStep > 2 },
     { id: 3, title: 'Hosting', description: 'Choose image hosting method', completed: currentStep > 3 },
-    { id: 4, title: 'Socials & Whitelist', description: 'Configure social verification and whitelist', completed: currentStep > 4 },
-    { id: 5, title: 'Preview', description: 'Preview your mint page', completed: currentStep > 5 },
-    { id: 6, title: 'Deploy', description: 'Deploy to Analos blockchain', completed: currentStep > 6 },
-    { id: 7, title: 'Share', description: 'Get your shareable mint page', completed: currentStep > 7 }
+    { id: 4, title: 'Platform Fees', description: 'Configure platform and creator fees', completed: currentStep > 4 },
+    { id: 5, title: 'Socials & Whitelist', description: 'Configure social verification and whitelist', completed: currentStep > 5 },
+    { id: 6, title: 'Preview', description: 'Preview your mint page', completed: currentStep > 6 },
+    { id: 7, title: 'Deploy', description: 'Deploy to Analos blockchain', completed: currentStep > 7 },
+    { id: 8, title: 'Share', description: 'Get your shareable mint page', completed: currentStep > 8 }
   ];
 
   const nextStep = () => {
-    if (currentStep < 7) {
+    if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -123,17 +151,97 @@ const LaunchCollectionPage: React.FC = () => {
 
   const handleTraitUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    const newTraits = files.map(file => ({
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-    setTraitFiles([...traitFiles, ...newTraits]);
+    
+    // Group files by folder name (assuming folder structure like: Background/background1.png, Eyes/eyes1.png)
+    const fileGroups: { [key: string]: File[] } = {};
+    
+    files.forEach(file => {
+      // Extract folder name from file path (if uploaded from folder) or use filename
+      const pathParts = file.webkitRelativePath ? file.webkitRelativePath.split('/') : [file.name];
+      const category = pathParts.length > 1 ? pathParts[0] : 'General';
+      
+      if (!fileGroups[category]) {
+        fileGroups[category] = [];
+      }
+      fileGroups[category].push(file);
+    });
+
+    // Create trait categories
+    Object.entries(fileGroups).forEach(([categoryName, categoryFiles]) => {
+      const newTraits = categoryFiles.map((file, index) => ({
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        file,
+        preview: URL.createObjectURL(file),
+        category: categoryName,
+        rarity: 50, // Default rarity
+        weight: 1 // Default weight
+      }));
+
+      setTraitFiles(prev => [...prev, ...newTraits]);
+
+      // Add category if it doesn't exist
+      setTraitCategories(prev => {
+        const existingCategory = prev.find(cat => cat.name === categoryName);
+        if (!existingCategory) {
+          return [...prev, {
+            name: categoryName,
+            files: newTraits,
+            required: true,
+            maxSelections: 1
+          }];
+        } else {
+          // Update existing category with new files
+          return prev.map(cat => 
+            cat.name === categoryName 
+              ? { ...cat, files: [...cat.files, ...newTraits] }
+              : cat
+          );
+        }
+      });
+    });
   };
 
-  const removeTraitFile = (index: number) => {
-    const newTraits = traitFiles.filter((_, i) => i !== index);
-    setTraitFiles(newTraits);
+  const removeTraitFile = (categoryName: string, fileIndex: number) => {
+    setTraitCategories(prev => 
+      prev.map(category => 
+        category.name === categoryName 
+          ? {
+              ...category,
+              files: category.files.filter((_, index) => index !== fileIndex)
+            }
+          : category
+      ).filter(category => category.files.length > 0)
+    );
+    
+    setTraitFiles(prev => prev.filter((trait, index) => {
+      const categoryIndex = prev.findIndex(t => t.category === categoryName);
+      return index !== categoryIndex + fileIndex;
+    }));
+  };
+
+  const addTraitCategory = () => {
+    if (newCategoryName.trim()) {
+      setTraitCategories(prev => [...prev, {
+        name: newCategoryName.trim(),
+        files: [],
+        required: true,
+        maxSelections: 1
+      }]);
+      setNewCategoryName('');
+    }
+  };
+
+  const removeTraitCategory = (categoryName: string) => {
+    setTraitCategories(prev => prev.filter(cat => cat.name !== categoryName));
+    setTraitFiles(prev => prev.filter(trait => trait.category !== categoryName));
+  };
+
+  const updateCategorySettings = (categoryName: string, settings: Partial<TraitCategory>) => {
+    setTraitCategories(prev => 
+      prev.map(cat => 
+        cat.name === categoryName ? { ...cat, ...settings } : cat
+      )
+    );
   };
 
   const addWhitelistPhase = () => {
@@ -168,6 +276,22 @@ const LaunchCollectionPage: React.FC = () => {
       const deployedCollectionData = {
         name: collectionConfig.name,
         symbol: collectionConfig.symbol,
+        description: collectionConfig.description,
+        imageUrl: collectionConfig.imageUrl,
+        externalUrl: collectionConfig.externalUrl,
+        maxSupply: collectionConfig.maxSupply,
+        mintPrice: collectionConfig.mintPrice,
+        pricingToken: collectionConfig.pricingToken,
+        customTokenSymbol: collectionConfig.customTokenSymbol,
+        royalty: collectionConfig.royalty,
+        creatorAddress: collectionConfig.creatorAddress,
+        mintType: collectionConfig.mintType,
+        revealType: collectionConfig.revealType,
+        delayedRevealSettings: collectionConfig.delayedRevealSettings,
+        platformFees: platformFees,
+        traitCategories: traitCategories,
+        hostingConfig: hostingConfig,
+        whitelistPhases: whitelistPhases,
         mintAddress: `mint_${Date.now()}`,
         collectionAddress: `collection_${Date.now()}`,
         mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
@@ -529,16 +653,18 @@ const LaunchCollectionPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Trait Files Upload</h2>
-              <p className="text-gray-300">Upload your trait files for NFT generation</p>
+              <h2 className="text-3xl font-bold text-white mb-2">Trait Files Upload & Management</h2>
+              <p className="text-gray-300">Upload your trait files and organize them into layers</p>
             </div>
 
+            {/* Upload Section */}
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
-              <div className="text-center">
+              <div className="text-center mb-6">
                 <input
                   type="file"
                   multiple
                   accept="image/*"
+                  webkitdirectory=""
                   onChange={handleTraitUpload}
                   className="hidden"
                   id="trait-upload"
@@ -547,35 +673,188 @@ const LaunchCollectionPage: React.FC = () => {
                   htmlFor="trait-upload"
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-lg cursor-pointer transition-all duration-200"
                 >
-                  📁 Upload Trait Files
+                  📁 Upload Trait Folder
                 </label>
-                <p className="text-gray-300 text-sm mt-2">Upload PNG files with transparent backgrounds</p>
+                <p className="text-gray-300 text-sm mt-2">
+                  Upload a folder with organized trait layers (e.g., Background/, Eyes/, Mouth/, etc.)
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Supported formats: PNG with transparent backgrounds
+                </p>
               </div>
 
-              {traitFiles.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-white font-semibold mb-4">Uploaded Traits:</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {traitFiles.map((trait, index) => (
-                      <div key={index} className="bg-white/5 rounded-lg p-3 border border-white/10">
-                        <img
-                          src={trait.preview}
-                          alt={trait.name}
-                          className="w-full h-20 object-cover rounded mb-2"
-                        />
-                        <p className="text-white text-sm truncate">{trait.name}</p>
-                        <button
-                          onClick={() => removeTraitFile(index)}
-                          className="text-red-400 hover:text-red-300 text-xs mt-1"
-                        >
-                          Remove
-                        </button>
+              {/* Add Custom Category */}
+              <div className="flex space-x-2 mb-4">
+                <input
+                  type="text"
+                  placeholder="Add custom category (e.g., Background, Eyes, Hat)"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <button
+                  onClick={addTraitCategory}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Add Category
+                </button>
+              </div>
+            </div>
+
+            {/* Trait Categories */}
+            {traitCategories.length > 0 && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-white">Trait Categories ({traitCategories.length})</h3>
+                
+                {traitCategories.map((category, categoryIndex) => (
+                  <div key={categoryIndex} className="bg-white/10 rounded-xl p-6 border border-white/20">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center space-x-4">
+                        <h4 className="text-xl font-semibold text-white">{category.name}</h4>
+                        <div className="flex items-center space-x-4">
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={category.required}
+                              onChange={(e) => updateCategorySettings(category.name, { required: e.target.checked })}
+                              className="mr-2"
+                            />
+                            <span className="text-white text-sm">Required</span>
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <label className="text-white text-sm">Max:</label>
+                            <input
+                              type="number"
+                              value={category.maxSelections}
+                              onChange={(e) => updateCategorySettings(category.name, { maxSelections: parseInt(e.target.value) || 1 })}
+                              className="w-16 px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm"
+                              min="1"
+                              max="10"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    ))}
+                      <button
+                        onClick={() => removeTraitCategory(category.name)}
+                        className="text-red-400 hover:text-red-300 font-bold"
+                      >
+                        Remove Category
+                      </button>
+                    </div>
+
+                    {category.files.length > 0 ? (
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {category.files.map((trait, fileIndex) => (
+                          <div key={fileIndex} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                            <img
+                              src={trait.preview}
+                              alt={trait.name}
+                              className="w-full h-20 object-cover rounded mb-2"
+                            />
+                            <p className="text-white text-sm truncate mb-2">{trait.name}</p>
+                            
+                            {/* Rarity and Weight Controls */}
+                            <div className="space-y-1 mb-2">
+                              <div className="flex items-center space-x-1">
+                                <label className="text-gray-300 text-xs">Rarity:</label>
+                                <input
+                                  type="number"
+                                  value={trait.rarity}
+                                  onChange={(e) => {
+                                    const newTraits = [...traitFiles];
+                                    const traitIndex = newTraits.findIndex(t => t.name === trait.name && t.category === trait.category);
+                                    if (traitIndex !== -1) {
+                                      newTraits[traitIndex].rarity = parseInt(e.target.value) || 50;
+                                      setTraitFiles(newTraits);
+                                    }
+                                  }}
+                                  className="w-12 px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
+                                  min="1"
+                                  max="100"
+                                />
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <label className="text-gray-300 text-xs">Weight:</label>
+                                <input
+                                  type="number"
+                                  value={trait.weight}
+                                  onChange={(e) => {
+                                    const newTraits = [...traitFiles];
+                                    const traitIndex = newTraits.findIndex(t => t.name === trait.name && t.category === trait.category);
+                                    if (traitIndex !== -1) {
+                                      newTraits[traitIndex].weight = parseInt(e.target.value) || 1;
+                                      setTraitFiles(newTraits);
+                                    }
+                                  }}
+                                  className="w-12 px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
+                                  min="1"
+                                  max="10"
+                                />
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => removeTraitFile(category.name, fileIndex)}
+                              className="text-red-400 hover:text-red-300 text-xs w-full"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400">
+                        <p>No files uploaded for this category yet</p>
+                        <p className="text-sm">Upload files to see them here</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Generation Preview */}
+            {traitCategories.length > 0 && (
+              <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+                <h3 className="text-xl font-semibold text-white mb-4">Generation Preview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="text-white font-medium mb-2">Collection Stats</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Categories:</span>
+                        <span className="text-white">{traitCategories.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Total Traits:</span>
+                        <span className="text-white">{traitFiles.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-300">Max Combinations:</span>
+                        <span className="text-white">
+                          {traitCategories.reduce((acc, cat) => acc * Math.max(cat.files.length, 1), 1).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="text-white font-medium mb-2">Layer Order</h4>
+                    <div className="space-y-1">
+                      {traitCategories.map((category, index) => (
+                        <div key={index} className="flex items-center space-x-2 text-sm">
+                          <span className="text-gray-400">{index + 1}.</span>
+                          <span className="text-white">{category.name}</span>
+                          <span className="text-gray-400">({category.files.length} traits)</span>
+                          {category.required && (
+                            <span className="bg-red-500/20 text-red-300 px-2 py-1 rounded text-xs">Required</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
 
@@ -659,6 +938,139 @@ const LaunchCollectionPage: React.FC = () => {
         );
 
       case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-2">Platform Fees Configuration</h2>
+              <p className="text-gray-300">Configure platform and creator fees for your collection</p>
+            </div>
+
+            <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Platform Fee (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={platformFees.platformFee}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, platformFee: parseFloat(e.target.value) || 0 }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      min="0"
+                      max="25"
+                      step="0.1"
+                    />
+                    <p className="text-gray-400 text-xs mt-1">Fee collected by the platform for hosting and services</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Creator Royalty (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={platformFees.creatorRoyalty}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, creatorRoyalty: parseFloat(e.target.value) || 0 }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      min="0"
+                      max="25"
+                      step="0.1"
+                    />
+                    <p className="text-gray-400 text-xs mt-1">Royalty you receive from secondary sales</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Marketplace Fee (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={platformFees.marketplaceFee}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, marketplaceFee: parseFloat(e.target.value) || 0 }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      min="0"
+                      max="25"
+                      step="0.1"
+                    />
+                    <p className="text-gray-400 text-xs mt-1">Fee for marketplace transactions</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">
+                      Referral Fee (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={platformFees.referralFee}
+                      onChange={(e) => setPlatformFees(prev => ({ ...prev, referralFee: parseFloat(e.target.value) || 0 }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      min="0"
+                      max="25"
+                      step="0.1"
+                    />
+                    <p className="text-gray-400 text-xs mt-1">Fee for referral program participants</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label className="block text-white text-sm font-medium mb-2">
+                  Platform Fee Recipient
+                </label>
+                <input
+                  type="text"
+                  value={platformFees.feeRecipient}
+                  onChange={(e) => setPlatformFees(prev => ({ ...prev, feeRecipient: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Platform fee wallet address"
+                />
+                <p className="text-gray-400 text-xs mt-1">Wallet address that receives platform fees</p>
+              </div>
+            </div>
+
+            {/* Fee Breakdown */}
+            <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+              <h3 className="text-xl font-semibold text-white mb-4">Fee Breakdown</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300">Platform Fee:</span>
+                  <span className="text-white font-medium">{platformFees.platformFee}%</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300">Creator Royalty:</span>
+                  <span className="text-white font-medium">{platformFees.creatorRoyalty}%</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300">Marketplace Fee:</span>
+                  <span className="text-white font-medium">{platformFees.marketplaceFee}%</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                  <span className="text-gray-300">Referral Fee:</span>
+                  <span className="text-white font-medium">{platformFees.referralFee}%</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30">
+                  <span className="text-white font-semibold">Total Fees:</span>
+                  <span className="text-white font-bold">
+                    {(platformFees.platformFee + platformFees.creatorRoyalty + platformFees.marketplaceFee + platformFees.referralFee).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+              
+              {platformFees.platformFee + platformFees.creatorRoyalty + platformFees.marketplaceFee + platformFees.referralFee > 25 && (
+                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                  <p className="text-red-300 text-sm">
+                    ⚠️ Total fees exceed 25%. Consider reducing some fees to maintain competitive pricing.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -838,7 +1250,7 @@ const LaunchCollectionPage: React.FC = () => {
           </div>
         );
 
-      case 6:
+      case 8:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -872,7 +1284,7 @@ const LaunchCollectionPage: React.FC = () => {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
