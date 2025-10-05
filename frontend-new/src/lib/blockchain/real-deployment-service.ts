@@ -600,7 +600,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Validate deployment configuration
    */
-  validateDeploymentConfig(config: DeploymentConfig) {
+  validateDeploymentConfig(config) {
     const errors: string[] = [];
 
     // Validate required fields
@@ -649,12 +649,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Get deployment status
    */
-  async getDeploymentStatus(collectionAddress: string): Promise<{
-    deployed: boolean;
-    status: 'pending' | 'confirmed' | 'failed';
-    transactionSignature?: string;
-    blockTime?: number;
-  }> {
+  async getDeploymentStatus(collectionAddress: string) {
     try {
       // Mock deployment status check
       // In a real implementation, this would query the blockchain
@@ -663,24 +658,20 @@ export class RealBlockchainDeploymentService {
         status: 'confirmed',
         transactionSignature: 'mock_transaction_signature',
         blockTime: Date.now() / 1000
-      };
+      } as any;
     } catch (error) {
       console.error('Error checking deployment status:', error);
       return {
         deployed: false,
         status: 'failed'
-      };
+      } as any;
     }
   }
 
   /**
    * Calculate deployment costs
    */
-  calculateDeploymentCosts(config: DeploymentConfig): {
-    accountCreation: number;
-    transactionFees: number;
-    total: number;
-  } {
+  calculateDeploymentCosts(config) {
     // Mock cost calculation
     // In a real implementation, this would calculate actual costs
     const accountCreation = 0.05 * LAMPORTS_PER_SOL; // 0.05 SOL for account creation
@@ -690,7 +681,7 @@ export class RealBlockchainDeploymentService {
       accountCreation,
       transactionFees,
       total: accountCreation + transactionFees
-    };
+    } as any;
   }
 
   /**
@@ -708,12 +699,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Get connection status
    */
-  async getConnectionStatus(): Promise<{
-    connected: boolean;
-    rpcUrl: string;
-    slot: number;
-    blockHeight: number;
-  }> {
+  async getConnectionStatus() {
     try {
       const slot = await this.connection.getSlot();
       const blockHeight = await this.connection.getBlockHeight();
@@ -723,7 +709,7 @@ export class RealBlockchainDeploymentService {
         rpcUrl: this.ANALOS_RPC_URL,
         slot,
         blockHeight
-      };
+      } as any;
     } catch (error) {
       console.error('Connection check failed:', error);
       return {
@@ -731,7 +717,7 @@ export class RealBlockchainDeploymentService {
         rpcUrl: this.ANALOS_RPC_URL,
         slot: 0,
         blockHeight: 0
-      };
+      } as any;
     }
   }
 }
