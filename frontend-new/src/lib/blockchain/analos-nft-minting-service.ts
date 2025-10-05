@@ -410,62 +410,53 @@ export class AnalosNFTMintingService {
       transaction.add(mintToInstruction);
       console.log('🔍 Added mintToInstruction:', transaction.instructions?.length || 'undefined');
 
-        // Step 6: Add Master Edition support with proper signing
-        let masterEditionAddress = PublicKey.default;
-        let masterEditionKeypair: Keypair | null = null;
-        
-        if (nftData.masterEdition) {
-          console.log('🏆 Adding Master Edition support...');
-          const masterEditionResult = await this.createAnalosMasterEditionInstructions(
-            mintAddress,
-            ownerPublicKey,
-            nftData.masterEdition.maxSupply
-          );
+          // Step 6: Add Master Edition support with proper signing
+          let masterEditionAddress = PublicKey.default;
+          let masterEditionKeypair: Keypair | null = null;
           
-          if (masterEditionResult && masterEditionResult.instructions && masterEditionResult.instructions.length > 0) {
-            masterEditionKeypair = masterEditionResult.masterEditionKeypair;
-            masterEditionAddress = masterEditionResult.masterEditionAddress;
-            
-            // Add Master Edition instructions to transaction
-            transaction.add(...masterEditionResult.instructions);
-            console.log('✅ Added Master Edition instructions to transaction');
-          } else {
-            console.log('⚠️ Master Edition creation failed, continuing without Master Edition');
-            masterEditionKeypair = null;
-            masterEditionAddress = PublicKey.default;
-          }
-        } else {
-          console.log('🏆 No Master Edition requested - creating standard NFT');
-        }
+          // TEMPORARILY DISABLED to reduce transaction size (Transaction too large: 1563 > 1232)
+          console.log('🏆 Master Edition temporarily disabled to reduce transaction size');
+          console.log('📊 Transaction size optimization: Skipping Master Edition for now');
+          
+          // TODO: Re-enable Master Edition with more compact data structure
+          // if (nftData.masterEdition) {
+          //   console.log('🏆 Adding Master Edition support...');
+          //   const masterEditionResult = await this.createAnalosMasterEditionInstructions(
+          //     mintAddress,
+          //     ownerPublicKey,
+          //     nftData.masterEdition.maxSupply
+          //   );
+          //   
+          //   if (masterEditionResult && masterEditionResult.instructions && masterEditionResult.instructions.length > 0) {
+          //     masterEditionKeypair = masterEditionResult.masterEditionKeypair;
+          //     masterEditionAddress = masterEditionResult.masterEditionAddress;
+          //     
+          //     // Add Master Edition instructions to transaction
+          //     transaction.add(...masterEditionResult.instructions);
+          //     console.log('✅ Added Master Edition instructions to transaction');
+          //   } else {
+          //     console.log('⚠️ Master Edition creation failed, continuing without Master Edition');
+          //     masterEditionKeypair = null;
+          //     masterEditionAddress = PublicKey.default;
+          //   }
+          // } else {
+          //   console.log('🏆 No Master Edition requested - creating standard NFT');
+          // }
 
         // Step 7: Add on-chain metadata using Memo Program
         console.log('📝 Adding on-chain metadata instruction...');
         
-        // Create metadata for on-chain storage
+        // Create compact metadata for on-chain storage (reduced size to avoid "Transaction too large")
       const nftMetadata = {
-        name: nftData.name,
-        symbol: nftData.symbol,
-        description: nftData.description,
-        image: ipfsResult.url!,
-        external_url: nftData.externalUrl || '',
-        attributes: nftData.attributes || [],
-        properties: {
-          files: [{ uri: ipfsResult.url!, type: 'image/png' }],
-          category: 'image',
-          creators: nftData.creators || [{ address: ownerAddress, verified: false, share: 100 }],
-        },
-        seller_fee_basis_points: nftData.sellerFeeBasisPoints || 500,
-        collection: nftData.collection || null,
-        mint_address: mintAddress.toBase58(),
-        network: 'analos',
-        version: '1.0.0',
-        // Include Master Edition info in metadata
-        master_edition: nftData.masterEdition ? {
-          maxSupply: nftData.masterEdition.maxSupply,
-          editionType: nftData.masterEdition.editionType,
-          network: 'analos',
-          note: 'Master Edition info stored in metadata'
-        } : null
+        n: nftData.name, // name
+        s: nftData.symbol, // symbol  
+        d: nftData.description, // description
+        i: ipfsResult.url!, // image
+        u: nftData.externalUrl || '', // url
+        m: mintAddress.toBase58(), // mint
+        o: ownerPublicKey.toBase58(), // owner
+        t: Date.now(), // timestamp
+        net: 'analos' // network
       };
       
         console.log('📄 Metadata prepared for on-chain storage:', nftMetadata);
@@ -521,7 +512,7 @@ export class AnalosNFTMintingService {
         const totalInstructions = transaction.instructions.length;
         const nftInstructions = 4;
         const metadataInstructions = 1;
-        const masterEditionInstructions = masterEditionKeypair ? 1 : 0; // only memo instruction, no account creation
+        const masterEditionInstructions = 0; // Master Edition temporarily disabled to reduce transaction size
         console.log(`📊 Total instructions: ${nftInstructions} NFT + ${metadataInstructions} metadata + ${masterEditionInstructions} master edition = ${totalInstructions} instructions`);
 
       console.log('🔍 Debug sendTransaction call:', {
