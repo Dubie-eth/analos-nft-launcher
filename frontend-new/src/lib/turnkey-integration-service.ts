@@ -361,81 +361,37 @@ class TurnkeyIntegrationService {
     const url = this.buildUrl(endpoint, subOrgId, walletId);
     
     try {
-      // Temporarily use simulation mode to get NFT minting working
-      // TODO: Fix API route 404 issue and switch back to real API
-      console.log(`🧪 Simulating Turnkey API request: ${method} ${endpoint}`);
+      // Use real Turnkey API - let's fix the 404 issue
+      console.log(`🔗 Making real Turnkey API request: ${method} ${endpoint}`);
       
-      // Simulate successful responses for core functionality
-      if (endpoint === '/v1/organizations') {
-        return {
-          success: true,
-          organizations: [{
-            organizationId: this.orgId,
-            organizationName: 'Analos NFT Launcher',
-            createdAt: new Date().toISOString(),
-            status: 'ACTIVE'
-          }]
-        };
+      // Make actual API request to Turnkey via our proxy
+      const response = await fetch('/api/turnkey', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          method,
+          url,
+          data,
+          headers: {
+            'X-API-Key': this.apiKey,
+            'X-Organization-Id': this.orgId,
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
+      const result = await response.json();
       
-      if (endpoint.includes('/v1/sub_organizations') || endpoint.includes('/v1/sub-orgs')) {
-        return {
-          success: true,
-          subOrgId: `sub_org_${Date.now()}`,
-          subOrganizationId: `sub_org_${Date.now()}`,
-          subOrganizationName: 'Analos NFT Users',
-          createdAt: new Date().toISOString(),
-          status: 'ACTIVE'
-        };
+      if (!result.success) {
+        throw new Error(result.error || 'API request failed');
       }
-      
-      if (endpoint.includes('/v1/wallets')) {
-        // Ensure we have a valid string to slice
-        const mockKey = this.apiKey || '169521489ff474ee3ff3ff4688fb44c87c3d9cb12d2e557f3c7c700ce229c387';
-        
-        if (method === 'GET') {
-          // Return array of wallets for listing
-          return {
-            success: true,
-            wallets: [{
-              walletId: `wallet_${Date.now()}`,
-              address: mockKey.slice(0, 44),
-              publicKey: mockKey.slice(0, 44),
-              accounts: [{
-                address: mockKey.slice(0, 44),
-                publicKey: mockKey.slice(0, 44),
-                curve: 'CURVE_ED25519',
-                path: "m/44'/501'/0'/0'"
-              }],
-              createdAt: new Date().toISOString(),
-              status: 'ACTIVE'
-            }]
-          };
-        } else {
-          // Return single wallet for creation
-          return {
-            success: true,
-            walletId: `wallet_${Date.now()}`,
-            address: mockKey.slice(0, 44),
-            publicKey: mockKey.slice(0, 44),
-            accounts: [{
-              address: mockKey.slice(0, 44),
-              publicKey: mockKey.slice(0, 44),
-              curve: 'CURVE_ED25519',
-              path: "m/44'/501'/0'/0'"
-            }],
-            createdAt: new Date().toISOString(),
-            status: 'ACTIVE'
-          };
-        }
-      }
-      
-      // For other endpoints, return a generic success
-      return {
-        success: true,
-        message: `Simulated successful ${method} request to ${endpoint}`,
-        data: data || {}
-      };
+
+      return result;
 
     } catch (error) {
       console.error('Turnkey API request failed:', error);
