@@ -6,7 +6,7 @@
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { realBlockchainDeploymentService } from './real-deployment-service';
+import { properDeploymentService } from './proper-deployment-service';
 
 export interface RecoveredCollection {
   collectionMint: string;
@@ -50,7 +50,7 @@ export class CollectionRecoveryService {
       console.log('🔍 Recovering collection from blockchain:', collectionMint);
       
       // Get collection data from blockchain
-      const result = await realBlockchainDeploymentService.getCollectionFromBlockchain(collectionMint);
+      const result = await properDeploymentService.getCollection(collectionMint);
       
       if (!result.success) {
         return {
