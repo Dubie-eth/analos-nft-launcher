@@ -5,7 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection, Transaction, SystemProgram } from '@solana/web3.js';
 import { createTransferInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
 import StandardLayout from '../components/StandardLayout';
-import { AnalosNFTMintingService } from '../lib/blockchain/analos-nft-minting-service';
+import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting-service';
 
 interface CollectionConfig {
   name: string;
