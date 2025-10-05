@@ -15,10 +15,6 @@ export default function Navigation() {
   // Base navigation items (always visible)
   const baseNavItems = [
     { href: '/', label: 'Home', icon: '🏠' },
-    { href: '/mint', label: 'Mint', icon: '🎨' },
-    { href: '/mint-nft', label: 'Mint NFT', icon: '🚀' }, // Simple NFT minting
-    { href: '/mint-real-nft', label: 'Real NFT', icon: '🎯' }, // Real NFT minting
-    { href: '/mint-collection', label: 'Collection Studio', icon: '🎨' }, // Collection minting with tabs
     { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' }, // Full collection launch wizard
     { href: '/collections', label: 'Collections', icon: '🎨' }, // Browse all collections
     { href: '/explorer', label: 'Explorer', icon: '🔍' },

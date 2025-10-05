@@ -110,7 +110,7 @@ export default function EnhancedLandingPage() {
     {
       title: "🎨 NFT Generator",
       description: "Create unique NFT collections with custom traits and rarity",
-      image: "/features/generator.png",
+      image: "/features/launch.png",
       details: [
         "Upload trait folders for automatic processing",
         "Set custom rarity percentages",
@@ -380,17 +380,17 @@ Block Explorer: https://explorer.analos.io`
                 </Link>
               ) : (
                 <Link 
-                  href="/mint"
+                  href="/launch-collection"
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
                 >
-                  🎨 Start Minting
+                  🚀 Launch Collection
                 </Link>
               )}
               <Link 
-                href="/generator"
+                href="/collections"
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >
-                🚀 Create Collection
+                🎨 Browse Collections
               </Link>
               <Link 
                 href="/explorer"
@@ -513,7 +513,7 @@ Block Explorer: https://explorer.analos.io`
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link 
-                    href="/mint/losbros"
+                    href="/collections"
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     🎨 View Collection
@@ -879,7 +879,7 @@ Block Explorer: https://explorer.analos.io`
               </Link>
             ) : (
               <Link 
-                href="/mint"
+                href="/launch-collection"
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 transform hover:scale-105"
               >
                 🎨 Start Minting Now
@@ -937,7 +937,7 @@ Block Explorer: https://explorer.analos.io`
               <ul className="space-y-2">
                 {isAdmin && <li><Link href="/admin" className="text-gray-400 hover:text-white">Admin Panel</Link></li>}
                 <li><Link href="/explorer" className="text-gray-400 hover:text-white">NFT Explorer</Link></li>
-                <li><Link href="/mint/launch-on-los" className="text-gray-400 hover:text-white">Sample Mint</Link></li>
+                <li><Link href="/collections" className="text-gray-400 hover:text-white">Browse Collections</Link></li>
               </ul>
             </div>
             <div>
