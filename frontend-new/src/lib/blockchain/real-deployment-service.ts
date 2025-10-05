@@ -600,7 +600,7 @@ export class RealBlockchainDeploymentService {
   /**
    * Validate deployment configuration
    */
-  validateDeploymentConfig(config: DeploymentConfig): { valid: boolean; errors: string[] } {
+  validateDeploymentConfig(config: DeploymentConfig) {
     const errors: string[] = [];
 
     // Validate required fields
@@ -643,7 +643,7 @@ export class RealBlockchainDeploymentService {
     return {
       valid: errors.length === 0,
       errors
-    };
+    } as { valid: boolean; errors: string[] };
   }
 
   /**
