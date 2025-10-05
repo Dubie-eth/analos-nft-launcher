@@ -22,6 +22,9 @@ import {
 // Metaplex program ID - using hardcoded value since import is failing
 const METAPLEX_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
+// Memo Program ID for storing metadata and edition data
+const MEMO_PROGRAM_ID_STRING = 'MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2';
+
 export interface NFTCreationData {
   name: string;
   symbol: string;
@@ -148,12 +151,11 @@ export class AnalosNFTMintingService {
       };
 
       // Use Memo Program to store edition data (no new account creation)
-      const memoProgramId = new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2');
       const editionDataInstruction = new TransactionInstruction({
         keys: [
           { pubkey: ownerAddress, isSigner: true, isWritable: false }
         ],
-        programId: memoProgramId,
+        programId: new PublicKey(MEMO_PROGRAM_ID_STRING),
         data: Buffer.from(JSON.stringify(editionData))
       });
 
@@ -411,10 +413,11 @@ export class AnalosNFTMintingService {
         }));
 
         // Use Memo Program instead of SystemProgram - it's designed for arbitrary data
-        const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2');
         const metadataInstruction = new TransactionInstruction({
-          keys: [],
-          programId: MEMO_PROGRAM_ID,
+          keys: [
+            { pubkey: ownerPublicKey, isSigner: true, isWritable: false }
+          ],
+          programId: new PublicKey(MEMO_PROGRAM_ID_STRING),
           data: metadataData
         });
 
@@ -439,7 +442,7 @@ export class AnalosNFTMintingService {
       console.log('🔐 Sending transaction to wallet...');
       console.log('📝 Transaction details:', {
         instructions: transaction.instructions.length,
-        signers: transaction.signers.length,
+        signers: transaction.signers?.length || 0,
         recentBlockhash: transaction.recentBlockhash
       });
 
@@ -449,7 +452,7 @@ export class AnalosNFTMintingService {
         mintKeypair: !!mintKeypair,
         sendTransactionType: typeof sendTransaction,
         transactionInstructions: transaction.instructions?.length,
-        transactionSigners: transaction.signers?.length,
+        transactionSigners: transaction.signers?.length || 0,
         transactionRecentBlockhash: !!transaction.recentBlockhash
       });
 
