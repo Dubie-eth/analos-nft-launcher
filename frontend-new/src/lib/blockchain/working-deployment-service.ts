@@ -140,27 +140,7 @@ export class WorkingDeploymentService {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = new PublicKey(walletAddress);
 
-      // Add memo instruction to store collection data on-chain
-      const collectionData = {
-        action: 'deploy_collection',
-        collectionAddress,
-        deployedAt: new Date().toISOString(),
-        platform: 'Analos NFT Launcher',
-        version: '1.0.0',
-        network: 'Analos'
-      };
-
-      const memoInstruction = new TransactionInstruction({
-        keys: [
-          { pubkey: new PublicKey(walletAddress), isSigner: true, isWritable: false }
-        ],
-        programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'), // Memo Program
-        data: Buffer.from(JSON.stringify(collectionData), 'utf8')
-      });
-
-      transaction.add(memoInstruction);
-
-      // Add a small transfer to make the transaction valid and pay fees
+      // Add a simple transfer to make the transaction valid and pay fees
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: new PublicKey(walletAddress),
         toPubkey: new PublicKey(walletAddress), // Transfer to self (no actual transfer)
