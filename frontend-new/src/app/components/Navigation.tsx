@@ -6,8 +6,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
 
+// Add static property to track warning logging
+Navigation._contextWarningLogged = false;
+
 export default function Navigation() {
-  // Add safety check for wallet context
+  // Add safety check for wallet context with better error handling
   let walletContext;
   let modalContext;
   
@@ -15,7 +18,11 @@ export default function Navigation() {
     walletContext = useWallet();
     modalContext = useWalletModal();
   } catch (error) {
-    console.warn('Wallet context not available yet, using fallback');
+    // Only log the warning once to avoid spam
+    if (!Navigation._contextWarningLogged) {
+      console.warn('Wallet context not available yet, using fallback');
+      Navigation._contextWarningLogged = true;
+    }
     walletContext = { connected: false, publicKey: null, disconnect: () => {} };
     modalContext = { setVisible: () => {} };
   }

@@ -61,11 +61,25 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     setMounted(true);
   }, []);
 
-  // Always render the wallet providers, but with safe defaults when not mounted
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-white text-center">
+            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-xl font-semibold">Loading Analos NFT Launcher...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Always render the wallet providers with safe defaults
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider 
-        wallets={mounted ? wallets : []} 
+        wallets={wallets} 
         autoConnect={false}
         onError={(error) => {
           console.error('❌ Wallet error:', error);
