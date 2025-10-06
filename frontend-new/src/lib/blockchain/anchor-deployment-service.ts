@@ -214,44 +214,28 @@ export class AnchorDeploymentService {
 
       console.log('📝 Deployment data prepared:', deploymentData);
 
-      // Create Analos NFT collection with proper collection setup
+      // Create Analos NFT collection using basic system instructions
       console.log('🎨 Creating Analos NFT collection...');
       
       // 1. Create collection mint keypair for the NFT collection
       const collectionMint = Keypair.generate();
       
-      // 2. Create collection account instruction (Analos-specific)
-      const createCollectionAccountIx = new TransactionInstruction({
-        keys: [
-          { pubkey: walletPublicKey, isSigner: true, isWritable: true }, // Payer
-          { pubkey: collectionMint.publicKey, isSigner: true, isWritable: true }, // Collection mint
-          { pubkey: collectionPDA, isSigner: false, isWritable: true }, // Collection PDA
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        programId: this.PROGRAM_ID,
-        data: Buffer.from('create_collection') // Analos collection creation instruction
+      // 2. Create a simple account for the collection (using SystemProgram)
+      const createCollectionAccountIx = SystemProgram.createAccount({
+        fromPubkey: walletPublicKey,
+        newAccountPubkey: collectionPDA,
+        space: 128, // Space for collection data
+        lamports: await this.connection.getMinimumBalanceForRentExemption(128),
+        programId: SystemProgram.programId
       });
 
-      // 3. Create collection metadata instruction (Analos-specific)
-      const createMetadataIx = new TransactionInstruction({
-        keys: [
-          { pubkey: walletPublicKey, isSigner: true, isWritable: true }, // Authority
-          { pubkey: collectionMint.publicKey, isSigner: false, isWritable: false }, // Collection mint
-          { pubkey: collectionPDA, isSigner: false, isWritable: true }, // Collection PDA
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        programId: this.PROGRAM_ID,
-        data: Buffer.from(JSON.stringify({
-          name: collectionAddress,
-          symbol: 'LBS', // Los Bros Symbol
-          description: `Analos NFT Collection: ${collectionAddress}`,
-          image: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          attributes: [
-            { trait_type: 'Network', value: 'Analos' },
-            { trait_type: 'Collection', value: 'The LosBros' },
-            { trait_type: 'Platform', value: 'Analos NFT Launcher' }
-          ]
-        }))
+      // 3. Create collection mint account
+      const createMintAccountIx = SystemProgram.createAccount({
+        fromPubkey: walletPublicKey,
+        newAccountPubkey: collectionMint.publicKey,
+        space: 82, // Standard mint account size
+        lamports: await this.connection.getMinimumBalanceForRentExemption(82),
+        programId: SystemProgram.programId
       });
 
       console.log('📍 Collection Mint Address:', collectionMint.publicKey.toString());
@@ -260,7 +244,7 @@ export class AnchorDeploymentService {
 
       // Add collection instructions to transaction
       transaction.add(createCollectionAccountIx);
-      transaction.add(createMetadataIx);
+      transaction.add(createMintAccountIx);
 
       // Add collection mint keypair as signer
       transaction.partialSign(collectionMint);
