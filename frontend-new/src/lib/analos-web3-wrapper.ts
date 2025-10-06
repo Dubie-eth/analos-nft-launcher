@@ -85,7 +85,7 @@ export class AnalosConnection extends Connection {
           ws.close();
           console.warn('⚠️ WebSocket connection timeout, continuing with HTTP-only mode');
           resolve();
-        }, 5000);
+        }, 3000); // Reduced timeout to 3 seconds
         
         ws.onopen = () => {
           clearTimeout(timeout);
@@ -96,16 +96,19 @@ export class AnalosConnection extends Connection {
         
         ws.onerror = (error) => {
           clearTimeout(timeout);
-          console.warn('⚠️ WebSocket connection failed, continuing with HTTP-only mode:', error);
+          console.warn('⚠️ WebSocket connection failed, continuing with HTTP-only mode');
           resolve();
         };
         
-        ws.onclose = () => {
+        ws.onclose = (event) => {
           clearTimeout(timeout);
+          if (event.code !== 1000 && event.code !== 1001) {
+            console.warn('⚠️ WebSocket closed unexpectedly, code:', event.code);
+          }
         };
       });
     } catch (error) {
-      console.warn('⚠️ WebSocket initialization failed, continuing with HTTP-only mode:', error);
+      console.warn('⚠️ WebSocket initialization failed, continuing with HTTP-only mode');
     }
   }
 
