@@ -63,7 +63,7 @@ export class AnalosNftLauncherClient {
     this.provider = provider;
     this.program = new Program<AnalosNftLauncherProgram>(
       AnalosNftLauncherProgramIDL,
-      programId || new PublicKey("9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"),
+      programId || new PublicKey("J98xDbcPVV7HbjL5Lz1vdM2ySn9QT1FE2njGeuAxWjmY"),
       provider
     );
   }

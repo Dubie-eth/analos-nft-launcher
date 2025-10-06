@@ -1,22 +1,18 @@
 [toolchain]
 package_manager = "yarn"
-anchor_version = "0.31.1"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.devnet]
-analos_nft_launcher_program = "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"
-
 [programs.localnet]
-analos_nft_launcher_program = "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"
+losbros_nft_workspace = "3PFuTnDh58yC32xR71SCxPGRmLre89pM2zXjZWiLjsh6"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = '~\.config\solana\id.json'
 
 [scripts]

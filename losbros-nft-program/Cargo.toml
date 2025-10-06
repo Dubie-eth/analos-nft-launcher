@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "programs/analos-nft-launcher-program"
+    "programs/losbros-nft-program"
 ]
 resolver = "2"
 
