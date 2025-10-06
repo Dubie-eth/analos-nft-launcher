@@ -4,7 +4,7 @@
  */
 
 import { Request, Response } from 'express';
-import { socialVerificationService } from '../lib/social-verification-service';
+import { socialVerificationService } from './lib/social-verification-service';
 
 export interface TwitterWebhookPayload {
   for_user_id: string;
@@ -149,7 +149,17 @@ export const handleDiscordWebhook = async (req: Request, res: Response) => {
 /**
  * Process Twitter tweet for verification
  */
-async function processTwitterTweet(event: any) {
+async function processTwitterTweet(event: {
+  text: string;
+  user: {
+    id: string;
+    screen_name: string;
+    name: string;
+    followers_count: number;
+    verified: boolean;
+    profile_image_url: string;
+  };
+}) {
   try {
     const { text, user } = event;
     
@@ -164,7 +174,7 @@ async function processTwitterTweet(event: any) {
     const requests = socialVerificationService.getAllVerificationRequests();
     for (const request of requests) {
       const twitterAccount = request.socialAccounts.find(
-        a => a.platform === 'twitter' && 
+        (a: any) => a.platform === 'twitter' && 
              a.verificationData?.verificationCode === verificationCode
       );
 
@@ -190,7 +200,23 @@ async function processTwitterTweet(event: any) {
 /**
  * Process Telegram message for verification
  */
-async function processTelegramMessage(message: any) {
+async function processTelegramMessage(message: {
+  message_id: number;
+  from: {
+    id: number;
+    username?: string;
+    first_name: string;
+    last_name?: string;
+  };
+  chat: {
+    id: number;
+    type: string;
+    title?: string;
+    username?: string;
+  };
+  text?: string;
+  date: number;
+}) {
   try {
     const { text, from, chat } = message;
     
@@ -205,7 +231,7 @@ async function processTelegramMessage(message: any) {
     const requests = socialVerificationService.getAllVerificationRequests();
     for (const request of requests) {
       const telegramAccount = request.socialAccounts.find(
-        a => a.platform === 'telegram' && 
+        (a: any) => a.platform === 'telegram' && 
              a.verificationData?.verificationCode === verificationCode
       );
 
@@ -229,7 +255,16 @@ async function processTelegramMessage(message: any) {
 /**
  * Process Discord message for verification
  */
-async function processDiscordMessage(messageData: any) {
+async function processDiscordMessage(messageData: {
+  content: string;
+  author: {
+    id: string;
+    username: string;
+    discriminator: string;
+    avatar?: string;
+    verified?: boolean;
+  };
+}) {
   try {
     const { content, author } = messageData;
     
@@ -244,7 +279,7 @@ async function processDiscordMessage(messageData: any) {
     const requests = socialVerificationService.getAllVerificationRequests();
     for (const request of requests) {
       const discordAccount = request.socialAccounts.find(
-        a => a.platform === 'discord' && 
+        (a: any) => a.platform === 'discord' && 
              a.verificationData?.verificationCode === verificationCode
       );
 
@@ -274,7 +309,7 @@ async function processDiscordMessage(messageData: any) {
 function verifyTwitterSignature(signature: string, payload: string): boolean {
   // Implement proper Twitter signature verification
   // This is a simplified version - implement proper HMAC verification
-  return signature && signature.length > 0;
+  return !!(signature && signature.length > 0);
 }
 
 /**
@@ -300,7 +335,7 @@ function generateTwitterChallengeResponse(crcToken: string): string {
 function verifyDiscordSignature(signature: string, timestamp: string, payload: string): boolean {
   // Implement proper Discord signature verification
   // This is a simplified version - implement proper Ed25519 verification
-  return signature && timestamp && signature.length > 0;
+  return !!(signature && timestamp && signature.length > 0);
 }
 
 /**

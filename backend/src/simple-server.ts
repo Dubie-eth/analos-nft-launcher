@@ -1582,15 +1582,15 @@ app.post('/api/collections/deploy-instructions', async (req, res) => {
       walletAddress
     });
 
-    if (!deploymentInstructions.success) {
+    if (!deploymentInstructions.success || !deploymentInstructions.instructions) {
       return res.status(500).json({ 
         success: false, 
-        error: deploymentInstructions.error 
+        error: deploymentInstructions.error || 'Failed to create deployment instructions'
       });
     }
 
     console.log('✅ Created collection deployment instructions:', {
-      instructionCount: deploymentInstructions.instructions.length,
+      instructionCount: deploymentInstructions.instructions?.length || 0,
       collectionId,
       walletAddress
     });
