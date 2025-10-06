@@ -36,13 +36,23 @@ export default function DeploymentStatus({ collectionName }: DeploymentStatusPro
     try {
       setLoading(true);
       
-      // Check if collection is deployed
-      const status = await anchorDeploymentService.getConnectionStatus();
-      setDeploymentInfo(status);
-      
-      // Also check admin config
+      // Check admin config to determine deployment status
       const adminConfig = await adminControlService.getCollection(collectionName);
-      console.log(`🔍 Deployment status for ${collectionName}:`, { status, adminConfig });
+      console.log(`🔍 Deployment status for ${collectionName}:`, { adminConfig });
+      
+      if (adminConfig && adminConfig.deployed && adminConfig.contractAddresses) {
+        setDeploymentInfo({
+          deployed: true,
+          addresses: adminConfig.contractAddresses,
+          status: 'Collection deployed and ready for minting'
+        });
+      } else {
+        setDeploymentInfo({
+          deployed: false,
+          addresses: {},
+          status: 'Collection not deployed to blockchain'
+        });
+      }
       
     } catch (error) {
       console.error('❌ Error checking deployment status:', error);

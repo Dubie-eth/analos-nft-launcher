@@ -41,6 +41,9 @@ export class BlockchainDataService {
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_DURATION = 300000; // 5 minutes cache - much longer to reduce polling
   
+  // Track initialization to prevent duplicate logging
+  private static initializationLogged = false;
+  
   // Collection configurations - will be managed by admin controls and fee management
   private async getCollectionConfig(collectionName: string) {
     // Get collection config from admin service
@@ -83,7 +86,11 @@ export class BlockchainDataService {
       network: 'MAINNET',
       commitment: 'confirmed'
     });
-    console.log('🔗 Blockchain Data Service initialized with:', this.connection.getClusterInfo().name);
+    // Only log once to reduce console spam
+    if (!BlockchainDataService.initializationLogged) {
+      console.log('🔗 Blockchain Data Service initialized with:', this.connection.getClusterInfo().name);
+      BlockchainDataService.initializationLogged = true;
+    }
   }
 
   // Cache helper methods

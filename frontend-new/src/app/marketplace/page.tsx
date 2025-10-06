@@ -6,11 +6,6 @@ import StandardLayout from '@/app/components/StandardLayout';
 import dynamic from 'next/dynamic';
 
 // Dynamic imports to avoid SSR issues
-const SpinningWheelGameClient = dynamic(() => import('@/app/components/SpinningWheelGameClient'), {
-  ssr: false,
-  loading: () => <div className="text-center text-white">Loading spinning wheel...</div>
-});
-
 const EnhancedNFTMinter = dynamic(() => import('@/app/components/EnhancedNFTMinter'), {
   ssr: false,
   loading: () => <div className="text-center text-white">Loading NFT minter...</div>
@@ -32,7 +27,7 @@ export default function MarketplacePage() {
               🏪 NFT Marketplace
             </h1>
             <p className="text-xl text-gray-300 mb-8">
-              Create professional NFTs with SPL metadata, spin the wheel for prizes, and discover collections with advanced utilities
+              Create professional NFTs with SPL metadata and discover collections with advanced utilities
             </p>
           </div>
 
@@ -54,14 +49,6 @@ export default function MarketplacePage() {
             <EnhancedNFTMinter />
           </div>
 
-          {/* Spinning Wheel Game - Featured Game */}
-          <div className="mb-12">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">🎰 Featured Game</h2>
-              <p className="text-gray-300">Connect your wallet and start spinning for prizes!</p>
-            </div>
-            <SpinningWheelGameClient />
-          </div>
 
           {/* Marketplace Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">

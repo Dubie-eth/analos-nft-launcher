@@ -85,7 +85,12 @@ export class AdminControlService {
     this.loadSettingsFromLocalStorage();
     this.initializeDefaultCollections();
     this.initializeDefaultSettings();
-    console.log('🎛️ Admin Control Service initialized');
+    
+    // Only log once to reduce console spam
+    if (!(window as any).adminControlServiceLogged) {
+      console.log('🎛️ Admin Control Service initialized');
+      (window as any).adminControlServiceLogged = true;
+    }
   }
 
   private loadCollectionsFromLocalStorage(): void {
@@ -139,36 +144,42 @@ export class AdminControlService {
    */
   private initializeDefaultCollections(): void {
         // Test collection for development - PRICE SHOULD BE PULLED FROM BLOCKCHAIN
-        this.collections.set('Test', {
-          name: 'Test',
-          displayName: 'Test Collection',
-          isActive: false, // DISABLED - hidden from public
-          mintingEnabled: false, // DISABLED - hidden from public
-      isTestMode: true,
-      totalSupply: 2222, // Match the actual collection size
-      mintPrice: 10.00, // TODO: This should be pulled from deployed contract on blockchain
-      paymentToken: 'LOS',
-      description: 'Test collection for development and testing purposes',
-      imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-      createdAt: Date.now(),
-      lastModified: Date.now()
-    });
+        // Only set default if not already loaded from localStorage
+        if (!this.collections.has('Test')) {
+          this.collections.set('Test', {
+            name: 'Test',
+            displayName: 'Test Collection',
+            isActive: false, // DISABLED - hidden from public
+            mintingEnabled: false, // DISABLED - hidden from public
+            isTestMode: true,
+            totalSupply: 2222, // Match the actual collection size
+            mintPrice: 10.00, // TODO: This should be pulled from deployed contract on blockchain
+            paymentToken: 'LOS',
+            description: 'Test collection for development and testing purposes',
+            imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+            createdAt: Date.now(),
+            lastModified: Date.now()
+          });
+        }
 
     // The LosBros - Featured collection for launchonlos.fun
-    this.collections.set('The LosBros', {
-      name: 'The LosBros',
-      displayName: 'The LosBros - Featured Collection',
-      isActive: false, // DISABLED until actually deployed to blockchain
-      mintingEnabled: false, // DISABLED until actually deployed to blockchain
-      isTestMode: false,
-      totalSupply: 2222,
-      mintPrice: 4200.69,
-      paymentToken: 'LOL',
-      description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL - Featured collection for launchonlos.fun',
-      imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-      createdAt: Date.now(),
-      lastModified: Date.now()
-    });
+    // Only set default if not already loaded from localStorage
+    if (!this.collections.has('The LosBros')) {
+      this.collections.set('The LosBros', {
+        name: 'The LosBros',
+        displayName: 'The LosBros - Featured Collection',
+        isActive: false, // DISABLED until actually deployed to blockchain
+        mintingEnabled: false, // DISABLED until actually deployed to blockchain
+        isTestMode: false,
+        totalSupply: 2222,
+        mintPrice: 4200.69,
+        paymentToken: 'LOL',
+        description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL - Featured collection for launchonlos.fun',
+        imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+        createdAt: Date.now(),
+        lastModified: Date.now()
+      });
+    }
 
     // Placeholder for additional collections
     this.collections.set('New Collection', {

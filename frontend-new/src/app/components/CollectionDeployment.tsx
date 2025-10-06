@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { anchorDeploymentService, CollectionConfig } from '@/lib/blockchain/anchor-deployment-service';
 import { adminControlService } from '@/lib/admin-control-service';
+import { Connection, Transaction } from '@solana/web3.js';
 
 interface CollectionDeploymentProps {
   collectionName: string;
@@ -11,7 +12,7 @@ interface CollectionDeploymentProps {
 }
 
 export default function CollectionDeployment({ collectionName, onDeploymentComplete }: CollectionDeploymentProps) {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentStatus, setDeploymentStatus] = useState<string>('');
   const [deploymentResult, setDeploymentResult] = useState<any>(null);
@@ -32,10 +33,50 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
         throw new Error('Collection configuration not found');
       }
 
+      setDeploymentStatus('Initializing Anchor provider...');
+
+      // Initialize Anchor provider first
+      const { Wallet } = await import('@coral-xyz/anchor');
+      const connection = new Connection('https://rpc.analos.io', 'confirmed');
+      
+      const wallet = new Wallet({
+        publicKey: publicKey,
+        signTransaction: async (transaction) => {
+          console.log('🔐 Signing transaction for Anchor provider');
+          // Set recent blockhash
+          const { blockhash } = await connection.getLatestBlockhash('confirmed');
+          transaction.recentBlockhash = blockhash;
+          transaction.feePayer = publicKey;
+          
+          // Use wallet adapter to sign
+          return await sendTransaction(transaction, connection);
+        },
+        signAllTransactions: async (transactions) => {
+          console.log('🔐 Signing multiple transactions for Anchor provider');
+          const signedTransactions = [];
+          for (const transaction of transactions) {
+            // Set recent blockhash
+            const { blockhash } = await connection.getLatestBlockhash('confirmed');
+            transaction.recentBlockhash = blockhash;
+            transaction.feePayer = publicKey;
+            
+            // Use wallet adapter to sign
+            const signedTx = await sendTransaction(transaction, connection);
+            signedTransactions.push(signedTx);
+          }
+          return signedTransactions;
+        }
+      });
+
+      const providerInitialized = await anchorDeploymentService.initializeProvider(wallet);
+      if (!providerInitialized) {
+        throw new Error('Failed to initialize Anchor provider');
+      }
+
       setDeploymentStatus('Building deployment configuration...');
 
       // Create deployment configuration
-      const deploymentConfig: RealDeploymentConfig = {
+      const deploymentConfig = {
         collectionName: adminConfig.name,
         symbol: '$LBS', // Default symbol for The LosBros
         description: adminConfig.description,
@@ -48,12 +89,20 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
 
       setDeploymentStatus('Deploying to Analos blockchain...');
 
-          // Deploy to REAL blockchain using Anchor
-          const result = await anchorDeploymentService.deployCollection(
+      // Deploy to REAL blockchain using Anchor
+      const result = await anchorDeploymentService.deployCollection(
         'collection_address_placeholder',
         publicKey.toString(),
         async (transaction) => {
-          // This would need to be implemented with proper wallet signing
+          console.log('🔐 Signing deployment transaction');
+          // Set recent blockhash
+          const { blockhash } = await connection.getLatestBlockhash('confirmed');
+          transaction.recentBlockhash = blockhash;
+          transaction.feePayer = publicKey;
+          
+          // Use wallet adapter to sign and send
+          const signature = await sendTransaction(transaction, connection);
+          console.log('✅ Deployment transaction signed:', signature);
           return transaction;
         }
       );
@@ -61,6 +110,25 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
       if (result.success) {
         setDeploymentStatus('✅ Deployment successful!');
         setDeploymentResult(result);
+        
+        // Update admin config with deployment details
+        const updatedConfig = await adminControlService.getCollection(collectionName);
+        if (updatedConfig) {
+          updatedConfig.deployed = true;
+          updatedConfig.contractAddresses = {
+            collection: result.collectionAddress,
+            mint: result.mintAddress,
+            metadata: result.metadataAddress,
+            masterEdition: result.masterEditionAddress
+          };
+          updatedConfig.deploymentSignature = result.transactionSignature;
+          updatedConfig.deploymentDate = Date.now();
+          updatedConfig.explorerUrl = result.explorerUrl;
+          
+          await adminControlService.updateCollection(collectionName, updatedConfig);
+          console.log('✅ Admin config updated with deployment details');
+        }
+        
         onDeploymentComplete?.(true, result);
       } else {
         setDeploymentStatus(`❌ Deployment failed: ${result.error}`);

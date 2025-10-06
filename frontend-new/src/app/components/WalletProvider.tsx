@@ -24,7 +24,11 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
   const analosConnection = useMemo(() => {
     if (typeof window === 'undefined') return null;
     
-    console.log('🔗 Creating Analos Connection...');
+    // Only log once in development to reduce console spam
+    if (process.env.NODE_ENV === 'development' && !window.analosConnectionLogged) {
+      console.log('🔗 Creating Analos Connection...');
+      window.analosConnectionLogged = true;
+    }
     
     const connection = new AnalosConnection(endpoint, {
       network: ANALOS_CONFIG.NETWORK,
@@ -32,9 +36,13 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
       confirmTransactionInitialTimeout: ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT
     });
     
-    console.log('✅ Analos Connection created:', connection.getClusterInfo().name);
-    console.log('🌐 RPC URL:', connection.getClusterInfo().rpc);
-    console.log('🔌 WebSocket URL:', connection.getClusterInfo().ws);
+    // Only log once in development to reduce console spam
+    if (process.env.NODE_ENV === 'development' && !window.analosConnectionDetailsLogged) {
+      console.log('✅ Analos Connection created:', connection.getClusterInfo().name);
+      console.log('🌐 RPC URL:', connection.getClusterInfo().rpc);
+      console.log('🔌 WebSocket URL:', connection.getClusterInfo().ws);
+      window.analosConnectionDetailsLogged = true;
+    }
     
     // Initialize WebSocket for real-time subscriptions (non-blocking)
     connection.initializeWebSocket().catch(error => {
@@ -48,7 +56,11 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     () => {
       if (typeof window === 'undefined') return [];
       
-      console.log('🔧 Using Standard Wallet API (no adapters needed)');
+      // Only log once in development to reduce console spam
+      if (process.env.NODE_ENV === 'development' && !window.walletAPILogged) {
+        console.log('🔧 Using Standard Wallet API (no adapters needed)');
+        window.walletAPILogged = true;
+      }
       
       // Return empty array to use Standard Wallet API
       // This removes the "Backpack was registered as a Standard Wallet" warning
