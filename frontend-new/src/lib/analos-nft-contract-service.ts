@@ -5,7 +5,7 @@
  */
 
 import { PublicKey, Keypair, Transaction, SystemProgram, TransactionInstruction, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { AnalosConnection, Analos } from './analos-web3-wrapper';
+import { AnalosConnection, Analos, ANALOS_CONFIG } from './analos-web3-wrapper';
 import { 
   getAssociatedTokenAddress, 
   createMint, 
@@ -21,8 +21,8 @@ import {
 export const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 export const SYSVAR_RENT_PUBKEY = new PublicKey('SysvarRent111111111111111111111111111111111');
 
-// Analos RPC - using Analos Web3 Kit
-const ANALOS_RPC = 'https://rpc.analos.io';
+// Use official Analos configuration
+const ANALOS_RPC = ANALOS_CONFIG.RPC_ENDPOINT;
 
 export interface NFTMetadata {
   name: string;
@@ -84,16 +84,18 @@ class AnalosNFTContractService {
   private turnkeyOrgId?: string;
 
   constructor(turnkeyApiKey?: string, turnkeyOrgId?: string) {
-    this.connection = new AnalosConnection(ANALOS_RPC, {
-      network: 'MAINNET',
-      commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 120000 // Increased to 2 minutes for Analos blockchain
+    // Use official Analos configuration
+    this.connection = new AnalosConnection(ANALOS_CONFIG.RPC_ENDPOINT, {
+      network: ANALOS_CONFIG.NETWORK,
+      commitment: ANALOS_CONFIG.COMMITMENT,
+      confirmTransactionInitialTimeout: ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT
     });
     this.turnkeyApiKey = turnkeyApiKey;
     this.turnkeyOrgId = turnkeyOrgId;
     
     console.log('🔗 Analos NFT Contract Service initialized with:', this.connection.getClusterInfo().name);
-    console.log('⏱️ Transaction confirmation timeout: 120 seconds (optimized for Analos)');
+    console.log('🌐 RPC Endpoint:', ANALOS_CONFIG.RPC_ENDPOINT);
+    console.log('⏱️ Transaction confirmation timeout:', ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT / 1000, 'seconds (optimized for Analos)');
   }
 
   /**

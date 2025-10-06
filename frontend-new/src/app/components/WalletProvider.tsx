@@ -5,7 +5,7 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import {
   WalletModalProvider
 } from '@solana/wallet-adapter-react-ui';
-import { AnalosConnection } from '../../lib/analos-web3-wrapper';
+import { AnalosConnection, ANALOS_CONFIG } from '../../lib/analos-web3-wrapper';
 
 // Default styles that can be overridden by your app
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -17,8 +17,8 @@ interface Props {
 export const WalletContextProvider: FC<Props> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
   
-  // Use Analos RPC endpoint with enhanced logging
-  const endpoint = 'https://rpc.analos.io';
+  // Use official Analos RPC endpoint
+  const endpoint = ANALOS_CONFIG.RPC_ENDPOINT;
 
   // Create Analos-specific connection for enhanced functionality
   const analosConnection = useMemo(() => {
@@ -27,9 +27,9 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     console.log('🔗 Creating Analos Connection...');
     
     const connection = new AnalosConnection(endpoint, {
-      network: 'MAINNET',
-      commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 120000 // 2 minutes for Analos blockchain
+      network: ANALOS_CONFIG.NETWORK,
+      commitment: ANALOS_CONFIG.COMMITMENT,
+      confirmTransactionInitialTimeout: ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT
     });
     
     console.log('✅ Analos Connection created:', connection.getClusterInfo().name);
