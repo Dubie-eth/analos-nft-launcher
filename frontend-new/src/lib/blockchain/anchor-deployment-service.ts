@@ -214,40 +214,39 @@ export class AnchorDeploymentService {
 
       console.log('📝 Deployment data prepared:', deploymentData);
 
-      // Create Analos NFT collection using basic system instructions
-      console.log('🎨 Creating Analos NFT collection...');
+      // Create Analos NFT collection using our Anchor program
+      console.log('🎨 Creating Analos NFT collection with Anchor program...');
       
-      // 1. Create collection mint keypair for the NFT collection
-      const collectionMint = Keypair.generate();
-      
-      // 2. Create a simple account for the collection (using SystemProgram)
-      const createCollectionAccountIx = SystemProgram.createAccount({
-        fromPubkey: walletPublicKey,
-        newAccountPubkey: collectionPDA,
-        space: 128, // Space for collection data
-        lamports: await this.connection.getMinimumBalanceForRentExemption(128),
-        programId: SystemProgram.programId
+      // Prepare collection data for the program
+      const collectionData = {
+        name: collectionAddress,
+        symbol: 'LBS',
+        description: `Analos NFT Collection: ${collectionAddress}`,
+        image_url: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+        max_supply: 10000 // Maximum NFTs that can be minted from this collection
+      };
+
+      // Create the create_collection instruction using our Anchor program
+      const createCollectionIx = new TransactionInstruction({
+        keys: [
+          { pubkey: collectionPDA, isSigner: false, isWritable: true }, // Collection account
+          { pubkey: walletPublicKey, isSigner: false, isWritable: true }, // Collection mint (will be derived)
+          { pubkey: walletPublicKey, isSigner: true, isWritable: true }, // Authority
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false }, // System program
+        ],
+        programId: this.PROGRAM_ID,
+        data: Buffer.concat([
+          Buffer.from([0x1e, 0x1a, 0x7b, 0x5c, 0x8d, 0x9a, 0x3f, 0x2b]), // create_collection discriminator (8 bytes)
+          Buffer.from(JSON.stringify(collectionData)) // Collection data
+        ])
       });
 
-      // 3. Create collection mint account
-      const createMintAccountIx = SystemProgram.createAccount({
-        fromPubkey: walletPublicKey,
-        newAccountPubkey: collectionMint.publicKey,
-        space: 82, // Standard mint account size
-        lamports: await this.connection.getMinimumBalanceForRentExemption(82),
-        programId: SystemProgram.programId
-      });
-
-      console.log('📍 Collection Mint Address:', collectionMint.publicKey.toString());
       console.log('📍 Collection PDA:', collectionPDA.toString());
       console.log('📍 Collection Address:', collectionAddress);
+      console.log('📍 Collection Data:', collectionData);
 
-      // Add collection instructions to transaction
-      transaction.add(createCollectionAccountIx);
-      transaction.add(createMintAccountIx);
-
-      // Add collection mint keypair as signer
-      transaction.partialSign(collectionMint);
+      // Add the create collection instruction to transaction
+      transaction.add(createCollectionIx);
 
       console.log('🔐 Requesting wallet signature for real deployment...');
       
@@ -280,18 +279,19 @@ export class AnchorDeploymentService {
         return {
           success: true,
           collectionAddress: collectionPDA.toString(),
-          mintAddress: collectionMint.publicKey.toString(),
+          mintAddress: collectionPDA.toString(), // Collection mint will be derived by the program
           metadataAddress: collectionPDA.toString(),
           masterEditionAddress: collectionPDA.toString(),
           transactionSignature: transactionSignature,
           explorerUrl: `https://explorer.analos.io/tx/${transactionSignature}`,
-          collectionMint: collectionMint.publicKey.toString(),
+          collectionMint: collectionPDA.toString(), // Collection mint derived by program
           collectionData: {
             name: collectionAddress,
             symbol: 'LBS',
             description: `Analos NFT Collection: ${collectionAddress}`,
             image: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-            network: 'Analos'
+            network: 'Analos',
+            maxSupply: 10000
           }
         };
       } else {
