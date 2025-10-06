@@ -96,10 +96,10 @@ export default function Navigation() {
           
           {/* Mobile Wallet Connection */}
           <div className="flex justify-center">
-            {connected ? (
+            {connected && publicKey ? (
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-600">
-                  {publicKey?.toString() ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'N/A'}
+                  {`${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}`}
                 </div>
                 <button
                   onClick={disconnect}

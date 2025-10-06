@@ -1,8 +1,7 @@
 'use client';
 
-import React, { FC, ReactNode, useMemo } from 'react';
+import React, { FC, ReactNode, useMemo, useState, useEffect } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { BackpackWalletAdapter } from '@solana/wallet-adapter-backpack';
 import {
   WalletModalProvider
 } from '@solana/wallet-adapter-react-ui';
@@ -16,11 +15,15 @@ interface Props {
 }
 
 export const WalletContextProvider: FC<Props> = ({ children }) => {
+  const [mounted, setMounted] = useState(false);
+  
   // Use Analos RPC endpoint with enhanced logging
   const endpoint = 'https://rpc.analos.io';
 
   // Create Analos-specific connection for enhanced functionality
   const analosConnection = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    
     console.log('🔗 Creating Analos Connection...');
     
     const connection = new AnalosConnection(endpoint, {
@@ -43,20 +46,25 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
 
   const wallets = useMemo(
     () => {
-      console.log('🔧 Initializing wallet adapters...');
+      if (typeof window === 'undefined') return [];
       
-      // Create a fresh Backpack adapter instance
-      const backpackAdapter = new BackpackWalletAdapter({
-        // Force a unique name to avoid conflicts
-        name: 'Backpack Analos',
-      });
+      console.log('🔧 Using Standard Wallet API (no adapters needed)');
       
-      console.log('✅ Backpack wallet adapter configured with name:', backpackAdapter.name);
-      
-      return [backpackAdapter];
+      // Return empty array to use Standard Wallet API
+      // This removes the "Backpack was registered as a Standard Wallet" warning
+      return [];
     },
     []
   );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent hydration issues by not rendering wallet providers on server
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   return (
     <ConnectionProvider endpoint={endpoint}>

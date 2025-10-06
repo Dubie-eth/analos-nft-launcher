@@ -366,34 +366,18 @@ class TurnkeyIntegrationService {
     subOrgId?: string,
     walletId?: string
   ): Promise<any> {
+    // Skip API calls if credentials are missing
+    if (!this.apiKey || !this.orgId) {
+      console.warn('⚠️ Turnkey credentials missing, enabling bypass mode');
+      return { success: true, bypass: true };
+    }
+
     const url = this.buildUrl(endpoint, subOrgId, walletId);
     
     try {
       console.log(`🔗 Making Turnkey API request: ${method} ${endpoint}`);
       
-      // First try direct API call (works in production)
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': this.apiKey || '',
-            'X-Organization-Id': this.orgId || '',
-          },
-          body: data ? JSON.stringify(data) : undefined,
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          return { success: true, data: result };
-        } else {
-          console.warn(`⚠️ Direct Turnkey API call failed: ${response.status} ${response.statusText}`);
-        }
-      } catch (directError) {
-        console.warn('⚠️ Direct Turnkey API call failed:', directError);
-      }
-
-      // Fallback: Try API proxy
+      // Try API proxy first (more reliable in production)
       try {
         const response = await fetch('/api/turnkey', {
           method: 'POST',
@@ -417,9 +401,33 @@ class TurnkeyIntegrationService {
             throw new Error(result.error);
           }
           return { success: true, data: result.data };
+        } else {
+          console.warn(`⚠️ Turnkey API proxy failed: ${response.status} ${response.statusText}`);
         }
       } catch (proxyError) {
-        console.warn('⚠️ Turnkey API proxy also failed:', proxyError);
+        console.warn('⚠️ Turnkey API proxy failed:', proxyError);
+      }
+
+      // Fallback: Try direct API call (may have CORS issues)
+      try {
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': this.apiKey,
+            'X-Organization-Id': this.orgId,
+          },
+          body: data ? JSON.stringify(data) : undefined,
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          return { success: true, data: result };
+        } else {
+          console.warn(`⚠️ Direct Turnkey API call failed: ${response.status} ${response.statusText}`);
+        }
+      } catch (directError) {
+        console.warn('⚠️ Direct Turnkey API call failed:', directError);
       }
 
       // Final fallback: Enable bypass mode
