@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstruction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstruction, Keypair } from '@solana/web3.js';
 import { AnchorProvider, Program, BN, Wallet } from '@coral-xyz/anchor';
 
 // Import the Anchor program types (these would be generated from the Anchor program)
@@ -214,14 +214,56 @@ export class AnchorDeploymentService {
 
       console.log('📝 Deployment data prepared:', deploymentData);
 
-      // Add a minimal transfer to make the transaction valid and pay fees
-      const transferInstruction = SystemProgram.transfer({
-        fromPubkey: walletPublicKey,
-        toPubkey: walletPublicKey, // Transfer to self (no actual transfer)
-        lamports: 1000 // Minimal amount for fees
+      // Create Analos NFT collection with proper collection setup
+      console.log('🎨 Creating Analos NFT collection...');
+      
+      // 1. Create collection mint keypair for the NFT collection
+      const collectionMint = Keypair.generate();
+      
+      // 2. Create collection account instruction (Analos-specific)
+      const createCollectionAccountIx = new TransactionInstruction({
+        keys: [
+          { pubkey: walletPublicKey, isSigner: true, isWritable: true }, // Payer
+          { pubkey: collectionMint.publicKey, isSigner: true, isWritable: true }, // Collection mint
+          { pubkey: collectionPDA, isSigner: false, isWritable: true }, // Collection PDA
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: this.PROGRAM_ID,
+        data: Buffer.from('create_collection') // Analos collection creation instruction
       });
 
-      transaction.add(transferInstruction);
+      // 3. Create collection metadata instruction (Analos-specific)
+      const createMetadataIx = new TransactionInstruction({
+        keys: [
+          { pubkey: walletPublicKey, isSigner: true, isWritable: true }, // Authority
+          { pubkey: collectionMint.publicKey, isSigner: false, isWritable: false }, // Collection mint
+          { pubkey: collectionPDA, isSigner: false, isWritable: true }, // Collection PDA
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: this.PROGRAM_ID,
+        data: Buffer.from(JSON.stringify({
+          name: collectionAddress,
+          symbol: 'LBS', // Los Bros Symbol
+          description: `Analos NFT Collection: ${collectionAddress}`,
+          image: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          attributes: [
+            { trait_type: 'Network', value: 'Analos' },
+            { trait_type: 'Collection', value: 'The LosBros' },
+            { trait_type: 'Platform', value: 'Analos NFT Launcher' }
+          ]
+        }))
+      });
+
+      console.log('📍 Collection Mint Address:', collectionMint.publicKey.toString());
+      console.log('📍 Collection PDA:', collectionPDA.toString());
+      console.log('📍 Collection Address:', collectionAddress);
+
+      // Add collection instructions to transaction
+      transaction.add(createCollectionAccountIx);
+      transaction.add(createMetadataIx);
+
+      // Add collection mint keypair as signer
+      transaction.partialSign(collectionMint);
 
       console.log('🔐 Requesting wallet signature for real deployment...');
       
@@ -254,11 +296,19 @@ export class AnchorDeploymentService {
         return {
           success: true,
           collectionAddress: collectionPDA.toString(),
-          mintAddress: collectionPDA.toString(),
+          mintAddress: collectionMint.publicKey.toString(),
           metadataAddress: collectionPDA.toString(),
           masterEditionAddress: collectionPDA.toString(),
           transactionSignature: transactionSignature,
-          explorerUrl: `https://explorer.analos.io/tx/${transactionSignature}`
+          explorerUrl: `https://explorer.analos.io/tx/${transactionSignature}`,
+          collectionMint: collectionMint.publicKey.toString(),
+          collectionData: {
+            name: collectionAddress,
+            symbol: 'LBS',
+            description: `Analos NFT Collection: ${collectionAddress}`,
+            image: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+            network: 'Analos'
+          }
         };
       } else {
         throw new Error('Expected transaction signature (string) from wallet adapter');

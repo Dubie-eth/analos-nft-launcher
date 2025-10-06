@@ -126,7 +126,7 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
           updatedConfig.deployed = true;
           updatedConfig.contractAddresses = {
             collection: result.collectionAddress,
-            mint: result.mintAddress,
+            mint: result.mintAddress || result.collectionMint,
             metadata: result.metadataAddress,
             masterEdition: result.masterEditionAddress
           };
@@ -134,8 +134,14 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
           updatedConfig.deploymentDate = Date.now();
           updatedConfig.explorerUrl = result.explorerUrl;
           
+          // Add collection data if available
+          if (result.collectionData) {
+            updatedConfig.collectionData = result.collectionData;
+          }
+          
           await adminControlService.updateCollection(collectionName, updatedConfig);
           console.log('✅ Admin config updated with deployment details');
+          console.log('🎨 Collection Data:', result.collectionData);
         }
         
         onDeploymentComplete?.(true, result);
