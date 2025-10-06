@@ -112,7 +112,7 @@ export default function Navigation() {
             {connected && publicKey ? (
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-600">
-                  {`${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}`}
+                  {publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Unknown'}
                 </div>
                 <button
                   onClick={disconnect}

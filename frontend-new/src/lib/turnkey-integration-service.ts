@@ -55,6 +55,8 @@ class TurnkeyIntegrationService {
   private apiKey: string;
   private orgId: string;
   private baseUrl: string;
+  private initializationAttempted: boolean = false;
+  private bypassMode: boolean = false;
 
   constructor() {
     this.apiKey = TURNKEY_API_KEY || '';
@@ -66,6 +68,14 @@ class TurnkeyIntegrationService {
    * Initialize Turnkey service
    */
   async initialize(): Promise<boolean> {
+    // Prevent multiple initialization attempts
+    if (this.initializationAttempted) {
+      console.log('🔄 Turnkey initialization already attempted, skipping');
+      return true;
+    }
+    
+    this.initializationAttempted = true;
+
     if (!this.apiKey || !this.orgId) {
       console.warn('⚠️ Turnkey API key or Org ID not configured');
       console.warn('⚠️ To enable Turnkey integration, add the following to your .env.local file:');
@@ -73,6 +83,7 @@ class TurnkeyIntegrationService {
       console.warn('   NEXT_PUBLIC_TURNKEY_PRIVATE_KEY=your_private_key');
       // Enable bypass mode for continued functionality
       console.warn('⚠️ Enabling bypass mode for NFT minting without Turnkey');
+      this.bypassMode = true;
       return true;
     }
 
@@ -89,12 +100,14 @@ class TurnkeyIntegrationService {
         return true;
       } else {
         console.warn('⚠️ Turnkey API not available, enabling bypass mode');
+        this.bypassMode = true;
         return true;
       }
     } catch (error) {
       console.error('Turnkey initialization failed:', error);
       console.warn('⚠️ Enabling bypass mode for continued functionality');
       // Enable bypass mode - NFT minting will work without Turnkey
+      this.bypassMode = true;
       return true;
     }
   }
@@ -375,10 +388,13 @@ class TurnkeyIntegrationService {
     subOrgId?: string,
     walletId?: string
   ): Promise<any> {
-    // Skip API calls if credentials are missing
-    if (!this.apiKey || !this.orgId) {
-      console.warn('⚠️ Turnkey credentials missing, enabling bypass mode');
-      console.warn('⚠️ Add NEXT_PUBLIC_TURNKEY_ORG_ID and NEXT_PUBLIC_TURNKEY_PRIVATE_KEY to .env.local');
+    // Skip API calls if in bypass mode or credentials are missing
+    if (this.bypassMode || !this.apiKey || !this.orgId) {
+      if (!this.bypassMode) {
+        console.warn('⚠️ Turnkey credentials missing, enabling bypass mode');
+        console.warn('⚠️ Add NEXT_PUBLIC_TURNKEY_ORG_ID and NEXT_PUBLIC_TURNKEY_PRIVATE_KEY to .env.local');
+        this.bypassMode = true;
+      }
       return { success: true, bypass: true };
     }
 
@@ -461,10 +477,12 @@ class TurnkeyIntegrationService {
       // Final fallback: Enable bypass mode
       console.warn('⚠️ All Turnkey API methods failed, enabling bypass mode');
       console.warn('⚠️ NFT minting will work without Turnkey integration');
+      this.bypassMode = true;
       return { success: true, bypass: true };
 
     } catch (error) {
       console.warn('⚠️ Turnkey API request failed completely, enabling bypass mode:', error.message || error);
+      this.bypassMode = true;
       return { success: true, bypass: true };
     }
   }

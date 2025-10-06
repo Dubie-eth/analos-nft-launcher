@@ -24,27 +24,28 @@ export class AnalosConnection extends Connection {
     confirmTransactionInitialTimeout: number;
   };
 
-  // Get cluster information (Analos-specific)
-  getClusterInfo() {
-    return {
-      name: 'Analos Mainnet',
-      rpc: this.rpcEndpoint,
-      ws: this.rpcEndpoint.replace('https://', 'wss://'),
-      network: this.analosConfig.network,
-      commitment: this.analosConfig.commitment
-    };
-  }
+      // Get cluster information (Analos-specific)
+      getClusterInfo() {
+        return {
+          name: 'Analos Mainnet',
+          rpc: this.rpcEndpoint,
+          ws: this.rpcEndpoint.replace('https://', 'wss://').replace('http://', 'ws://'),
+          network: this.analosConfig.network,
+          commitment: this.analosConfig.commitment
+        };
+      }
 
-  // Initialize WebSocket connection (Analos-specific)
-  async initializeWebSocket(): Promise<void> {
-    console.log('🔌 Initializing Analos WebSocket connection...');
-    
-    try {
-      const wsUrl = this.rpcEndpoint.replace('https://', 'wss://');
-      console.log('🔌 WebSocket URL:', wsUrl);
-      
-      // Test WebSocket connection with timeout
-      const ws = new WebSocket(wsUrl);
+      // Initialize WebSocket connection (Analos-specific)
+      async initializeWebSocket(): Promise<void> {
+        console.log('🔌 Initializing Analos WebSocket connection...');
+        
+        try {
+          // Use the correct WebSocket URL format for Analos
+          const wsUrl = this.rpcEndpoint.replace('https://', 'wss://').replace('http://', 'ws://');
+          console.log('🔌 WebSocket URL:', wsUrl);
+          
+          // Test WebSocket connection with timeout
+          const ws = new WebSocket(wsUrl);
       
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
