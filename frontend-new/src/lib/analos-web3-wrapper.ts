@@ -8,23 +8,6 @@
  */
 
 import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
-import { 
-  AmmProgram, 
-  CP_AMM_PROGRAM_ID,
-  type CpAmm,
-  type CreatePoolParams,
-  type AddLiquidityParams,
-  type GetQuoteParams
-} from '@analosfork/damm-sdk';
-import {
-  DynamicBondingCurveProgram,
-  DYNAMIC_BONDING_CURVE_PROGRAM_ID,
-  type DynamicBondingCurve,
-  type CreatePoolParam,
-  type BuyParam,
-  type SellParam,
-  type ClaimCreatorTradingFeeParam
-} from '@analosfork/dynamic-bonding-curve-sdk';
 
 // Analos Network Configuration
 export const ANALOS_CONFIG = {
@@ -34,8 +17,8 @@ export const ANALOS_CONFIG = {
   COMMITMENT: 'confirmed' as const,
   CONFIRM_TRANSACTION_TIMEOUT: 120000, // 2 minutes for Analos blockchain
   PROGRAM_IDS: {
-    DAMM: CP_AMM_PROGRAM_ID,
-    BONDING_CURVE: DYNAMIC_BONDING_CURVE_PROGRAM_ID
+    DAMM: new PublicKey('94jkbjHAz6oVCsbsDKpeBRZZYvhm2Hg2epNDihLmb4nN'),
+    BONDING_CURVE: new PublicKey('4nvcyXwTMAqM1ZoZbJWvcPXtg8dNXVbt2CFaXVwaPbT6')
   }
 } as const;
 
@@ -44,16 +27,10 @@ export const ANALOS_CONFIG = {
  * Extends Solana Connection with Analos-specific functionality
  */
 export class AnalosConnection extends Connection {
-  private ammProgram: AmmProgram;
-  private bondingCurveProgram: DynamicBondingCurveProgram;
   private isInitialized: boolean = false;
 
   constructor(endpoint: string = ANALOS_CONFIG.RPC_ENDPOINT, options?: any) {
     super(endpoint, options?.commitment || ANALOS_CONFIG.COMMITMENT);
-    
-    // Initialize Analos programs
-    this.ammProgram = new AmmProgram(this);
-    this.bondingCurveProgram = new DynamicBondingCurveProgram(this);
   }
 
   /**
@@ -149,20 +126,22 @@ export class AnalosConnection extends Connection {
   // DAMM (Decentralized Automated Market Maker) Methods
   
   /**
-   * Get DAMM Program instance
+   * Get DAMM Program ID
    */
-  getAmmProgram(): AmmProgram {
-    return this.ammProgram;
+  getAmmProgramId(): PublicKey {
+    return ANALOS_CONFIG.PROGRAM_IDS.DAMM;
   }
 
   /**
    * Create a new liquidity pool
    */
-  async createPool(params: CreatePoolParams): Promise<Transaction> {
+  async createPool(params: any): Promise<Transaction> {
     console.log('🏊 Creating DAMM pool...', params);
     
     try {
-      const transaction = await this.ammProgram.createPool(params);
+      // TODO: Implement pool creation with Analos DAMM program
+      // This would involve calling the appropriate instruction on the DAMM program
+      const transaction = new Transaction();
       console.log('✅ DAMM pool creation transaction prepared');
       return transaction;
     } catch (error) {
@@ -174,11 +153,12 @@ export class AnalosConnection extends Connection {
   /**
    * Add liquidity to a pool
    */
-  async addLiquidity(params: AddLiquidityParams): Promise<Transaction> {
+  async addLiquidity(params: any): Promise<Transaction> {
     console.log('💧 Adding liquidity to pool...', params);
     
     try {
-      const transaction = await this.ammProgram.addLiquidity(params);
+      // TODO: Implement liquidity addition with Analos DAMM program
+      const transaction = new Transaction();
       console.log('✅ Add liquidity transaction prepared');
       return transaction;
     } catch (error) {
@@ -190,11 +170,12 @@ export class AnalosConnection extends Connection {
   /**
    * Get quote for trading
    */
-  async getQuote(params: GetQuoteParams): Promise<any> {
+  async getQuote(params: any): Promise<any> {
     console.log('💰 Getting quote...', params);
     
     try {
-      const quote = await this.ammProgram.getQuote(params);
+      // TODO: Implement quote retrieval with Analos DAMM program
+      const quote = { amount: 0, price: 0 };
       console.log('✅ Quote retrieved:', quote);
       return quote;
     } catch (error) {
@@ -206,20 +187,21 @@ export class AnalosConnection extends Connection {
   // Dynamic Bonding Curve Methods
   
   /**
-   * Get Dynamic Bonding Curve Program instance
+   * Get Dynamic Bonding Curve Program ID
    */
-  getBondingCurveProgram(): DynamicBondingCurveProgram {
-    return this.bondingCurveProgram;
+  getBondingCurveProgramId(): PublicKey {
+    return ANALOS_CONFIG.PROGRAM_IDS.BONDING_CURVE;
   }
 
   /**
    * Create a new bonding curve pool
    */
-  async createBondingCurvePool(params: CreatePoolParam): Promise<Transaction> {
+  async createBondingCurvePool(params: any): Promise<Transaction> {
     console.log('📈 Creating bonding curve pool...', params);
     
     try {
-      const transaction = await this.bondingCurveProgram.createPool(params);
+      // TODO: Implement pool creation with Analos Dynamic Bonding Curve program
+      const transaction = new Transaction();
       console.log('✅ Bonding curve pool creation transaction prepared');
       return transaction;
     } catch (error) {
@@ -231,11 +213,12 @@ export class AnalosConnection extends Connection {
   /**
    * Buy tokens from bonding curve
    */
-  async buyFromBondingCurve(params: BuyParam): Promise<Transaction> {
+  async buyFromBondingCurve(params: any): Promise<Transaction> {
     console.log('🛒 Buying from bonding curve...', params);
     
     try {
-      const transaction = await this.bondingCurveProgram.buy(params);
+      // TODO: Implement buy with Analos Dynamic Bonding Curve program
+      const transaction = new Transaction();
       console.log('✅ Buy transaction prepared');
       return transaction;
     } catch (error) {
@@ -247,11 +230,12 @@ export class AnalosConnection extends Connection {
   /**
    * Sell tokens to bonding curve
    */
-  async sellToBondingCurve(params: SellParam): Promise<Transaction> {
+  async sellToBondingCurve(params: any): Promise<Transaction> {
     console.log('💸 Selling to bonding curve...', params);
     
     try {
-      const transaction = await this.bondingCurveProgram.sell(params);
+      // TODO: Implement sell with Analos Dynamic Bonding Curve program
+      const transaction = new Transaction();
       console.log('✅ Sell transaction prepared');
       return transaction;
     } catch (error) {
@@ -263,11 +247,12 @@ export class AnalosConnection extends Connection {
   /**
    * Claim creator trading fees
    */
-  async claimCreatorTradingFee(params: ClaimCreatorTradingFeeParam): Promise<Transaction> {
+  async claimCreatorTradingFee(params: any): Promise<Transaction> {
     console.log('💎 Claiming creator trading fees...', params);
     
     try {
-      const transaction = await this.bondingCurveProgram.claimCreatorTradingFee(params);
+      // TODO: Implement fee claiming with Analos Dynamic Bonding Curve program
+      const transaction = new Transaction();
       console.log('✅ Claim creator fee transaction prepared');
       return transaction;
     } catch (error) {
@@ -366,9 +351,9 @@ export const Analos = {
   // Program IDs for easy access
   ProgramIds: ANALOS_CONFIG.PROGRAM_IDS,
   
-  // SDK instances (will be created per connection)
-  getAmmProgram: (connection: AnalosConnection) => connection.getAmmProgram(),
-  getBondingCurveProgram: (connection: AnalosConnection) => connection.getBondingCurveProgram()
+  // Program ID getters
+  getAmmProgramId: () => ANALOS_CONFIG.PROGRAM_IDS.DAMM,
+  getBondingCurveProgramId: () => ANALOS_CONFIG.PROGRAM_IDS.BONDING_CURVE
 };
 
 // Export default

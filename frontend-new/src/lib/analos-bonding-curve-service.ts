@@ -6,15 +6,6 @@
 
 import { PublicKey, Transaction, Keypair } from '@solana/web3.js';
 import { AnalosConnection, ANALOS_CONFIG } from './analos-web3-wrapper';
-import {
-  DynamicBondingCurveProgram,
-  type CreatePoolParam,
-  type BuyParam,
-  type SellParam,
-  type ClaimCreatorTradingFeeParam,
-  type PoolInfo,
-  type CurveInfo
-} from '@analosfork/dynamic-bonding-curve-sdk';
 
 export interface BondingCurveConfig {
   // Token configuration
@@ -41,8 +32,8 @@ export interface BondingCurvePool {
   tokenMint: PublicKey;
   creator: PublicKey;
   config: BondingCurveConfig;
-  poolInfo: PoolInfo;
-  curveInfo: CurveInfo;
+  poolInfo: any; // TODO: Define proper PoolInfo type
+  curveInfo: any; // TODO: Define proper CurveInfo type
 }
 
 export interface TradingQuote {
@@ -55,7 +46,6 @@ export interface TradingQuote {
 
 export class AnalosBondingCurveService {
   private connection: AnalosConnection;
-  private bondingCurveProgram: DynamicBondingCurveProgram;
 
   constructor() {
     this.connection = new AnalosConnection(ANALOS_CONFIG.RPC_ENDPOINT, {
@@ -64,10 +54,9 @@ export class AnalosBondingCurveService {
       confirmTransactionInitialTimeout: ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT
     });
     
-    this.bondingCurveProgram = this.connection.getBondingCurveProgram();
-    
     console.log('📈 Analos Bonding Curve Service initialized');
     console.log('🌐 RPC Endpoint:', ANALOS_CONFIG.RPC_ENDPOINT);
+    console.log('📊 Bonding Curve Program ID:', ANALOS_CONFIG.PROGRAM_IDS.BONDING_CURVE.toString());
   }
 
   /**
@@ -85,7 +74,7 @@ export class AnalosBondingCurveService {
       console.log('📈 Creating bonding curve pool for:', config.tokenName);
       
       // Prepare pool creation parameters
-      const createPoolParam: CreatePoolParam = {
+      const createPoolParam: any = {
         tokenMint: config.tokenMint,
         tokenName: config.tokenName,
         tokenSymbol: config.tokenSymbol,
@@ -164,7 +153,7 @@ export class AnalosBondingCurveService {
       const quote = await this.getBuyQuote(poolAddress, amount);
       
       // Prepare buy parameters
-      const buyParam: BuyParam = {
+      const buyParam: any = {
         poolAddress,
         buyer,
         amount,
@@ -236,7 +225,7 @@ export class AnalosBondingCurveService {
       const quote = await this.getSellQuote(poolAddress, amount);
       
       // Prepare sell parameters
-      const sellParam: SellParam = {
+      const sellParam: any = {
         poolAddress,
         seller,
         amount,
@@ -303,7 +292,7 @@ export class AnalosBondingCurveService {
       console.log('👤 Creator:', creator.toString());
       
       // Prepare claim parameters
-      const claimParam: ClaimCreatorTradingFeeParam = {
+      const claimParam: any = {
         poolAddress,
         creator
       };
@@ -353,7 +342,7 @@ export class AnalosBondingCurveService {
   /**
    * Get current pool information
    */
-  async getPoolInfo(poolAddress: PublicKey): Promise<PoolInfo> {
+  async getPoolInfo(poolAddress: PublicKey): Promise<any> {
     try {
       console.log('📊 Fetching pool info for:', poolAddress.toString());
       
@@ -368,7 +357,7 @@ export class AnalosBondingCurveService {
         totalVolume: 0,
         creatorFees: 0,
         protocolFees: 0
-      } as PoolInfo;
+      };
       
     } catch (error) {
       console.error('❌ Failed to get pool info:', error);
