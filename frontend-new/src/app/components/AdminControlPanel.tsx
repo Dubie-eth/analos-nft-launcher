@@ -919,7 +919,7 @@ export default function AdminControlPanel({ isAuthorized }: AdminControlPanelPro
                   if (success) {
                     console.log('✅ Deployment completed successfully:', result);
                     setShowDeployment(false);
-                    loadCollections(); // Refresh collections list
+                    loadAdminData(); // Refresh collections list
                   } else {
                     console.error('❌ Deployment failed:', result);
                   }
