@@ -109,7 +109,10 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
           // Use wallet adapter to sign and send
           const signature = await sendTransaction(transaction, connection);
           console.log('✅ Deployment transaction signed:', signature);
-          return transaction;
+          
+          // Return the signature instead of the transaction object
+          // The deployment service will handle sending the transaction using the signature
+          return signature;
         }
       );
 

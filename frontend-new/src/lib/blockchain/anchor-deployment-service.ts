@@ -226,47 +226,34 @@ export class AnchorDeploymentService {
       console.log('🔐 Requesting wallet signature for real deployment...');
       
       // Sign and send the real transaction
-      const signedTransaction = await signTransaction(transaction);
+      const transactionSignature = await signTransaction(transaction);
       
-      // Handle different return types from wallet adapters
-      let serializedTransaction: Buffer;
-      if (signedTransaction instanceof Buffer) {
-        serializedTransaction = signedTransaction;
-      } else if (signedTransaction && typeof (signedTransaction as Transaction).serialize === 'function') {
-        serializedTransaction = (signedTransaction as Transaction).serialize();
+      // The wallet adapter returns a transaction signature (string) when using sendTransaction
+      if (typeof transactionSignature === 'string') {
+        console.log('✅ Real deployment transaction sent with signature:', transactionSignature);
+        
+        // Wait for confirmation using the signature
+        const result = await this.connection.confirmTransaction(transactionSignature, 'confirmed');
+        
+        if (result.value.err) {
+          throw new Error(`Real deployment transaction failed: ${JSON.stringify(result.value.err)}`);
+        }
+        
+        console.log('🎉 Collection deployed successfully to Analos blockchain!');
+        console.log('🔗 Real Explorer URL:', `https://explorer.analos.io/tx/${transactionSignature}`);
+        
+        return {
+          success: true,
+          collectionAddress: collectionPDA.toString(),
+          mintAddress: collectionPDA.toString(),
+          metadataAddress: collectionPDA.toString(),
+          masterEditionAddress: collectionPDA.toString(),
+          transactionSignature: transactionSignature,
+          explorerUrl: `https://explorer.analos.io/tx/${transactionSignature}`
+        };
       } else {
-        throw new Error('Invalid signed transaction format');
+        throw new Error('Expected transaction signature (string) from wallet adapter');
       }
-
-      console.log('📡 Sending real deployment transaction to Analos blockchain...');
-      
-      // Send transaction to blockchain
-      const confirmation = await this.connection.sendRawTransaction(serializedTransaction, {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed'
-      });
-
-      console.log('✅ Real deployment transaction sent:', confirmation);
-
-      // Wait for confirmation
-      const result = await this.connection.confirmTransaction(confirmation, 'confirmed');
-      
-      if (result.value.err) {
-        throw new Error(`Real deployment transaction failed: ${JSON.stringify(result.value.err)}`);
-      }
-
-      console.log('🎉 Collection deployed successfully to Analos blockchain!');
-      console.log('🔗 Real Explorer URL:', `https://explorer.analos.io/tx/${confirmation}`);
-
-      return {
-        success: true,
-        collectionAddress: collectionPDA.toString(),
-        mintAddress: collectionPDA.toString(),
-        metadataAddress: collectionPDA.toString(),
-        masterEditionAddress: collectionPDA.toString(),
-        transactionSignature: confirmation,
-        explorerUrl: `https://explorer.analos.io/tx/${confirmation}`
-      };
 
     } catch (error) {
       console.error('❌ Real deployment error with Anchor:', error);
