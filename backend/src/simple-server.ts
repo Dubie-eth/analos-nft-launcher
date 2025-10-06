@@ -7,6 +7,7 @@ import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PE
 import { AnalosSDKService } from './analos-sdk-service';
 import { AnalosMetaplexService } from './analos-metaplex-service';
 import RealNFTMintService from './real-nft-mint-service';
+import { RealMetaplexNFTService } from './real-metaplex-nft-service';
 import nftGeneratorRoutes from './nft-generator-routes';
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 3001;
 
 // Initialize services
 let realNFTMintService: RealNFTMintService | null = null;
+let realMetaplexNFTService: RealMetaplexNFTService | null = null;
 
 // Force redeploy - mint instructions endpoint ready v2.0.1
 // This endpoint creates real blockchain transaction instructions for wallet signing
@@ -333,6 +335,11 @@ try {
   console.log('🔧 Initializing Real NFT Mint Service...');
   realNFTMintService = new RealNFTMintService(ANALOS_RPC_URL);
   console.log('✅ Real NFT Mint Service initialized with proper Solana programs');
+  
+  // Initialize Real Metaplex NFT Service
+  console.log('🔧 Initializing Real Metaplex NFT Service...');
+  realMetaplexNFTService = new RealMetaplexNFTService(ANALOS_RPC_URL, blockchainService.walletKeypair);
+  console.log('✅ Real Metaplex NFT Service initialized');
 } catch (error) {
   console.error('❌ Failed to initialize services:', error);
   console.log('⚠️  Server will continue with limited functionality');
@@ -2251,6 +2258,68 @@ app.post('/api/collections/:collectionName/migrate', async (req, res) => {
   } catch (error) {
     console.error('Error migrating collection:', error);
     res.status(500).json({ success: false, error: 'Failed to migrate collection' });
+  }
+});
+
+// Real NFT creation endpoint - creates actual NFTs visible on Analos blockchain
+app.post('/api/mint/real-nft', async (req, res) => {
+  try {
+    const { name, symbol, description, image, owner } = req.body;
+
+    if (!realMetaplexNFTService) {
+      return res.status(500).json({ error: 'Real Metaplex NFT Service not initialized' });
+    }
+
+    if (!name || !symbol || !description || !image || !owner) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: name, symbol, description, image, owner' 
+      });
+    }
+
+    console.log('🎯 Creating real NFT:', name);
+    
+    const nftData = {
+      name,
+      symbol,
+      description,
+      image,
+      attributes: [
+        { trait_type: 'Collection', value: 'Los Bros NFT' },
+        { trait_type: 'Network', value: 'Analos' },
+        { trait_type: 'Created', value: new Date().toISOString() }
+      ]
+    };
+
+    const ownerPublicKey = new PublicKey(owner);
+    const result = await realMetaplexNFTService.createRealNFT(nftData, ownerPublicKey);
+
+    console.log('✅ Real NFT created successfully!');
+    console.log('📋 Mint:', result.mint.toBase58());
+    console.log('📋 Transaction:', result.transactionSignature);
+
+    res.json({
+      success: true,
+      message: 'Real NFT created successfully!',
+      nft: {
+        mint: result.mint.toBase58(),
+        metadata: result.metadata.toBase58(),
+        masterEdition: result.masterEdition.toBase58(),
+        tokenAccount: result.tokenAccount.toBase58(),
+        transactionSignature: result.transactionSignature,
+        explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`,
+        name,
+        symbol,
+        description,
+        image
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating real NFT:', error);
+    res.status(500).json({ 
+      error: 'Failed to create real NFT',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
