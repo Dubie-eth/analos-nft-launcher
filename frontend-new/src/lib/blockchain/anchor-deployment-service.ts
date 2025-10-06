@@ -200,12 +200,12 @@ export class AnchorDeploymentService {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = walletPublicKey;
 
-      // Add priority fee and compute budget for faster processing on Analos
+      // Add reasonable priority fee and compute budget for Analos
       const computeBudgetInstruction = ComputeBudgetProgram.setComputeUnitLimit({
-        units: 400000 // Higher compute limit for complex operations
+        units: 100000 // Reasonable compute limit
       });
       const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 500000 // Much higher priority fee for faster processing on Analos
+        microLamports: 10000 // Much lower priority fee (0.01 SOL max)
       });
       transaction.add(computeBudgetInstruction);
       transaction.add(priorityFeeInstruction);

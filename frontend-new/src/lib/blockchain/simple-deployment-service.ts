@@ -38,12 +38,12 @@ export class SimpleDeploymentService {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = walletPublicKey;
 
-      // Add high priority fees for Analos network
+      // Add reasonable priority fees for Analos network
       const computeBudgetInstruction = ComputeBudgetProgram.setComputeUnitLimit({
-        units: 200000
+        units: 50000 // Lower compute limit for simple operations
       });
       const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 1000000 // Very high priority fee
+        microLamports: 5000 // Much lower priority fee (0.005 SOL max)
       });
       transaction.add(computeBudgetInstruction);
       transaction.add(priorityFeeInstruction);
