@@ -124,26 +124,70 @@ export class AnalosConnection extends Connection {
   }
 
   /**
-   * Override confirmTransaction to provide Analos-specific error messages
+   * Custom confirmTransaction method with configurable timeout for Analos blockchain
    */
   async confirmTransaction(
     signature: string, 
     commitment: 'processed' | 'confirmed' | 'finalized' = 'confirmed',
     timeout?: number
   ): Promise<any> {
+    const timeoutToUse = timeout || ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT;
+    const timeoutSeconds = Math.round(timeoutToUse / 1000);
+    
+    console.log(`⏱️ Waiting for transaction confirmation (timeout: ${timeoutSeconds}s)...`);
+    
     try {
-      // Use the parent class method with the configured timeout
-      const timeoutToUse = timeout || ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT;
-      return await super.confirmTransaction(signature, commitment, timeoutToUse);
-    } catch (error) {
-      // Check if it's a timeout error and provide better messaging
-      if (error instanceof Error && error.message.includes('not confirmed')) {
-        const timeoutSeconds = Math.round((timeout || ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT) / 1000);
-        const analosErrorMessage = `Transaction was not confirmed on Analos blockchain in ${timeoutSeconds} seconds. It is unknown if it succeeded or failed. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
-        throw new Error(analosErrorMessage);
+      // Get the latest blockhash and last valid block height
+      const { lastValidBlockHeight } = await this.getLatestBlockhash('finalized');
+      
+      // Start time for timeout tracking
+      const startTime = Date.now();
+      let currentBlockHeight = await this.getBlockHeight();
+      
+      // Custom confirmation loop with configurable timeout
+      while (Date.now() - startTime < timeoutToUse && currentBlockHeight <= lastValidBlockHeight) {
+        try {
+          const status = await this.getSignatureStatus(signature, { searchTransactionHistory: true });
+          
+          if (status.value) {
+            if (status.value.confirmationStatus === commitment || 
+                status.value.confirmationStatus === 'finalized') {
+              console.log(`✅ Transaction confirmed with status: ${status.value.confirmationStatus}`);
+              return {
+                value: {
+                  slot: status.value.slot,
+                  confirmations: status.value.confirmations,
+                  err: status.value.err,
+                  confirmationStatus: status.value.confirmationStatus
+                }
+              };
+            }
+          }
+          
+          // Wait 2 seconds before checking again
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          currentBlockHeight = await this.getBlockHeight();
+          
+        } catch (statusError) {
+          // Continue checking even if individual status check fails
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          currentBlockHeight = await this.getBlockHeight();
+        }
       }
-      // Re-throw other errors as-is
-      throw error;
+      
+      // Timeout reached
+      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+      const errorMessage = `Transaction was not confirmed on Analos blockchain in ${elapsedSeconds} seconds. It is unknown if it succeeded or failed. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
+      throw new Error(errorMessage);
+      
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not confirmed')) {
+        throw error; // Re-throw our custom error message
+      }
+      // For other errors, provide better messaging
+      const elapsedSeconds = Math.round((Date.now() - Date.now() + timeoutToUse) / 1000);
+      const analosErrorMessage = `Transaction confirmation failed on Analos blockchain. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
+      throw new Error(analosErrorMessage);
     }
   }
 
@@ -352,7 +396,10 @@ export const AnalosUtils = {
       const signatureMatch = errorMessage.match(/signature\s+([A-Za-z0-9]+)/);
       if (signatureMatch) {
         const signature = signatureMatch[1];
-        errorMessage = `Transaction was not confirmed on Analos blockchain in 30.00 seconds. It is unknown if it succeeded or failed. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
+        // Extract the actual timeout from the error message
+        const timeoutMatch = errorMessage.match(/(\d+(?:\.\d+)?)\s*seconds/);
+        const actualTimeout = timeoutMatch ? timeoutMatch[1] : '300';
+        errorMessage = `Transaction was not confirmed on Analos blockchain in ${actualTimeout} seconds. It is unknown if it succeeded or failed. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
       }
     }
     
