@@ -67,7 +67,7 @@ export class AnchorDeploymentService {
   private provider: AnchorProvider | null = null;
   private program: Program<any> | null = null;
   private readonly ANALOS_RPC_URL = 'https://rpc.analos.io';
-  private readonly PROGRAM_ID = new PublicKey('9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym');
+  private readonly PROGRAM_ID = new PublicKey('9oDJVQjdpM8mj6RgBG6Xj8xQVJVfDA78ALjnDALgRjnK');
 
   constructor() {
     this.connection = new Connection(this.ANALOS_RPC_URL, 'confirmed');
