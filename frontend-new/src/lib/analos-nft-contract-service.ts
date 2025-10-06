@@ -181,7 +181,7 @@ class AnalosNFTContractService {
       }
       
       const signature = await this.connection.sendRawTransaction(signedTransaction.serialize());
-      await this.connection.confirmTransaction(signature, 'confirmed', 120000); // 2 minute timeout for Analos
+      await this.connection.confirmTransaction(signature, 'confirmed', ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT); // Use configurable timeout for Analos
       
       console.log('✅ Collection created successfully');
       console.log('📝 Transaction signature:', signature);
@@ -301,7 +301,7 @@ class AnalosNFTContractService {
       }
       
       const signature = await this.connection.sendRawTransaction(signedTransaction.serialize());
-      await this.connection.confirmTransaction(signature, 'confirmed', 120000); // 2 minute timeout for Analos
+      await this.connection.confirmTransaction(signature, 'confirmed', ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT); // Use configurable timeout for Analos
       
       console.log('✅ NFT minted successfully');
       console.log('📝 Transaction signature:', signature);

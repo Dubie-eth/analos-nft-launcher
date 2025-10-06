@@ -15,7 +15,7 @@ export const ANALOS_CONFIG = {
   WS_ENDPOINT: 'wss://rpc.analos.io',
   NETWORK: 'MAINNET',
   COMMITMENT: 'confirmed' as const,
-  CONFIRM_TRANSACTION_TIMEOUT: 120000, // 2 minutes for Analos blockchain
+  CONFIRM_TRANSACTION_TIMEOUT: 300000, // 5 minutes for Analos blockchain (increased for slower network)
   PROGRAM_IDS: {
     DAMM: new PublicKey('94jkbjHAz6oVCsbsDKpeBRZZYvhm2Hg2epNDihLmb4nN'),
     BONDING_CURVE: new PublicKey('4nvcyXwTMAqM1ZoZbJWvcPXtg8dNXVbt2CFaXVwaPbT6')
