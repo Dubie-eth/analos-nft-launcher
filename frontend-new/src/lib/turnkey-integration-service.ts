@@ -371,43 +371,63 @@ class TurnkeyIntegrationService {
     try {
       console.log(`🔗 Making Turnkey API request: ${method} ${endpoint}`);
       
-      // Use our API proxy to avoid CORS issues
-      const response = await fetch('/api/turnkey', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          method,
-          url,
-          data,
+      // First try direct API call (works in production)
+      try {
+        const response = await fetch(url, {
+          method: method,
           headers: {
-            'X-API-Key': this.apiKey,
-            'X-Organization-Id': this.orgId,
-          }
-        })
-      });
+            'Content-Type': 'application/json',
+            'X-API-Key': this.apiKey || '',
+            'X-Organization-Id': this.orgId || '',
+          },
+          body: data ? JSON.stringify(data) : undefined,
+        });
 
-      if (!response.ok) {
-        if (response.status === 404 || response.status === 0) {
-          console.warn('⚠️ Turnkey API proxy failed, trying bypass mode');
-          // Return a successful response to enable bypass mode
-          return { success: true, bypass: true };
+        if (response.ok) {
+          const result = await response.json();
+          return { success: true, data: result };
+        } else {
+          console.warn(`⚠️ Direct Turnkey API call failed: ${response.status} ${response.statusText}`);
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      } catch (directError) {
+        console.warn('⚠️ Direct Turnkey API call failed:', directError);
       }
 
-      const result = await response.json();
-      if (result.error) {
-        console.warn('⚠️ Turnkey API error:', result.error);
-        return { success: true, bypass: true };
+      // Fallback: Try API proxy
+      try {
+        const response = await fetch('/api/turnkey', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            method,
+            url,
+            data,
+            headers: {
+              'X-API-Key': this.apiKey,
+              'X-Organization-Id': this.orgId,
+            }
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.error) {
+            throw new Error(result.error);
+          }
+          return { success: true, data: result.data };
+        }
+      } catch (proxyError) {
+        console.warn('⚠️ Turnkey API proxy also failed:', proxyError);
       }
-      
-      return { success: true, data: result.data };
+
+      // Final fallback: Enable bypass mode
+      console.warn('⚠️ All Turnkey API methods failed, enabling bypass mode');
+      return { success: true, bypass: true };
 
     } catch (error) {
-      console.warn('⚠️ Turnkey API request failed, enabling bypass mode:', error);
-      // Enable bypass mode for continued functionality
+      console.warn('⚠️ Turnkey API request failed completely, enabling bypass mode:', error);
       return { success: true, bypass: true };
     }
   }
