@@ -29,7 +29,7 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     const connection = new AnalosConnection(endpoint, {
       network: 'MAINNET',
       commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 60000
+      confirmTransactionInitialTimeout: 120000 // 2 minutes for Analos blockchain
     });
     
     console.log('✅ Analos Connection created:', connection.getClusterInfo().name);

@@ -15,7 +15,16 @@ import {
 } from '../../lib/turnkey-integration-service';
 
 export default function EnhancedNFTMinter() {
-  const { publicKey, connected, signTransaction } = useWallet();
+  // Add safety check for wallet context
+  let walletContext;
+  try {
+    walletContext = useWallet();
+  } catch (error) {
+    console.warn('Wallet context not available yet, using fallback');
+    walletContext = { publicKey: null, connected: false, signTransaction: undefined };
+  }
+  
+  const { publicKey, connected, signTransaction } = walletContext;
   const [turnkeyWallet, setTurnkeyWallet] = useState<TurnkeyWallet | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isMinting, setIsMinting] = useState(false);

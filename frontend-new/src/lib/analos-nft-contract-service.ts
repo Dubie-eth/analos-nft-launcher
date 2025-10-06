@@ -87,12 +87,13 @@ class AnalosNFTContractService {
     this.connection = new AnalosConnection(ANALOS_RPC, {
       network: 'MAINNET',
       commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 60000
+      confirmTransactionInitialTimeout: 120000 // Increased to 2 minutes for Analos blockchain
     });
     this.turnkeyApiKey = turnkeyApiKey;
     this.turnkeyOrgId = turnkeyOrgId;
     
     console.log('🔗 Analos NFT Contract Service initialized with:', this.connection.getClusterInfo().name);
+    console.log('⏱️ Transaction confirmation timeout: 120 seconds (optimized for Analos)');
   }
 
   /**
@@ -178,7 +179,7 @@ class AnalosNFTContractService {
       }
       
       const signature = await this.connection.sendRawTransaction(signedTransaction.serialize());
-      await this.connection.confirmTransaction(signature);
+      await this.connection.confirmTransaction(signature, 'confirmed', 120000); // 2 minute timeout for Analos
       
       console.log('✅ Collection created successfully');
       console.log('📝 Transaction signature:', signature);
@@ -298,7 +299,7 @@ class AnalosNFTContractService {
       }
       
       const signature = await this.connection.sendRawTransaction(signedTransaction.serialize());
-      await this.connection.confirmTransaction(signature);
+      await this.connection.confirmTransaction(signature, 'confirmed', 120000); // 2 minute timeout for Analos
       
       console.log('✅ NFT minted successfully');
       console.log('📝 Transaction signature:', signature);
