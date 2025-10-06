@@ -61,15 +61,11 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     setMounted(true);
   }, []);
 
-  // Prevent hydration issues by not rendering wallet providers on server
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Always render the wallet providers, but with safe defaults when not mounted
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider 
-        wallets={wallets} 
+        wallets={mounted ? wallets : []} 
         autoConnect={false}
         onError={(error) => {
           console.error('❌ Wallet error:', error);

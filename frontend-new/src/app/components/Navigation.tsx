@@ -7,8 +7,21 @@ import { usePathname } from 'next/navigation';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
 
 export default function Navigation() {
-  const { connected, publicKey, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
+  // Add safety check for wallet context
+  let walletContext;
+  let modalContext;
+  
+  try {
+    walletContext = useWallet();
+    modalContext = useWalletModal();
+  } catch (error) {
+    console.warn('Wallet context not available yet, using fallback');
+    walletContext = { connected: false, publicKey: null, disconnect: () => {} };
+    modalContext = { setVisible: () => {} };
+  }
+  
+  const { connected, publicKey, disconnect } = walletContext;
+  const { setVisible } = modalContext;
   const pathname = usePathname();
 
   // Check if current user is an admin

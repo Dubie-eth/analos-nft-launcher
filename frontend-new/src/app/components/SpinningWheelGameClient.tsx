@@ -11,7 +11,16 @@ const MIN_SPIN_COST = 0.1;
 const MAX_SPIN_COST = 10;
 
 export default function SpinningWheelGameClient() {
-  const { publicKey, connected, signTransaction } = useWallet();
+  // Add safety check for wallet context
+  let walletContext;
+  try {
+    walletContext = useWallet();
+  } catch (error) {
+    console.warn('Wallet context not available yet, using fallback');
+    walletContext = { publicKey: null, connected: false, signTransaction: undefined };
+  }
+  
+  const { publicKey, connected, signTransaction } = walletContext;
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [spinCost, setSpinCost] = useState(1);
   const [isSpinning, setIsSpinning] = useState(false);
