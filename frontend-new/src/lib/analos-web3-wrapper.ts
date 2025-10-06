@@ -124,6 +124,30 @@ export class AnalosConnection extends Connection {
   }
 
   /**
+   * Override confirmTransaction to provide Analos-specific error messages
+   */
+  async confirmTransaction(
+    signature: string, 
+    commitment: 'processed' | 'confirmed' | 'finalized' = 'confirmed',
+    timeout?: number
+  ): Promise<any> {
+    try {
+      // Use the parent class method with the configured timeout
+      const timeoutToUse = timeout || ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT;
+      return await super.confirmTransaction(signature, commitment, timeoutToUse);
+    } catch (error) {
+      // Check if it's a timeout error and provide better messaging
+      if (error instanceof Error && error.message.includes('not confirmed')) {
+        const timeoutSeconds = Math.round((timeout || ANALOS_CONFIG.CONFIRM_TRANSACTION_TIMEOUT) / 1000);
+        const analosErrorMessage = `Transaction was not confirmed on Analos blockchain in ${timeoutSeconds} seconds. It is unknown if it succeeded or failed. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
+        throw new Error(analosErrorMessage);
+      }
+      // Re-throw other errors as-is
+      throw error;
+    }
+  }
+
+  /**
    * Get Analos cluster information
    */
   getClusterInfo() {
@@ -308,13 +332,31 @@ export const AnalosUtils = {
    * Get formatted error message from Analos blockchain
    */
   getAnalosErrorMessage(error: any): string {
+    let errorMessage = '';
+    
     if (error.message) {
-      return error.message;
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      return 'Unknown Analos blockchain error';
     }
-    if (typeof error === 'string') {
-      return error;
+    
+    // Replace Solana Explorer references with Analos Explorer
+    errorMessage = errorMessage.replace(/Solana Explorer/g, 'Analos Explorer');
+    errorMessage = errorMessage.replace(/explorer\.solana\.com/g, 'explorer.analos.io');
+    
+    // Handle transaction timeout errors specifically
+    if (errorMessage.includes('not confirmed') && errorMessage.includes('seconds')) {
+      // Extract signature from the error message if present
+      const signatureMatch = errorMessage.match(/signature\s+([A-Za-z0-9]+)/);
+      if (signatureMatch) {
+        const signature = signatureMatch[1];
+        errorMessage = `Transaction was not confirmed on Analos blockchain in 30.00 seconds. It is unknown if it succeeded or failed. Check signature ${signature} using the Analos Explorer: https://explorer.analos.io/tx/${signature} or CLI tools.`;
+      }
     }
-    return 'Unknown Analos blockchain error';
+    
+    return errorMessage;
   },
 
   /**
