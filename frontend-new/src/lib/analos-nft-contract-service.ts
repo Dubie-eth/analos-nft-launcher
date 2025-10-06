@@ -5,6 +5,7 @@
  */
 
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, TransactionInstruction, LAMPORTS_PER_SOL } from '@solana/web3.js';
+// import { AnalosConnection, Analos } from '@analos/web3-kit';
 import { 
   getAssociatedTokenAddress, 
   createMint, 
@@ -20,7 +21,7 @@ import {
 export const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 export const SYSVAR_RENT_PUBKEY = new PublicKey('SysvarRent111111111111111111111111111111111');
 
-// Analos RPC
+// Analos RPC - using Analos Web3 Kit
 const ANALOS_RPC = 'https://rpc.analos.io';
 
 export interface NFTMetadata {

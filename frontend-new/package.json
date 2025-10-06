@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@analos/web3-kit": "file:../analos-web3-kit",
     "@analosfork/damm-sdk": "^1.0.0",
     "@analosfork/dynamic-bonding-curve-sdk": "^1.0.3",
     "@coral-xyz/anchor": "^0.31.1",
