@@ -4,8 +4,8 @@
  * Includes dynamic metadata updates and marketplace compatibility
  */
 
-import { Connection, PublicKey, Keypair, Transaction, SystemProgram, TransactionInstruction, LAMPORTS_PER_SOL } from '@solana/web3.js';
-// import { AnalosConnection, Analos } from '@analos/web3-kit';
+import { PublicKey, Keypair, Transaction, SystemProgram, TransactionInstruction, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { AnalosConnection, Analos } from './analos-web3-wrapper';
 import { 
   getAssociatedTokenAddress, 
   createMint, 
@@ -79,14 +79,20 @@ export interface UpdateMetadataResult {
 }
 
 class AnalosNFTContractService {
-  private connection: Connection;
+  private connection: AnalosConnection;
   private turnkeyApiKey?: string;
   private turnkeyOrgId?: string;
 
   constructor(turnkeyApiKey?: string, turnkeyOrgId?: string) {
-    this.connection = new Connection(ANALOS_RPC);
+    this.connection = new AnalosConnection(ANALOS_RPC, {
+      network: 'MAINNET',
+      commitment: 'confirmed',
+      confirmTransactionInitialTimeout: 60000
+    });
     this.turnkeyApiKey = turnkeyApiKey;
     this.turnkeyOrgId = turnkeyOrgId;
+    
+    console.log('🔗 Analos NFT Contract Service initialized with:', this.connection.getClusterInfo().name);
   }
 
   /**
@@ -191,8 +197,9 @@ class AnalosNFTContractService {
       };
 
     } catch (error) {
-      console.error('Collection creation failed:', error);
-      throw new Error('Failed to create collection');
+      const analosError = Analos.Utils.getAnalosErrorMessage(error);
+      console.error('Collection creation failed:', analosError);
+      throw new Error(`Failed to create collection: ${analosError}`);
     }
   }
 
@@ -315,8 +322,9 @@ class AnalosNFTContractService {
       };
 
     } catch (error) {
-      console.error('NFT minting failed:', error);
-      throw new Error('Failed to mint NFT');
+      const analosError = Analos.Utils.getAnalosErrorMessage(error);
+      console.error('NFT minting failed:', analosError);
+      throw new Error(`Failed to mint NFT: ${analosError}`);
     }
   }
 

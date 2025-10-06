@@ -1,5 +1,5 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-// import { AnalosConnection, Analos } from '@analos/web3-kit';
+import { PublicKey } from '@solana/web3.js';
+import { AnalosConnection, Analos } from './analos-web3-wrapper';
 import { tokenIdTracker } from './token-id-tracker';
 import { adminControlService } from './admin-control-service';
 import { feeManagementService } from './fee-management-service';
@@ -34,7 +34,7 @@ export interface MintedNFT {
 }
 
 export class BlockchainDataService {
-  private connection: Connection;
+  private connection: AnalosConnection;
   private readonly ANALOS_RPC_URL = 'https://rpc.analos.io';
   
   // Cache to reduce blockchain calls
@@ -79,8 +79,11 @@ export class BlockchainDataService {
   }
 
   constructor(rpcUrl?: string) {
-    this.connection = new Connection(rpcUrl || this.ANALOS_RPC_URL, 'confirmed');
-    console.log('🔗 Blockchain Data Service initialized');
+    this.connection = new AnalosConnection(rpcUrl || this.ANALOS_RPC_URL, {
+      network: 'MAINNET',
+      commitment: 'confirmed'
+    });
+    console.log('🔗 Blockchain Data Service initialized with:', this.connection.getClusterInfo().name);
   }
 
   // Cache helper methods

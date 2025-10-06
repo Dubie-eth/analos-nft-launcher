@@ -1,5 +1,5 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-// import { AnalosConnection } from '@analos/web3-kit';
+import { PublicKey } from '@solana/web3.js';
+import { AnalosConnection } from './analos-web3-wrapper';
 
 export interface MarketData {
   losPriceUSD: number;
@@ -17,16 +17,19 @@ export interface ServicePricing {
 }
 
 class MarketDataService {
-  private connection: Connection;
+  private connection: AnalosConnection;
   private cache: Map<string, MarketData>;
   private cacheDurationMs = 60 * 1000; // 1 minute cache
   private defaultLOSPrice = 0.00012; // Fallback price if API fails (adjusted for Analos)
   private defaultLOLPrice = 0.00015; // Fallback price if API fails (adjusted for Analos)
 
   constructor() {
-    this.connection = new Connection('https://rpc.analos.io', 'confirmed');
+    this.connection = new AnalosConnection('https://rpc.analos.io', {
+      network: 'MAINNET',
+      commitment: 'confirmed'
+    });
     this.cache = new Map();
-    console.log('📊 Market Data Service initialized');
+    console.log('📊 Market Data Service initialized with:', this.connection.getClusterInfo().name);
   }
 
   /**
