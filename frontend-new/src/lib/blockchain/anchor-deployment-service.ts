@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstruction, Keypair } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstruction, Keypair, ComputeBudgetProgram } from '@solana/web3.js';
 import { AnchorProvider, Program, BN, Wallet } from '@coral-xyz/anchor';
 
 // Import the Anchor program types (these would be generated from the Anchor program)
@@ -199,6 +199,16 @@ export class AnchorDeploymentService {
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = walletPublicKey;
+
+      // Add priority fee and compute budget for faster processing on Analos
+      const computeBudgetInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 200000 // Higher compute limit for complex operations
+      });
+      const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 100000 // Higher priority fee for faster processing
+      });
+      transaction.add(computeBudgetInstruction);
+      transaction.add(priorityFeeInstruction);
 
       // Create collection deployment data to store on-chain
       const deploymentData = {
