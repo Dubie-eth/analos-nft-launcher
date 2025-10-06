@@ -67,7 +67,10 @@ class TurnkeyIntegrationService {
    */
   async initialize(): Promise<boolean> {
     if (!this.apiKey || !this.orgId) {
-      console.warn('Turnkey API key or Org ID not configured');
+      console.warn('⚠️ Turnkey API key or Org ID not configured');
+      console.warn('⚠️ To enable Turnkey integration, add the following to your .env.local file:');
+      console.warn('   NEXT_PUBLIC_TURNKEY_ORG_ID=your_org_id');
+      console.warn('   NEXT_PUBLIC_TURNKEY_PRIVATE_KEY=your_private_key');
       // Enable bypass mode for continued functionality
       console.warn('⚠️ Enabling bypass mode for NFT minting without Turnkey');
       return true;
@@ -369,6 +372,7 @@ class TurnkeyIntegrationService {
     // Skip API calls if credentials are missing
     if (!this.apiKey || !this.orgId) {
       console.warn('⚠️ Turnkey credentials missing, enabling bypass mode');
+      console.warn('⚠️ Add NEXT_PUBLIC_TURNKEY_ORG_ID and NEXT_PUBLIC_TURNKEY_PRIVATE_KEY to .env.local');
       return { success: true, bypass: true };
     }
 
@@ -376,9 +380,11 @@ class TurnkeyIntegrationService {
     
     try {
       console.log(`🔗 Making Turnkey API request: ${method} ${endpoint}`);
+      console.log(`🔗 URL: ${url}`);
       
       // Try API proxy first (more reliable in production)
       try {
+        console.log('🔗 Attempting API proxy request...');
         const response = await fetch('/api/turnkey', {
           method: 'POST',
           headers: {
@@ -395,14 +401,19 @@ class TurnkeyIntegrationService {
           })
         });
 
+        console.log(`🔗 Proxy response status: ${response.status} ${response.statusText}`);
+
         if (response.ok) {
           const result = await response.json();
           if (result.error) {
             throw new Error(result.error);
           }
+          console.log('✅ Turnkey API proxy request successful');
           return { success: true, data: result.data };
         } else {
+          const errorText = await response.text();
           console.warn(`⚠️ Turnkey API proxy failed: ${response.status} ${response.statusText}`);
+          console.warn(`⚠️ Error details: ${errorText}`);
         }
       } catch (proxyError) {
         console.warn('⚠️ Turnkey API proxy failed:', proxyError);
@@ -410,6 +421,7 @@ class TurnkeyIntegrationService {
 
       // Fallback: Try direct API call (may have CORS issues)
       try {
+        console.log('🔗 Attempting direct API request...');
         const response = await fetch(url, {
           method: method,
           headers: {
@@ -420,11 +432,16 @@ class TurnkeyIntegrationService {
           body: data ? JSON.stringify(data) : undefined,
         });
 
+        console.log(`🔗 Direct response status: ${response.status} ${response.statusText}`);
+
         if (response.ok) {
           const result = await response.json();
+          console.log('✅ Turnkey direct API request successful');
           return { success: true, data: result };
         } else {
+          const errorText = await response.text();
           console.warn(`⚠️ Direct Turnkey API call failed: ${response.status} ${response.statusText}`);
+          console.warn(`⚠️ Error details: ${errorText}`);
         }
       } catch (directError) {
         console.warn('⚠️ Direct Turnkey API call failed:', directError);
@@ -432,6 +449,7 @@ class TurnkeyIntegrationService {
 
       // Final fallback: Enable bypass mode
       console.warn('⚠️ All Turnkey API methods failed, enabling bypass mode');
+      console.warn('⚠️ NFT minting will work without Turnkey integration');
       return { success: true, bypass: true };
 
     } catch (error) {
