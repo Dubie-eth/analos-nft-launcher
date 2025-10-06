@@ -212,16 +212,7 @@ export class AnchorDeploymentService {
         type: 'collection_deployment'
       };
 
-      // Add memo instruction to store deployment data on-chain
-      const memoInstruction = new TransactionInstruction({
-        keys: [
-          { pubkey: walletPublicKey, isSigner: true, isWritable: false }
-        ],
-        programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'), // Memo Program
-        data: Buffer.from(JSON.stringify(deploymentData), 'utf8')
-      });
-
-      transaction.add(memoInstruction);
+      console.log('📝 Deployment data prepared:', deploymentData);
 
       // Add a minimal transfer to make the transaction valid and pay fees
       const transferInstruction = SystemProgram.transfer({
