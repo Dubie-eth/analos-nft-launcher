@@ -35,11 +35,11 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
 
       setDeploymentStatus('Initializing Anchor provider...');
 
-      // Initialize Anchor provider first
-      const { Wallet } = await import('@coral-xyz/anchor');
+      // Create a wallet interface compatible with Anchor
       const connection = new Connection('https://rpc.analos.io', 'confirmed');
       
-      const wallet = new Wallet({
+      // Create a wallet object that matches Anchor's expected interface
+      const wallet = {
         publicKey: publicKey,
         signTransaction: async (transaction) => {
           console.log('🔐 Signing transaction for Anchor provider');
@@ -66,7 +66,7 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
           }
           return signedTransactions;
         }
-      });
+      };
 
       const providerInitialized = await anchorDeploymentService.initializeProvider(wallet);
       if (!providerInitialized) {
