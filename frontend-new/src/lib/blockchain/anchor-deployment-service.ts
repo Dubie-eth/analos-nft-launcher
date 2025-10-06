@@ -185,6 +185,15 @@ export class AnchorDeploymentService {
       const transaction = new Transaction();
       const walletPublicKey = new PublicKey(walletAddress);
 
+      // Generate a proper collection PDA (Program Derived Address)
+      const collectionSeed = Buffer.from(`collection_${collectionAddress}`);
+      const [collectionPDA] = PublicKey.findProgramAddressSync(
+        [collectionSeed],
+        this.PROGRAM_ID
+      );
+
+      console.log('📍 Generated Collection PDA:', collectionPDA.toString());
+
       // Get recent blockhash
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
@@ -259,10 +268,10 @@ export class AnchorDeploymentService {
 
       return {
         success: true,
-        collectionAddress: collectionAddress,
-        mintAddress: collectionAddress,
-        metadataAddress: collectionAddress,
-        masterEditionAddress: collectionAddress,
+        collectionAddress: collectionPDA.toString(),
+        mintAddress: collectionPDA.toString(),
+        metadataAddress: collectionPDA.toString(),
+        masterEditionAddress: collectionPDA.toString(),
         transactionSignature: confirmation,
         explorerUrl: `https://explorer.analos.io/tx/${confirmation}`
       };

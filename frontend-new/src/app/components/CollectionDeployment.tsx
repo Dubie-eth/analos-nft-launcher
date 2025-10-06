@@ -89,9 +89,12 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
 
       setDeploymentStatus('Deploying to Analos blockchain...');
 
+      // Generate a proper collection address
+      const collectionAddress = `${collectionName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       // Deploy to REAL blockchain using Anchor
       const result = await anchorDeploymentService.deployCollection(
-        'collection_address_placeholder',
+        collectionAddress,
         publicKey.toString(),
         async (transaction) => {
           console.log('🔐 Signing deployment transaction');
