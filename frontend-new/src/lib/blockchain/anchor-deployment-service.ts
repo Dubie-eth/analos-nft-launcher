@@ -185,10 +185,11 @@ export class AnchorDeploymentService {
       const transaction = new Transaction();
       const walletPublicKey = new PublicKey(walletAddress);
 
-      // Generate a proper collection PDA (Program Derived Address)
-      const collectionSeed = Buffer.from(`collection_${collectionAddress}`);
+      // Generate a proper collection PDA (Program Derived Address) with valid seed length
+      // Solana PDA seeds must be <= 32 bytes, so we'll create a short deterministic seed
+      const shortSeed = Buffer.from('collection'); // 9 bytes - well under the 32 byte limit
       const [collectionPDA] = PublicKey.findProgramAddressSync(
-        [collectionSeed],
+        [shortSeed, Buffer.from(collectionAddress.slice(-16))], // Add last 16 chars as second seed
         this.PROGRAM_ID
       );
 

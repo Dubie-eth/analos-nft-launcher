@@ -89,8 +89,11 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
 
       setDeploymentStatus('Deploying to Analos blockchain...');
 
-      // Generate a proper collection address
-      const collectionAddress = `${collectionName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Generate a proper collection address (shorter for PDA compatibility)
+      const shortName = collectionName.toLowerCase().replace(/\s+/g, '').substring(0, 8);
+      const timestamp = Date.now().toString().slice(-8); // Last 8 digits
+      const random = Math.random().toString(36).substr(2, 4); // 4 chars
+      const collectionAddress = `${shortName}_${timestamp}_${random}`;
 
       // Deploy to REAL blockchain using Anchor
       const result = await anchorDeploymentService.deployCollection(
