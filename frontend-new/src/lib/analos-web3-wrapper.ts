@@ -39,14 +39,41 @@ export class AnalosConnection extends Connection {
   async initializeWebSocket(): Promise<void> {
     console.log('🔌 Initializing Analos WebSocket connection...');
     
-    // For now, we'll simulate the WebSocket initialization
-    // In a full implementation, this would establish the WebSocket connection
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('✅ Analos WebSocket connection initialized (simulated)');
-        resolve();
-      }, 100);
-    });
+    try {
+      const wsUrl = this.rpcEndpoint.replace('https://', 'wss://');
+      console.log('🔌 WebSocket URL:', wsUrl);
+      
+      // Test WebSocket connection with timeout
+      const ws = new WebSocket(wsUrl);
+      
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          ws.close();
+          console.warn('⚠️ WebSocket connection timeout, continuing with HTTP-only mode');
+          resolve(); // Don't reject, just continue without WebSocket
+        }, 5000);
+        
+        ws.onopen = () => {
+          clearTimeout(timeout);
+          console.log('✅ Analos WebSocket connection established');
+          ws.close(); // Close test connection
+          resolve();
+        };
+        
+        ws.onerror = (error) => {
+          clearTimeout(timeout);
+          console.warn('⚠️ WebSocket connection failed, continuing with HTTP-only mode:', error);
+          resolve(); // Don't reject, just continue without WebSocket
+        };
+        
+        ws.onclose = () => {
+          clearTimeout(timeout);
+        };
+      });
+    } catch (error) {
+      console.warn('⚠️ WebSocket initialization failed, continuing with HTTP-only mode:', error);
+      // Don't throw, just continue without WebSocket
+    }
   }
 
   // Enhanced account change listener with better error handling

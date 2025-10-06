@@ -36,7 +36,7 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
     console.log('🌐 RPC URL:', connection.getClusterInfo().rpc);
     console.log('🔌 WebSocket URL:', connection.getClusterInfo().ws);
     
-    // Initialize WebSocket for real-time subscriptions
+    // Initialize WebSocket for real-time subscriptions (non-blocking)
     connection.initializeWebSocket().catch(error => {
       console.warn('⚠️ WebSocket initialization failed, continuing with HTTP-only mode:', error);
     });

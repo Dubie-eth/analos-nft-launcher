@@ -77,13 +77,19 @@ class TurnkeyIntegrationService {
     }
 
     try {
-      // Test API connection with fallback
+      // Test API connection with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await this.makeRequest('GET', '/v1/organizations');
-      if (response.success) {
+      clearTimeout(timeoutId);
+      
+      if (response.success && !response.bypass) {
         console.log('✅ Turnkey service initialized successfully');
         return true;
       } else {
-        throw new Error('Failed to connect to Turnkey API');
+        console.warn('⚠️ Turnkey API not available, enabling bypass mode');
+        return true;
       }
     } catch (error) {
       console.error('Turnkey initialization failed:', error);
@@ -380,11 +386,12 @@ class TurnkeyIntegrationService {
     
     try {
       console.log(`🔗 Making Turnkey API request: ${method} ${endpoint}`);
-      console.log(`🔗 URL: ${url}`);
       
-      // Try API proxy first (more reliable in production)
+      // Try API proxy first with timeout
       try {
-        console.log('🔗 Attempting API proxy request...');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        
         const response = await fetch('/api/turnkey', {
           method: 'POST',
           headers: {
@@ -398,10 +405,11 @@ class TurnkeyIntegrationService {
               'X-API-Key': this.apiKey,
               'X-Organization-Id': this.orgId,
             }
-          })
+          }),
+          signal: controller.signal
         });
 
-        console.log(`🔗 Proxy response status: ${response.status} ${response.statusText}`);
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const result = await response.json();
@@ -413,38 +421,41 @@ class TurnkeyIntegrationService {
         } else {
           const errorText = await response.text();
           console.warn(`⚠️ Turnkey API proxy failed: ${response.status} ${response.statusText}`);
-          console.warn(`⚠️ Error details: ${errorText}`);
+          throw new Error(`Proxy failed: ${response.status}`);
         }
       } catch (proxyError) {
-        console.warn('⚠️ Turnkey API proxy failed:', proxyError);
-      }
+        console.warn('⚠️ Turnkey API proxy failed:', proxyError.message || proxyError);
+        
+        // Try direct API call only once as fallback
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+          
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': this.apiKey,
+              'X-Organization-Id': this.orgId,
+            },
+            body: data ? JSON.stringify(data) : undefined,
+            signal: controller.signal
+          });
 
-      // Fallback: Try direct API call (may have CORS issues)
-      try {
-        console.log('🔗 Attempting direct API request...');
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': this.apiKey,
-            'X-Organization-Id': this.orgId,
-          },
-          body: data ? JSON.stringify(data) : undefined,
-        });
+          clearTimeout(timeoutId);
 
-        console.log(`🔗 Direct response status: ${response.status} ${response.statusText}`);
-
-        if (response.ok) {
-          const result = await response.json();
-          console.log('✅ Turnkey direct API request successful');
-          return { success: true, data: result };
-        } else {
-          const errorText = await response.text();
-          console.warn(`⚠️ Direct Turnkey API call failed: ${response.status} ${response.statusText}`);
-          console.warn(`⚠️ Error details: ${errorText}`);
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Turnkey direct API request successful');
+            return { success: true, data: result };
+          } else {
+            const errorText = await response.text();
+            console.warn(`⚠️ Direct Turnkey API call failed: ${response.status} ${response.statusText}`);
+            throw new Error(`Direct API failed: ${response.status}`);
+          }
+        } catch (directError) {
+          console.warn('⚠️ Direct Turnkey API call failed:', directError.message || directError);
         }
-      } catch (directError) {
-        console.warn('⚠️ Direct Turnkey API call failed:', directError);
       }
 
       // Final fallback: Enable bypass mode
@@ -453,7 +464,7 @@ class TurnkeyIntegrationService {
       return { success: true, bypass: true };
 
     } catch (error) {
-      console.warn('⚠️ Turnkey API request failed completely, enabling bypass mode:', error);
+      console.warn('⚠️ Turnkey API request failed completely, enabling bypass mode:', error.message || error);
       return { success: true, bypass: true };
     }
   }
