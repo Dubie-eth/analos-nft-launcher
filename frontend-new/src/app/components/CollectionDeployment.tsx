@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { anchorDeploymentService, CollectionConfig } from '@/lib/blockchain/anchor-deployment-service';
+import { simpleDeploymentService } from '@/lib/blockchain/simple-deployment-service';
 import { adminControlService } from '@/lib/admin-control-service';
 import { Connection, Transaction } from '@solana/web3.js';
 
@@ -95,8 +96,8 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
       const random = Math.random().toString(36).substr(2, 4); // 4 chars
       const collectionAddress = `${shortName}_${timestamp}_${random}`;
 
-      // Deploy to REAL blockchain using Anchor
-      const result = await anchorDeploymentService.deployCollection(
+      // Try deploying with Anchor first, then fallback to simple deployment
+      let result = await anchorDeploymentService.deployCollection(
         collectionAddress,
         publicKey.toString(),
         async (transaction) => {
@@ -115,6 +116,30 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
           return signature;
         }
       );
+
+      // If Anchor deployment fails, try simple deployment as fallback
+      if (!result.success) {
+        console.log('⚠️ Anchor deployment failed, trying simple deployment fallback...');
+        setDeploymentStatus('Trying alternative deployment method...');
+        
+        result = await simpleDeploymentService.deployCollection(
+          collectionAddress,
+          publicKey.toString(),
+          async (transaction) => {
+            console.log('🔐 Signing simple deployment transaction');
+            // Set recent blockhash
+            const { blockhash } = await connection.getLatestBlockhash('confirmed');
+            transaction.recentBlockhash = blockhash;
+            transaction.feePayer = publicKey;
+            
+            // Use wallet adapter to sign and send
+            const signature = await sendTransaction(transaction, connection);
+            console.log('✅ Simple deployment transaction signed:', signature);
+            
+            return signature;
+          }
+        );
+      }
 
       if (result.success) {
         setDeploymentStatus('✅ Deployment successful!');
