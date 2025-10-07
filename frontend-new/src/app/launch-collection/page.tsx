@@ -2082,7 +2082,7 @@ const LaunchCollectionPage: React.FC = () => {
             )}
 
             {/* NFT Generation Preview */}
-            {layers.length > 0 && nftGenerationConfig.generationEnabled && (
+            {layers.length > 0 && (
               <div className="bg-white/10 rounded-xl p-6 border border-white/20">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold text-white">🎲 NFT Generation Preview</h3>
@@ -2104,6 +2104,34 @@ const LaunchCollectionPage: React.FC = () => {
                       className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200"
                 >
                       {isGenerating ? '🔄 Generating...' : '🎲 Generate Preview'}
+                </button>
+                
+                {/* Simple Preview Button */}
+                <button
+                      onClick={async () => {
+                        if (layers.length === 0) return;
+                        setIsGenerating(true);
+                        try {
+                          const generated = await layerProcessor.current.generateNFTs(
+                            layers,
+                            5, // Generate 5 previews
+                            (current, total) => {
+                              setGenerationProgress({ current, total, status: 'generating' });
+                            }
+                          );
+                          setGeneratedNFTs(generated);
+                          console.log('✅ Generated preview NFTs:', generated.length);
+                        } catch (error) {
+                          console.error('❌ Preview generation failed:', error);
+                        } finally {
+                          setIsGenerating(false);
+                          setGenerationProgress({ current: 0, total: 0, status: 'idle' });
+                        }
+                      }}
+                      disabled={isGenerating}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 ml-2"
+                >
+                      {isGenerating ? '🔄 Generating...' : '👀 Quick Preview'}
                 </button>
               </div>
             </div>
