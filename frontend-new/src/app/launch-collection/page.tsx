@@ -9,6 +9,7 @@ import { LayerProcessor } from '../../lib/layer-processor';
 import { Layer, Trait } from '../../lib/nft-generator';
 import { AnalosTokenService, AnalosTokenInfo } from '../../lib/analos-token-service';
 import { losPriceService, LOSPriceData } from '../../lib/los-price-service';
+import JSZip from 'jszip';
 
 interface CollectionConfig {
   name: string;
@@ -230,6 +231,12 @@ const LaunchCollectionPage: React.FC = () => {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [generatedNFTs, setGeneratedNFTs] = useState<GeneratedNFT[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Generation workflow state
+  const [generationStep, setGenerationStep] = useState<'upload' | 'generate' | 'preview' | 'edit' | 'storage' | 'payment' | 'download'>('upload');
+  const [selectedNFTs, setSelectedNFTs] = useState<GeneratedNFT[]>([]);
+  const [editingNFT, setEditingNFT] = useState<GeneratedNFT | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0, status: 'idle' as const });
   const layerProcessor = useRef(new LayerProcessor());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -736,6 +743,129 @@ const LaunchCollectionPage: React.FC = () => {
       }));
     }
   }, [collectionConfig.totalSupply]);
+
+  // Generation workflow functions
+  const startGeneration = async () => {
+    if (layers.length === 0) {
+      alert('Please upload at least one layer before generating NFTs');
+      return;
+    }
+
+    setGenerationStep('generate');
+    setIsGenerating(true);
+    setGenerationProgress({ current: 0, total: nftGenerationConfig.previewCount, status: 'generating' });
+
+    try {
+      const generated = await layerProcessor.current.generateNFTs(
+        layers,
+        nftGenerationConfig.previewCount,
+        (current, total) => {
+          setGenerationProgress({ current, total, status: 'generating' });
+        }
+      );
+
+      setGeneratedNFTs(generated);
+      setGenerationStep('preview');
+      console.log('✅ Generated NFTs:', generated.length);
+    } catch (error) {
+      console.error('❌ Generation failed:', error);
+      alert('Generation failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
+      setGenerationProgress({ current: 0, total: 0, status: 'idle' });
+    }
+  };
+
+  const proceedToEdit = () => {
+    setGenerationStep('edit');
+  };
+
+  const proceedToStorage = () => {
+    setGenerationStep('storage');
+  };
+
+  const proceedToPayment = () => {
+    setGenerationStep('payment');
+  };
+
+  const downloadTokenSet = async () => {
+    if (generatedNFTs.length === 0) {
+      alert('No NFTs to download');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      // Create a zip file with all generated NFTs
+      const zip = new JSZip();
+      
+      // Add metadata file
+      const metadata = {
+        collection: collectionConfig,
+        generationConfig: nftGenerationConfig,
+        generatedAt: new Date().toISOString(),
+        totalNFTs: generatedNFTs.length,
+        layers: layers.map(layer => ({
+          name: layer.name,
+          traits: layer.traits.map(trait => ({
+            name: trait.name,
+            rarity: trait.rarity
+          }))
+        })),
+        nfts: generatedNFTs.map(nft => ({
+          id: nft.id,
+          name: nft.name,
+          description: nft.description,
+          image: nft.image,
+          attributes: nft.attributes,
+          rarityScore: nft.rarityScore
+        }))
+      };
+
+      zip.file('metadata.json', JSON.stringify(metadata, null, 2));
+
+      // Add individual NFT files
+      generatedNFTs.forEach((nft, index) => {
+        zip.file(`nft-${index + 1}.json`, JSON.stringify({
+          name: nft.name,
+          description: nft.description,
+          image: nft.image,
+          attributes: nft.attributes
+        }, null, 2));
+      });
+
+      // Generate and download zip
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${collectionConfig.name}-token-set-${Date.now()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      console.log('✅ Token set downloaded successfully');
+    } catch (error) {
+      console.error('❌ Download failed:', error);
+      alert('Download failed. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const editNFT = (nft: GeneratedNFT) => {
+    setEditingNFT(nft);
+  };
+
+  const saveEditedNFT = (editedNFT: GeneratedNFT) => {
+    setGeneratedNFTs(prev => prev.map(nft => nft.id === editedNFT.id ? editedNFT : nft));
+    setEditingNFT(null);
+  };
+
+  const deleteNFT = (nftId: string) => {
+    setGeneratedNFTs(prev => prev.filter(nft => nft.id !== nftId));
+  };
 
   // Session Management Effects
   useEffect(() => {
@@ -1572,6 +1702,237 @@ const LaunchCollectionPage: React.FC = () => {
                 />
                 <label className="text-white text-sm">Enable NFT Generation Service</label>
               </div>
+
+              {/* Generation Workflow Controls */}
+              {nftGenerationConfig.generationEnabled && (
+                <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <h4 className="text-white font-semibold mb-3">🎨 Generation Workflow</h4>
+                  
+                  {/* Step Indicator */}
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="flex items-center space-x-2">
+                      {['upload', 'generate', 'preview', 'edit', 'storage', 'payment', 'download'].map((step, index) => (
+                        <div key={step} className="flex items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                            generationStep === step 
+                              ? 'bg-blue-500 text-white' 
+                              : ['upload', 'generate', 'preview', 'edit', 'storage', 'payment', 'download'].indexOf(generationStep) > index
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gray-600 text-gray-300'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          {index < 6 && (
+                            <div className={`w-8 h-0.5 ${
+                              ['upload', 'generate', 'preview', 'edit', 'storage', 'payment', 'download'].indexOf(generationStep) > index
+                                ? 'bg-green-500'
+                                : 'bg-gray-600'
+                            }`} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Step Labels */}
+                  <div className="flex justify-between text-xs text-gray-400 mb-4">
+                    <span>Upload</span>
+                    <span>Generate</span>
+                    <span>Preview</span>
+                    <span>Edit</span>
+                    <span>Storage</span>
+                    <span>Payment</span>
+                    <span>Download</span>
+                  </div>
+
+                  {/* Generation Controls */}
+                  {generationStep === 'upload' && (
+                    <div className="text-center">
+                      <p className="text-gray-300 mb-3">Upload your trait layers to begin generation</p>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                      >
+                        📁 Upload Trait Layers
+                      </button>
+                    </div>
+                  )}
+
+                  {generationStep === 'generate' && (
+                    <div className="text-center">
+                      <p className="text-gray-300 mb-3">Generating {nftGenerationConfig.previewCount} NFTs...</p>
+                      <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${(generationProgress.current / generationProgress.total) * 100}%` }}
+                        />
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        {generationProgress.current} / {generationProgress.total} NFTs generated
+                      </p>
+                    </div>
+                  )}
+
+                  {generationStep === 'preview' && (
+                    <div className="text-center">
+                      <p className="text-gray-300 mb-3">✅ Generated {generatedNFTs.length} NFTs successfully!</p>
+                      <div className="flex space-x-3 justify-center">
+                        <button
+                          onClick={proceedToEdit}
+                          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                        >
+                          ✏️ Edit NFTs
+                        </button>
+                        <button
+                          onClick={proceedToStorage}
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                        >
+                          💾 Choose Storage
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {generationStep === 'edit' && (
+                    <div className="text-center">
+                      <p className="text-gray-300 mb-3">Edit your generated NFTs</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                        {generatedNFTs.slice(0, 8).map((nft) => (
+                          <div key={nft.id} className="relative">
+                            <img 
+                              src={nft.image} 
+                              alt={nft.name}
+                              className="w-full h-16 object-cover rounded cursor-pointer hover:opacity-80"
+                              onClick={() => editNFT(nft)}
+                            />
+                            <button
+                              onClick={() => deleteNFT(nft.id)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs hover:bg-red-600"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex space-x-3 justify-center mt-3">
+                        <button
+                          onClick={() => setGenerationStep('preview')}
+                          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                        >
+                          ← Back to Preview
+                        </button>
+                        <button
+                          onClick={proceedToStorage}
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                        >
+                          💾 Choose Storage →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {generationStep === 'storage' && (
+                    <div className="text-center">
+                      <p className="text-gray-300 mb-3">Choose how to store your NFTs</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        <div 
+                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            nftGenerationConfig.storageMethod === 'local'
+                              ? 'bg-green-500/20 border-green-500'
+                              : 'bg-white/10 border-white/20 hover:bg-white/20'
+                          }`}
+                          onClick={() => setNftGenerationConfig(prev => ({ ...prev, storageMethod: 'local' }))}
+                        >
+                          <div className="text-2xl mb-1">💻</div>
+                          <h5 className="text-white font-semibold">Local Storage</h5>
+                          <p className="text-xs text-gray-400">Free</p>
+                        </div>
+                        <div 
+                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            nftGenerationConfig.storageMethod === 'pinata'
+                              ? 'bg-blue-500/20 border-blue-500'
+                              : 'bg-white/10 border-white/20 hover:bg-white/20'
+                          }`}
+                          onClick={() => setNftGenerationConfig(prev => ({ ...prev, storageMethod: 'pinata' }))}
+                        >
+                          <div className="text-2xl mb-1">🌐</div>
+                          <h5 className="text-white font-semibold">Pinata IPFS</h5>
+                          <p className="text-xs text-gray-400">+20%</p>
+                        </div>
+                        <div 
+                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            nftGenerationConfig.storageMethod === 'arweave'
+                              ? 'bg-purple-500/20 border-purple-500'
+                              : 'bg-white/10 border-white/20 hover:bg-white/20'
+                          }`}
+                          onClick={() => setNftGenerationConfig(prev => ({ ...prev, storageMethod: 'arweave' }))}
+                        >
+                          <div className="text-2xl mb-1">🔒</div>
+                          <h5 className="text-white font-semibold">Arweave</h5>
+                          <p className="text-xs text-gray-400">+50%</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-3 justify-center">
+                        <button
+                          onClick={() => setGenerationStep('edit')}
+                          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                        >
+                          ← Back to Edit
+                        </button>
+                        <button
+                          onClick={proceedToPayment}
+                          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                        >
+                          💳 Proceed to Payment →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {generationStep === 'payment' && (
+                    <div className="text-center">
+                      <p className="text-gray-300 mb-3">Complete your payment to download</p>
+                      <div className="bg-white/10 rounded p-3 mb-4">
+                        <p className="text-white font-semibold">
+                          Total: {nftGenerationConfig.upfrontCost.toFixed(2)} LOS
+                        </p>
+                        {losPriceData && (
+                          <p className="text-blue-400 text-sm">
+                            ≈ ${losPriceService.formatUSD(losPriceData.price, nftGenerationConfig.upfrontCost)} USD
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex space-x-3 justify-center">
+                        <button
+                          onClick={() => setGenerationStep('storage')}
+                          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                        >
+                          ← Back to Storage
+                        </button>
+                        <button
+                          onClick={downloadTokenSet}
+                          disabled={isDownloading}
+                          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {isDownloading ? '⏳ Downloading...' : '📥 Download Token Set'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {generationStep === 'download' && (
+                    <div className="text-center">
+                      <p className="text-green-400 mb-3">✅ Token set downloaded successfully!</p>
+                      <button
+                        onClick={() => setGenerationStep('upload')}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                      >
+                        🆕 Generate New Set
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Upload Section */}
