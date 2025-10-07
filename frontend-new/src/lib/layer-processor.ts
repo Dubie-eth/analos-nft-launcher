@@ -143,7 +143,9 @@ export class LayerProcessor {
     // Use webkitRelativePath if available for proper path handling
     const filePath = (file as any).webkitRelativePath || file.name;
     const traitName = this.extractTraitName(filePath);
-    const imageUrl = URL.createObjectURL(file);
+    
+    // Convert file to base64 data URL for better reliability
+    const imageUrl = await this.fileToDataURL(file);
 
     return {
       id: `trait_${Date.now()}_${Math.random()}`,
@@ -153,6 +155,18 @@ export class LayerProcessor {
       layer: this.extractLayerName(filePath),
       file: file
     };
+  }
+
+  /**
+   * Convert file to data URL for better reliability
+   */
+  private async fileToDataURL(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   /**
@@ -300,7 +314,14 @@ export class LayerProcessor {
         usedCombinations.add(combinationKey);
 
         // Generate composite image
-        const compositeImage = await this.generateCompositeImage(combination, layers);
+        let compositeImage: string;
+        try {
+          compositeImage = await this.generateCompositeImage(combination, layers);
+        } catch (error) {
+          console.error(`❌ Failed to generate composite for NFT #${i + 1}:`, error);
+          // Create a fallback placeholder image
+          compositeImage = this.createFallbackImage(combination);
+        }
         
         // Calculate rarity score
         const rarityScore = this.calculateRarityScore(combination);
@@ -393,30 +414,91 @@ export class LayerProcessor {
         const img = new Image();
         
         img.onload = () => {
-          // Draw image on canvas
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          try {
+            // Draw image on canvas
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            console.log(`✅ Loaded image for trait: ${trait.name}`);
+          } catch (error) {
+            console.error(`❌ Error drawing image for trait: ${trait.name}`, error);
+          }
+          
           loadedImages++;
 
           // When all images are loaded, convert to data URL
           if (loadedImages === totalImages) {
-            const dataUrl = canvas.toDataURL('image/png');
-            resolve(dataUrl);
+            try {
+              const dataUrl = canvas.toDataURL('image/png');
+              console.log(`✅ Generated composite image successfully`);
+              resolve(dataUrl);
+            } catch (error) {
+              console.error(`❌ Error generating data URL:`, error);
+              reject(error);
+            }
           }
         };
 
-        img.onerror = () => {
-          console.error(`❌ Failed to load image for trait: ${trait.name}`);
+        img.onerror = (error) => {
+          console.error(`❌ Failed to load image for trait: ${trait.name}`, error);
+          console.error(`❌ Image source: ${trait.image.substring(0, 100)}...`);
           loadedImages++;
           
           if (loadedImages === totalImages) {
-            const dataUrl = canvas.toDataURL('image/png');
-            resolve(dataUrl);
+            try {
+              const dataUrl = canvas.toDataURL('image/png');
+              console.log(`⚠️ Generated composite with missing images`);
+              resolve(dataUrl);
+            } catch (error) {
+              console.error(`❌ Error generating fallback data URL:`, error);
+              reject(error);
+            }
           }
         };
 
+        // Set crossOrigin to handle CORS issues
+        img.crossOrigin = 'anonymous';
         img.src = trait.image;
       });
     });
+  }
+
+  /**
+   * Create a fallback placeholder image when compositing fails
+   */
+  private createFallbackImage(combination: { [layerName: string]: Trait }): string {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    }
+
+    canvas.width = 512;
+    canvas.height = 512;
+
+    // Create a gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(1, '#16213e');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Add text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('NFT Preview', 256, 200);
+    
+    ctx.font = '16px Arial';
+    ctx.fillText('Image Loading...', 256, 250);
+    
+    // Add trait info
+    const traits = Object.entries(combination);
+    ctx.font = '14px Arial';
+    traits.forEach(([layerName, trait], index) => {
+      ctx.fillText(`${layerName}: ${trait.name}`, 256, 300 + (index * 20));
+    });
+
+    return canvas.toDataURL('image/png');
   }
 
   /**
