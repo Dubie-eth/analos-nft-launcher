@@ -8,6 +8,7 @@ import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting
 import { LayerProcessor } from '../../lib/layer-processor';
 import { Layer, Trait } from '../../lib/nft-generator';
 import { AnalosTokenService, AnalosTokenInfo } from '../../lib/analos-token-service';
+import { losPriceService, LOSPriceData } from '../../lib/los-price-service';
 
 interface CollectionConfig {
   name: string;
@@ -244,6 +245,10 @@ const LaunchCollectionPage: React.FC = () => {
     '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your actual wallet address
     // Add more admin wallet addresses as needed
   ];
+  
+  // LOS price state
+  const [losPriceData, setLosPriceData] = useState<LOSPriceData | null>(null);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
   const [platformFees, setPlatformFees] = useState<PlatformFees>({
     platformFee: 1.0, // 1% platform fee (fixed, non-adjustable by users)
@@ -671,6 +676,20 @@ const LaunchCollectionPage: React.FC = () => {
     console.log('🆕 New session created:', newSessionId);
   };
 
+  // LOS price fetching function
+  const fetchLOSPrice = async () => {
+    setIsLoadingPrice(true);
+    try {
+      const priceData = await losPriceService.getLOSPrice();
+      setLosPriceData(priceData);
+      console.log('💰 LOS price fetched:', priceData);
+    } catch (error) {
+      console.error('❌ Error fetching LOS price:', error);
+    } finally {
+      setIsLoadingPrice(false);
+    }
+  };
+
   // Session Management Effects
   useEffect(() => {
     if (publicKey) {
@@ -695,6 +714,11 @@ const LaunchCollectionPage: React.FC = () => {
       restoreSession(publicKey.toBase58());
     }
   }, [publicKey]);
+
+  // Fetch LOS price on component mount
+  useEffect(() => {
+    fetchLOSPrice();
+  }, []);
 
   // Auto-save session when data changes
   useEffect(() => {
@@ -1341,6 +1365,33 @@ const LaunchCollectionPage: React.FC = () => {
                 )}
               </div>
               
+              {/* LOS Price Display */}
+              {losPriceData && (
+                <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-sm">
+                        <span className="text-gray-400">LOS Price:</span>
+                        <span className="text-white ml-2 font-mono">${losPriceService.formatPrice(losPriceData.price)}</span>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-gray-400">24h Change:</span>
+                        <span className={`ml-2 ${losPriceService.getPriceChangeColor(losPriceData.priceChange24h)}`}>
+                          {losPriceData.priceChange24h > 0 ? '+' : ''}{losPriceData.priceChange24h.toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={fetchLOSPrice}
+                      disabled={isLoadingPrice}
+                      className="text-blue-400 hover:text-blue-300 text-sm"
+                    >
+                      {isLoadingPrice ? '🔄' : '🔄'} Refresh
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className={`p-4 rounded-lg border cursor-pointer transition-all ${
                   nftGenerationConfig.paymentType === 'percentage'
@@ -1373,6 +1424,11 @@ const LaunchCollectionPage: React.FC = () => {
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">Like Bueno.art - pay as you earn</p>
+                    {losPriceData && (
+                      <p className="text-xs text-blue-400 mt-1">
+                        ≈ ${losPriceService.formatUSD(losPriceData.price, nftGenerationConfig.percentageFee * 10)} USD per 10 mints
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -1407,6 +1463,11 @@ const LaunchCollectionPage: React.FC = () => {
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">One-time payment for all generation</p>
+                    {losPriceData && (
+                      <p className="text-xs text-blue-400 mt-1">
+                        ≈ ${losPriceService.formatUSD(losPriceData.price, nftGenerationConfig.upfrontCost)} USD
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
