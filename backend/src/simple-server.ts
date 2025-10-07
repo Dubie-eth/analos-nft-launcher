@@ -1575,9 +1575,10 @@ app.post('/api/mint-spl-nft', async (req, res) => {
         explorerUrl: `https://explorer.analos.com/tx/${result.signature}`
       });
     } else {
+      console.error('❌ SPL NFT creation failed:', result);
       res.status(500).json({
         success: false,
-        error: result.error
+        error: result.error || 'Unknown error occurred during NFT creation'
       });
     }
   } catch (error: any) {
