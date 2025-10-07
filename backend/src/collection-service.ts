@@ -18,6 +18,45 @@ export interface CollectionMetadata {
   };
 }
 
+export interface PaymentToken {
+  mint: string;
+  symbol: string;
+  decimals: number;
+  pricePerNFT: number;
+  minBalanceForWhitelist?: number;
+  accepted: boolean;
+}
+
+export interface WhitelistPhase {
+  id: string;
+  name: string;
+  enabled: boolean;
+  startDate: string;
+  endDate: string;
+  priceMultiplier: number; // 0 = free, 0.001 = 0.1% of base price, 1 = full price
+  maxMintsPerWallet: number;
+  description: string;
+  requirements: {
+    tokenMint?: string;
+    minBalance?: number;
+    tokenSymbol?: string;
+  };
+}
+
+export interface WhitelistConfig {
+  enabled: boolean;
+  addresses: string[];
+  phases: WhitelistPhase[];
+}
+
+export interface DelayedRevealConfig {
+  enabled: boolean;
+  type: 'manual' | 'automatic' | 'completion';
+  revealTime: string;
+  revealAtCompletion: boolean;
+  placeholderImage: string;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -33,6 +72,26 @@ export interface Collection {
   isActive: boolean;
   createdAt: string;
   metadata: CollectionMetadata;
+  
+  // Admin and whitelist features
+  mintingEnabled: boolean;
+  isTestMode: boolean;
+  mintPrice: number;
+  paymentToken: string;
+  paymentTokens?: PaymentToken[];
+  whitelist?: WhitelistConfig;
+  maxMintsPerWallet?: number;
+  delayedReveal?: DelayedRevealConfig;
+  
+  // Bonding curve features
+  bondingCurveEnabled?: boolean;
+  bondingCurveConfig?: {
+    initialPrice: number;
+    priceIncrement: number;
+    maxPrice: number;
+    curveType: 'linear' | 'exponential' | 'logarithmic';
+  };
+  
   // Metaplex-compatible fields for future integration
   metaplexCollection?: {
     collectionMint: string;
@@ -92,7 +151,23 @@ export class CollectionService {
   async createCollection(
     payerKeypair: Keypair,
     creatorAddress: string,
-    metadata: CollectionMetadata
+    metadata: CollectionMetadata,
+    options?: {
+      mintPrice?: number;
+      paymentToken?: string;
+      paymentTokens?: PaymentToken[];
+      whitelist?: WhitelistConfig;
+      maxMintsPerWallet?: number;
+      delayedReveal?: DelayedRevealConfig;
+      bondingCurveEnabled?: boolean;
+      bondingCurveConfig?: {
+        initialPrice: number;
+        priceIncrement: number;
+        maxPrice: number;
+        curveType: 'linear' | 'exponential' | 'logarithmic';
+      };
+      isTestMode?: boolean;
+    }
   ): Promise<CreateCollectionResult> {
     try {
       console.log('🏗️ Creating collection NFT...');
@@ -195,7 +270,7 @@ export class CollectionService {
       console.log('Signature:', signature);
       console.log('🔗 Explorer URL:', `https://explorer.analos.com/tx/${signature}`);
 
-      // Create collection object
+      // Create collection object with all admin features
       const collection: Collection = {
         id: collectionMintKeypair.publicKey.toBase58(),
         name: metadata.name,
@@ -211,6 +286,21 @@ export class CollectionService {
         isActive: true,
         createdAt: new Date().toISOString(),
         metadata,
+        
+        // Admin and whitelist features
+        mintingEnabled: true,
+        isTestMode: options?.isTestMode || false,
+        mintPrice: options?.mintPrice || 0,
+        paymentToken: options?.paymentToken || 'SOL',
+        paymentTokens: options?.paymentTokens || [],
+        whitelist: options?.whitelist,
+        maxMintsPerWallet: options?.maxMintsPerWallet,
+        delayedReveal: options?.delayedReveal,
+        
+        // Bonding curve features
+        bondingCurveEnabled: options?.bondingCurveEnabled || false,
+        bondingCurveConfig: options?.bondingCurveConfig,
+        
         // Prepare for Metaplex integration
         metaplexCollection: {
           collectionMint: collectionMintKeypair.publicKey.toBase58(),
@@ -321,6 +411,198 @@ export class CollectionService {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Update collection whitelist configuration
+   */
+  updateWhitelistConfig(collectionId: string, whitelistConfig: WhitelistConfig): boolean {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (collection) {
+      collection.whitelist = whitelistConfig;
+      this.saveCollections();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Update collection payment configuration
+   */
+  updatePaymentConfig(collectionId: string, paymentTokens: PaymentToken[], defaultToken: string): boolean {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (collection) {
+      collection.paymentTokens = paymentTokens;
+      collection.paymentToken = defaultToken;
+      this.saveCollections();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Update collection minting settings
+   */
+  updateMintingSettings(collectionId: string, settings: {
+    mintingEnabled?: boolean;
+    mintPrice?: number;
+    maxMintsPerWallet?: number;
+    isTestMode?: boolean;
+  }): boolean {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (collection) {
+      if (settings.mintingEnabled !== undefined) collection.mintingEnabled = settings.mintingEnabled;
+      if (settings.mintPrice !== undefined) collection.mintPrice = settings.mintPrice;
+      if (settings.maxMintsPerWallet !== undefined) collection.maxMintsPerWallet = settings.maxMintsPerWallet;
+      if (settings.isTestMode !== undefined) collection.isTestMode = settings.isTestMode;
+      this.saveCollections();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Update delayed reveal configuration
+   */
+  updateDelayedRevealConfig(collectionId: string, delayedRevealConfig: DelayedRevealConfig): boolean {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (collection) {
+      collection.delayedReveal = delayedRevealConfig;
+      this.saveCollections();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Update bonding curve configuration
+   */
+  updateBondingCurveConfig(collectionId: string, bondingCurveConfig: {
+    enabled: boolean;
+    initialPrice: number;
+    priceIncrement: number;
+    maxPrice: number;
+    curveType: 'linear' | 'exponential' | 'logarithmic';
+  }): boolean {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (collection) {
+      collection.bondingCurveEnabled = bondingCurveConfig.enabled;
+      collection.bondingCurveConfig = {
+        initialPrice: bondingCurveConfig.initialPrice,
+        priceIncrement: bondingCurveConfig.priceIncrement,
+        maxPrice: bondingCurveConfig.maxPrice,
+        curveType: bondingCurveConfig.curveType
+      };
+      this.saveCollections();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check if wallet is whitelisted for collection
+   */
+  isWalletWhitelisted(collectionId: string, walletAddress: string): boolean {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (!collection || !collection.whitelist?.enabled) {
+      return true; // No whitelist = everyone allowed
+    }
+
+    // Check if wallet is in whitelist addresses
+    if (collection.whitelist.addresses.includes(walletAddress)) {
+      return true;
+    }
+
+    // Check if wallet meets token requirements for any active phase
+    const now = new Date();
+    for (const phase of collection.whitelist.phases) {
+      if (phase.enabled) {
+        const startDate = new Date(phase.startDate);
+        const endDate = new Date(phase.endDate);
+        
+        if (now >= startDate && now <= endDate) {
+          // Phase is active - check token requirements
+          if (phase.requirements.tokenMint && phase.requirements.minBalance) {
+            // This would need to be implemented with actual token balance checking
+            // For now, we'll assume token holders are whitelisted
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Get active whitelist phase for collection
+   */
+  getActiveWhitelistPhase(collectionId: string): WhitelistPhase | null {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (!collection || !collection.whitelist?.enabled) {
+      return null;
+    }
+
+    const now = new Date();
+    for (const phase of collection.whitelist.phases) {
+      if (phase.enabled) {
+        const startDate = new Date(phase.startDate);
+        const endDate = new Date(phase.endDate);
+        
+        if (now >= startDate && now <= endDate) {
+          return phase;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Calculate mint price based on whitelist phase and bonding curve
+   */
+  calculateMintPrice(collectionId: string, walletAddress: string): number {
+    const collection = this.collections.find(c => c.id === collectionId);
+    if (!collection) {
+      return 0;
+    }
+
+    let basePrice = collection.mintPrice;
+
+    // Apply whitelist phase multiplier
+    const activePhase = this.getActiveWhitelistPhase(collectionId);
+    if (activePhase && this.isWalletWhitelisted(collectionId, walletAddress)) {
+      basePrice *= activePhase.priceMultiplier;
+    }
+
+    // Apply bonding curve pricing
+    if (collection.bondingCurveEnabled && collection.bondingCurveConfig) {
+      const curveConfig = collection.bondingCurveConfig;
+      const currentSupply = collection.currentSupply;
+      
+      switch (curveConfig.curveType) {
+        case 'linear':
+          basePrice = Math.min(
+            curveConfig.initialPrice + (currentSupply * curveConfig.priceIncrement),
+            curveConfig.maxPrice
+          );
+          break;
+        case 'exponential':
+          basePrice = Math.min(
+            curveConfig.initialPrice * Math.pow(1 + curveConfig.priceIncrement, currentSupply),
+            curveConfig.maxPrice
+          );
+          break;
+        case 'logarithmic':
+          basePrice = Math.min(
+            curveConfig.initialPrice + (curveConfig.priceIncrement * Math.log(currentSupply + 1)),
+            curveConfig.maxPrice
+          );
+          break;
+      }
+    }
+
+    return basePrice;
   }
 }
 

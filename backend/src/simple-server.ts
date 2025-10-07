@@ -1591,10 +1591,33 @@ app.post('/api/mint-spl-nft', async (req, res) => {
   }
 });
 
+// Admin authentication middleware
+const authenticateAdmin = (req: any, res: any, next: any) => {
+  const adminWallet = req.headers['x-admin-wallet'];
+  const authorizedWallets = [
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your wallet
+    // Add more admin wallets here
+  ];
+  
+  if (!adminWallet || !authorizedWallets.includes(adminWallet)) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Admin wallet required'
+    });
+  }
+  
+  next();
+};
+
 // Collection endpoints
 app.post('/api/create-collection', async (req, res) => {
   try {
-    const { name, symbol, description, image, externalUrl, attributes, creatorAddress, totalSupply } = req.body;
+    const { 
+      name, symbol, description, image, externalUrl, attributes, creatorAddress, totalSupply,
+      // Admin features
+      mintPrice, paymentToken, paymentTokens, whitelist, maxMintsPerWallet, 
+      delayedReveal, bondingCurveEnabled, bondingCurveConfig, isTestMode
+    } = req.body;
 
     if (!name || !symbol || !creatorAddress) {
       return res.status(400).json({
@@ -1635,7 +1658,18 @@ app.post('/api/create-collection', async (req, res) => {
     const result = await collectionService.createCollection(
       payerKeypair,
       creatorAddress,
-      collectionMetadata
+      collectionMetadata,
+      {
+        mintPrice,
+        paymentToken,
+        paymentTokens,
+        whitelist,
+        maxMintsPerWallet,
+        delayedReveal,
+        bondingCurveEnabled,
+        bondingCurveConfig,
+        isTestMode
+      }
     );
 
     if (result.success && result.collection) {
@@ -1803,6 +1837,152 @@ app.post('/api/mint-from-collection', async (req, res) => {
       success: false,
       error: error.message || 'Failed to mint NFT from collection'
     });
+  }
+});
+
+// Admin endpoints for collection management
+app.put('/api/admin/collections/:id/whitelist', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { whitelist } = req.body;
+    
+    const success = collectionService.updateWhitelistConfig(id, whitelist);
+    
+    if (success) {
+      res.json({ success: true, message: 'Whitelist configuration updated' });
+    } else {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+  } catch (error: any) {
+    console.error('Error updating whitelist:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to update whitelist' });
+  }
+});
+
+app.put('/api/admin/collections/:id/payment', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentTokens, defaultToken } = req.body;
+    
+    const success = collectionService.updatePaymentConfig(id, paymentTokens, defaultToken);
+    
+    if (success) {
+      res.json({ success: true, message: 'Payment configuration updated' });
+    } else {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+  } catch (error: any) {
+    console.error('Error updating payment config:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to update payment config' });
+  }
+});
+
+app.put('/api/admin/collections/:id/minting', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { mintingEnabled, mintPrice, maxMintsPerWallet, isTestMode } = req.body;
+    
+    const success = collectionService.updateMintingSettings(id, {
+      mintingEnabled,
+      mintPrice,
+      maxMintsPerWallet,
+      isTestMode
+    });
+    
+    if (success) {
+      res.json({ success: true, message: 'Minting settings updated' });
+    } else {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+  } catch (error: any) {
+    console.error('Error updating minting settings:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to update minting settings' });
+  }
+});
+
+app.put('/api/admin/collections/:id/delayed-reveal', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { delayedReveal } = req.body;
+    
+    const success = collectionService.updateDelayedRevealConfig(id, delayedReveal);
+    
+    if (success) {
+      res.json({ success: true, message: 'Delayed reveal configuration updated' });
+    } else {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+  } catch (error: any) {
+    console.error('Error updating delayed reveal:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to update delayed reveal' });
+  }
+});
+
+app.put('/api/admin/collections/:id/bonding-curve', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { bondingCurveConfig } = req.body;
+    
+    const success = collectionService.updateBondingCurveConfig(id, bondingCurveConfig);
+    
+    if (success) {
+      res.json({ success: true, message: 'Bonding curve configuration updated' });
+    } else {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+  } catch (error: any) {
+    console.error('Error updating bonding curve:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to update bonding curve' });
+  }
+});
+
+// Get collection admin data
+app.get('/api/admin/collections/:id', authenticateAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    const collection = collectionService.getCollectionById(id);
+    
+    if (collection) {
+      const stats = collectionService.getCollectionStats(id);
+      const activePhase = collectionService.getActiveWhitelistPhase(id);
+      
+      res.json({
+        success: true,
+        collection: {
+          ...collection,
+          stats,
+          activeWhitelistPhase: activePhase
+        }
+      });
+    } else {
+      res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+  } catch (error: any) {
+    console.error('Error getting collection admin data:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to get collection data' });
+  }
+});
+
+// Check wallet whitelist status
+app.get('/api/admin/collections/:id/whitelist-check/:wallet', authenticateAdmin, (req, res) => {
+  try {
+    const { id, wallet } = req.params;
+    
+    const isWhitelisted = collectionService.isWalletWhitelisted(id, wallet);
+    const activePhase = collectionService.getActiveWhitelistPhase(id);
+    const mintPrice = collectionService.calculateMintPrice(id, wallet);
+    
+    res.json({
+      success: true,
+      wallet,
+      isWhitelisted,
+      activePhase,
+      mintPrice,
+      canMint: collectionService.canMint(id, 1)
+    });
+  } catch (error: any) {
+    console.error('Error checking whitelist status:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to check whitelist status' });
   }
 });
 
