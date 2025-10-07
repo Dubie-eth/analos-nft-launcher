@@ -387,10 +387,10 @@ const LaunchCollectionPage: React.FC = () => {
       setShowCustomCurveBuilder(true);
       setShowBondingCurveSelector(false);
     } else {
-      setBondingCurveConfig(curve);
-      setShowBondingCurveSelector(false);
-      // Move to step 2 after selecting bonding curve
-      setCurrentStep(2);
+    setBondingCurveConfig(curve);
+    setShowBondingCurveSelector(false);
+    // Move to step 2 after selecting bonding curve
+    setCurrentStep(2);
     }
   };
 
@@ -1154,53 +1154,53 @@ const LaunchCollectionPage: React.FC = () => {
           maxSupply: result.collection.totalSupply,
           mintPrice: result.collection.mintPrice,
           pricingToken: result.collection.paymentToken,
-          customTokenSymbol: collectionConfig.customTokenSymbol,
-          royalty: collectionConfig.royalty,
+        customTokenSymbol: collectionConfig.customTokenSymbol,
+        royalty: collectionConfig.royalty,
           creatorAddress: result.collection.creatorAddress,
-          mintType: collectionConfig.mintType,
-          revealType: collectionConfig.revealType,
-          delayedRevealSettings: collectionConfig.delayedRevealSettings,
-          platformFees: platformFees,
-          traitCategories: traitCategories,
-          hostingConfig: hostingConfig,
-          whitelistPhases: whitelistPhases,
+        mintType: collectionConfig.mintType,
+        revealType: collectionConfig.revealType,
+        delayedRevealSettings: collectionConfig.delayedRevealSettings,
+        platformFees: platformFees,
+        traitCategories: traitCategories,
+        hostingConfig: hostingConfig,
+        whitelistPhases: whitelistPhases,
           mintAddress: result.collection.collectionMint,
           collectionAddress: result.collection.id,
-          mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
+        mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
           shareUrl: `https://analos-nft-launcher-9cxc.vercel.app/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
-          referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
+        referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
           deployedAt: new Date().toISOString(),
           signature: result.signature,
           explorerUrl: result.explorerUrl
-        };
+      };
 
-        setDeployedCollection(deployedCollectionData);
-        setDeploymentStatus('✅ Collection deployed successfully!');
+      setDeployedCollection(deployedCollectionData);
+      setDeploymentStatus('✅ Collection deployed successfully!');
 
-        // Save to localStorage for the collections page
-        const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
-        const newCollection = {
-          ...deployedCollectionData,
+      // Save to localStorage for the collections page
+      const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+      const newCollection = {
+        ...deployedCollectionData,
           id: result.collection.id,
-          pricingToken: collectionConfig.pricingToken,
-          customTokenSymbol: collectionConfig.customTokenSymbol,
-          mintType: collectionConfig.mintType,
-          revealType: collectionConfig.revealType,
-          stats: {
-            totalMinted: 0,
-            totalHolders: 0,
-            floorPrice: collectionConfig.mintPrice,
-            volumeTraded: 0
-          },
-          socials: {
-            twitter: collectionConfig.externalUrl?.includes('twitter') ? collectionConfig.externalUrl : undefined,
-            website: collectionConfig.externalUrl
-          }
-        };
-        savedCollections.push(newCollection);
-        localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
+        pricingToken: collectionConfig.pricingToken,
+        customTokenSymbol: collectionConfig.customTokenSymbol,
+        mintType: collectionConfig.mintType,
+        revealType: collectionConfig.revealType,
+        stats: {
+          totalMinted: 0,
+          totalHolders: 0,
+          floorPrice: collectionConfig.mintPrice,
+          volumeTraded: 0
+        },
+        socials: {
+          twitter: collectionConfig.externalUrl?.includes('twitter') ? collectionConfig.externalUrl : undefined,
+          website: collectionConfig.externalUrl
+        }
+      };
+      savedCollections.push(newCollection);
+      localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
 
-        nextStep();
+      nextStep();
       } else {
         setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
       }
@@ -1948,13 +1948,13 @@ const LaunchCollectionPage: React.FC = () => {
                 {/* Individual Files Upload */}
                 <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
                   <h4 className="text-white font-semibold mb-2">📄 Individual Files</h4>
-                  <input
+                <input
                     ref={fileInputRef}
-                    type="file"
-                    multiple
+                  type="file"
+                  multiple
                     accept="image/*,.zip"
                     onChange={handleTraitFileUpload}
-                    className="hidden"
+                  className="hidden"
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -2022,7 +2022,7 @@ const LaunchCollectionPage: React.FC = () => {
                     <div key={layer.id} className="bg-white/5 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
-                          <input
+                <input
                             type="checkbox"
                             checked={layer.visible}
                             onChange={() => toggleLayerVisibility(layer.id)}
@@ -2098,15 +2098,15 @@ const LaunchCollectionPage: React.FC = () => {
                         max="50"
                       />
                     </div>
-                    <button
-                      onClick={generateNFTPreview}
+                <button
+                      onClick={startGeneration}
                       disabled={isGenerating}
                       className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200"
-                    >
+                >
                       {isGenerating ? '🔄 Generating...' : '🎲 Generate Preview'}
-                    </button>
-                  </div>
-                </div>
+                </button>
+              </div>
+            </div>
 
                 {/* Generation Progress */}
                 {isGenerating && (
@@ -2753,11 +2753,11 @@ const LaunchCollectionPage: React.FC = () => {
                   {/* Token Requirements */}
                   <div className="mb-6">
                     <div className="flex items-center mb-3">
-                      <input
-                        type="checkbox"
+                          <input
+                            type="checkbox"
                         checked={phase.tokenRequirements?.enabled || false}
-                        onChange={(e) => {
-                          const newPhases = [...whitelistPhases];
+                            onChange={(e) => {
+                              const newPhases = [...whitelistPhases];
                           if (!newPhases[index].tokenRequirements) {
                             newPhases[index].tokenRequirements = {
                               enabled: false,
@@ -2768,10 +2768,10 @@ const LaunchCollectionPage: React.FC = () => {
                             };
                           }
                           newPhases[index].tokenRequirements!.enabled = e.target.checked;
-                          setWhitelistPhases(newPhases);
-                        }}
-                        className="mr-2"
-                      />
+                              setWhitelistPhases(newPhases);
+                            }}
+                            className="mr-2"
+                          />
                       <label className="text-white text-sm font-medium">Token Requirements</label>
                     </div>
                     
@@ -2851,7 +2851,7 @@ const LaunchCollectionPage: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
                                   <span className="text-blue-300 text-sm">Fetching token information...</span>
-                                </div>
+                    </div>
                               </div>
                             )}
                             
