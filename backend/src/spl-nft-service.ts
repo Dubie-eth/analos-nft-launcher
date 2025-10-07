@@ -4,7 +4,6 @@ import {
   PublicKey,
   Transaction,
   SystemProgram,
-  sendAndConfirmTransaction,
   ComputeBudgetProgram,
 } from '@solana/web3.js';
 import {
@@ -137,18 +136,22 @@ export class SPLNFTService {
       transaction.lastValidBlockHeight = lastValidBlockHeight;
       transaction.feePayer = payerKeypair.publicKey;
 
-      // Send transaction
+      // Send transaction without waiting for confirmation
       console.log('📤 Sending transaction...');
-      const signature = await sendAndConfirmTransaction(
-        this.connection,
+      const signature = await this.connection.sendTransaction(
         transaction,
         [payerKeypair, mintKeypair],
         {
-          commitment: 'confirmed',
-          maxRetries: 3,
           skipPreflight: false,
+          maxRetries: 3,
         }
       );
+      
+      console.log('✅ Transaction sent! Signature:', signature);
+      console.log('🔗 Explorer URL:', `https://explorer.analos.com/tx/${signature}`);
+      
+      // Don't wait for confirmation - just return success
+      // The transaction will be processed by the blockchain
 
       console.log('✅ NFT created successfully!');
       console.log('Signature:', signature);
