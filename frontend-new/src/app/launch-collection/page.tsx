@@ -2301,7 +2301,7 @@ const LaunchCollectionPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-white/5 rounded p-3">
                       <div className="text-gray-300 text-sm mb-1">Total Collection Size</div>
-                      <div className="text-white text-xl font-bold">{collectionConfig.supply.toLocaleString()}</div>
+                      <div className="text-white text-xl font-bold">{collectionConfig.supply?.toLocaleString() || '1,000'}</div>
                     </div>
                     <div className="bg-white/5 rounded p-3">
                       <div className="text-gray-300 text-sm mb-1">Total Layers</div>
@@ -2626,7 +2626,7 @@ const LaunchCollectionPage: React.FC = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-300">Max Combinations:</span>
                         <span className="text-white">
-                          {traitCategories.reduce((acc, cat) => acc * Math.max(cat.files.length, 1), 1).toLocaleString()}
+                          {traitCategories.reduce((acc, cat) => acc * Math.max(cat.files?.length || 1, 1), 1).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -3211,7 +3211,7 @@ const LaunchCollectionPage: React.FC = () => {
                                   </div>
                                   <div>
                                     <span className="text-gray-400">Supply:</span>
-                                    <span className="text-white ml-1">{tokenInfo.supply.toLocaleString()}</span>
+                                    <span className="text-white ml-1">{tokenInfo.supply?.toLocaleString() || '0'}</span>
                                   </div>
                                 </div>
                                 {tokenInfo.description && (
@@ -3590,7 +3590,7 @@ const LaunchCollectionPage: React.FC = () => {
                         </div>
                         <div className="flex justify-between">
                           <span>Deployed At:</span>
-                          <span>{new Date(deployedCollection.deployedAt).toLocaleString()}</span>
+                          <span>{deployedCollection.deployedAt ? new Date(deployedCollection.deployedAt).toLocaleString() : 'Unknown'}</span>
                         </div>
                         {deployedCollection.signature && (
                           <div className="flex justify-between">
