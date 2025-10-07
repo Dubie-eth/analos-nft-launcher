@@ -148,9 +148,14 @@ export class SPLNFTService {
       };
     } catch (error: any) {
       console.error('❌ Error creating NFT:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        logs: error.logs
+      });
       return {
         success: false,
-        error: error.message || 'Failed to create NFT',
+        error: error.message || error.toString() || 'Failed to create NFT',
       };
     }
   }
