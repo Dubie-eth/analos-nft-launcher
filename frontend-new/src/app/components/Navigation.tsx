@@ -40,6 +40,7 @@ export default function Navigation() {
     { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
     { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
     { href: '/explorer', label: 'Explorer', icon: '🔍' },
+    { href: '/profile', label: 'Profile', icon: '👤' },
   ];
 
   // Admin-only navigation items

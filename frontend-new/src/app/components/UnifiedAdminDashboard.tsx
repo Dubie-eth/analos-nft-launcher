@@ -96,6 +96,35 @@ export default function UnifiedAdminDashboard() {
     }
   };
 
+  const deleteCollection = async (collectionId: string, collectionName: string) => {
+    if (!confirm(`Are you sure you want to delete the collection "${collectionName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // Remove from localStorage (in a real app, this would be an API call)
+      const updatedCollections = collections.filter(collection => collection.id !== collectionId);
+      
+      localStorage.setItem('launched_collections', JSON.stringify(updatedCollections));
+      setCollections(updatedCollections);
+      
+      // Update admin stats
+      if (adminStats) {
+        const newStats = {
+          ...adminStats,
+          totalCollections: updatedCollections.length,
+          activeCollections: updatedCollections.filter(c => c.isActive).length
+        };
+        setAdminStats(newStats);
+      }
+      
+      alert(`Collection "${collectionName}" has been deleted successfully.`);
+    } catch (error) {
+      console.error('Error deleting collection:', error);
+      alert('Failed to delete collection. Please try again.');
+    }
+  };
+
   if (!connected) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -267,18 +296,26 @@ export default function UnifiedAdminDashboard() {
                       <div>Reveal: {collection.revealType || 'Instant'}</div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedCollection(collection)}
+                          className="flex-1 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs rounded transition-all"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={() => window.open(`/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`, '_blank')}
+                          className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 text-xs rounded transition-all"
+                        >
+                          View Mint Page
+                        </button>
+                      </div>
                       <button
-                        onClick={() => setSelectedCollection(collection)}
-                        className="flex-1 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs rounded transition-all"
+                        onClick={() => deleteCollection(collection.id, collection.name)}
+                        className="w-full px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs rounded transition-all"
                       >
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => window.open(`/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`, '_blank')}
-                        className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 text-xs rounded transition-all"
-                      >
-                        View Mint Page
+                        Delete Collection
                       </button>
                     </div>
                   </div>
