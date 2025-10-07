@@ -165,8 +165,9 @@ export class BlockchainDataService {
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'los-bros' || collectionName === 'Launch On LOS') {
+      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'los-bros' || collectionName === 'Launch On LOS' || collectionName === 'losbros') {
         actualCollectionName = 'The LosBros';
+        console.log('🔄 Mapped collection name from', collectionName, 'to', actualCollectionName);
       }
       
       // Get collection config from admin control service instead of undefined COLLECTION_ADDRESSES

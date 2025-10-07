@@ -246,12 +246,16 @@ export class AdminControlService {
    * Get collection by name
    */
   async getCollection(collectionName: string): Promise<CollectionConfig | null> {
+    console.log('🔍 Looking for collection:', collectionName);
+    console.log('📋 Available collections:', Array.from(this.collections.keys()));
+    
     const collection = this.collections.get(collectionName);
     if (!collection) {
       console.warn(`⚠️ Collection not found: ${collectionName}`);
       return null;
     }
 
+    console.log('✅ Found collection:', collectionName);
     return collection;
   }
 
