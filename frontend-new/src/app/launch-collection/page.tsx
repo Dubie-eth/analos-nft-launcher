@@ -1201,6 +1201,7 @@ const LaunchCollectionPage: React.FC = () => {
 
     setIsDeploying(true);
     setDeploymentStatus('🚀 Deploying collection to Analos blockchain...');
+    console.log('🚀 Starting deployment process...');
 
     try {
       // Create collection with admin features using the backend
@@ -1271,16 +1272,30 @@ const LaunchCollectionPage: React.FC = () => {
 
       console.log('Creating collection with data:', collectionData);
 
-      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/create-collection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-wallet': collectionConfig.creatorAddress || publicKey.toBase58()
-        },
-        body: JSON.stringify(collectionData)
-      });
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const result = await response.json();
+      try {
+        const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/create-collection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-wallet': collectionConfig.creatorAddress || publicKey.toBase58()
+          },
+          body: JSON.stringify(collectionData),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Deployment response received:', result);
+        setDeploymentStatus('✅ Collection deployed successfully! Processing...');
 
       if (result.success && result.collection) {
         const deployedCollectionData = {
@@ -1387,6 +1402,18 @@ const LaunchCollectionPage: React.FC = () => {
       nextStep();
       } else {
         setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
+      }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        console.error('❌ Deployment fetch error:', fetchError);
+        
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          setDeploymentStatus('❌ Deployment timed out after 30 seconds. Please try again.');
+        } else if (fetchError instanceof Error && fetchError.message.includes('Failed to fetch')) {
+          setDeploymentStatus('❌ Cannot connect to deployment server. Please check your internet connection and try again.');
+        } else {
+          setDeploymentStatus(`❌ Deployment failed: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
+        }
       }
     } catch (error: any) {
       console.error('Deployment error:', error);
