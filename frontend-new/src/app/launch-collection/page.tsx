@@ -3758,7 +3758,7 @@ const LaunchCollectionPage: React.FC = () => {
                   onClick={nextStep}
                   disabled={
                     (currentStep === 1 && (!collectionConfig.name || !collectionConfig.symbol)) ||
-                    (currentStep === 2 && traitFiles.length === 0)
+                    (currentStep === 2 && traitCategories.length === 0)
                   }
                   className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
                 >
