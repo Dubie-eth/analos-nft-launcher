@@ -444,7 +444,8 @@ const LaunchCollectionPage: React.FC = () => {
     try {
       console.log('🔄 Processing trait files...', files.length);
       const processedLayers = await layerProcessor.current.processUploadedFiles(files);
-      setLayers(processedLayers);
+      const layersWithBackgroundDetection = autoDetectBackgroundLayers(processedLayers);
+      setLayers(layersWithBackgroundDetection);
       
       // Convert layers to trait categories for compatibility
       const categories: TraitCategory[] = processedLayers.map((layer, index) => ({
@@ -554,6 +555,20 @@ const LaunchCollectionPage: React.FC = () => {
     setLayers(prev => prev.map(layer => 
       layer.id === layerId ? { ...layer, visible: !layer.visible } : layer
     ));
+  };
+
+  // Auto-detect and set background layers
+  const autoDetectBackgroundLayers = (layers: Layer[]) => {
+    return layers.map(layer => {
+      const isBackground = layer.name.toLowerCase().includes('background') || 
+                          layer.name.toLowerCase().includes('bg') ||
+                          layer.name.toLowerCase().includes('base');
+      return {
+        ...layer,
+        order: isBackground ? 0 : layer.order,
+        isBackground
+      };
+    });
   };
 
   // Token info fetching function
@@ -1553,12 +1568,12 @@ const LaunchCollectionPage: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       <div className="text-sm">
                         <span className="text-gray-400">LOS Price:</span>
-                        <span className="text-white ml-2 font-mono">${losPriceService.formatPrice(losPriceData.price)}</span>
+                        <span className="text-white ml-2 font-mono">${losPriceService.formatPrice(losPriceData.price || 0)}</span>
                       </div>
                       <div className="text-sm">
                         <span className="text-gray-400">24h Change:</span>
-                        <span className={`ml-2 ${losPriceService.getPriceChangeColor(losPriceData.priceChange24h)}`}>
-                          {losPriceData.priceChange24h > 0 ? '+' : ''}{losPriceData.priceChange24h.toFixed(2)}%
+                        <span className={`ml-2 ${losPriceService.getPriceChangeColor(losPriceData.priceChange24h || 0)}`}>
+                          {(losPriceData.priceChange24h || 0) > 0 ? '+' : ''}{(losPriceData.priceChange24h || 0).toFixed(2)}%
                         </span>
                       </div>
                     </div>
@@ -1902,7 +1917,7 @@ const LaunchCollectionPage: React.FC = () => {
                         </p>
                         {losPriceData && (
                           <p className="text-blue-400 text-sm">
-                            ≈ ${losPriceService.formatUSD(losPriceData.price, nftGenerationConfig.upfrontCost || 0)} USD
+                            ≈ ${losPriceService.formatUSD(losPriceData.price || 0, nftGenerationConfig.upfrontCost || 0)} USD
                           </p>
                         )}
                       </div>
@@ -2013,70 +2028,169 @@ const LaunchCollectionPage: React.FC = () => {
               )}
             </div>
 
-            {/* Layer Management */}
+            {/* Enhanced Layer Management - Moved to better location */}
             {layers.length > 0 && (
               <div className="bg-white/10 rounded-xl p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-4">🎨 Layer Management</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">🎨 Trait Layers Management</h3>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-400 text-sm">Background always at bottom</span>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  </div>
+                </div>
+                
+                {/* Layer Reordering Instructions */}
+                <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-3">
+                    <div className="text-blue-400 text-xl">💡</div>
+                    <div>
+                      <h4 className="text-blue-300 font-semibold mb-2">Layer Ordering Guide</h4>
+                      <ul className="text-blue-200 text-sm space-y-1">
+                        <li>• <strong>Background</strong> layers are automatically placed at the bottom</li>
+                        <li>• Use the <strong>Order</strong> numbers to arrange layers from bottom to top</li>
+                        <li>• Lower numbers = bottom layers, higher numbers = top layers</li>
+                        <li>• All layers are visible by default - uncheck to hide specific layers</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
-                  {layers.map((layer, index) => (
-                    <div key={layer.id} className="bg-white/5 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                <input
-                            type="checkbox"
-                            checked={layer.visible}
-                            onChange={() => toggleLayerVisibility(layer.id)}
-                            className="mr-2"
-                          />
-                          <h4 className="text-white font-medium">{layer.name}</h4>
-                          <span className="text-gray-400 text-sm">({layer.traits.length} traits)</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-400 text-sm">Order:</span>
-                          <input
-                            type="number"
-                            value={layer.order}
-                            onChange={(e) => {
-                              const newOrder = parseInt(e.target.value) || 0;
-                              setLayers(prev => prev.map(l => 
-                                l.id === layer.id ? { ...l, order: newOrder } : l
-                              ).sort((a, b) => a.order - b.order));
-                            }}
-                            className="w-16 px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm text-center"
-                          />
-                        </div>
-                      </div>
+                  {layers
+                    .sort((a, b) => {
+                      // Background layers always at bottom, then by order
+                      const aIsBackground = a.name.toLowerCase().includes('background');
+                      const bIsBackground = b.name.toLowerCase().includes('background');
                       
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        {layer.traits.slice(0, 6).map((trait) => (
-                          <div key={trait.id} className="bg-white/5 rounded p-2">
-                            <img
-                              src={trait.image}
-                              alt={trait.name}
-                              className="w-full h-16 object-cover rounded mb-1"
-                            />
-                            <p className="text-white text-xs truncate mb-1">{trait.name}</p>
-                            <div className="flex items-center space-x-1">
-                              <label className="text-gray-300 text-xs">Rarity:</label>
+                      if (aIsBackground && !bIsBackground) return -1;
+                      if (!aIsBackground && bIsBackground) return 1;
+                      if (aIsBackground && bIsBackground) return a.order - b.order;
+                      
+                      return a.order - b.order;
+                    })
+                    .map((layer, index) => {
+                      const isBackground = layer.name.toLowerCase().includes('background');
+                      return (
+                        <div key={layer.id} className={`rounded-lg p-4 ${isBackground ? 'bg-green-500/10 border border-green-500/30' : 'bg-white/5'}`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-3">
                               <input
-                                type="number"
-                                value={trait.rarity}
-                                onChange={(e) => updateLayerTrait(layer.id, trait.id, { rarity: parseInt(e.target.value) || 1 })}
-                                className="w-12 px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
-                                min="1"
-                                max="100"
+                                type="checkbox"
+                                checked={layer.visible}
+                                onChange={() => toggleLayerVisibility(layer.id)}
+                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                               />
+                              <div className="flex items-center space-x-2">
+                                <h4 className="text-white font-medium">{layer.name}</h4>
+                                {isBackground && (
+                                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Background</span>
+                                )}
+                                <span className="text-gray-400 text-sm">({layer.traits.length} traits)</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-gray-400 text-sm">Order:</span>
+                                <input
+                                  type="number"
+                                  value={isBackground ? 0 : layer.order}
+                                  onChange={(e) => {
+                                    const newOrder = isBackground ? 0 : (parseInt(e.target.value) || 1);
+                                    setLayers(prev => prev.map(l => 
+                                      l.id === layer.id ? { ...l, order: newOrder } : l
+                                    ));
+                                  }}
+                                  disabled={isBackground}
+                                  className="w-16 px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm text-center disabled:bg-gray-600 disabled:text-gray-400"
+                                  min="0"
+                                  max="100"
+                                />
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <button
+                                  onClick={() => {
+                                    setLayers(prev => prev.map(l => 
+                                      l.id === layer.id ? { ...l, order: Math.max(0, l.order - 1) } : l
+                                    ));
+                                  }}
+                                  disabled={isBackground}
+                                  className="p-1 bg-white/10 hover:bg-white/20 disabled:bg-gray-600 disabled:cursor-not-allowed rounded text-white"
+                                >
+                                  ⬆️
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setLayers(prev => prev.map(l => 
+                                      l.id === layer.id ? { ...l, order: l.order + 1 } : l
+                                    ));
+                                  }}
+                                  className="p-1 bg-white/10 hover:bg-white/20 rounded text-white"
+                                >
+                                  ⬇️
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        ))}
-                        {layer.traits.length > 6 && (
-                          <div className="bg-white/5 rounded p-2 flex items-center justify-center">
-                            <span className="text-gray-400 text-xs">+{layer.traits.length - 6} more</span>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {layer.traits.slice(0, 8).map((trait) => (
+                              <div key={trait.id} className="bg-white/5 rounded p-2 hover:bg-white/10 transition-colors">
+                                <img
+                                  src={trait.image}
+                                  alt={trait.name}
+                                  className="w-full h-16 object-cover rounded mb-1"
+                                />
+                                <p className="text-white text-xs truncate mb-1">{trait.name}</p>
+                                <div className="flex items-center space-x-1">
+                                  <label className="text-gray-300 text-xs">Rarity:</label>
+                                  <input
+                                    type="number"
+                                    value={trait.rarity}
+                                    onChange={(e) => updateLayerTrait(layer.id, trait.id, { rarity: parseInt(e.target.value) || 1 })}
+                                    className="w-12 px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
+                                    min="1"
+                                    max="100"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                            {layer.traits.length > 8 && (
+                              <div className="bg-white/5 rounded p-2 flex items-center justify-center">
+                                <span className="text-gray-400 text-xs">+{layer.traits.length - 8} more</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Metadata Structure Example */}
+                <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
+                  <h4 className="text-white font-semibold mb-3">📋 Example Metadata Structure</h4>
+                  <div className="bg-black/50 rounded p-3 overflow-x-auto">
+                    <pre className="text-green-400 text-xs">
+{`{
+  "name": "Los Bros #1",
+  "description": "A unique Los Bros NFT",
+  "image": "ipfs://QmHash...",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "Analos"
+    },
+    {
+      "trait_type": "Body",
+      "value": "Analos"
+    },
+    {
+      "trait_type": "Clothes",
+      "value": "Green Vest"
+    }
+  ]
+}`}
+                    </pre>
+                  </div>
                 </div>
               </div>
             )}
@@ -2132,6 +2246,34 @@ const LaunchCollectionPage: React.FC = () => {
                       className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 ml-2"
                 >
                       {isGenerating ? '🔄 Generating...' : '👀 Quick Preview'}
+                </button>
+                
+                {/* Single Example Button */}
+                <button
+                      onClick={async () => {
+                        if (layers.length === 0) return;
+                        setIsGenerating(true);
+                        try {
+                          const generated = await layerProcessor.current.generateNFTs(
+                            layers,
+                            1, // Generate 1 example
+                            (current, total) => {
+                              setGenerationProgress({ current, total, status: 'generating' });
+                            }
+                          );
+                          setGeneratedNFTs(generated);
+                          console.log('✅ Generated example NFT:', generated.length);
+                        } catch (error) {
+                          console.error('❌ Example generation failed:', error);
+                        } finally {
+                          setIsGenerating(false);
+                          setGenerationProgress({ current: 0, total: 0, status: 'idle' });
+                        }
+                      }}
+                      disabled={isGenerating}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 ml-2"
+                >
+                      {isGenerating ? '🔄 Generating...' : '🎯 Single Example'}
                 </button>
               </div>
             </div>

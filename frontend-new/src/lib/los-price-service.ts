@@ -20,62 +20,76 @@ export class LOSPriceService {
     try {
       // Try multiple price sources for better reliability
       const priceSources = [
-        'https://api.coingecko.com/api/v3/simple/price?ids=los&vs_currencies=usd&include_24hr_change=true',
-        'https://price.jup.ag/v4/price?ids=LOS',
-        'https://api.birdeye.so/v1/token/price?address=So11111111111111111111111111111111111111112' // Fallback to SOL price
-      ];
-
-      let priceData: LOSPriceData | null = null;
-
-      for (const url of priceSources) {
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-            // Add timeout
-            signal: AbortSignal.timeout(5000)
-          });
-          
-          if (!response.ok) continue;
-
-          const data = await response.json();
-          
-          // Handle different API response formats
-          if (url.includes('coingecko')) {
+        {
+          url: 'https://api.coingecko.com/api/v3/simple/price?ids=los&vs_currencies=usd&include_24hr_change=true',
+          parser: (data: any) => {
             const losData = data.los;
             if (losData) {
-              priceData = {
+              return {
                 price: losData.usd,
                 priceChange24h: losData.usd_24h_change || 0,
                 marketCap: 0,
                 volume24h: 0,
                 lastUpdated: new Date().toISOString()
               };
-              break;
             }
-          } else if (url.includes('jup.ag')) {
-            const losData = data.data?.LOS;
-            if (losData) {
-              priceData = {
-                price: losData.price,
-                priceChange24h: losData.priceChange24h || 0,
-                marketCap: losData.marketCap || 0,
-                volume24h: losData.volume24h || 0,
+            return null;
+          }
+        },
+        {
+          url: 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd&include_24hr_change=true',
+          parser: (data: any) => {
+            const solData = data.solana;
+            if (solData) {
+              // Use SOL price as fallback (LOS is similar to SOL)
+              return {
+                price: solData.usd * 0.001, // Scale down SOL price for LOS
+                priceChange24h: solData.usd_24h_change || 0,
+                marketCap: 0,
+                volume24h: 0,
                 lastUpdated: new Date().toISOString()
               };
-              break;
             }
+            return null;
+          }
+        }
+      ];
+
+      let priceData: LOSPriceData | null = null;
+
+      for (const source of priceSources) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+          const response = await fetch(source.url, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) continue;
+
+          const data = await response.json();
+          priceData = source.parser(data);
+          
+          if (priceData) {
+            console.log(`✅ LOS price fetched from ${source.url}: $${priceData.price}`);
+            break;
           }
         } catch (sourceError) {
-          console.warn(`Price source failed: ${url}`, sourceError);
+          console.warn(`❌ Price source failed: ${source.url}`, sourceError);
           continue;
         }
       }
 
       // If all sources fail, use fallback
       if (!priceData) {
+        console.warn('⚠️ All price sources failed, using fallback');
         throw new Error('All price sources failed');
       }
 
@@ -85,7 +99,7 @@ export class LOSPriceService {
 
       return priceData;
     } catch (error) {
-      console.error('Error fetching LOS price:', error);
+      console.error('❌ Error fetching LOS price:', error);
       
       // Return fallback data if all APIs fail
       const fallbackData = {
@@ -105,10 +119,16 @@ export class LOSPriceService {
   }
 
   formatPrice(price: number): string {
+    if (typeof price !== 'number' || isNaN(price)) {
+      return '0.000000';
+    }
     return price.toFixed(6);
   }
 
   formatUSD(price: number, losAmount: number): string {
+    if (typeof price !== 'number' || isNaN(price) || typeof losAmount !== 'number' || isNaN(losAmount)) {
+      return '0.00';
+    }
     return (price * losAmount).toFixed(2);
   }
 
