@@ -181,6 +181,29 @@ interface LaunchStep {
   completed: boolean;
 }
 
+// Utility function to clean up localStorage when quota exceeded
+const cleanupLocalStorage = () => {
+  try {
+    // Clear old session data
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('collection_session_') || key.startsWith('nft_generation_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Keep only recent collections (last 3)
+    const collections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+    if (collections.length > 3) {
+      localStorage.setItem('launched_collections', JSON.stringify(collections.slice(-3)));
+    }
+    
+    console.log('✅ localStorage cleaned up');
+  } catch (error) {
+    console.error('❌ Error cleaning localStorage:', error);
+  }
+};
+
 const LaunchCollectionPage: React.FC = () => {
   const { publicKey, connected } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
@@ -1286,7 +1309,31 @@ const LaunchCollectionPage: React.FC = () => {
         }
       };
       savedCollections.push(newCollection);
-      localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
+      
+      // Clean up localStorage if quota exceeded
+      try {
+        localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          console.warn('⚠️ localStorage quota exceeded, cleaning up old data...');
+          
+          // Keep only the last 5 collections to free up space
+          const cleanedCollections = savedCollections.slice(-5);
+          localStorage.setItem('launched_collections', JSON.stringify(cleanedCollections));
+          
+          // Also clear old session data
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('collection_session_') || key.startsWith('nft_generation_')) {
+              localStorage.removeItem(key);
+            }
+          });
+          
+          console.log('✅ localStorage cleaned up successfully');
+        } else {
+          throw error;
+        }
+      }
 
       nextStep();
       } else {
@@ -3708,6 +3755,13 @@ const LaunchCollectionPage: React.FC = () => {
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
                     >
                       🆕 New Session
+                    </button>
+                    <button
+                      onClick={cleanupLocalStorage}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                      title="Clean up localStorage to free space"
+                    >
+                      🧹 Cleanup
                     </button>
                     <button
                       onClick={clearSession}
