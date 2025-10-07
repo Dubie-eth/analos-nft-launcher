@@ -1609,8 +1609,38 @@ const authenticateAdmin = (req: any, res: any, next: any) => {
   next();
 };
 
+// Payment settings validation middleware
+const validatePaymentSettings = (req: any, res: any, next: any) => {
+  const adminWallet = req.headers['x-admin-wallet'];
+  const { nftGenerationConfig } = req.body;
+  
+  // If payment settings are being modified, require admin wallet
+  if (nftGenerationConfig && nftGenerationConfig.isAdminControlled) {
+    if (!adminWallet) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Admin wallet required to modify payment settings' 
+      });
+    }
+    
+    // Validate admin wallet
+    const authorizedWallets = [
+      '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your wallet
+    ];
+    
+    if (!authorizedWallets.includes(adminWallet)) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Only admin wallets can modify payment settings' 
+      });
+    }
+  }
+  
+  next();
+};
+
 // Collection endpoints
-app.post('/api/create-collection', async (req, res) => {
+app.post('/api/create-collection', validatePaymentSettings, async (req, res) => {
   try {
     const { 
       name, symbol, description, image, externalUrl, attributes, creatorAddress, totalSupply,
