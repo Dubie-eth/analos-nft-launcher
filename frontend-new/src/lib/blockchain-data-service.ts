@@ -202,26 +202,71 @@ export class BlockchainDataService {
           console.log(`📊 No token tracker data found for ${collectionId}`);
           console.log(`📊 Available collections:`, Object.keys(tokenIdTracker.collections));
           
-          // If still no data, perform a more thorough blockchain scan
-          currentSupply = await this.performThoroughBlockchainScan(actualCollectionName, {
-            mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
-            collectionAddress: 'So11111111111111111111111111111111111111113', // Valid Base58 address
+          // If still no data, try to get actual addresses from localStorage
+          const launchedCollections = localStorage.getItem('launched_collections');
+          let actualAddresses = {
+            mintAddress: 'So11111111111111111111111111111111111111112', // Default placeholder
+            collectionAddress: 'So11111111111111111111111111111111111111113', // Default placeholder
             totalSupply: collectionConfig.totalSupply
-          });
+          };
+
+          if (launchedCollections) {
+            try {
+              const collections = JSON.parse(launchedCollections);
+              const matchingCollection = collections.find((c: any) => 
+                c.name === actualCollectionName || 
+                c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase().replace(/\s+/g, '-')
+              );
+              
+              if (matchingCollection && matchingCollection.signature) {
+                // For now, use the signature as a reference - in a real implementation,
+                // we'd extract the actual mint and collection addresses from the transaction
+                console.log(`📊 Found deployed collection: ${matchingCollection.name} with signature: ${matchingCollection.signature}`);
+                // TODO: Parse the actual mint/collection addresses from the deployment transaction
+              }
+            } catch (error) {
+              console.warn('⚠️ Error parsing launched collections:', error);
+            }
+          }
+
+          currentSupply = await this.performThoroughBlockchainScan(actualCollectionName, actualAddresses);
         }
       }
       
       // Get holder data
       const holders = await this.getNFTHolders(mintedNFTs);
       
+      // Try to get actual addresses from localStorage
+      const launchedCollections = localStorage.getItem('launched_collections');
+      let mintAddress = 'So11111111111111111111111111111111111111112'; // Default placeholder
+      let collectionAddress = 'So11111111111111111111111111111111111111113'; // Default placeholder
+
+      if (launchedCollections) {
+        try {
+          const collections = JSON.parse(launchedCollections);
+          const matchingCollection = collections.find((c: any) => 
+            c.name === actualCollectionName || 
+            c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase().replace(/\s+/g, '-')
+          );
+          
+          if (matchingCollection) {
+            console.log(`📊 Found deployed collection: ${matchingCollection.name}`);
+            // TODO: Extract actual addresses from deployment transaction
+            // For now, we'll use placeholders but log that we found the collection
+          }
+        } catch (error) {
+          console.warn('⚠️ Error parsing launched collections for addresses:', error);
+        }
+      }
+
       const collectionData: BlockchainCollectionData = {
         name: actualCollectionName,
         totalSupply: collectionConfig.totalSupply,
         currentSupply: currentSupply,
         mintPrice: collectionConfig.mintPrice,
         paymentToken: collectionConfig.paymentToken,
-        mintAddress: 'So11111111111111111111111111111111111111112', // Valid Base58 address
-        collectionAddress: 'So11111111111111111111111111111111111111113', // Valid Base58 address
+        mintAddress: mintAddress,
+        collectionAddress: collectionAddress,
         isActive: collectionConfig.isActive,
         holders: holders,
         mintedNFTs: mintedNFTs

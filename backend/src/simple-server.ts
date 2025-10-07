@@ -3518,24 +3518,6 @@ app.post('/api/collections/update', async (req, res) => {
 });
 
 // Collections stats endpoint
-app.get('/api/collections/stats', (req, res) => {
-  try {
-    const stats = {
-      collectionsLaunched: collections.size,
-      totalNFTsMinted: 0, // This would be calculated from actual blockchain data
-      platformUptime: '99.9%',
-      losBurned: 0 // This would be tracked from actual burn transactions
-    };
-    
-    res.json(stats);
-  } catch (error) {
-    console.error('❌ Error fetching collection stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch collection stats'
-    });
-  }
-});
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
