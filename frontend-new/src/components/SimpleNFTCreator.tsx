@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface NFTMetadata {
   name: string;
@@ -23,6 +23,8 @@ export default function SimpleNFTCreator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MintResult | null>(null);
   const [walletAddress, setWalletAddress] = useState('');
+  const [collections, setCollections] = useState<any[]>([]);
+  const [selectedCollectionId, setSelectedCollectionId] = useState('');
   
   const [metadata, setMetadata] = useState<NFTMetadata>({
     name: '',
@@ -34,6 +36,23 @@ export default function SimpleNFTCreator() {
       { trait_type: 'Rarity', value: '' }
     ]
   });
+
+  // Load collections on component mount
+  useEffect(() => {
+    loadCollections();
+  }, []);
+
+  const loadCollections = async () => {
+    try {
+      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/collections');
+      const data = await response.json();
+      if (data.success) {
+        setCollections(data.collections);
+      }
+    } catch (error) {
+      console.error('Error loading collections:', error);
+    }
+  };
 
   const handleMint = async () => {
     if (!walletAddress.trim()) {
@@ -50,15 +69,28 @@ export default function SimpleNFTCreator() {
     setResult(null);
 
     try {
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-spl-nft`, {
+      // Choose endpoint based on whether a collection is selected
+      const endpoint = selectedCollectionId 
+        ? 'https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-from-collection'
+        : 'https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-spl-nft';
+
+      const requestBody = selectedCollectionId 
+        ? {
+            collectionId: selectedCollectionId,
+            ...metadata,
+            ownerAddress: walletAddress,
+          }
+        : {
+            ...metadata,
+            ownerAddress: walletAddress,
+          };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...metadata,
-          ownerAddress: walletAddress,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -110,6 +142,30 @@ export default function SimpleNFTCreator() {
       </h2>
 
       <div className="space-y-6">
+        {/* Collection Selection */}
+        {collections.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Collection (Optional)
+            </label>
+            <select
+              value={selectedCollectionId}
+              onChange={(e) => setSelectedCollectionId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Mint as standalone NFT</option>
+              {collections.map((collection) => (
+                <option key={collection.id} value={collection.id}>
+                  {collection.name} ({collection.symbol}) - {collection.currentSupply}/{collection.totalSupply} minted
+                </option>
+              ))}
+            </select>
+            <p className="text-sm text-gray-500 mt-1">
+              Choose a collection to link this NFT to, or leave blank for a standalone NFT
+            </p>
+          </div>
+        )}
+
         {/* Wallet Address */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
