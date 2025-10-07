@@ -416,6 +416,8 @@ const LaunchCollectionPage: React.FC = () => {
   ];
 
   const nextStep = () => {
+    console.log('🔍 nextStep() called - current step:', currentStep);
+    
     // If on step 1 and bonding curve is selected, show bonding curve selector
     if (currentStep === 1 && collectionConfig.mintType === 'bonding-curve') {
       setShowBondingCurveSelector(true);
@@ -423,9 +425,19 @@ const LaunchCollectionPage: React.FC = () => {
     }
     
     if (currentStep < 8) {
-      setCurrentStep(currentStep + 1);
+      const newStep = currentStep + 1;
+      console.log('🎯 Advancing from step', currentStep, 'to step', newStep);
+      setCurrentStep(newStep);
+      console.log('✅ setCurrentStep called with:', newStep);
+    } else {
+      console.log('⚠️ Already at final step:', currentStep);
     }
   };
+
+  // Track currentStep changes
+  useEffect(() => {
+    console.log('🔄 currentStep changed to:', currentStep);
+  }, [currentStep]);
 
   const prevStep = () => {
     if (currentStep > 1) {
