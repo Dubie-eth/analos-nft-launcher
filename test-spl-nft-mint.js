@@ -25,7 +25,7 @@ async function testMintNFT() {
   console.log('');
 
   try {
-    const response = await fetch('http://localhost:3001/api/mint-spl-nft', {
+    const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-spl-nft', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -116,6 +116,13 @@ export class SPLNFTService {
         )
       );
 
+      // Get recent blockhash with higher commitment
+      console.log('🔗 Getting recent blockhash...');
+      const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash('finalized');
+      transaction.recentBlockhash = blockhash;
+      transaction.lastValidBlockHeight = lastValidBlockHeight;
+      transaction.feePayer = payerKeypair.publicKey;
+
       // Send transaction
       console.log('📤 Sending transaction...');
       const signature = await sendAndConfirmTransaction(
@@ -124,7 +131,8 @@ export class SPLNFTService {
         [payerKeypair, mintKeypair],
         {
           commitment: 'confirmed',
-          maxRetries: 5,
+          maxRetries: 3,
+          skipPreflight: false,
         }
       );
 
