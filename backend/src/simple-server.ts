@@ -3518,6 +3518,156 @@ app.post('/api/collections/update', async (req, res) => {
 });
 
 // Collections stats endpoint
+app.get('/api/collections/stats', (req, res) => {
+  try {
+    const totalCollections = collections.size;
+    const activeCollections = Array.from(collections.values()).filter(c => c.isActive).length;
+    const mintingEnabledCollections = Array.from(collections.values()).filter(c => c.mintingEnabled).length;
+    
+    res.json({
+      success: true,
+      stats: {
+        totalCollections,
+        activeCollections,
+        mintingEnabledCollections,
+        timestamp: Date.now()
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error getting collection stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get collection stats'
+    });
+  }
+});
+
+// Collection data backup endpoints
+app.post('/api/collections/backup', (req, res) => {
+  try {
+    const { collections: backupCollections, timestamp, version } = req.body;
+    
+    if (!backupCollections || !Array.isArray(backupCollections)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid collections data'
+      });
+    }
+
+    // Store backup data in memory (in production, this would be in a database)
+    const backupId = `backup_${Date.now()}`;
+    const backupData = {
+      id: backupId,
+      collections: backupCollections,
+      timestamp: timestamp || Date.now(),
+      version: version || '1.0.0',
+      created_at: new Date().toISOString()
+    };
+
+    // In a real implementation, you'd save this to a database
+    // For now, we'll store it in a simple in-memory backup store
+    if (!global.backupStore) {
+      global.backupStore = new Map();
+    }
+    
+    global.backupStore.set(backupId, backupData);
+    
+    // Keep only the latest 10 backups
+    if (global.backupStore.size > 10) {
+      const oldestBackup = global.backupStore.keys().next().value;
+      global.backupStore.delete(oldestBackup);
+    }
+
+    console.log('✅ Collection backup saved:', backupId, backupCollections.length, 'collections');
+    
+    res.json({
+      success: true,
+      message: 'Collection backup saved successfully',
+      backupId,
+      collectionsCount: backupCollections.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Error saving collection backup:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save collection backup'
+    });
+  }
+});
+
+app.get('/api/collections/backup', (req, res) => {
+  try {
+    // Get the latest backup
+    if (!global.backupStore || global.backupStore.size === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No backup data found'
+      });
+    }
+
+    // Get the most recent backup
+    const latestBackup = Array.from(global.backupStore.values())
+      .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+    if (!latestBackup) {
+      return res.status(404).json({
+        success: false,
+        error: 'No backup data found'
+      });
+    }
+
+    console.log('✅ Collection backup retrieved:', latestBackup.id, latestBackup.collections.length, 'collections');
+    
+    res.json({
+      success: true,
+      collections: latestBackup.collections,
+      timestamp: latestBackup.timestamp,
+      version: latestBackup.version,
+      backupId: latestBackup.id
+    });
+    
+  } catch (error) {
+    console.error('❌ Error retrieving collection backup:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve collection backup'
+    });
+  }
+});
+
+app.get('/api/collections/backup/list', (req, res) => {
+  try {
+    if (!global.backupStore || global.backupStore.size === 0) {
+      return res.json({
+        success: true,
+        backups: []
+      });
+    }
+
+    const backups = Array.from(global.backupStore.values())
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .map(backup => ({
+        id: backup.id,
+        timestamp: backup.timestamp,
+        version: backup.version,
+        collectionsCount: backup.collections.length,
+        created_at: backup.created_at
+      }));
+
+    res.json({
+      success: true,
+      backups
+    });
+    
+  } catch (error) {
+    console.error('❌ Error listing collection backups:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to list collection backups'
+    });
+  }
+});
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);

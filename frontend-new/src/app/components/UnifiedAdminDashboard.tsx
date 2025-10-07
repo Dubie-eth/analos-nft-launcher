@@ -8,6 +8,7 @@ import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
 import ManualRevealInterface from './ManualRevealInterface';
 import MetadataManagementDashboard from './MetadataManagementDashboard';
+import DataBackupPanel from './DataBackupPanel';
 
 interface CollectionStats {
   name: string;
@@ -166,6 +167,7 @@ export default function UnifiedAdminDashboard() {
               { id: 'collections', label: 'Collections', icon: '🎨' },
               { id: 'reveal', label: 'Manual Reveal', icon: '🎭' },
               { id: 'metadata', label: 'Metadata', icon: '📝' },
+              { id: 'backup', label: 'Data Backup', icon: '💾' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map((tab) => (
               <button
@@ -334,6 +336,12 @@ export default function UnifiedAdminDashboard() {
         {activeTab === 'metadata' && (
           <div>
             <MetadataManagementDashboard />
+          </div>
+        )}
+
+        {activeTab === 'backup' && (
+          <div>
+            <DataBackupPanel />
           </div>
         )}
 

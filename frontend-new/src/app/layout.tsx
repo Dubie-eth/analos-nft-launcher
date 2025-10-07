@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WalletContextProvider } from "./components/WalletProvider";
 import ClientNavigation from "./components/ClientNavigation";
+import "../lib/restore-losbros"; // Auto-restore LosBros collection
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

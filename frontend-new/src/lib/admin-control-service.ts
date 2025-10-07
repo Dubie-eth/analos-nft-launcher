@@ -3,6 +3,8 @@
  * Manages minting toggles and collection controls
  */
 
+import { dataPersistenceService, CollectionData } from './data-persistence-service';
+
 export interface PaymentToken {
   mint: string;
   symbol: string;
@@ -86,6 +88,9 @@ export class AdminControlService {
     this.initializeDefaultCollections();
     this.initializeDefaultSettings();
     
+    // Initialize data persistence and restore collections
+    this.initializeDataPersistence();
+    
     // Only log once to reduce console spam
     if (!(window as any).adminControlServiceLogged) {
       console.log('🎛️ Admin Control Service initialized');
@@ -114,6 +119,21 @@ export class AdminControlService {
       const collectionsObject = Object.fromEntries(this.collections);
       localStorage.setItem('admin_collections_config', JSON.stringify(collectionsObject));
       console.log('💾 Collections saved to local storage:', this.collections.size);
+      
+      // Also backup to cloud (async, don't wait)
+      this.backupCollectionsToCloud();
+    }
+  }
+
+  /**
+   * Backup collections to cloud storage
+   */
+  private async backupCollectionsToCloud(): Promise<void> {
+    try {
+      const collectionsArray = Array.from(this.collections.values());
+      await dataPersistenceService.saveCollectionData(collectionsArray);
+    } catch (error) {
+      console.error('❌ Failed to backup collections to cloud:', error);
     }
   }
 
@@ -136,6 +156,37 @@ export class AdminControlService {
     if (typeof window !== 'undefined') {
       localStorage.setItem('admin_settings_config', JSON.stringify(this.adminSettings));
       console.log('💾 Admin settings saved to local storage');
+    }
+  }
+
+  /**
+   * Initialize data persistence and restore collections
+   */
+  private async initializeDataPersistence(): Promise<void> {
+    try {
+      // Try to restore collections from cloud backup
+      const restoredCollections = await dataPersistenceService.loadCollectionData();
+      
+      if (restoredCollections && restoredCollections.length > 0) {
+        console.log('🔄 Restoring collections from backup:', restoredCollections.length);
+        
+        // Clear existing collections and restore from backup
+        this.collections.clear();
+        
+        restoredCollections.forEach(collection => {
+          this.collections.set(collection.name, collection);
+        });
+        
+        // Save restored collections to localStorage
+        this.saveCollectionsToLocalStorage();
+        
+        console.log('✅ Collections restored from backup successfully');
+      } else {
+        console.log('📋 No backup data found, using default collections');
+      }
+    } catch (error) {
+      console.error('❌ Error initializing data persistence:', error);
+      // Continue with default collections if backup fails
     }
   }
 
