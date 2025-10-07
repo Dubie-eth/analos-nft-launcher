@@ -1573,7 +1573,7 @@ app.post('/api/mint-spl-nft', async (req, res) => {
         tokenAccount: result.tokenAccount,
         signature: result.signature,
         metadata: result.metadata,
-        explorerUrl: `https://explorer.analos.com/tx/${result.signature}`
+        explorerUrl: `https://explorer.analos.io/tx/${result.signature}`
       });
     } else {
       console.error('❌ SPL NFT creation failed:', result);
@@ -1852,7 +1852,7 @@ app.post('/api/mint-from-collection', async (req, res) => {
         signature: result.signature,
         metadata: result.metadata,
         collection: collection,
-        explorerUrl: `https://explorer.analos.com/tx/${result.signature}`
+        explorerUrl: `https://explorer.analos.io/tx/${result.signature}`
       });
     } else {
       console.error('❌ NFT minting from collection failed:', result);
