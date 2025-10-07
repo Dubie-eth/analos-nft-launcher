@@ -145,7 +145,8 @@ export class DataPersistenceService {
    */
   private async saveToBackend(collections: CollectionData[]): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch(`${this.BACKEND_API_URL}/api/collections/backup`, {
+      const url = `${this.BACKEND_API_URL.replace(/\/$/, '')}/api/collections/backup`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +175,8 @@ export class DataPersistenceService {
    */
   private async loadFromBackend(): Promise<CollectionData[]> {
     try {
-      const response = await fetch(`${this.BACKEND_API_URL}/api/collections/backup`, {
+      const url = `${this.BACKEND_API_URL.replace(/\/$/, '')}/api/collections/backup`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

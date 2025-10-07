@@ -134,7 +134,8 @@ export class VerificationService {
     verificationUrl: string;
     expiresAt: string;
   }> {
-    const response = await fetch(`${this.backendUrl}/api/verification/start`, {
+    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/start`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -168,7 +169,8 @@ export class VerificationService {
       proofUrl?: string;
     }[]
   ): Promise<VerificationStatus> {
-    const response = await fetch(`${this.backendUrl}/api/verification/complete`, {
+    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/complete`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -193,7 +195,8 @@ export class VerificationService {
    * Get verification status for a collection
    */
   async getVerificationStatus(collectionId: string): Promise<CollectionVerification | null> {
-    const response = await fetch(`${this.backendUrl}/api/verification/status/${collectionId}`);
+    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/status/${collectionId}`;
+    const response = await fetch(url);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -214,7 +217,8 @@ export class VerificationService {
     collectionId: string,
     badgeDisplay: CollectionVerification['badgeDisplay']
   ): Promise<void> {
-    const response = await fetch(`${this.backendUrl}/api/verification/badge-settings`, {
+    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/badge-settings`;
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
