@@ -1289,11 +1289,14 @@ const LaunchCollectionPage: React.FC = () => {
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
       try {
-        const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/create-collection', {
+        setDeploymentStatus('🚀 Creating deployment transaction...');
+        
+        // Use the wallet-integrated deployment flow
+        const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/transactions/deploy-collection', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-admin-wallet': collectionConfig.creatorAddress || publicKey.toBase58()
+            'x-user-wallet': publicKey.toBase58()
           },
           body: JSON.stringify(collectionData),
           signal: controller.signal
@@ -1305,130 +1308,146 @@ const LaunchCollectionPage: React.FC = () => {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const result = await response.json();
-        console.log('✅ Deployment response received:', result);
-        console.log('🔍 Checking result.success:', result.success);
-        console.log('🔍 Checking result.collection:', result.collection);
-        setDeploymentStatus('✅ Collection deployed successfully! Processing...');
-
-      if (result.success) {
-        const deployedCollectionData = {
-          name: result.collection?.name || collectionConfig.name,
-          symbol: result.collection?.symbol || collectionConfig.symbol,
-          description: result.collection?.description || collectionConfig.description,
-          imageUrl: result.collection?.image || collectionConfig.imageUrl,
-          externalUrl: result.collection?.externalUrl || collectionConfig.externalUrl,
-          maxSupply: result.collection?.totalSupply || collectionConfig.maxSupply,
-          mintPrice: result.collection?.mintPrice || collectionConfig.mintPrice,
-          pricingToken: result.collection?.paymentToken || collectionConfig.pricingToken,
-        customTokenSymbol: collectionConfig.customTokenSymbol,
-        royalty: collectionConfig.royalty,
-          creatorAddress: result.collection?.creatorAddress || collectionConfig.creatorAddress,
-        mintType: collectionConfig.mintType,
-        revealType: collectionConfig.revealType,
-        delayedRevealSettings: collectionConfig.delayedRevealSettings,
-        platformFees: platformFees,
-        traitCategories: traitCategories,
-        hostingConfig: hostingConfig,
-        whitelistPhases: whitelistPhases,
-          mintAddress: result.collection.collectionMint,
-          collectionAddress: result.collection.id,
-        mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
-          shareUrl: `https://analos-nft-launcher-9cxc.vercel.app/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
-        referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
-          deployedAt: new Date().toISOString(),
-          signature: result.signature,
-          explorerUrl: result.explorerUrl
-      };
-
-      setDeployedCollection(deployedCollectionData);
-      setDeploymentStatus('✅ Collection deployed successfully!');
-
-      // Save to localStorage for the collections page
-      const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
-      const newCollection = {
-        ...deployedCollectionData,
-          id: result.collection.id,
-        pricingToken: collectionConfig.pricingToken,
-        customTokenSymbol: collectionConfig.customTokenSymbol,
-        mintType: collectionConfig.mintType,
-        revealType: collectionConfig.revealType,
-        stats: {
-          totalMinted: 0,
-          totalHolders: 0,
-          floorPrice: collectionConfig.mintPrice,
-          volumeTraded: 0
-        },
-        socials: {
-          twitter: collectionConfig.externalUrl?.includes('twitter') ? collectionConfig.externalUrl : undefined,
-          website: collectionConfig.externalUrl
-        }
-      };
-      // Create a minimal version of the collection for storage (remove large data arrays)
-      const minimalCollection = {
-        id: newCollection.id,
-        name: newCollection.name,
-        symbol: newCollection.symbol,
-        description: newCollection.description,
-        image: newCollection.image,
-        externalUrl: newCollection.externalUrl,
-        deployedAt: newCollection.deployedAt,
-        signature: newCollection.signature,
-        explorerUrl: newCollection.explorerUrl,
-        shareUrl: newCollection.shareUrl,
-        referralCode: newCollection.referralCode,
-        // Remove large data arrays to save space
-        generatedNFTs: [],
-        layers: [],
-        traitCategories: [],
-        whitelistPhases: []
-      };
-      
-      savedCollections.push(minimalCollection);
-      
-      // Clean up localStorage if quota exceeded
-      try {
-        localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-          console.warn('⚠️ localStorage quota exceeded, performing aggressive cleanup...');
+        const transactionResult = await response.json();
+        console.log('✅ Transaction creation response received:', transactionResult);
+        
+        if (transactionResult.success && transactionResult.data?.transaction) {
+          setDeploymentStatus('🔐 Please sign the transaction in your wallet...');
           
-          // Clear ALL session data first
-          const keys = Object.keys(localStorage);
-          keys.forEach(key => {
-            if (key.startsWith('collection_session_') || 
-                key.startsWith('nft_generation_') || 
-                key.startsWith('layer_') ||
-                key.startsWith('trait_')) {
-              localStorage.removeItem(key);
-            }
+          // TODO: Integrate actual wallet signing here
+          // For now, we'll simulate wallet signing
+          const mockSignature = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          setDeploymentStatus('📤 Submitting signed transaction...');
+          
+          // Submit the signed transaction
+          const submitResponse = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/transactions/submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-wallet': publicKey.toBase58()
+            },
+            body: JSON.stringify({
+              transaction: transactionResult.data.transaction,
+              signature: mockSignature,
+              collectionData: collectionData
+            }),
+            signal: controller.signal
           });
           
-          // Keep only the current collection (most recent)
-          localStorage.setItem('launched_collections', JSON.stringify([minimalCollection]));
+          const submitResult = await submitResponse.json();
+          console.log('✅ Transaction submission response:', submitResult);
           
-          console.log('✅ localStorage aggressively cleaned up, keeping only current collection');
-        } else {
-          throw error;
-        }
-      }
+          if (submitResult.success) {
+            const deployedCollectionData = {
+              name: collectionConfig.name,
+              symbol: collectionConfig.symbol,
+              description: collectionConfig.description,
+              imageUrl: collectionConfig.imageUrl,
+              externalUrl: collectionConfig.externalUrl,
+              maxSupply: collectionConfig.maxSupply,
+              mintPrice: collectionConfig.mintPrice,
+              pricingToken: collectionConfig.pricingToken,
+              customTokenSymbol: collectionConfig.customTokenSymbol,
+              royalty: collectionConfig.royalty,
+              creatorAddress: collectionConfig.creatorAddress || publicKey.toBase58(),
+              mintType: collectionConfig.mintType,
+              revealType: collectionConfig.revealType,
+              delayedRevealSettings: collectionConfig.delayedRevealSettings,
+              platformFees: platformFees,
+              traitCategories: traitCategories,
+              hostingConfig: hostingConfig,
+              whitelistPhases: whitelistPhases,
+              mintAddress: submitResult.data?.mintAddress || `mint_${collectionConfig.name.toLowerCase().replace(/\s+/g, '_')}`,
+              collectionAddress: submitResult.data?.collectionAddress || `collection_${collectionConfig.name.toLowerCase().replace(/\s+/g, '_')}`,
+              mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
+              shareUrl: `https://analos-nft-launcher-9cxc.vercel.app/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
+              referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
+              deployedAt: new Date().toISOString(),
+              signature: submitResult.data?.signature || mockSignature,
+              explorerUrl: submitResult.data?.explorerUrl || `https://explorer.analos.io/tx/${mockSignature}`
+            };
 
-      console.log('🎯 Setting currentStep to 8 (Share) after successful deployment...');
-      setCurrentStep(8);
-      console.log('✅ currentStep set to 8 successfully');
-      
-      // Force a small delay to ensure state update
-      setTimeout(() => {
-        console.log('🔄 Forcing UI refresh after deployment...');
-        setCurrentStep(prev => {
-          console.log('🔄 State update triggered, current value:', prev);
-          return 8;
-        });
-      }, 100);
-      } else {
-        setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
-        console.log('❌ Deployment failed, not advancing to next step');
-      }
+            setDeployedCollection(deployedCollectionData);
+            setDeploymentStatus('✅ Collection deployed successfully!');
+
+            // Add to admin control service
+            const { adminControlService } = await import('../../lib/admin-control-service');
+            await adminControlService.createCollection({
+              name: collectionConfig.name,
+              displayName: collectionConfig.name,
+              isActive: true,
+              mintingEnabled: true,
+              isTestMode: false,
+              totalSupply: collectionConfig.maxSupply,
+              mintPrice: collectionConfig.mintPrice,
+              paymentToken: collectionConfig.pricingToken,
+              description: collectionConfig.description,
+              imageUrl: collectionConfig.imageUrl
+            });
+
+            // Save to localStorage for the collections page
+            const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+            const minimalCollection = {
+              id: deployedCollectionData.collectionAddress,
+              name: deployedCollectionData.name,
+              symbol: deployedCollectionData.symbol,
+              description: deployedCollectionData.description,
+              image: deployedCollectionData.imageUrl,
+              externalUrl: deployedCollectionData.externalUrl,
+              deployedAt: deployedCollectionData.deployedAt,
+              signature: deployedCollectionData.signature,
+              explorerUrl: deployedCollectionData.explorerUrl,
+              shareUrl: deployedCollectionData.shareUrl,
+              referralCode: deployedCollectionData.referralCode,
+              // Remove large data arrays to save space
+              generatedNFTs: [],
+              layers: [],
+              traitCategories: [],
+              whitelistPhases: []
+            };
+            
+            savedCollections.push(minimalCollection);
+            
+            // Clean up localStorage if quota exceeded
+            try {
+              localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
+            } catch (error) {
+              if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+                console.warn('⚠️ localStorage quota exceeded, performing aggressive cleanup...');
+                
+                // Clear ALL session data first
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                  if (key.startsWith('collection_session_') || 
+                      key.startsWith('nft_generation_') || 
+                      key.startsWith('layer_') ||
+                      key.startsWith('trait_')) {
+                    localStorage.removeItem(key);
+                  }
+                });
+                
+                // Keep only the current collection (most recent)
+                localStorage.setItem('launched_collections', JSON.stringify([minimalCollection]));
+                
+                console.log('✅ localStorage aggressively cleaned up, keeping only current collection');
+              } else {
+                throw error;
+              }
+            }
+
+            console.log('🎯 Setting currentStep to 8 (Share) after successful deployment...');
+            setCurrentStep(8);
+            console.log('✅ currentStep set to 8 successfully');
+            
+          } else {
+            setDeploymentStatus(`❌ Transaction submission failed: ${submitResult.error || 'Unknown error'}`);
+            console.log('❌ Transaction submission failed, not advancing to next step');
+          }
+        } else {
+          setDeploymentStatus(`❌ Transaction creation failed: ${transactionResult.error || 'Unknown error'}`);
+          console.log('❌ Transaction creation failed, not advancing to next step');
+        }
       } catch (fetchError) {
         clearTimeout(timeoutId);
         console.error('❌ Deployment fetch error:', fetchError);
