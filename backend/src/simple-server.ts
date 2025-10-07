@@ -9,6 +9,7 @@ import { AnalosMetaplexService } from './analos-metaplex-service';
 import RealNFTMintService from './real-nft-mint-service';
 import { RealMetaplexNFTService } from './real-metaplex-nft-service';
 import { metaplexNFTService, NFTMetadata } from './metaplex-nft-service';
+import { realNFTMintingService, RealNFTMetadata } from './real-nft-minting-service';
 import nftGeneratorRoutes from './nft-generator-routes';
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
@@ -2324,6 +2325,145 @@ app.post('/api/mint/real-nft', async (req, res) => {
   }
 });
 
+// Real NFT minting endpoint - creates actual SPL Token NFTs with Metaplex metadata
+app.post('/api/mint-real-nft', async (req, res) => {
+  try {
+    const { name, symbol, description, image, owner, externalUrl, attributes } = req.body;
+
+    if (!name || !symbol || !description || !image || !owner) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: name, symbol, description, image, owner' 
+      });
+    }
+
+    console.log('🎨 Minting REAL NFT:', name);
+    console.log('👤 Owner:', owner);
+    
+    const nftMetadata: RealNFTMetadata = {
+      name,
+      symbol,
+      description,
+      image,
+      externalUrl: externalUrl || '',
+      attributes: attributes || [
+        { trait_type: 'Collection', value: 'Los Bros NFT' },
+        { trait_type: 'Network', value: 'Analos' },
+        { trait_type: 'Created', value: new Date().toISOString() }
+      ]
+    };
+
+    const ownerPublicKey = new PublicKey(owner);
+    
+    // Check fee payer balance
+    const balance = await realNFTMintingService.getFeePayerBalance();
+    console.log('💰 Fee payer balance:', balance, 'SOL');
+    
+    if (balance < 0.01) {
+      return res.status(500).json({
+        error: 'Insufficient balance for minting',
+        details: `Fee payer needs at least 0.01 SOL. Current balance: ${balance} SOL`,
+        feePayerAddress: realNFTMintingService.getFeePayerPublicKey()
+      });
+    }
+
+    const result = await realNFTMintingService.mintRealNFT(nftMetadata, ownerPublicKey);
+
+    if (result.success) {
+      console.log('✅ Real NFT minted successfully!');
+      console.log('🔑 Mint:', result.mint);
+      console.log('📄 Metadata:', result.metadata);
+      console.log('🏆 Master Edition:', result.masterEdition);
+      console.log('💼 Token Account:', result.tokenAccount);
+      console.log('🔗 Explorer:', result.explorerUrl);
+
+      res.json({
+        success: true,
+        message: 'Real NFT minted successfully!',
+        nft: {
+          mint: result.mint,
+          metadata: result.metadata,
+          masterEdition: result.masterEdition,
+          tokenAccount: result.tokenAccount,
+          owner: result.owner,
+          transactionSignature: result.transactionSignature,
+          explorerUrl: result.explorerUrl,
+          name,
+          symbol,
+          description,
+          image,
+          attributes: nftMetadata.attributes
+        }
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to mint real NFT',
+        details: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error minting real NFT:', error);
+    res.status(500).json({ 
+      error: 'Failed to mint real NFT',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update NFT metadata endpoint (for delayed reveals)
+app.post('/api/update-nft-metadata', async (req, res) => {
+  try {
+    const { mintAddress, name, symbol, description, image, updateAuthorityKey } = req.body;
+
+    if (!mintAddress || !name || !symbol || !description || !image) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: mintAddress, name, symbol, description, image' 
+      });
+    }
+
+    console.log('🔄 Updating NFT metadata:', mintAddress);
+    
+    const newMetadata: RealNFTMetadata = {
+      name,
+      symbol,
+      description,
+      image
+    };
+
+    // For now, we'll use the fee payer as update authority
+    // In production, you'd need to manage update authority keys securely
+    const result = await realNFTMintingService.updateNFTMetadata(
+      mintAddress,
+      newMetadata,
+      realNFTMintingService['feePayer'] // Access private property for update authority
+    );
+
+    if (result.success) {
+      console.log('✅ NFT metadata updated successfully!');
+      res.json({
+        success: true,
+        message: 'NFT metadata updated successfully!',
+        transactionSignature: result.signature,
+        explorerUrl: `https://explorer.analos.io/tx/${result.signature}`
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update NFT metadata',
+        details: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error updating NFT metadata:', error);
+    res.status(500).json({ 
+      error: 'Failed to update NFT metadata',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // New endpoint for creating NFTs using our simplified approach
 app.post('/api/create-nft', async (req, res) => {
   try {
@@ -2409,6 +2549,8 @@ app.get('/health', (req, res) => {
         mintInstructions: '/api/mint/instructions',
         mint: '/api/mint',
         createNft: '/api/create-nft',
+        mintRealNft: '/api/mint-real-nft',
+        updateNftMetadata: '/api/update-nft-metadata',
         collections: '/api/collections'
       }
     });
