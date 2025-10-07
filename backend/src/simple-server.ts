@@ -2907,6 +2907,185 @@ app.post('/api/mint-real-nft', async (req, res) => {
   }
 });
 
+// Live Development API Endpoints
+
+// Get live development status for a collection
+app.get('/api/collections/:collectionId/live-development', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const collection = collections.get(collectionId);
+    
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Mock live development data
+    const liveDevData = {
+      collectionId,
+      isLiveDevelopment: collection.liveDevelopment || false,
+      currentPhase: collection.currentPhase || 'minting',
+      features: {
+        traitUpdates: true,
+        rarityAdjustments: true,
+        communityVoting: true,
+        liveGeneration: true,
+      },
+      communityFeedback: {
+        enabled: true,
+        votingWeight: 'holder_weighted',
+      },
+      stats: {
+        totalMinted: collection.currentSupply || 0,
+        activeVoters: Math.floor(Math.random() * 50) + 10,
+        pendingUpdates: Math.floor(Math.random() * 5),
+        communityEngagement: Math.floor(Math.random() * 20) + 80,
+      }
+    };
+    
+    res.json({ success: true, data: liveDevData });
+  } catch (error) {
+    console.error('Error getting live development status:', error);
+    res.status(500).json({ success: false, error: 'Failed to get live development status' });
+  }
+});
+
+// Submit community suggestion
+app.post('/api/collections/:collectionId/suggestions', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { type, description, submittedBy } = req.body;
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    const suggestion = {
+      id: Date.now().toString(),
+      type,
+      description,
+      votes: 1,
+      status: 'pending',
+      submittedBy: submittedBy || 'Anonymous',
+      submittedAt: new Date().toISOString(),
+      collectionId
+    };
+    
+    // Store suggestion (in real app, this would go to database)
+    if (!collection.communitySuggestions) {
+      collection.communitySuggestions = [];
+    }
+    collection.communitySuggestions.push(suggestion);
+    collections.set(collectionId, collection);
+    
+    res.json({ success: true, suggestion });
+  } catch (error) {
+    console.error('Error submitting suggestion:', error);
+    res.status(500).json({ success: false, error: 'Failed to submit suggestion' });
+  }
+});
+
+// Vote on community suggestion
+app.post('/api/collections/:collectionId/suggestions/:suggestionId/vote', (req, res) => {
+  try {
+    const { collectionId, suggestionId } = req.params;
+    const { voterAddress, voteType } = req.body; // 'up' or 'down'
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    const suggestion = collection.communitySuggestions?.find(s => s.id === suggestionId);
+    if (!suggestion) {
+      return res.status(404).json({ success: false, error: 'Suggestion not found' });
+    }
+    
+    // Update vote count
+    if (voteType === 'up') {
+      suggestion.votes = (suggestion.votes || 0) + 1;
+    } else {
+      suggestion.votes = Math.max((suggestion.votes || 1) - 1, 0);
+    }
+    
+    collections.set(collectionId, collection);
+    
+    res.json({ success: true, votes: suggestion.votes });
+  } catch (error) {
+    console.error('Error voting on suggestion:', error);
+    res.status(500).json({ success: false, error: 'Failed to vote on suggestion' });
+  }
+});
+
+// Submit trait update for approval
+app.post('/api/collections/:collectionId/trait-updates', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    const { layerName, traitName, oldRarity, newRarity, reason, submittedBy } = req.body;
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    const traitUpdate = {
+      id: Date.now().toString(),
+      layerName,
+      traitName,
+      oldRarity,
+      newRarity,
+      reason,
+      communityVotes: 1,
+      developerApproved: false,
+      submittedBy: submittedBy || 'Anonymous',
+      submittedAt: new Date().toISOString(),
+      collectionId
+    };
+    
+    // Store trait update
+    if (!collection.traitUpdates) {
+      collection.traitUpdates = [];
+    }
+    collection.traitUpdates.push(traitUpdate);
+    collections.set(collectionId, collection);
+    
+    res.json({ success: true, traitUpdate });
+  } catch (error) {
+    console.error('Error submitting trait update:', error);
+    res.status(500).json({ success: false, error: 'Failed to submit trait update' });
+  }
+});
+
+// Approve trait update
+app.post('/api/collections/:collectionId/trait-updates/:updateId/approve', (req, res) => {
+  try {
+    const { collectionId, updateId } = req.params;
+    const { developerWallet } = req.body;
+    
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    const traitUpdate = collection.traitUpdates?.find(u => u.id === updateId);
+    if (!traitUpdate) {
+      return res.status(404).json({ success: false, error: 'Trait update not found' });
+    }
+    
+    // Approve the update
+    traitUpdate.developerApproved = true;
+    traitUpdate.approvedBy = developerWallet;
+    traitUpdate.approvedAt = new Date().toISOString();
+    
+    collections.set(collectionId, collection);
+    
+    res.json({ success: true, message: 'Trait update approved' });
+  } catch (error) {
+    console.error('Error approving trait update:', error);
+    res.status(500).json({ success: false, error: 'Failed to approve trait update' });
+  }
+});
+
 // Update NFT metadata endpoint (for delayed reveals)
 app.post('/api/update-nft-metadata', async (req, res) => {
   try {
