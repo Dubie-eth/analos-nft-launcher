@@ -44,10 +44,19 @@ export class BlockchainDataService {
   
   // Rate limiting to prevent infinite loops
   private callCounts: Map<string, { count: number; timestamp: number }> = new Map();
-  private readonly MAX_CALLS_PER_MINUTE = 5;
+  private readonly MAX_CALLS_PER_MINUTE = 3; // Reduced from 5 to 3
   
   // Track initialization to prevent duplicate logging
   private static initializationLogged = false;
+  
+  // Global infinite loop prevention
+  private static globalCallTracker: Map<string, { count: number; timestamp: number }> = new Map();
+  private static readonly GLOBAL_MAX_CALLS_PER_MINUTE = 10;
+  
+  // Circuit breaker for failing collections
+  private static circuitBreaker: Map<string, { failures: number; lastFailure: number; isOpen: boolean }> = new Map();
+  private static readonly MAX_FAILURES = 5;
+  private static readonly CIRCUIT_BREAKER_TIMEOUT = 300000; // 5 minutes
   
   // Collection configurations - will be managed by admin controls and fee management
   private async getCollectionConfig(collectionName: string) {
@@ -133,8 +142,44 @@ export class BlockchainDataService {
    */
   async getCollectionData(collectionName: string): Promise<BlockchainCollectionData | null> {
     try {
-      // Rate limiting check
+      // Global rate limiting check to prevent infinite loops
       const now = Date.now();
+      const globalCallKey = `global_calls_${collectionName}`;
+      const globalCallData = BlockchainDataService.globalCallTracker.get(globalCallKey);
+      
+      if (globalCallData) {
+        if (now - globalCallData.timestamp > 60000) {
+          BlockchainDataService.globalCallTracker.set(globalCallKey, { count: 1, timestamp: now });
+        } else {
+          if (globalCallData.count >= BlockchainDataService.GLOBAL_MAX_CALLS_PER_MINUTE) {
+            console.warn(`🚨 GLOBAL RATE LIMIT EXCEEDED for ${collectionName} - blocking further calls for 1 minute`);
+            return null;
+          }
+          BlockchainDataService.globalCallTracker.set(globalCallKey, { count: globalCallData.count + 1, timestamp: globalCallData.timestamp });
+        }
+      } else {
+        BlockchainDataService.globalCallTracker.set(globalCallKey, { count: 1, timestamp: now });
+      }
+
+      // Circuit breaker check
+      const circuitBreakerKey = `circuit_${collectionName}`;
+      const circuitState = BlockchainDataService.circuitBreaker.get(circuitBreakerKey);
+      
+      if (circuitState) {
+        const timeSinceLastFailure = now - circuitState.lastFailure;
+        
+        if (circuitState.isOpen && timeSinceLastFailure < BlockchainDataService.CIRCUIT_BREAKER_TIMEOUT) {
+          console.warn(`🚨 CIRCUIT BREAKER OPEN for ${collectionName} - blocking calls for ${Math.round((BlockchainDataService.CIRCUIT_BREAKER_TIMEOUT - timeSinceLastFailure) / 1000)} more seconds`);
+          return null;
+        } else if (circuitState.isOpen && timeSinceLastFailure >= BlockchainDataService.CIRCUIT_BREAKER_TIMEOUT) {
+          // Reset circuit breaker
+          circuitState.isOpen = false;
+          circuitState.failures = 0;
+          console.log(`🔄 Circuit breaker reset for ${collectionName}`);
+        }
+      }
+
+      // Instance rate limiting check
       const callKey = `calls_${collectionName}`;
       const callData = this.callCounts.get(callKey);
       
@@ -196,16 +241,9 @@ export class BlockchainDataService {
       if (!collectionConfig) {
         console.log('❌ Collection not found in admin control service:', collectionName, '->', actualCollectionName);
         console.log('📋 Available collections in admin service:', Array.from((adminControlService as any).collections.keys()));
-        // Return null and cache the null result for a longer duration to prevent repeated calls
-        this.cache.set(cacheKey, {
-          data: null,
-          timestamp: Date.now()
-        });
-        // Also add a separate cache entry for "not found" results with longer duration
-        this.cache.set(`not_found_${cacheKey}`, {
-          data: true, // Just a flag that it's not found
-          timestamp: Date.now()
-        });
+        
+        // Cache the null result for a longer duration to prevent repeated calls
+        this.setCache(`not_found_${cacheKey}`, true);
         return null;
       }
 
@@ -324,6 +362,21 @@ export class BlockchainDataService {
 
     } catch (error) {
       console.error('❌ Error fetching blockchain data:', error);
+      
+      // Track failure for circuit breaker
+      const circuitBreakerKey = `circuit_${collectionName}`;
+      const circuitState = BlockchainDataService.circuitBreaker.get(circuitBreakerKey) || { failures: 0, lastFailure: 0, isOpen: false };
+      
+      circuitState.failures++;
+      circuitState.lastFailure = Date.now();
+      
+      if (circuitState.failures >= BlockchainDataService.MAX_FAILURES) {
+        circuitState.isOpen = true;
+        console.warn(`🚨 CIRCUIT BREAKER OPENED for ${collectionName} after ${circuitState.failures} failures`);
+      }
+      
+      BlockchainDataService.circuitBreaker.set(circuitBreakerKey, circuitState);
+      
       return null;
     }
   }
