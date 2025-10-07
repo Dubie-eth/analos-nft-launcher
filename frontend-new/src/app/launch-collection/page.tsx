@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import StandardLayout from '../components/StandardLayout';
 import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting-service';
+import { LayerProcessor } from '../../lib/layer-processor';
+import { Layer, Trait } from '../../lib/nft-generator';
 
 interface CollectionConfig {
   name: string;
@@ -31,12 +33,14 @@ interface CollectionConfig {
 }
 
 interface TraitFile {
+  id: string;
   name: string;
   file: File;
   preview: string;
   category: string;
   rarity: number;
   weight: number;
+  layer: string;
 }
 
 interface TraitCategory {
@@ -44,6 +48,27 @@ interface TraitCategory {
   files: TraitFile[];
   required: boolean;
   maxSelections: number;
+  order: number;
+  visible: boolean;
+}
+
+interface GeneratedNFT {
+  id: number;
+  name: string;
+  image: string;
+  traits: Array<{
+    trait_type: string;
+    value: string;
+  }>;
+  rarityScore: number;
+}
+
+interface NFTGenerationConfig {
+  paymentType: 'percentage' | 'upfront';
+  percentageFee: number; // Percentage of each mint (e.g., 2.5 for 2.5%)
+  upfrontCost: number; // One-time cost in SOL
+  generationEnabled: boolean;
+  previewCount: number; // Number of NFTs to generate for preview
 }
 
 interface HostingConfig {
@@ -165,6 +190,23 @@ const LaunchCollectionPage: React.FC = () => {
   const [hostingConfig, setHostingConfig] = useState<HostingConfig>({
     method: 'ipfs'
   });
+  
+  // NFT Generation Configuration
+  const [nftGenerationConfig, setNftGenerationConfig] = useState<NFTGenerationConfig>({
+    paymentType: 'percentage',
+    percentageFee: 2.5, // 2.5% of each mint
+    upfrontCost: 1.0, // 1 SOL upfront
+    generationEnabled: false,
+    previewCount: 10
+  });
+  
+  // Layer processing and generation
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [generatedNFTs, setGeneratedNFTs] = useState<GeneratedNFT[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0, status: 'idle' as const });
+  const layerProcessor = useRef(new LayerProcessor());
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
   const [platformFees, setPlatformFees] = useState<PlatformFees>({
     platformFee: 1.0, // 1% platform fee (fixed, non-adjustable by users)
@@ -334,6 +376,129 @@ const LaunchCollectionPage: React.FC = () => {
         ) || []
       }
     }));
+  };
+
+  // NFT Generation Functions
+  const handleTraitFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsGenerating(true);
+    setGenerationProgress({ current: 0, total: files.length, status: 'generating' });
+
+    try {
+      console.log('🔄 Processing trait files...', files.length);
+      const processedLayers = await layerProcessor.current.processUploadedFiles(files);
+      setLayers(processedLayers);
+      
+      // Convert layers to trait categories for compatibility
+      const categories: TraitCategory[] = processedLayers.map((layer, index) => ({
+        name: layer.name,
+        files: layer.traits.map(trait => ({
+          id: trait.id,
+          name: trait.name,
+          file: trait.file,
+          preview: trait.image,
+          category: layer.name,
+          rarity: trait.rarity,
+          weight: trait.rarity,
+          layer: layer.name
+        })),
+        required: true,
+        maxSelections: 1,
+        order: layer.order,
+        visible: layer.visible
+      }));
+      
+      setTraitCategories(categories);
+      setGenerationProgress({ current: files.length, total: files.length, status: 'complete' });
+      
+      console.log('✅ Processed layers:', processedLayers.length);
+    } catch (error) {
+      console.error('❌ Error processing trait files:', error);
+      setGenerationProgress({ current: 0, total: 0, status: 'error' });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateNFTPreview = async () => {
+    if (layers.length === 0) return;
+
+    setIsGenerating(true);
+    setGenerationProgress({ current: 0, total: nftGenerationConfig.previewCount, status: 'generating' });
+
+    try {
+      const generated: GeneratedNFT[] = [];
+      
+      for (let i = 0; i < nftGenerationConfig.previewCount; i++) {
+        const traits: Array<{ trait_type: string; value: string }> = [];
+        let rarityScore = 1;
+        
+        // Generate traits for each visible layer
+        for (const layer of layers.filter(l => l.visible)) {
+          if (layer.traits.length > 0) {
+            // Select trait based on weight/rarity
+            const totalWeight = layer.traits.reduce((sum, trait) => sum + trait.rarity, 0);
+            let random = Math.random() * totalWeight;
+            
+            let selectedTrait = layer.traits[0];
+            for (const trait of layer.traits) {
+              random -= trait.rarity;
+              if (random <= 0) {
+                selectedTrait = trait;
+                break;
+              }
+            }
+            
+            traits.push({
+              trait_type: layer.name,
+              value: selectedTrait.name
+            });
+            
+            rarityScore *= selectedTrait.rarity;
+          }
+        }
+        
+        generated.push({
+          id: i + 1,
+          name: `${collectionConfig.name} #${i + 1}`,
+          image: `https://picsum.photos/400/400?random=${i + 1}`, // Placeholder
+          traits,
+          rarityScore: Math.round(rarityScore * 100) / 100
+        });
+        
+        setGenerationProgress({ current: i + 1, total: nftGenerationConfig.previewCount, status: 'generating' });
+      }
+      
+      setGeneratedNFTs(generated);
+      setGenerationProgress({ current: nftGenerationConfig.previewCount, total: nftGenerationConfig.previewCount, status: 'complete' });
+      
+    } catch (error) {
+      console.error('❌ Error generating NFT preview:', error);
+      setGenerationProgress({ current: 0, total: 0, status: 'error' });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const updateLayerTrait = (layerId: string, traitId: string, updates: Partial<Trait>) => {
+    setLayers(prev => prev.map(layer => 
+      layer.id === layerId 
+        ? {
+            ...layer,
+            traits: layer.traits.map(trait => 
+              trait.id === traitId ? { ...trait, ...updates } : trait
+            )
+          }
+        : layer
+    ));
+  };
+
+  const toggleLayerVisibility = (layerId: string) => {
+    setLayers(prev => prev.map(layer => 
+      layer.id === layerId ? { ...layer, visible: !layer.visible } : layer
+    ));
   };
 
   const handleTraitUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -944,55 +1109,273 @@ const LaunchCollectionPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Trait Files Upload & Management</h2>
-              <p className="text-gray-300">Upload your trait files and organize them into layers</p>
+              <h2 className="text-3xl font-bold text-white mb-2">🎨 NFT Generation & Trait Management</h2>
+              <p className="text-gray-300">Upload traits, configure generation, and set payment options</p>
+            </div>
+
+            {/* NFT Generation Payment Options */}
+            <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+              <h3 className="text-xl font-semibold text-white mb-4">💰 Generation Payment Options</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                  nftGenerationConfig.paymentType === 'percentage'
+                    ? 'bg-green-500/20 border-green-500'
+                    : 'bg-white/10 border-white/20 hover:bg-white/20'
+                }`}
+                onClick={() => setNftGenerationConfig(prev => ({ ...prev, paymentType: 'percentage' }))}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">📊</div>
+                    <h4 className="text-white font-semibold mb-2">Percentage Model</h4>
+                    <p className="text-gray-300 text-sm mb-3">Pay a percentage of each mint</p>
+                    <div className="bg-white/10 rounded p-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={nftGenerationConfig.percentageFee}
+                          onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, percentageFee: parseFloat(e.target.value) || 0 }))}
+                          className="w-16 px-2 py-1 bg-white/20 border border-white/30 rounded text-white text-sm text-center"
+                          min="0"
+                          max="10"
+                        />
+                        <span className="text-white text-sm">% per mint</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">Like Bueno.art - pay as you earn</p>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                  nftGenerationConfig.paymentType === 'upfront'
+                    ? 'bg-blue-500/20 border-blue-500'
+                    : 'bg-white/10 border-white/20 hover:bg-white/20'
+                }`}
+                onClick={() => setNftGenerationConfig(prev => ({ ...prev, paymentType: 'upfront' }))}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">💳</div>
+                    <h4 className="text-white font-semibold mb-2">Upfront Payment</h4>
+                    <p className="text-gray-300 text-sm mb-3">Pay once for full generation</p>
+                    <div className="bg-white/10 rounded p-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={nftGenerationConfig.upfrontCost}
+                          onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, upfrontCost: parseFloat(e.target.value) || 0 }))}
+                          className="w-16 px-2 py-1 bg-white/20 border border-white/30 rounded text-white text-sm text-center"
+                          min="0"
+                          max="100"
+                        />
+                        <span className="text-white text-sm">SOL</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">One-time payment for all generation</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={nftGenerationConfig.generationEnabled}
+                  onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, generationEnabled: e.target.checked }))}
+                  className="mr-2"
+                />
+                <label className="text-white text-sm">Enable NFT Generation Service</label>
+              </div>
             </div>
 
             {/* Upload Section */}
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+              <h3 className="text-xl font-semibold text-white mb-4">📁 Upload Trait Files</h3>
               <div className="text-center mb-6">
                 <input
+                  ref={fileInputRef}
                   type="file"
                   multiple
-                  accept="image/*"
-                  webkitdirectory=""
-                  onChange={handleTraitUpload}
+                  accept="image/*,.zip"
+                  onChange={handleTraitFileUpload}
                   className="hidden"
-                  id="trait-upload"
-                />
-                <label
-                  htmlFor="trait-upload"
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold rounded-lg cursor-pointer transition-all duration-200"
-                >
-                  📁 Upload Trait Folder
-                </label>
-                <p className="text-gray-300 text-sm mt-2">
-                  Upload a folder with organized trait layers (e.g., Background/, Eyes/, Mouth/, etc.)
-                </p>
-                <p className="text-gray-400 text-xs mt-1">
-                  Supported formats: PNG with transparent backgrounds
-                </p>
-              </div>
-
-              {/* Add Custom Category */}
-              <div className="flex space-x-2 mb-4">
-                <input
-                  type="text"
-                  placeholder="Add custom category (e.g., Background, Eyes, Hat)"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  className="flex-1 px-4 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <button
-                  onClick={addTraitCategory}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isGenerating}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-bold rounded-lg cursor-pointer transition-all duration-200"
                 >
-                  Add Category
+                  {isGenerating ? '🔄 Processing...' : '📁 Upload Trait Files'}
                 </button>
+                <p className="text-gray-300 text-sm mt-2">
+                  Upload individual images or ZIP files with organized layers
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  Supported: PNG, JPG, ZIP files with folder structure
+                </p>
               </div>
+
+              {/* Generation Progress */}
+              {generationProgress.status !== 'idle' && (
+                <div className="bg-white/5 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white text-sm">Processing Progress</span>
+                    <span className="text-white text-sm">{generationProgress.current}/{generationProgress.total}</span>
+                  </div>
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(generationProgress.current / generationProgress.total) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Trait Categories */}
+            {/* Layer Management */}
+            {layers.length > 0 && (
+              <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+                <h3 className="text-xl font-semibold text-white mb-4">🎨 Layer Management</h3>
+                <div className="space-y-4">
+                  {layers.map((layer, index) => (
+                    <div key={layer.id} className="bg-white/5 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={layer.visible}
+                            onChange={() => toggleLayerVisibility(layer.id)}
+                            className="mr-2"
+                          />
+                          <h4 className="text-white font-medium">{layer.name}</h4>
+                          <span className="text-gray-400 text-sm">({layer.traits.length} traits)</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-400 text-sm">Order:</span>
+                          <input
+                            type="number"
+                            value={layer.order}
+                            onChange={(e) => {
+                              const newOrder = parseInt(e.target.value) || 0;
+                              setLayers(prev => prev.map(l => 
+                                l.id === layer.id ? { ...l, order: newOrder } : l
+                              ).sort((a, b) => a.order - b.order));
+                            }}
+                            className="w-16 px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm text-center"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {layer.traits.slice(0, 6).map((trait) => (
+                          <div key={trait.id} className="bg-white/5 rounded p-2">
+                            <img
+                              src={trait.image}
+                              alt={trait.name}
+                              className="w-full h-16 object-cover rounded mb-1"
+                            />
+                            <p className="text-white text-xs truncate mb-1">{trait.name}</p>
+                            <div className="flex items-center space-x-1">
+                              <label className="text-gray-300 text-xs">Rarity:</label>
+                              <input
+                                type="number"
+                                value={trait.rarity}
+                                onChange={(e) => updateLayerTrait(layer.id, trait.id, { rarity: parseInt(e.target.value) || 1 })}
+                                className="w-12 px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
+                                min="1"
+                                max="100"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        {layer.traits.length > 6 && (
+                          <div className="bg-white/5 rounded p-2 flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">+{layer.traits.length - 6} more</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* NFT Generation Preview */}
+            {layers.length > 0 && nftGenerationConfig.generationEnabled && (
+              <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-white">🎲 NFT Generation Preview</h3>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <label className="text-white text-sm">Preview Count:</label>
+                      <input
+                        type="number"
+                        value={nftGenerationConfig.previewCount}
+                        onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, previewCount: parseInt(e.target.value) || 10 }))}
+                        className="w-16 px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm text-center"
+                        min="1"
+                        max="50"
+                      />
+                    </div>
+                    <button
+                      onClick={generateNFTPreview}
+                      disabled={isGenerating}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      {isGenerating ? '🔄 Generating...' : '🎲 Generate Preview'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Generation Progress */}
+                {isGenerating && (
+                  <div className="bg-white/5 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white text-sm">Generating NFTs...</span>
+                      <span className="text-white text-sm">{generationProgress.current}/{generationProgress.total}</span>
+                    </div>
+                    <div className="w-full bg-white/20 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(generationProgress.current / generationProgress.total) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Generated NFTs Preview */}
+                {generatedNFTs.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {generatedNFTs.map((nft) => (
+                      <div key={nft.id} className="bg-white/5 rounded-lg p-3">
+                        <img
+                          src={nft.image}
+                          alt={nft.name}
+                          className="w-full h-24 object-cover rounded mb-2"
+                        />
+                        <p className="text-white text-sm font-medium mb-1">{nft.name}</p>
+                        <div className="space-y-1">
+                          {nft.traits.slice(0, 3).map((trait, index) => (
+                            <div key={index} className="text-xs text-gray-300">
+                              <span className="text-gray-400">{trait.trait_type}:</span> {trait.value}
+                            </div>
+                          ))}
+                          {nft.traits.length > 3 && (
+                            <div className="text-xs text-gray-400">+{nft.traits.length - 3} more traits</div>
+                          )}
+                        </div>
+                        <div className="mt-2 text-center">
+                          <span className="bg-purple-500/20 text-purple-300 px-2 py-1 rounded text-xs">
+                            Rarity: {nft.rarityScore}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Legacy Trait Categories (for compatibility) */}
             {traitCategories.length > 0 && (
               <div className="space-y-6">
                 <h3 className="text-2xl font-bold text-white">Trait Categories ({traitCategories.length})</h3>
