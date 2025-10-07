@@ -2996,7 +2996,7 @@ app.post('/api/collections/:collectionId/suggestions/:suggestionId/vote', (req, 
       return res.status(404).json({ success: false, error: 'Collection not found' });
     }
     
-    const suggestion = collection.communitySuggestions?.find(s => s.id === suggestionId);
+    const suggestion = collection.communitySuggestions?.find((s: any) => s.id === suggestionId);
     if (!suggestion) {
       return res.status(404).json({ success: false, error: 'Suggestion not found' });
     }
@@ -3067,7 +3067,7 @@ app.post('/api/collections/:collectionId/trait-updates/:updateId/approve', (req,
       return res.status(404).json({ success: false, error: 'Collection not found' });
     }
     
-    const traitUpdate = collection.traitUpdates?.find(u => u.id === updateId);
+    const traitUpdate = collection.traitUpdates?.find((u: any) => u.id === updateId);
     if (!traitUpdate) {
       return res.status(404).json({ success: false, error: 'Trait update not found' });
     }
