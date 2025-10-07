@@ -7,6 +7,7 @@ import StandardLayout from '../components/StandardLayout';
 import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting-service';
 import { LayerProcessor } from '../../lib/layer-processor';
 import { Layer, Trait } from '../../lib/nft-generator';
+import { AnalosTokenService, AnalosTokenInfo } from '../../lib/analos-token-service';
 
 interface CollectionConfig {
   name: string;
@@ -207,6 +208,12 @@ const LaunchCollectionPage: React.FC = () => {
   const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0, status: 'idle' as const });
   const layerProcessor = useRef(new LayerProcessor());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Token info state
+  const [tokenInfo, setTokenInfo] = useState<AnalosTokenInfo | null>(null);
+  const [isLoadingTokenInfo, setIsLoadingTokenInfo] = useState(false);
+  const [tokenInfoError, setTokenInfoError] = useState<string>('');
+  const tokenService = useRef(new AnalosTokenService());
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
   const [platformFees, setPlatformFees] = useState<PlatformFees>({
     platformFee: 1.0, // 1% platform fee (fixed, non-adjustable by users)
@@ -499,6 +506,37 @@ const LaunchCollectionPage: React.FC = () => {
     setLayers(prev => prev.map(layer => 
       layer.id === layerId ? { ...layer, visible: !layer.visible } : layer
     ));
+  };
+
+  // Token info fetching function
+  const fetchTokenInfo = async (tokenMint: string) => {
+    if (!tokenMint || tokenMint.length < 32) {
+      setTokenInfo(null);
+      setTokenInfoError('');
+      return;
+    }
+
+    setIsLoadingTokenInfo(true);
+    setTokenInfoError('');
+
+    try {
+      console.log('🔍 Fetching token info for:', tokenMint);
+      const info = await tokenService.current.getTokenInfo(tokenMint);
+      
+      if (info) {
+        setTokenInfo(info);
+        console.log('✅ Token info fetched:', info);
+      } else {
+        setTokenInfo(null);
+        setTokenInfoError('Token not found or invalid mint address');
+      }
+    } catch (error: any) {
+      console.error('❌ Error fetching token info:', error);
+      setTokenInfo(null);
+      setTokenInfoError(error.message || 'Failed to fetch token information');
+    } finally {
+      setIsLoadingTokenInfo(false);
+    }
   };
 
   const handleTraitUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1869,7 +1907,10 @@ const LaunchCollectionPage: React.FC = () => {
                   {/* Mint Limits */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">Max Total Mints (Phase)</label>
+                      <label className="block text-white text-sm font-medium mb-2">
+                        Max Total Mints (Phase)
+                        <span className="text-gray-400 text-xs ml-2">(Total NFTs available in this whitelist phase)</span>
+                      </label>
                       <input
                         type="number"
                         value={phase.maxMints}
@@ -1879,11 +1920,14 @@ const LaunchCollectionPage: React.FC = () => {
                           setWhitelistPhases(newPhases);
                         }}
                         className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
-                        placeholder="Total NFTs for this phase"
+                        placeholder="e.g., 100 (total NFTs for this phase)"
                       />
                     </div>
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">Max Mints per Wallet</label>
+                      <label className="block text-white text-sm font-medium mb-2">
+                        Max Mints per Wallet
+                        <span className="text-gray-400 text-xs ml-2">(How many NFTs each wallet can mint in this phase)</span>
+                      </label>
                       <input
                         type="number"
                         value={phase.maxMintsPerWallet}
@@ -1893,7 +1937,7 @@ const LaunchCollectionPage: React.FC = () => {
                           setWhitelistPhases(newPhases);
                         }}
                         className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
-                        placeholder="Per wallet limit"
+                        placeholder="e.g., 1 (per wallet limit)"
                       />
                     </div>
                   </div>
@@ -1901,7 +1945,10 @@ const LaunchCollectionPage: React.FC = () => {
                   {/* Time Windows */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">Start Time</label>
+                      <label className="block text-white text-sm font-medium mb-2">
+                        Start Time
+                        <span className="text-gray-400 text-xs ml-2">(When this whitelist phase becomes active)</span>
+                      </label>
                       <input
                         type="datetime-local"
                         value={phase.startTime.toISOString().slice(0, 16)}
@@ -1914,7 +1961,10 @@ const LaunchCollectionPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">End Time</label>
+                      <label className="block text-white text-sm font-medium mb-2">
+                        End Time
+                        <span className="text-gray-400 text-xs ml-2">(When this whitelist phase expires)</span>
+                      </label>
                       <input
                         type="datetime-local"
                         value={phase.endTime.toISOString().slice(0, 16)}
@@ -2003,26 +2053,32 @@ const LaunchCollectionPage: React.FC = () => {
                             <option value="CUSTOM">Custom Token</option>
                           </select>
                         </div>
-                        <div>
-                          <label className="block text-white text-sm font-medium mb-2">Min Balance</label>
-                          <input
-                            type="number"
-                            step="0.001"
-                            value={phase.tokenRequirements?.minBalance || 0}
-                            onChange={(e) => {
-                              const newPhases = [...whitelistPhases];
-                              if (newPhases[index].tokenRequirements) {
-                                newPhases[index].tokenRequirements!.minBalance = parseFloat(e.target.value) || 0;
-                              }
-                              setWhitelistPhases(newPhases);
-                            }}
-                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
-                            placeholder="Minimum token balance"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">
+                          Min Balance
+                          <span className="text-gray-400 text-xs ml-2">(Minimum token balance required to participate)</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.001"
+                          value={phase.tokenRequirements?.minBalance || 0}
+                          onChange={(e) => {
+                            const newPhases = [...whitelistPhases];
+                            if (newPhases[index].tokenRequirements) {
+                              newPhases[index].tokenRequirements!.minBalance = parseFloat(e.target.value) || 0;
+                            }
+                            setWhitelistPhases(newPhases);
+                          }}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          placeholder="e.g., 1000000 (minimum tokens needed)"
+                        />
+                      </div>
                         {phase.tokenRequirements?.tokenType === 'CUSTOM' && (
                           <div>
-                            <label className="block text-white text-sm font-medium mb-2">Custom Token Mint</label>
+                            <label className="block text-white text-sm font-medium mb-2">
+                              Custom Token Mint Address
+                              <span className="text-gray-400 text-xs ml-2">(Enter the token's mint address to fetch info)</span>
+                            </label>
                             <input
                               type="text"
                               value={phase.tokenRequirements?.tokenMint || ''}
@@ -2032,10 +2088,67 @@ const LaunchCollectionPage: React.FC = () => {
                                   newPhases[index].tokenRequirements!.tokenMint = e.target.value;
                                 }
                                 setWhitelistPhases(newPhases);
+                                
+                                // Fetch token info when mint address changes
+                                if (e.target.value.length >= 32) {
+                                  fetchTokenInfo(e.target.value);
+                                } else {
+                                  setTokenInfo(null);
+                                  setTokenInfoError('');
+                                }
                               }}
                               className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
-                              placeholder="Token mint address"
+                              placeholder="Enter token mint address (e.g., jNxbTC13RDwQPbwSBomrQ6...)"
                             />
+                            
+                            {/* Token Info Display */}
+                            {isLoadingTokenInfo && (
+                              <div className="mt-2 p-3 bg-blue-500/20 border border-blue-500/30 rounded">
+                                <div className="flex items-center space-x-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                                  <span className="text-blue-300 text-sm">Fetching token information...</span>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {tokenInfo && !isLoadingTokenInfo && (
+                              <div className="mt-2 p-3 bg-green-500/20 border border-green-500/30 rounded">
+                                <h4 className="text-green-300 font-medium text-sm mb-2">✅ Token Information Found</h4>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <span className="text-gray-400">Name:</span>
+                                    <span className="text-white ml-1">{tokenInfo.name}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Symbol:</span>
+                                    <span className="text-white ml-1">{tokenInfo.symbol}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Decimals:</span>
+                                    <span className="text-white ml-1">{tokenInfo.decimals}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Supply:</span>
+                                    <span className="text-white ml-1">{tokenInfo.supply.toLocaleString()}</span>
+                                  </div>
+                                </div>
+                                {tokenInfo.description && (
+                                  <div className="mt-2">
+                                    <span className="text-gray-400 text-xs">Description:</span>
+                                    <p className="text-white text-xs mt-1">{tokenInfo.description}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {tokenInfoError && !isLoadingTokenInfo && (
+                              <div className="mt-2 p-3 bg-red-500/20 border border-red-500/30 rounded">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-red-400">❌</span>
+                                  <span className="text-red-300 text-sm">{tokenInfoError}</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -2103,7 +2216,10 @@ const LaunchCollectionPage: React.FC = () => {
                     <label className="block text-white text-sm font-medium mb-3">Advanced Requirements</label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 rounded p-4">
                       <div>
-                        <label className="block text-white text-sm font-medium mb-2">Min Followers</label>
+                        <label className="block text-white text-sm font-medium mb-2">
+                          Min Followers
+                          <span className="text-gray-400 text-xs ml-2">(Minimum social media followers required)</span>
+                        </label>
                         <input
                           type="number"
                           value={phase.requirements?.minFollowers || 0}
@@ -2120,11 +2236,14 @@ const LaunchCollectionPage: React.FC = () => {
                             setWhitelistPhases(newPhases);
                           }}
                           className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
-                          placeholder="Minimum followers"
+                          placeholder="e.g., 1000 (minimum followers needed)"
                         />
                       </div>
                       <div>
-                        <label className="block text-white text-sm font-medium mb-2">Account Age (days)</label>
+                        <label className="block text-white text-sm font-medium mb-2">
+                          Account Age (days)
+                          <span className="text-gray-400 text-xs ml-2">(Minimum account age in days)</span>
+                        </label>
                         <input
                           type="number"
                           value={phase.requirements?.accountAge || 0}
@@ -2141,7 +2260,7 @@ const LaunchCollectionPage: React.FC = () => {
                             setWhitelistPhases(newPhases);
                           }}
                           className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
-                          placeholder="Minimum account age"
+                          placeholder="e.g., 30 (minimum days old)"
                         />
                       </div>
                       <div className="flex items-center">
@@ -2162,7 +2281,10 @@ const LaunchCollectionPage: React.FC = () => {
                           }}
                           className="mr-2"
                         />
-                        <label className="text-white text-sm">Verified Account Required</label>
+                        <label className="text-white text-sm">
+                          Verified Account Required
+                          <span className="text-gray-400 text-xs ml-2">(Account must be verified on social platform)</span>
+                        </label>
                       </div>
                     </div>
                   </div>
