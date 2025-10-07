@@ -12,6 +12,7 @@ import { RealMetaplexNFTService } from './real-metaplex-nft-service';
 import { metaplexNFTService, NFTMetadata } from './metaplex-nft-service';
 import { realNFTMintingService, RealNFTMetadata } from './real-nft-minting-service';
 import { splNFTService } from './spl-nft-service';
+import { collectionService } from './collection-service';
 import nftGeneratorRoutes from './nft-generator-routes';
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
@@ -1586,6 +1587,221 @@ app.post('/api/mint-spl-nft', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to mint NFT'
+    });
+  }
+});
+
+// Collection endpoints
+app.post('/api/create-collection', async (req, res) => {
+  try {
+    const { name, symbol, description, image, externalUrl, attributes, creatorAddress, totalSupply } = req.body;
+
+    if (!name || !symbol || !creatorAddress) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name, symbol, and creator address are required'
+      });
+    }
+
+    console.log('🏗️ Creating collection:', { name, symbol, creatorAddress });
+
+    // Load payer keypair
+    const payerPrivateKey = process.env.PAYER_PRIVATE_KEY;
+    if (!payerPrivateKey) {
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error: PAYER_PRIVATE_KEY not set'
+      });
+    }
+
+    const payerKeypair = Keypair.fromSecretKey(
+      Buffer.from(JSON.parse(payerPrivateKey))
+    );
+
+    const collectionMetadata = {
+      name,
+      symbol,
+      description: description || '',
+      image: image || '',
+      externalUrl: externalUrl || '',
+      attributes: attributes || [],
+      properties: {
+        files: image ? [{ uri: image, type: 'image/png' }] : [],
+        category: 'image',
+        creators: [{ address: creatorAddress, share: 100 }]
+      }
+    };
+
+    const result = await collectionService.createCollection(
+      payerKeypair,
+      creatorAddress,
+      collectionMetadata
+    );
+
+    if (result.success && result.collection) {
+      // Set total supply if provided
+      if (totalSupply && totalSupply > 0) {
+        collectionService.setCollectionTotalSupply(result.collection.id, totalSupply);
+        result.collection.totalSupply = totalSupply;
+      }
+
+      res.json({
+        success: true,
+        collection: result.collection,
+        signature: result.signature,
+        explorerUrl: result.explorerUrl
+      });
+    } else {
+      console.error('❌ Collection creation failed:', result);
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Unknown error occurred during collection creation'
+      });
+    }
+  } catch (error: any) {
+    console.error('Error creating collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to create collection'
+    });
+  }
+});
+
+// Get all collections
+app.get('/api/collections', (req, res) => {
+  try {
+    const collections = collectionService.getCollections();
+    res.json({
+      success: true,
+      collections
+    });
+  } catch (error: any) {
+    console.error('Error getting collections:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get collections'
+    });
+  }
+});
+
+// Get collection by ID
+app.get('/api/collections/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const collection = collectionService.getCollectionById(id);
+    
+    if (collection) {
+      const stats = collectionService.getCollectionStats(id);
+      res.json({
+        success: true,
+        collection: {
+          ...collection,
+          stats
+        }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+    }
+  } catch (error: any) {
+    console.error('Error getting collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get collection'
+    });
+  }
+});
+
+// Mint NFT from collection
+app.post('/api/mint-from-collection', async (req, res) => {
+  try {
+    const { collectionId, name, symbol, description, image, attributes, ownerAddress } = req.body;
+
+    if (!collectionId || !name || !ownerAddress) {
+      return res.status(400).json({
+        success: false,
+        error: 'Collection ID, name, and owner address are required'
+      });
+    }
+
+    // Check if collection exists and can mint
+    const collection = collectionService.getCollectionById(collectionId);
+    if (!collection) {
+      return res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+    }
+
+    if (!collectionService.canMint(collectionId, 1)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Collection cannot mint more NFTs (supply limit reached)'
+      });
+    }
+
+    console.log('🎨 Minting NFT from collection:', { collectionId, name, ownerAddress });
+
+    // Load payer keypair
+    const payerPrivateKey = process.env.PAYER_PRIVATE_KEY;
+    if (!payerPrivateKey) {
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error: PAYER_PRIVATE_KEY not set'
+      });
+    }
+
+    const payerKeypair = Keypair.fromSecretKey(
+      Buffer.from(JSON.parse(payerPrivateKey))
+    );
+
+    const ownerPublicKey = new PublicKey(ownerAddress);
+
+    const metadata = {
+      name,
+      symbol: symbol || collection.symbol,
+      description: description || '',
+      image: image || '',
+      attributes: attributes || [],
+      collection: {
+        name: collection.name,
+        family: collection.symbol
+      }
+    };
+
+    const result = await splNFTService.createNFT(
+      payerKeypair,
+      ownerPublicKey,
+      metadata
+    );
+
+    if (result.success) {
+      // Increment collection supply
+      collectionService.incrementCollectionSupply(collectionId, 1);
+
+      res.json({
+        success: true,
+        mint: result.mint,
+        tokenAccount: result.tokenAccount,
+        signature: result.signature,
+        metadata: result.metadata,
+        collection: collection,
+        explorerUrl: `https://explorer.analos.com/tx/${result.signature}`
+      });
+    } else {
+      console.error('❌ NFT minting from collection failed:', result);
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Unknown error occurred during NFT minting'
+      });
+    }
+  } catch (error: any) {
+    console.error('Error minting NFT from collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to mint NFT from collection'
     });
   }
 });

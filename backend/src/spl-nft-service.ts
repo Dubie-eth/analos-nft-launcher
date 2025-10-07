@@ -24,6 +24,10 @@ export interface NFTMetadata {
   description: string;
   image: string;
   attributes?: Array<{ trait_type: string; value: string }>;
+  collection?: {
+    name: string;
+    family: string;
+  };
 }
 
 export interface MintNFTResult {
