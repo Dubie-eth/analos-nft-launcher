@@ -1938,28 +1938,58 @@ const LaunchCollectionPage: React.FC = () => {
             {/* Upload Section */}
             <div className="bg-white/10 rounded-xl p-6 border border-white/20">
               <h3 className="text-xl font-semibold text-white mb-4">📁 Upload Trait Files</h3>
-              <div className="text-center mb-6">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*,.zip"
-                  onChange={handleTraitFileUpload}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isGenerating}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-bold rounded-lg cursor-pointer transition-all duration-200"
-                >
-                  {isGenerating ? '🔄 Processing...' : '📁 Upload Trait Files'}
-                </button>
-                <p className="text-gray-300 text-sm mt-2">
-                  Upload individual images or ZIP files with organized layers
-                </p>
-                <p className="text-gray-400 text-xs mt-1">
-                  Supported: PNG, JPG, ZIP files with folder structure
-                </p>
+              
+              {/* Upload Options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Individual Files Upload */}
+                <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                  <h4 className="text-white font-semibold mb-2">📄 Individual Files</h4>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,.zip"
+                    onChange={handleTraitFileUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isGenerating}
+                    className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 text-white font-semibold rounded-lg cursor-pointer transition-all duration-200"
+                  >
+                    📁 Upload Files
+                  </button>
+                  <p className="text-gray-400 text-xs mt-2">
+                    Upload individual PNG, JPG, or ZIP files
+                  </p>
+                </div>
+
+                {/* Folder Upload */}
+                <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10">
+                  <h4 className="text-white font-semibold mb-2">📂 Folder Upload</h4>
+                  <button
+                    onClick={() => {
+                      // Create a new file input for folder upload
+                      const folderInput = document.createElement('input');
+                      folderInput.type = 'file';
+                      folderInput.multiple = true;
+                      folderInput.webkitdirectory = true;
+                      folderInput.directory = true;
+                      folderInput.onchange = (e) => {
+                        const files = Array.from((e.target as HTMLInputElement).files || []);
+                        handleTraitFileUpload({ target: { files } } as any);
+                      };
+                      folderInput.click();
+                    }}
+                    disabled={isGenerating}
+                    className="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white font-semibold rounded-lg cursor-pointer transition-all duration-200"
+                  >
+                    📂 Upload Folder
+                  </button>
+                  <p className="text-gray-400 text-xs mt-2">
+                    Upload entire folder with organized layers
+                  </p>
+                </div>
               </div>
 
               {/* Generation Progress */}
