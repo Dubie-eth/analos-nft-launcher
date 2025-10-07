@@ -40,6 +40,7 @@ export class BlockchainDataService {
   // Cache to reduce blockchain calls
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_DURATION = 300000; // 5 minutes cache - much longer to reduce polling
+  private readonly NOT_FOUND_CACHE_DURATION = 600000; // 10 minutes cache for "not found" results
   
   // Rate limiting to prevent infinite loops
   private callCounts: Map<string, { count: number; timestamp: number }> = new Map();
@@ -100,7 +101,10 @@ export class BlockchainDataService {
   // Cache helper methods
   private getFromCache(key: string): any | null {
     const cached = this.cache.get(key);
-    if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+    const isNotFoundCache = key.startsWith('not_found_');
+    const cacheDuration = isNotFoundCache ? this.NOT_FOUND_CACHE_DURATION : this.CACHE_DURATION;
+    
+    if (cached && (Date.now() - cached.timestamp) < cacheDuration) {
       console.log('📋 Using cached data for:', key);
       return cached.data;
     }
@@ -160,13 +164,30 @@ export class BlockchainDataService {
       if (cachedData) {
         return cachedData;
       }
+      
+      // Check if we've already determined this collection doesn't exist
+      const notFoundCacheKey = `not_found_${cacheKey}`;
+      const notFoundCached = this.getFromCache(notFoundCacheKey);
+      if (notFoundCached) {
+        console.log('📋 Using cached "not found" result for:', collectionName);
+        return null;
+      }
 
       console.log('🔗 Fetching real blockchain data for collection:', collectionName);
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'los-bros' || collectionName === 'Launch On LOS' || collectionName === 'losbros') {
-        actualCollectionName = 'The LosBros';
+      const collectionNameMappings: { [key: string]: string } = {
+        'launch-on-los': 'The LosBros',
+        'the-losbros': 'The LosBros',
+        'los-bros': 'The LosBros',
+        'Launch On LOS': 'The LosBros',
+        'losbros': 'The LosBros',
+        'the-los-bros': 'The LosBros'
+      };
+      
+      if (collectionNameMappings[collectionName]) {
+        actualCollectionName = collectionNameMappings[collectionName];
         console.log('🔄 Mapped collection name from', collectionName, 'to', actualCollectionName);
       }
       
@@ -174,9 +195,15 @@ export class BlockchainDataService {
       const collectionConfig = await adminControlService.getCollection(actualCollectionName);
       if (!collectionConfig) {
         console.log('❌ Collection not found in admin control service:', collectionName, '->', actualCollectionName);
-        // Return null and cache the null result to prevent repeated calls
+        console.log('📋 Available collections in admin service:', Array.from((adminControlService as any).collections.keys()));
+        // Return null and cache the null result for a longer duration to prevent repeated calls
         this.cache.set(cacheKey, {
           data: null,
+          timestamp: Date.now()
+        });
+        // Also add a separate cache entry for "not found" results with longer duration
+        this.cache.set(`not_found_${cacheKey}`, {
+          data: true, // Just a flag that it's not found
           timestamp: Date.now()
         });
         return null;
@@ -213,10 +240,15 @@ export class BlockchainDataService {
           if (launchedCollections) {
             try {
               const collections = JSON.parse(launchedCollections);
-              const matchingCollection = collections.find((c: any) => 
-                c.name === actualCollectionName || 
-                c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase().replace(/\s+/g, '-')
-              );
+              const matchingCollection = collections.find((c: any) => {
+                // Check exact name match first
+                if (c.name === actualCollectionName) return true;
+                // Check URL slug match
+                if (c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase().replace(/\s+/g, '-')) return true;
+                // Check mapped name match
+                if (collectionNameMappings[collectionName] && c.name === collectionNameMappings[collectionName]) return true;
+                return false;
+              });
               
               if (matchingCollection && matchingCollection.signature) {
                 // For now, use the signature as a reference - in a real implementation,
@@ -244,10 +276,15 @@ export class BlockchainDataService {
       if (launchedCollections) {
         try {
           const collections = JSON.parse(launchedCollections);
-          const matchingCollection = collections.find((c: any) => 
-            c.name === actualCollectionName || 
-            c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase().replace(/\s+/g, '-')
-          );
+          const matchingCollection = collections.find((c: any) => {
+            // Check exact name match first
+            if (c.name === actualCollectionName) return true;
+            // Check URL slug match
+            if (c.name.toLowerCase().replace(/\s+/g, '-') === collectionName.toLowerCase().replace(/\s+/g, '-')) return true;
+            // Check mapped name match
+            if (collectionNameMappings[collectionName] && c.name === collectionNameMappings[collectionName]) return true;
+            return false;
+          });
           
           if (matchingCollection) {
             console.log(`📊 Found deployed collection: ${matchingCollection.name}`);
