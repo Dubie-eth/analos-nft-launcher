@@ -2907,6 +2907,200 @@ app.post('/api/mint-real-nft', async (req, res) => {
   }
 });
 
+// Manual Reveal API Endpoints
+
+// Get NFTs for a collection
+app.get('/api/collections/:collectionId/nfts', (req, res) => {
+  const { collectionId } = req.params;
+  const adminWallet = req.headers['x-admin-wallet'] as string;
+  
+  if (!adminWallet) {
+    return res.status(401).json({ success: false, error: 'Admin wallet required' });
+  }
+  
+  try {
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Get NFTs from collection data or generate mock data
+    const nfts = collection.mintedNFTs || [];
+    
+    res.json({
+      success: true,
+      nfts: nfts.map((nft: any) => ({
+        id: nft.id,
+        mintAddress: nft.mintAddress,
+        tokenId: nft.tokenId,
+        ownerAddress: nft.ownerAddress,
+        mintTime: nft.mintTime,
+        currentMetadata: nft.metadata,
+        placeholderImage: collection.delayedReveal?.placeholderImage || '',
+        isRevealed: nft.isRevealed || false,
+        revealTime: nft.revealTime
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching NFTs:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch NFTs' });
+  }
+});
+
+// Update NFT metadata
+app.put('/api/nfts/:nftId/metadata', (req, res) => {
+  const { nftId } = req.params;
+  const { metadata, collectionId } = req.body;
+  const adminWallet = req.headers['x-admin-wallet'] as string;
+  
+  if (!adminWallet) {
+    return res.status(401).json({ success: false, error: 'Admin wallet required' });
+  }
+  
+  try {
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Update NFT metadata
+    if (!collection.mintedNFTs) {
+      collection.mintedNFTs = [];
+    }
+    
+    const nftIndex = collection.mintedNFTs.findIndex((nft: any) => nft.id === nftId);
+    if (nftIndex === -1) {
+      return res.status(404).json({ success: false, error: 'NFT not found' });
+    }
+    
+    collection.mintedNFTs[nftIndex].metadata = { ...collection.mintedNFTs[nftIndex].metadata, ...metadata };
+    
+    res.json({
+      success: true,
+      message: 'NFT metadata updated successfully',
+      nft: collection.mintedNFTs[nftIndex]
+    });
+  } catch (error) {
+    console.error('Error updating NFT metadata:', error);
+    res.status(500).json({ success: false, error: 'Failed to update NFT metadata' });
+  }
+});
+
+// Reveal single NFT
+app.post('/api/nfts/:nftId/reveal', (req, res) => {
+  const { nftId } = req.params;
+  const { collectionId, revealTime } = req.body;
+  const adminWallet = req.headers['x-admin-wallet'] as string;
+  
+  if (!adminWallet) {
+    return res.status(401).json({ success: false, error: 'Admin wallet required' });
+  }
+  
+  try {
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Reveal NFT
+    if (!collection.mintedNFTs) {
+      collection.mintedNFTs = [];
+    }
+    
+    const nftIndex = collection.mintedNFTs.findIndex((nft: any) => nft.id === nftId);
+    if (nftIndex === -1) {
+      return res.status(404).json({ success: false, error: 'NFT not found' });
+    }
+    
+    collection.mintedNFTs[nftIndex].isRevealed = true;
+    collection.mintedNFTs[nftIndex].revealTime = revealTime || Date.now();
+    
+    // Update collection revealed count
+    collection.revealedCount = (collection.revealedCount || 0) + 1;
+    
+    res.json({
+      success: true,
+      message: 'NFT revealed successfully',
+      nft: collection.mintedNFTs[nftIndex]
+    });
+  } catch (error) {
+    console.error('Error revealing NFT:', error);
+    res.status(500).json({ success: false, error: 'Failed to reveal NFT' });
+  }
+});
+
+// Bulk reveal NFTs
+app.post('/api/collections/:collectionId/bulk-reveal', (req, res) => {
+  const { collectionId } = req.params;
+  const { nftIds, revealTime } = req.body;
+  const adminWallet = req.headers['x-admin-wallet'] as string;
+  
+  if (!adminWallet) {
+    return res.status(401).json({ success: false, error: 'Admin wallet required' });
+  }
+  
+  if (!Array.isArray(nftIds) || nftIds.length === 0) {
+    return res.status(400).json({ success: false, error: 'NFT IDs array required' });
+  }
+  
+  try {
+    const collection = collections.get(collectionId);
+    if (!collection) {
+      return res.status(404).json({ success: false, error: 'Collection not found' });
+    }
+    
+    // Bulk reveal NFTs
+    if (!collection.mintedNFTs) {
+      collection.mintedNFTs = [];
+    }
+    
+    let revealedCount = 0;
+    nftIds.forEach((nftId: string) => {
+      const nftIndex = collection.mintedNFTs.findIndex((nft: any) => nft.id === nftId);
+      if (nftIndex !== -1 && !collection.mintedNFTs[nftIndex].isRevealed) {
+        collection.mintedNFTs[nftIndex].isRevealed = true;
+        collection.mintedNFTs[nftIndex].revealTime = revealTime || Date.now();
+        revealedCount++;
+      }
+    });
+    
+    // Update collection revealed count
+    collection.revealedCount = (collection.revealedCount || 0) + revealedCount;
+    
+    res.json({
+      success: true,
+      message: `${revealedCount} NFTs revealed successfully`,
+      revealedCount
+    });
+  } catch (error) {
+    console.error('Error bulk revealing NFTs:', error);
+    res.status(500).json({ success: false, error: 'Failed to bulk reveal NFTs' });
+  }
+});
+
+// Image Upload endpoint
+app.post('/api/upload-image', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+
+    // For now, return a mock URL
+    // In production, you would upload to IPFS, AWS S3, or another storage service
+    const mockUrl = `https://analos-nft-launcher-production-f3da.up.railway.app/images/${req.file.filename}`;
+    
+    res.json({
+      success: true,
+      url: mockUrl,
+      filename: req.file.filename,
+      size: req.file.size
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image' });
+  }
+});
+
 // Live Development API Endpoints
 
 // Get live development status for a collection

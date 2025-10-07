@@ -41,6 +41,10 @@ export class BlockchainDataService {
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
   private readonly CACHE_DURATION = 300000; // 5 minutes cache - much longer to reduce polling
   
+  // Rate limiting to prevent infinite loops
+  private callCounts: Map<string, { count: number; timestamp: number }> = new Map();
+  private readonly MAX_CALLS_PER_MINUTE = 5;
+  
   // Track initialization to prevent duplicate logging
   private static initializationLogged = false;
   
@@ -125,6 +129,31 @@ export class BlockchainDataService {
    */
   async getCollectionData(collectionName: string): Promise<BlockchainCollectionData | null> {
     try {
+      // Rate limiting check
+      const now = Date.now();
+      const callKey = `calls_${collectionName}`;
+      const callData = this.callCounts.get(callKey);
+      
+      if (callData) {
+        // Reset counter if it's been more than a minute
+        if (now - callData.timestamp > 60000) {
+          this.callCounts.set(callKey, { count: 1, timestamp: now });
+        } else {
+          // Check if we've exceeded the rate limit
+          if (callData.count >= this.MAX_CALLS_PER_MINUTE) {
+            console.warn(`⚠️ Rate limit exceeded for collection ${collectionName}, returning cached data`);
+            const cacheKey = `collection_${collectionName}`;
+            const cachedData = this.getFromCache(cacheKey);
+            return cachedData || null;
+          }
+          // Increment call count
+          this.callCounts.set(callKey, { count: callData.count + 1, timestamp: callData.timestamp });
+        }
+      } else {
+        // First call for this collection
+        this.callCounts.set(callKey, { count: 1, timestamp: now });
+      }
+      
       // Check cache first
       const cacheKey = `collection_${collectionName}`;
       const cachedData = this.getFromCache(cacheKey);
@@ -136,7 +165,7 @@ export class BlockchainDataService {
       
       // Handle URL slug to collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'Launch On LOS') {
+      if (collectionName === 'launch-on-los' || collectionName === 'the-losbros' || collectionName === 'los-bros' || collectionName === 'Launch On LOS') {
         actualCollectionName = 'The LosBros';
       }
       
@@ -144,6 +173,11 @@ export class BlockchainDataService {
       const collectionConfig = await adminControlService.getCollection(actualCollectionName);
       if (!collectionConfig) {
         console.log('❌ Collection not found in admin control service:', collectionName, '->', actualCollectionName);
+        // Return null and cache the null result to prevent repeated calls
+        this.cache.set(cacheKey, {
+          data: null,
+          timestamp: Date.now()
+        });
         return null;
       }
 
