@@ -108,6 +108,20 @@ interface BondingCurveConfig {
     steepness?: number;
     inflectionPoint?: number;
     maxSupply?: number;
+    // Custom curve parameters
+    pricePoints?: Array<{ supply: number; price: number }>;
+    formula?: string;
+    customFormula?: {
+      enabled: boolean;
+      expression: string;
+      variables: { [key: string]: number };
+    };
+    // Advanced parameters
+    priceCap?: number;
+    priceFloor?: number;
+    velocity?: number;
+    acceleration?: number;
+    damping?: number;
   };
 }
 
@@ -172,6 +186,36 @@ const LaunchCollectionPage: React.FC = () => {
     endingPrice: 1.0
   });
   const [showBondingCurveSelector, setShowBondingCurveSelector] = useState(false);
+  const [showCustomCurveBuilder, setShowCustomCurveBuilder] = useState(false);
+  const [customCurveConfig, setCustomCurveConfig] = useState<BondingCurveConfig>({
+    type: 'custom',
+    name: 'Custom Curve',
+    description: 'Your custom pricing model',
+    startingPrice: 0.01,
+    endingPrice: 2.0,
+    curveParameters: {
+      pricePoints: [
+        { supply: 0, price: 0.01 },
+        { supply: 100, price: 0.5 },
+        { supply: 500, price: 1.0 },
+        { supply: 1000, price: 2.0 }
+      ],
+      customFormula: {
+        enabled: false,
+        expression: 'basePrice * (1 + (supply / maxSupply) ^ steepness)',
+        variables: {
+          basePrice: 0.01,
+          steepness: 2,
+          maxSupply: 1000
+        }
+      },
+      priceCap: 10.0,
+      priceFloor: 0.001,
+      velocity: 1.0,
+      acceleration: 0.1,
+      damping: 0.9
+    }
+  });
 
   // Available bonding curve options
   const bondingCurveOptions: BondingCurveConfig[] = [
@@ -242,10 +286,54 @@ const LaunchCollectionPage: React.FC = () => {
   };
 
   const handleBondingCurveSelection = (curve: BondingCurveConfig) => {
-    setBondingCurveConfig(curve);
-    setShowBondingCurveSelector(false);
-    // Move to step 2 after selecting bonding curve
+    if (curve.type === 'custom') {
+      setShowCustomCurveBuilder(true);
+      setShowBondingCurveSelector(false);
+    } else {
+      setBondingCurveConfig(curve);
+      setShowBondingCurveSelector(false);
+      // Move to step 2 after selecting bonding curve
+      setCurrentStep(2);
+    }
+  };
+
+  const handleCustomCurveSave = () => {
+    setBondingCurveConfig(customCurveConfig);
+    setShowCustomCurveBuilder(false);
     setCurrentStep(2);
+  };
+
+  const addPricePoint = () => {
+    const newPoint = { supply: 0, price: 0.01 };
+    setCustomCurveConfig(prev => ({
+      ...prev,
+      curveParameters: {
+        ...prev.curveParameters,
+        pricePoints: [...(prev.curveParameters?.pricePoints || []), newPoint]
+      }
+    }));
+  };
+
+  const removePricePoint = (index: number) => {
+    setCustomCurveConfig(prev => ({
+      ...prev,
+      curveParameters: {
+        ...prev.curveParameters,
+        pricePoints: prev.curveParameters?.pricePoints?.filter((_, i) => i !== index) || []
+      }
+    }));
+  };
+
+  const updatePricePoint = (index: number, field: 'supply' | 'price', value: number) => {
+    setCustomCurveConfig(prev => ({
+      ...prev,
+      curveParameters: {
+        ...prev.curveParameters,
+        pricePoints: prev.curveParameters?.pricePoints?.map((point, i) => 
+          i === index ? { ...point, [field]: value } : point
+        ) || []
+      }
+    }));
   };
 
   const handleTraitUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -2106,6 +2194,357 @@ const LaunchCollectionPage: React.FC = () => {
                 >
                   Back to Basic Info
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Curve Builder Modal */}
+        {showCustomCurveBuilder && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-br from-purple-900 to-blue-900 rounded-2xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-white mb-2">⚙️ Build Your Custom Bonding Curve</h2>
+                <p className="text-gray-300">Define your own pricing model with complete control</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column - Configuration */}
+                <div className="space-y-6">
+                  {/* Basic Settings */}
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <h3 className="text-white font-semibold text-lg mb-4">📊 Basic Settings</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Curve Name</label>
+                        <input
+                          type="text"
+                          value={customCurveConfig.name}
+                          onChange={(e) => setCustomCurveConfig(prev => ({ ...prev, name: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          placeholder="e.g., My Custom Curve"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Description</label>
+                        <textarea
+                          value={customCurveConfig.description}
+                          onChange={(e) => setCustomCurveConfig(prev => ({ ...prev, description: e.target.value }))}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          rows={2}
+                          placeholder="Describe your pricing model..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Starting Price</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={customCurveConfig.startingPrice}
+                            onChange={(e) => setCustomCurveConfig(prev => ({ ...prev, startingPrice: parseFloat(e.target.value) || 0 }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Ending Price</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={customCurveConfig.endingPrice}
+                            onChange={(e) => setCustomCurveConfig(prev => ({ ...prev, endingPrice: parseFloat(e.target.value) || 0 }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price Points */}
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-white font-semibold text-lg">📍 Price Points</h3>
+                      <button
+                        onClick={addPricePoint}
+                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        ➕ Add Point
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {customCurveConfig.curveParameters?.pricePoints?.map((point, index) => (
+                        <div key={index} className="flex items-center space-x-3 bg-white/5 rounded p-3">
+                          <div className="flex-1">
+                            <label className="block text-white text-xs font-medium mb-1">Supply</label>
+                            <input
+                              type="number"
+                              value={point.supply}
+                              onChange={(e) => updatePricePoint(index, 'supply', parseInt(e.target.value) || 0)}
+                              className="w-full px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-white text-xs font-medium mb-1">Price</label>
+                            <input
+                              type="number"
+                              step="0.001"
+                              value={point.price}
+                              onChange={(e) => updatePricePoint(index, 'price', parseFloat(e.target.value) || 0)}
+                              className="w-full px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-sm"
+                            />
+                          </div>
+                          <button
+                            onClick={() => removePricePoint(index)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Advanced Parameters */}
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <h3 className="text-white font-semibold text-lg mb-4">🔧 Advanced Parameters</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Price Cap</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={customCurveConfig.curveParameters?.priceCap || 0}
+                            onChange={(e) => setCustomCurveConfig(prev => ({
+                              ...prev,
+                              curveParameters: {
+                                ...prev.curveParameters,
+                                priceCap: parseFloat(e.target.value) || 0
+                              }
+                            }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Price Floor</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={customCurveConfig.curveParameters?.priceFloor || 0}
+                            onChange={(e) => setCustomCurveConfig(prev => ({
+                              ...prev,
+                              curveParameters: {
+                                ...prev.curveParameters,
+                                priceFloor: parseFloat(e.target.value) || 0
+                              }
+                            }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Velocity</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={customCurveConfig.curveParameters?.velocity || 0}
+                            onChange={(e) => setCustomCurveConfig(prev => ({
+                              ...prev,
+                              curveParameters: {
+                                ...prev.curveParameters,
+                                velocity: parseFloat(e.target.value) || 0
+                              }
+                            }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Acceleration</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={customCurveConfig.curveParameters?.acceleration || 0}
+                            onChange={(e) => setCustomCurveConfig(prev => ({
+                              ...prev,
+                              curveParameters: {
+                                ...prev.curveParameters,
+                                acceleration: parseFloat(e.target.value) || 0
+                              }
+                            }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Damping</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={customCurveConfig.curveParameters?.damping || 0}
+                            onChange={(e) => setCustomCurveConfig(prev => ({
+                              ...prev,
+                              curveParameters: {
+                                ...prev.curveParameters,
+                                damping: parseFloat(e.target.value) || 0
+                              }
+                            }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Custom Formula */}
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <div className="flex items-center mb-4">
+                      <input
+                        type="checkbox"
+                        checked={customCurveConfig.curveParameters?.customFormula?.enabled || false}
+                        onChange={(e) => setCustomCurveConfig(prev => ({
+                          ...prev,
+                          curveParameters: {
+                            ...prev.curveParameters,
+                            customFormula: {
+                              ...prev.curveParameters?.customFormula!,
+                              enabled: e.target.checked
+                            }
+                          }
+                        }))}
+                        className="mr-2"
+                      />
+                      <h3 className="text-white font-semibold text-lg">🧮 Custom Formula</h3>
+                    </div>
+                    
+                    {customCurveConfig.curveParameters?.customFormula?.enabled && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Formula Expression</label>
+                          <input
+                            type="text"
+                            value={customCurveConfig.curveParameters?.customFormula?.expression || ''}
+                            onChange={(e) => setCustomCurveConfig(prev => ({
+                              ...prev,
+                              curveParameters: {
+                                ...prev.curveParameters,
+                                customFormula: {
+                                  ...prev.curveParameters?.customFormula!,
+                                  expression: e.target.value
+                                }
+                              }
+                            }))}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                            placeholder="e.g., basePrice * (1 + (supply / maxSupply) ^ steepness)"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-white text-sm font-medium mb-2">Base Price</label>
+                            <input
+                              type="number"
+                              step="0.001"
+                              value={customCurveConfig.curveParameters?.customFormula?.variables?.basePrice || 0}
+                              onChange={(e) => setCustomCurveConfig(prev => ({
+                                ...prev,
+                                curveParameters: {
+                                  ...prev.curveParameters,
+                                  customFormula: {
+                                    ...prev.curveParameters?.customFormula!,
+                                    variables: {
+                                      ...prev.curveParameters?.customFormula?.variables!,
+                                      basePrice: parseFloat(e.target.value) || 0
+                                    }
+                                  }
+                                }
+                              }))}
+                              className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-white text-sm font-medium mb-2">Steepness</label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={customCurveConfig.curveParameters?.customFormula?.variables?.steepness || 0}
+                              onChange={(e) => setCustomCurveConfig(prev => ({
+                                ...prev,
+                                curveParameters: {
+                                  ...prev.curveParameters,
+                                  customFormula: {
+                                    ...prev.curveParameters?.customFormula!,
+                                    variables: {
+                                      ...prev.curveParameters?.customFormula?.variables!,
+                                      steepness: parseFloat(e.target.value) || 0
+                                    }
+                                  }
+                                }
+                              }))}
+                              className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column - Preview */}
+                <div className="space-y-6">
+                  <div className="bg-white/10 rounded-xl p-6">
+                    <h3 className="text-white font-semibold text-lg mb-4">📈 Curve Preview</h3>
+                    <div className="bg-white/5 rounded-lg p-4 mb-4">
+                      <div className="text-center text-white/80 text-sm space-y-2">
+                        <div className="flex justify-between">
+                          <span>Starting Price:</span>
+                          <span className="text-green-400">{customCurveConfig.startingPrice} {collectionConfig.pricingToken}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Ending Price:</span>
+                          <span className="text-green-400">{customCurveConfig.endingPrice} {collectionConfig.pricingToken}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Price Points:</span>
+                          <span className="text-blue-400">{customCurveConfig.curveParameters?.pricePoints?.length || 0} points</span>
+                        </div>
+                        {customCurveConfig.curveParameters?.priceCap && (
+                          <div className="flex justify-between">
+                            <span>Price Cap:</span>
+                            <span className="text-red-400">{customCurveConfig.curveParameters.priceCap} {collectionConfig.pricingToken}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Simple curve visualization */}
+                    <div className="bg-white/5 rounded-lg p-4">
+                      <div className="text-white text-sm mb-2">Price Points:</div>
+                      <div className="space-y-1">
+                        {customCurveConfig.curveParameters?.pricePoints?.map((point, index) => (
+                          <div key={index} className="flex justify-between text-xs text-white/70">
+                            <span>Supply {point.supply}:</span>
+                            <span>{point.price} {collectionConfig.pricingToken}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-4">
+                    <button
+                      onClick={handleCustomCurveSave}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200"
+                    >
+                      ✅ Save Custom Curve
+                    </button>
+                    <button
+                      onClick={() => setShowCustomCurveBuilder(false)}
+                      className="w-full bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200"
+                    >
+                      ← Back to Curve Selection
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
