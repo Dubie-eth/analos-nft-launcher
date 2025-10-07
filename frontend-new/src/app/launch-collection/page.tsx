@@ -72,6 +72,9 @@ interface NFTGenerationConfig {
   generationEnabled: boolean;
   previewCount: number; // Number of NFTs to generate for preview
   isAdminControlled: boolean; // Whether payment settings are controlled by admin
+  storageMethod: 'local' | 'pinata' | 'arweave'; // Storage method for generated NFTs
+  collectionSize: number; // Total number of NFTs in collection
+  perNftCost: number; // Cost per NFT (like Bueno.art)
 }
 
 interface CollectionSession {
@@ -214,10 +217,13 @@ const LaunchCollectionPage: React.FC = () => {
   const [nftGenerationConfig, setNftGenerationConfig] = useState<NFTGenerationConfig>({
     paymentType: 'percentage',
     percentageFee: 2.5, // 2.5% of each mint (admin controlled)
-    upfrontCost: 100, // 100 LOS upfront (Bueno.art style pricing)
+    upfrontCost: 0, // Calculated dynamically based on collection size and storage
     generationEnabled: false,
     previewCount: 10,
-    isAdminControlled: true // Payment settings controlled by admin wallet
+    isAdminControlled: true, // Payment settings controlled by admin wallet
+    storageMethod: 'local', // Default to local storage
+    collectionSize: 1000, // Default collection size
+    perNftCost: 0.1 // Default per-NFT cost in LOS (like Bueno.art)
   });
   
   // Layer processing and generation
@@ -689,6 +695,47 @@ const LaunchCollectionPage: React.FC = () => {
       setIsLoadingPrice(false);
     }
   };
+
+  // Dynamic pricing calculator (like Bueno.art)
+  const calculateUpfrontCost = (collectionSize: number, storageMethod: string, perNftCost: number): number => {
+    let baseCost = collectionSize * perNftCost;
+    
+    // Storage method multipliers
+    switch (storageMethod) {
+      case 'local':
+        return baseCost; // No additional cost for local storage
+      case 'pinata':
+        return baseCost * 1.2; // 20% premium for Pinata IPFS
+      case 'arweave':
+        return baseCost * 1.5; // 50% premium for Arweave permanent storage
+      default:
+        return baseCost;
+    }
+  };
+
+  // Update upfront cost when collection size or storage method changes
+  useEffect(() => {
+    const newUpfrontCost = calculateUpfrontCost(
+      nftGenerationConfig.collectionSize,
+      nftGenerationConfig.storageMethod,
+      nftGenerationConfig.perNftCost
+    );
+    
+    setNftGenerationConfig(prev => ({
+      ...prev,
+      upfrontCost: newUpfrontCost
+    }));
+  }, [nftGenerationConfig.collectionSize, nftGenerationConfig.storageMethod, nftGenerationConfig.perNftCost]);
+
+  // Sync collection size with main collection config
+  useEffect(() => {
+    if (collectionConfig.totalSupply && collectionConfig.totalSupply !== nftGenerationConfig.collectionSize) {
+      setNftGenerationConfig(prev => ({
+        ...prev,
+        collectionSize: collectionConfig.totalSupply
+      }));
+    }
+  }, [collectionConfig.totalSupply]);
 
   // Session Management Effects
   useEffect(() => {
@@ -1442,26 +1489,70 @@ const LaunchCollectionPage: React.FC = () => {
                   <div className="text-center">
                     <div className="text-2xl mb-2">💳</div>
                     <h4 className="text-white font-semibold mb-2">Upfront Payment</h4>
-                    <p className="text-gray-300 text-sm mb-3">Pay once for full generation</p>
-                    <div className="bg-white/10 rounded p-3">
-                      <div className="flex items-center justify-center space-x-2">
+                    <p className="text-gray-300 text-sm mb-3">Pay once based on collection size</p>
+                    
+                    {/* Collection Size Input */}
+                    <div className="mb-3">
+                      <label className="text-xs text-gray-400 block mb-1">Collection Size</label>
+                      <input
+                        type="number"
+                        value={nftGenerationConfig.collectionSize}
+                        onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, collectionSize: parseInt(e.target.value) || 0 }))}
+                        className="w-24 px-2 py-1 border rounded text-white text-sm text-center bg-white/20 border-white/30"
+                        min="1"
+                        max="10000"
+                        placeholder="1000"
+                      />
+                    </div>
+
+                    {/* Per-NFT Cost Input (Admin Only) */}
+                    {isAdminWallet && (
+                      <div className="mb-3">
+                        <label className="text-xs text-gray-400 block mb-1">Per-NFT Cost (LOS)</label>
                         <input
                           type="number"
-                          step="10"
-                          value={nftGenerationConfig.upfrontCost}
-                          onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, upfrontCost: parseFloat(e.target.value) || 0 }))}
-                          className={`w-20 px-2 py-1 border rounded text-white text-sm text-center ${
-                            isAdminWallet 
-                              ? 'bg-white/20 border-white/30' 
-                              : 'bg-gray-500/20 border-gray-500/30 cursor-not-allowed'
-                          }`}
+                          step="0.01"
+                          value={nftGenerationConfig.perNftCost}
+                          onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, perNftCost: parseFloat(e.target.value) || 0 }))}
+                          className="w-20 px-2 py-1 border rounded text-white text-sm text-center bg-white/20 border-white/30"
                           min="0"
-                          max="10000"
-                          disabled={!isAdminWallet}
+                          max="10"
+                          placeholder="0.1"
                         />
-                        <span className="text-white text-sm">LOS</span>
+                      </div>
+                    )}
+
+                    {/* Storage Method Selection */}
+                    <div className="mb-3">
+                      <label className="text-xs text-gray-400 block mb-1">Storage Method</label>
+                      <select
+                        value={nftGenerationConfig.storageMethod}
+                        onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, storageMethod: e.target.value as 'local' | 'pinata' | 'arweave' }))}
+                        className="w-full px-2 py-1 border rounded text-white text-sm bg-white/20 border-white/30"
+                      >
+                        <option value="local">Local Storage (Free)</option>
+                        <option value="pinata">Pinata IPFS (+20%)</option>
+                        <option value="arweave">Arweave Permanent (+50%)</option>
+                      </select>
+                    </div>
+
+                    {/* Calculated Total */}
+                    <div className="bg-white/10 rounded p-3">
+                      <div className="text-sm text-gray-300 mb-1">
+                        {nftGenerationConfig.collectionSize} NFTs × {nftGenerationConfig.perNftCost} LOS
+                        {nftGenerationConfig.storageMethod !== 'local' && (
+                          <span className="text-yellow-400">
+                            {' '}(+{nftGenerationConfig.storageMethod === 'pinata' ? '20%' : '50%'} storage)
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-center space-x-2">
+                        <span className="text-white font-bold text-lg">
+                          {nftGenerationConfig.upfrontCost.toFixed(2)} LOS
+                        </span>
                       </div>
                     </div>
+                    
                     <p className="text-xs text-gray-400 mt-2">One-time payment for all generation</p>
                     {losPriceData && (
                       <p className="text-xs text-blue-400 mt-1">
