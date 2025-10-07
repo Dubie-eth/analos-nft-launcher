@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
@@ -10,6 +11,7 @@ import RealNFTMintService from './real-nft-mint-service';
 import { RealMetaplexNFTService } from './real-metaplex-nft-service';
 import { metaplexNFTService, NFTMetadata } from './metaplex-nft-service';
 import { realNFTMintingService, RealNFTMetadata } from './real-nft-minting-service';
+import { splNFTService } from './spl-nft-service';
 import nftGeneratorRoutes from './nft-generator-routes';
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
@@ -1517,6 +1519,73 @@ app.post('/api/mint', async (req, res) => {
   } catch (error) {
     console.error('Error in mint endpoint:', error);
     res.status(500).json({ success: false, error: 'Failed to mint NFT' });
+  }
+});
+
+// SPL NFT Minting endpoint (No custom program needed!)
+app.post('/api/mint-spl-nft', async (req, res) => {
+  try {
+    const { name, symbol, description, image, attributes, ownerAddress } = req.body;
+
+    if (!name || !ownerAddress) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name and owner address are required'
+      });
+    }
+
+    console.log('🎨 Minting SPL NFT:', { name, symbol, ownerAddress });
+
+    // Load payer keypair (you'll need to set this up)
+    const payerPrivateKey = process.env.PAYER_PRIVATE_KEY;
+    if (!payerPrivateKey) {
+      return res.status(500).json({
+        success: false,
+        error: 'Server configuration error: PAYER_PRIVATE_KEY not set'
+      });
+    }
+
+    const payerKeypair = Keypair.fromSecretKey(
+      Buffer.from(JSON.parse(payerPrivateKey))
+    );
+
+    const ownerPublicKey = new PublicKey(ownerAddress);
+
+    const metadata = {
+      name,
+      symbol: symbol || 'NFT',
+      description: description || '',
+      image: image || '',
+      attributes: attributes || []
+    };
+
+    const result = await splNFTService.createNFT(
+      payerKeypair,
+      ownerPublicKey,
+      metadata
+    );
+
+    if (result.success) {
+      res.json({
+        success: true,
+        mint: result.mint,
+        tokenAccount: result.tokenAccount,
+        signature: result.signature,
+        metadata: result.metadata,
+        explorerUrl: `https://explorer.analos.com/tx/${result.signature}`
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: result.error
+      });
+    }
+  } catch (error: any) {
+    console.error('Error minting SPL NFT:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to mint NFT'
+    });
   }
 });
 
