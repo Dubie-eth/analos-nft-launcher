@@ -2621,7 +2621,7 @@ const LaunchCollectionPage: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-300">Total Traits:</span>
-                        <span className="text-white">{traitFiles.length}</span>
+                        <span className="text-white">{traitCategories.reduce((sum, cat) => sum + (cat.files?.length || 0), 0)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-300">Max Combinations:</span>
