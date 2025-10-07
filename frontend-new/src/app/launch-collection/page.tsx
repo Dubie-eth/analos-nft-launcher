@@ -184,23 +184,50 @@ interface LaunchStep {
 // Utility function to clean up localStorage when quota exceeded
 const cleanupLocalStorage = () => {
   try {
-    // Clear old session data
+    console.log('🧹 Starting aggressive localStorage cleanup...');
+    
+    // Clear ALL session and generation data
     const keys = Object.keys(localStorage);
+    let cleanedCount = 0;
+    
     keys.forEach(key => {
-      if (key.startsWith('collection_session_') || key.startsWith('nft_generation_')) {
+      if (key.startsWith('collection_session_') || 
+          key.startsWith('nft_generation_') || 
+          key.startsWith('layer_') ||
+          key.startsWith('trait_') ||
+          key.startsWith('whitelist_') ||
+          key.startsWith('bonding_curve_')) {
         localStorage.removeItem(key);
+        cleanedCount++;
       }
     });
     
-    // Keep only recent collections (last 3)
+    // Keep only essential collection data (remove large arrays)
     const collections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
-    if (collections.length > 3) {
-      localStorage.setItem('launched_collections', JSON.stringify(collections.slice(-3)));
-    }
+    const minimalCollections = collections.map((collection: any) => ({
+      name: collection.name,
+      symbol: collection.symbol,
+      description: collection.description,
+      image: collection.image,
+      externalUrl: collection.externalUrl,
+      deployedAt: collection.deployedAt,
+      signature: collection.signature,
+      explorerUrl: collection.explorerUrl,
+      // Remove large data arrays
+      generatedNFTs: [],
+      layers: [],
+      traitCategories: []
+    }));
     
-    console.log('✅ localStorage cleaned up');
+    // Keep only last 2 collections
+    localStorage.setItem('launched_collections', JSON.stringify(minimalCollections.slice(-2)));
+    
+    console.log(`✅ localStorage cleaned up: removed ${cleanedCount} items, kept ${minimalCollections.length} collections`);
   } catch (error) {
     console.error('❌ Error cleaning localStorage:', error);
+    // If still failing, clear everything except current session
+    localStorage.clear();
+    console.log('🧹 localStorage completely cleared');
   }
 };
 
@@ -1315,21 +1342,41 @@ const LaunchCollectionPage: React.FC = () => {
         localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
       } catch (error) {
         if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-          console.warn('⚠️ localStorage quota exceeded, cleaning up old data...');
+          console.warn('⚠️ localStorage quota exceeded, performing aggressive cleanup...');
           
-          // Keep only the last 5 collections to free up space
-          const cleanedCollections = savedCollections.slice(-5);
-          localStorage.setItem('launched_collections', JSON.stringify(cleanedCollections));
-          
-          // Also clear old session data
+          // Clear ALL old session data first
           const keys = Object.keys(localStorage);
           keys.forEach(key => {
-            if (key.startsWith('collection_session_') || key.startsWith('nft_generation_')) {
+            if (key.startsWith('collection_session_') || 
+                key.startsWith('nft_generation_') || 
+                key.startsWith('layer_') ||
+                key.startsWith('trait_')) {
               localStorage.removeItem(key);
             }
           });
           
-          console.log('✅ localStorage cleaned up successfully');
+          // Keep only the current collection (most recent)
+          const minimalCollection = {
+            ...newCollection,
+            // Remove large unnecessary data
+            generatedNFTs: [],
+            layers: [],
+            traitCategories: [],
+            // Keep only essential data
+            name: newCollection.name,
+            symbol: newCollection.symbol,
+            description: newCollection.description,
+            image: newCollection.image,
+            externalUrl: newCollection.externalUrl,
+            deployedAt: newCollection.deployedAt,
+            signature: newCollection.signature,
+            explorerUrl: newCollection.explorerUrl
+          };
+          
+          // Try with minimal data
+          localStorage.setItem('launched_collections', JSON.stringify([minimalCollection]));
+          
+          console.log('✅ localStorage aggressively cleaned up, keeping only current collection');
         } else {
           throw error;
         }
