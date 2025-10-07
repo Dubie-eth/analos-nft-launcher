@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { anchorDeploymentService, CollectionConfig } from '@/lib/blockchain/anchor-deployment-service';
 import { simpleDeploymentService } from '@/lib/blockchain/simple-deployment-service';
+import { metaplexNFTService, NFTMetadata } from '@/lib/blockchain/metaplex-nft-service';
 import { adminControlService } from '@/lib/admin-control-service';
 import { Connection, Transaction } from '@solana/web3.js';
 
@@ -117,16 +118,29 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
         }
       );
 
-      // If Anchor deployment fails, try simple deployment as fallback
+      // If Anchor deployment fails, try Metaplex NFT creation as fallback
       if (!result.success) {
-        console.log('⚠️ Anchor deployment failed, trying simple deployment fallback...');
-        setDeploymentStatus('Trying alternative deployment method...');
+        console.log('⚠️ Anchor deployment failed, trying standard Solana NFT creation...');
+        setDeploymentStatus('Creating NFT using standard Solana/Metaplex approach...');
         
-        result = await simpleDeploymentService.deployCollection(
-          collectionAddress,
-          publicKey.toString(),
+        // Create proper NFT metadata
+        const nftMetadata: NFTMetadata = {
+          name: adminConfig.name || collectionAddress,
+          symbol: 'LBS',
+          description: adminConfig.description || `Analos NFT Collection: ${collectionAddress}`,
+          image: adminConfig.imageUrl || 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          attributes: [
+            { trait_type: 'Collection', value: 'Los Bros NFT' },
+            { trait_type: 'Network', value: 'Analos' },
+            { trait_type: 'Created', value: new Date().toISOString() }
+          ]
+        };
+
+        result = await metaplexNFTService.createNFT(
+          nftMetadata,
+          publicKey,
           async (transaction) => {
-            console.log('🔐 Signing simple deployment transaction');
+            console.log('🔐 Signing Metaplex NFT creation transaction');
             // Set recent blockhash
             const { blockhash } = await connection.getLatestBlockhash('confirmed');
             transaction.recentBlockhash = blockhash;
@@ -134,7 +148,7 @@ export default function CollectionDeployment({ collectionName, onDeploymentCompl
             
             // Use wallet adapter to sign and send
             const signature = await sendTransaction(transaction, connection);
-            console.log('✅ Simple deployment transaction signed:', signature);
+            console.log('✅ Metaplex NFT creation transaction signed:', signature);
             
             return signature;
           }
