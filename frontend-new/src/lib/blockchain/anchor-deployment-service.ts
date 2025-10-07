@@ -238,76 +238,37 @@ export class AnchorDeploymentService {
         max_supply: 10000 // Maximum NFTs that can be minted from this collection
       };
 
-      // Create a proper NFT using standard Solana/Metaplex Token Metadata
-      // This is exactly how everyone creates NFTs on Solana
-      
-      // Generate a new mint keypair for the NFT
-      const mintKeypair = Keypair.generate();
-      
-      // Create metadata account PDA
-      const [metadataPDA] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('metadata'),
-          this.TOKEN_METADATA_PROGRAM.toBuffer(),
-          mintKeypair.publicKey.toBuffer()
-        ],
-        this.TOKEN_METADATA_PROGRAM
-      );
-
-      // Create master edition PDA
-      const [masterEditionPDA] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from('metadata'),
-          this.TOKEN_METADATA_PROGRAM.toBuffer(),
-          mintKeypair.publicKey.toBuffer(),
-          Buffer.from('edition')
-        ],
-        this.TOKEN_METADATA_PROGRAM
-      );
-
-      // Create associated token account
-      const [associatedTokenAccount] = PublicKey.findProgramAddressSync(
-        [
-          walletPublicKey.toBuffer(),
-          new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA').toBuffer(),
-          mintKeypair.publicKey.toBuffer()
-        ],
-        new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL')
-      );
-
-      // Prepare metadata
-      const metadata = {
+      // Create a simple memo transaction for collection deployment
+      // This records the collection deployment on-chain without complex NFT creation
+      const memoData = Buffer.from(JSON.stringify({
+        type: 'collection_deployment',
         name: collectionData.name,
         symbol: collectionData.symbol,
         description: collectionData.description,
         image: collectionData.image_url,
-        attributes: [
-          { trait_type: 'Collection', value: 'Los Bros NFT' },
-          { trait_type: 'Network', value: 'Analos' },
-          { trait_type: 'Created', value: new Date().toISOString() }
-        ]
-      };
-
-      // Create instruction to initialize mint (this is the standard Solana NFT creation process)
-      const createCollectionIx = new TransactionInstruction({
+        maxSupply: collectionData.max_supply,
+        deployer: walletAddress,
+        collectionAddress: collectionAddress,
+        collectionPDA: collectionPDA.toString(),
+        deployedAt: new Date().toISOString(),
+        network: 'Analos',
+        platform: 'Los Bros NFT Launcher'
+      }));
+      
+      const memoInstruction = new TransactionInstruction({
         keys: [
-          { pubkey: mintKeypair.publicKey, isSigner: true, isWritable: true },
-          { pubkey: metadataPDA, isSigner: false, isWritable: true },
-          { pubkey: walletPublicKey, isSigner: true, isWritable: true },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-          { pubkey: this.TOKEN_PROGRAM, isSigner: false, isWritable: false },
-          { pubkey: this.TOKEN_METADATA_PROGRAM, isSigner: false, isWritable: false },
+          { pubkey: walletPublicKey, isSigner: true, isWritable: false }
         ],
-        programId: this.TOKEN_METADATA_PROGRAM,
-        data: Buffer.from('create_metadata_accounts_v3') // Standard Metaplex instruction
+        programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysKcWfC85B2q2'), // Memo Program
+        data: memoData
       });
 
       console.log('📍 Collection PDA:', collectionPDA.toString());
       console.log('📍 Collection Address:', collectionAddress);
       console.log('📍 Collection Data:', collectionData);
 
-      // Add the create collection instruction to transaction
-      transaction.add(createCollectionIx);
+      // Add the memo instruction to transaction
+      transaction.add(memoInstruction);
 
       console.log('🔐 Requesting wallet signature for real deployment...');
       
