@@ -571,6 +571,78 @@ const LaunchCollectionPage: React.FC = () => {
     });
   };
 
+  // Smart rarity distribution system
+  const distributeRaritiesEvenly = (layer: Layer, totalPercentage: number = 100) => {
+    const traitCount = layer.traits.length;
+    const baseRarity = Math.floor(totalPercentage / traitCount);
+    const remainder = totalPercentage % traitCount;
+    
+    return layer.traits.map((trait, index) => ({
+      ...trait,
+      rarity: baseRarity + (index < remainder ? 1 : 0)
+    }));
+  };
+
+  // Update layer rarity distribution
+  const updateLayerRarityDistribution = (layerId: string, totalPercentage: number) => {
+    setLayers(prev => prev.map(layer => {
+      if (layer.id === layerId) {
+        const updatedTraits = distributeRaritiesEvenly(layer, totalPercentage);
+        return { ...layer, traits: updatedTraits };
+      }
+      return layer;
+    }));
+  };
+
+  // Update individual trait rarity and recalculate others
+  const updateTraitRarity = (layerId: string, traitId: string, newRarity: number) => {
+    setLayers(prev => prev.map(layer => {
+      if (layer.id === layerId) {
+        const updatedTraits = layer.traits.map(trait => {
+          if (trait.id === traitId) {
+            return { ...trait, rarity: newRarity };
+          }
+          return trait;
+        });
+        
+        // Recalculate remaining traits to maintain 100% total
+        const totalUsed = updatedTraits.reduce((sum, trait) => sum + trait.rarity, 0);
+        const remainingTraits = updatedTraits.filter(trait => trait.id !== traitId);
+        const remainingPercentage = Math.max(0, 100 - totalUsed);
+        
+        if (remainingTraits.length > 0 && remainingPercentage > 0) {
+          const baseRarity = Math.floor(remainingPercentage / remainingTraits.length);
+          const remainder = remainingPercentage % remainingTraits.length;
+          
+          const recalculatedTraits = updatedTraits.map(trait => {
+            if (trait.id === traitId) return trait; // Keep the manually set trait
+            
+            const index = remainingTraits.findIndex(t => t.id === trait.id);
+            return {
+              ...trait,
+              rarity: baseRarity + (index < remainder ? 1 : 0)
+            };
+          });
+          
+          return { ...layer, traits: recalculatedTraits };
+        }
+        
+        return { ...layer, traits: updatedTraits };
+      }
+      return layer;
+    }));
+  };
+
+  // Calculate total rarity percentage for a layer
+  const getLayerTotalRarity = (layer: Layer) => {
+    return layer.traits.reduce((sum, trait) => sum + trait.rarity, 0);
+  };
+
+  // Calculate actual mint counts based on collection size
+  const getTraitMintCount = (traitRarity: number, collectionSize: number) => {
+    return Math.round((traitRarity / 100) * collectionSize);
+  };
+
   // Token info fetching function
   const fetchTokenInfo = async (tokenMint: string) => {
     if (!tokenMint || tokenMint.length < 32) {
@@ -2044,12 +2116,13 @@ const LaunchCollectionPage: React.FC = () => {
                   <div className="flex items-start space-x-3">
                     <div className="text-blue-400 text-xl">💡</div>
                     <div>
-                      <h4 className="text-blue-300 font-semibold mb-2">Layer Ordering Guide</h4>
+                      <h4 className="text-blue-300 font-semibold mb-2">Layer Ordering & Rarity Guide</h4>
                       <ul className="text-blue-200 text-sm space-y-1">
                         <li>• <strong>Background</strong> layers are automatically placed at the bottom</li>
                         <li>• Use the <strong>Order</strong> numbers to arrange layers from bottom to top</li>
-                        <li>• Lower numbers = bottom layers, higher numbers = top layers</li>
-                        <li>• All layers are visible by default - uncheck to hide specific layers</li>
+                        <li>• <strong>Rarity Slider</strong> distributes percentages evenly across all traits in a layer</li>
+                        <li>• <strong>Manual adjustments</strong> automatically recalculate other traits to maintain 100%</li>
+                        <li>• <strong>Mint counts</strong> show actual NFTs that will have each trait</li>
                       </ul>
                     </div>
                   </div>
@@ -2086,6 +2159,9 @@ const LaunchCollectionPage: React.FC = () => {
                                   <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Background</span>
                                 )}
                                 <span className="text-gray-400 text-sm">({layer.traits.length} traits)</span>
+                                <span className="text-yellow-400 text-sm font-mono">
+                                  {getLayerTotalRarity(layer)}% total
+                                </span>
                               </div>
                             </div>
                             <div className="flex items-center space-x-3">
@@ -2131,6 +2207,50 @@ const LaunchCollectionPage: React.FC = () => {
                               </div>
                             </div>
                           </div>
+
+                          {/* Smart Rarity Distribution Controls */}
+                          <div className="mb-4 p-3 bg-white/5 rounded-lg">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="text-white font-medium text-sm">🎯 Rarity Distribution</h5>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-gray-400 text-xs">Total:</span>
+                                <span className={`text-sm font-mono ${getLayerTotalRarity(layer) === 100 ? 'text-green-400' : 'text-red-400'}`}>
+                                  {getLayerTotalRarity(layer)}%
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-4">
+                              <div className="flex-1">
+                                <label className="text-gray-300 text-xs block mb-1">
+                                  Distribute Evenly (%)
+                                </label>
+                                <input
+                                  type="range"
+                                  min="10"
+                                  max="100"
+                                  step="5"
+                                  value={getLayerTotalRarity(layer)}
+                                  onChange={(e) => updateLayerRarityDistribution(layer.id, parseInt(e.target.value))}
+                                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                                />
+                                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                  <span>10%</span>
+                                  <span>50%</span>
+                                  <span>100%</span>
+                                </div>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div className="text-white text-sm font-mono">
+                                  {Math.round(getLayerTotalRarity(layer) / layer.traits.length)}% each
+                                </div>
+                                <div className="text-gray-400 text-xs">
+                                  {getTraitMintCount(Math.round(getLayerTotalRarity(layer) / layer.traits.length), collectionConfig.supply)} mints
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                           
                           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                             {layer.traits.slice(0, 8).map((trait) => (
@@ -2141,16 +2261,26 @@ const LaunchCollectionPage: React.FC = () => {
                                   className="w-full h-16 object-cover rounded mb-1"
                                 />
                                 <p className="text-white text-xs truncate mb-1">{trait.name}</p>
-                                <div className="flex items-center space-x-1">
-                                  <label className="text-gray-300 text-xs">Rarity:</label>
+                                
+                                {/* Enhanced Rarity Controls */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <label className="text-gray-300 text-xs">Rarity:</label>
+                                    <span className="text-yellow-400 text-xs font-mono">{trait.rarity}%</span>
+                                  </div>
                                   <input
                                     type="number"
                                     value={trait.rarity}
-                                    onChange={(e) => updateLayerTrait(layer.id, trait.id, { rarity: parseInt(e.target.value) || 1 })}
-                                    className="w-12 px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
+                                    onChange={(e) => updateTraitRarity(layer.id, trait.id, parseInt(e.target.value) || 1)}
+                                    className="w-full px-1 py-1 bg-white/10 border border-white/30 rounded text-white text-xs"
                                     min="1"
                                     max="100"
                                   />
+                                  <div className="text-center">
+                                    <div className="text-gray-400 text-xs">
+                                      {getTraitMintCount(trait.rarity, collectionConfig.supply)} mints
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -2163,6 +2293,44 @@ const LaunchCollectionPage: React.FC = () => {
                         </div>
                       );
                     })}
+                </div>
+
+                {/* Collection Rarity Overview */}
+                <div className="mt-6 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-lg p-4">
+                  <h4 className="text-white font-semibold mb-3">📊 Collection Rarity Overview</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/5 rounded p-3">
+                      <div className="text-gray-300 text-sm mb-1">Total Collection Size</div>
+                      <div className="text-white text-xl font-bold">{collectionConfig.supply.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-white/5 rounded p-3">
+                      <div className="text-gray-300 text-sm mb-1">Total Layers</div>
+                      <div className="text-white text-xl font-bold">{layers.length}</div>
+                    </div>
+                    <div className="bg-white/5 rounded p-3">
+                      <div className="text-gray-300 text-sm mb-1">Total Traits</div>
+                      <div className="text-white text-xl font-bold">
+                        {layers.reduce((sum, layer) => sum + layer.traits.length, 0)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-white/5 rounded">
+                    <div className="text-gray-300 text-sm mb-2">Rarity Distribution Summary</div>
+                    <div className="space-y-1">
+                      {layers.map(layer => (
+                        <div key={layer.id} className="flex items-center justify-between text-sm">
+                          <span className="text-white">{layer.name}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-gray-400">{layer.traits.length} traits</span>
+                            <span className={`font-mono ${getLayerTotalRarity(layer) === 100 ? 'text-green-400' : 'text-red-400'}`}>
+                              {getLayerTotalRarity(layer)}%
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Metadata Structure Example */}
