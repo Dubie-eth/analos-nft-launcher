@@ -48,7 +48,14 @@ export default function CollectionManager() {
     attributes: [
       { trait_type: 'Background', value: '' },
       { trait_type: 'Rarity', value: '' }
-    ]
+    ],
+    // Admin features
+    mintPrice: 0,
+    paymentToken: 'SOL',
+    maxMintsPerWallet: 0,
+    isTestMode: false,
+    whitelistEnabled: false,
+    bondingCurveEnabled: false
   });
 
   // Load collections on component mount
@@ -105,7 +112,14 @@ export default function CollectionManager() {
           attributes: [
             { trait_type: 'Background', value: '' },
             { trait_type: 'Rarity', value: '' }
-          ]
+          ],
+          // Admin features
+          mintPrice: 0,
+          paymentToken: 'SOL',
+          maxMintsPerWallet: 0,
+          isTestMode: false,
+          whitelistEnabled: false,
+          bondingCurveEnabled: false
         });
       } else {
         console.error('❌ Collection creation failed:', data.error);
@@ -226,18 +240,106 @@ export default function CollectionManager() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Total Supply
-              </label>
-              <input
-                type="number"
-                value={collectionForm.totalSupply}
-                onChange={(e) => setCollectionForm(prev => ({ ...prev, totalSupply: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                min="1"
-                max="10000"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Total Supply
+                </label>
+                <input
+                  type="number"
+                  value={collectionForm.totalSupply}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, totalSupply: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="1"
+                  max="10000"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mint Price
+                </label>
+                <input
+                  type="number"
+                  value={collectionForm.mintPrice}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, mintPrice: parseFloat(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  step="0.001"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment Token
+                </label>
+                <select
+                  value={collectionForm.paymentToken}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, paymentToken: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="SOL">SOL</option>
+                  <option value="LOS">LOS</option>
+                  <option value="LOL">LOL</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Max Mints per Wallet
+                </label>
+                <input
+                  type="number"
+                  value={collectionForm.maxMintsPerWallet}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, maxMintsPerWallet: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  placeholder="0 = unlimited"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="testMode"
+                  checked={collectionForm.isTestMode}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, isTestMode: e.target.checked }))}
+                  className="mr-2"
+                />
+                <label htmlFor="testMode" className="text-sm font-medium text-gray-700">
+                  Test Mode
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="whitelistEnabled"
+                  checked={collectionForm.whitelistEnabled}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, whitelistEnabled: e.target.checked }))}
+                  className="mr-2"
+                />
+                <label htmlFor="whitelistEnabled" className="text-sm font-medium text-gray-700">
+                  Enable Whitelist
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="bondingCurveEnabled"
+                  checked={collectionForm.bondingCurveEnabled}
+                  onChange={(e) => setCollectionForm(prev => ({ ...prev, bondingCurveEnabled: e.target.checked }))}
+                  className="mr-2"
+                />
+                <label htmlFor="bondingCurveEnabled" className="text-sm font-medium text-gray-700">
+                  Enable Bonding Curve
+                </label>
+              </div>
             </div>
 
             {/* Attributes */}
