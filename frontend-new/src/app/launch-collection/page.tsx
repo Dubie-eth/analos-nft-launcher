@@ -1206,7 +1206,7 @@ const LaunchCollectionPage: React.FC = () => {
           enabled: true,
           type: collectionConfig.delayedRevealSettings?.revealTrigger === 'date' ? 'automatic' : 
                 collectionConfig.delayedRevealSettings?.revealTrigger === 'supply' ? 'completion' : 'manual',
-          revealTime: collectionConfig.delayedRevealSettings?.revealDate?.toISOString() || '',
+          revealTime: collectionConfig.delayedRevealSettings?.revealDate instanceof Date ? collectionConfig.delayedRevealSettings.revealDate.toISOString() : (collectionConfig.delayedRevealSettings?.revealDate ? new Date(collectionConfig.delayedRevealSettings.revealDate).toISOString() : ''),
           revealAtCompletion: collectionConfig.delayedRevealSettings?.revealTrigger === 'supply',
           placeholderImage: collectionConfig.delayedRevealSettings?.placeholderImage || ''
         } : undefined,
@@ -1541,7 +1541,7 @@ const LaunchCollectionPage: React.FC = () => {
                         <label className="block text-white text-sm font-medium mb-2">Reveal Date</label>
                         <input
                           type="datetime-local"
-                          value={collectionConfig.delayedRevealSettings?.revealDate?.toISOString().slice(0, 16) || ''}
+                          value={collectionConfig.delayedRevealSettings?.revealDate instanceof Date ? collectionConfig.delayedRevealSettings.revealDate.toISOString().slice(0, 16) : (collectionConfig.delayedRevealSettings?.revealDate ? new Date(collectionConfig.delayedRevealSettings.revealDate).toISOString().slice(0, 16) : '')}
                           onChange={(e) => setCollectionConfig(prev => ({
                             ...prev,
                             delayedRevealSettings: {
