@@ -128,7 +128,7 @@ export default function LivePreview({ layers, collectionSettings, generatedNFTs 
             <div>
               <div className="text-gray-500">Possible Combinations</div>
               <div className="font-medium">
-                {layers.reduce((total, layer) => total * (layer.visible ? layer.traits.length : 1), 1).toLocaleString()}
+                {layers.reduce((total, layer) => total * (layer.visible && layer.traits ? layer.traits.length : 1), 1).toLocaleString()}
               </div>
             </div>
             <div>

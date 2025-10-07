@@ -216,7 +216,7 @@ export default function LayerManager({
           <div>
             <div className="text-blue-600 font-medium">
               {layers.reduce((total, layer) => 
-                total * (layer.visible ? layer.traits.length : 1), 1
+                total * (layer.visible && layer.traits ? layer.traits.length : 1), 1
               ).toLocaleString()}
             </div>
             <div className="text-blue-700">Possible Combinations</div>

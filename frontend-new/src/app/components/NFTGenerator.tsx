@@ -375,12 +375,12 @@ export default function NFTGenerator({ onComplete }: NFTGeneratorProps) {
                   </div>
                   <div className="flex justify-between">
                     <span>Total Traits:</span>
-                    <span className="font-medium">{layers.reduce((sum, layer) => sum + layer.traits.length, 0)}</span>
+                    <span className="font-medium">{layers.reduce((sum, layer) => sum + (layer.traits ? layer.traits.length : 0), 0)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Possible Combinations:</span>
                     <span className="font-medium">
-                      {layers.reduce((total, layer) => total * (layer.visible ? layer.traits.length : 1), 1).toLocaleString()}
+                      {layers.reduce((total, layer) => total * (layer.visible && layer.traits ? layer.traits.length : 1), 1).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
