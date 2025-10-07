@@ -1335,7 +1335,27 @@ const LaunchCollectionPage: React.FC = () => {
           website: collectionConfig.externalUrl
         }
       };
-      savedCollections.push(newCollection);
+      // Create a minimal version of the collection for storage (remove large data arrays)
+      const minimalCollection = {
+        id: newCollection.id,
+        name: newCollection.name,
+        symbol: newCollection.symbol,
+        description: newCollection.description,
+        image: newCollection.image,
+        externalUrl: newCollection.externalUrl,
+        deployedAt: newCollection.deployedAt,
+        signature: newCollection.signature,
+        explorerUrl: newCollection.explorerUrl,
+        shareUrl: newCollection.shareUrl,
+        referralCode: newCollection.referralCode,
+        // Remove large data arrays to save space
+        generatedNFTs: [],
+        layers: [],
+        traitCategories: [],
+        whitelistPhases: []
+      };
+      
+      savedCollections.push(minimalCollection);
       
       // Clean up localStorage if quota exceeded
       try {
@@ -1344,7 +1364,7 @@ const LaunchCollectionPage: React.FC = () => {
         if (error instanceof DOMException && error.name === 'QuotaExceededError') {
           console.warn('⚠️ localStorage quota exceeded, performing aggressive cleanup...');
           
-          // Clear ALL old session data first
+          // Clear ALL session data first
           const keys = Object.keys(localStorage);
           keys.forEach(key => {
             if (key.startsWith('collection_session_') || 
@@ -1356,24 +1376,6 @@ const LaunchCollectionPage: React.FC = () => {
           });
           
           // Keep only the current collection (most recent)
-          const minimalCollection = {
-            ...newCollection,
-            // Remove large unnecessary data
-            generatedNFTs: [],
-            layers: [],
-            traitCategories: [],
-            // Keep only essential data
-            name: newCollection.name,
-            symbol: newCollection.symbol,
-            description: newCollection.description,
-            image: newCollection.image,
-            externalUrl: newCollection.externalUrl,
-            deployedAt: newCollection.deployedAt,
-            signature: newCollection.signature,
-            explorerUrl: newCollection.explorerUrl
-          };
-          
-          // Try with minimal data
           localStorage.setItem('launched_collections', JSON.stringify([minimalCollection]));
           
           console.log('✅ localStorage aggressively cleaned up, keeping only current collection');
