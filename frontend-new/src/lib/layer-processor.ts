@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { Layer, Trait } from './nft-generator';
+import { Layer, Trait, GeneratedNFT } from './nft-generator';
 
 export class LayerProcessor {
   /**
@@ -253,6 +253,186 @@ export class LayerProcessor {
       '.svg': 'image/svg+xml'
     };
     return mimeTypes[ext] || 'image/png';
+  }
+
+  /**
+   * Generate NFTs from layers
+   */
+  async generateNFTs(
+    layers: Layer[], 
+    count: number, 
+    onProgress?: (current: number, total: number) => void
+  ): Promise<GeneratedNFT[]> {
+    console.log(`🎨 Starting NFT generation: ${count} NFTs from ${layers.length} layers`);
+    
+    const generatedNFTs: GeneratedNFT[] = [];
+    const usedCombinations = new Set<string>();
+
+    for (let i = 0; i < count; i++) {
+      try {
+        // Generate unique combination
+        let combination: { [layerName: string]: Trait } = {};
+        let combinationKey = '';
+        let attempts = 0;
+        const maxAttempts = 1000; // Prevent infinite loops
+
+        do {
+          combination = {};
+          combinationKey = '';
+          
+          for (const layer of layers) {
+            if (layer.visible && layer.traits.length > 0) {
+              // Weighted random selection based on rarity
+              const selectedTrait = this.selectTraitByRarity(layer.traits);
+              combination[layer.name] = selectedTrait;
+              combinationKey += `${layer.name}:${selectedTrait.name};`;
+            }
+          }
+          
+          attempts++;
+        } while (usedCombinations.has(combinationKey) && attempts < maxAttempts);
+
+        // If we couldn't find a unique combination, use the last one
+        if (attempts >= maxAttempts) {
+          console.warn(`⚠️ Could not generate unique combination for NFT #${i + 1}, using existing`);
+        }
+
+        usedCombinations.add(combinationKey);
+
+        // Generate composite image
+        const compositeImage = await this.generateCompositeImage(combination, layers);
+        
+        // Calculate rarity score
+        const rarityScore = this.calculateRarityScore(combination);
+
+        // Create NFT metadata
+        const nft: GeneratedNFT = {
+          id: i + 1,
+          name: `Los Bros #${i + 1}`,
+          image: compositeImage,
+          description: `A unique Los Bros NFT with ${Object.keys(combination).length} traits`,
+          traits: Object.entries(combination).map(([layerName, trait]) => ({
+            trait_type: layerName,
+            value: trait.name
+          })),
+          rarityScore
+        };
+
+        generatedNFTs.push(nft);
+        
+        // Update progress
+        if (onProgress) {
+          onProgress(i + 1, count);
+        }
+
+        console.log(`✅ Generated NFT #${i + 1}: ${nft.name}`);
+      } catch (error) {
+        console.error(`❌ Error generating NFT #${i + 1}:`, error);
+        // Continue with next NFT
+      }
+    }
+
+    console.log(`🎉 NFT generation complete: ${generatedNFTs.length} NFTs generated`);
+    return generatedNFTs;
+  }
+
+  /**
+   * Select trait based on rarity weights
+   */
+  private selectTraitByRarity(traits: Trait[]): Trait {
+    const totalRarity = traits.reduce((sum, trait) => sum + trait.rarity, 0);
+    let random = Math.random() * totalRarity;
+
+    for (const trait of traits) {
+      random -= trait.rarity;
+      if (random <= 0) {
+        return trait;
+      }
+    }
+
+    // Fallback to last trait
+    return traits[traits.length - 1];
+  }
+
+  /**
+   * Generate composite image from traits
+   */
+  private async generateCompositeImage(
+    combination: { [layerName: string]: Trait }, 
+    layers: Layer[]
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      // Set canvas size (assuming all images are the same size)
+      canvas.width = 512;
+      canvas.height = 512;
+
+      // Sort layers by order
+      const sortedLayers = layers
+        .filter(layer => combination[layer.name])
+        .sort((a, b) => a.order - b.order);
+
+      let loadedImages = 0;
+      const totalImages = sortedLayers.length;
+
+      if (totalImages === 0) {
+        reject(new Error('No layers to composite'));
+        return;
+      }
+
+      // Load and composite images
+      sortedLayers.forEach((layer, index) => {
+        const trait = combination[layer.name];
+        const img = new Image();
+        
+        img.onload = () => {
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          loadedImages++;
+
+          // When all images are loaded, convert to data URL
+          if (loadedImages === totalImages) {
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          }
+        };
+
+        img.onerror = () => {
+          console.error(`❌ Failed to load image for trait: ${trait.name}`);
+          loadedImages++;
+          
+          if (loadedImages === totalImages) {
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          }
+        };
+
+        img.src = trait.image;
+      });
+    });
+  }
+
+  /**
+   * Calculate rarity score for combination
+   */
+  private calculateRarityScore(combination: { [layerName: string]: Trait }): number {
+    let totalRarity = 0;
+    let traitCount = 0;
+
+    for (const trait of Object.values(combination)) {
+      totalRarity += trait.rarity;
+      traitCount++;
+    }
+
+    // Lower rarity values = higher score (more rare)
+    return traitCount > 0 ? Math.round(1000000000000 / (totalRarity / traitCount)) : 0;
   }
 
   /**
