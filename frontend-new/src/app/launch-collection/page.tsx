@@ -72,6 +72,22 @@ interface NFTGenerationConfig {
   previewCount: number; // Number of NFTs to generate for preview
 }
 
+interface CollectionSession {
+  sessionId: string;
+  walletAddress: string;
+  currentStep: number;
+  collectionConfig: CollectionConfig;
+  traitCategories: TraitCategory[];
+  whitelistPhases: WhitelistPhase[];
+  bondingCurveConfig: BondingCurveConfig;
+  customCurveConfig: BondingCurveConfig;
+  nftGenerationConfig: NFTGenerationConfig;
+  layers: Layer[];
+  generatedNFTs: GeneratedNFT[];
+  lastSaved: string;
+  createdAt: string;
+}
+
 interface HostingConfig {
   method: 'ipfs' | 'local' | 'github' | 'arweave';
   customUrl?: string;
@@ -214,6 +230,11 @@ const LaunchCollectionPage: React.FC = () => {
   const [isLoadingTokenInfo, setIsLoadingTokenInfo] = useState(false);
   const [tokenInfoError, setTokenInfoError] = useState<string>('');
   const tokenService = useRef(new AnalosTokenService());
+  
+  // Session management
+  const [sessionId, setSessionId] = useState<string>('');
+  const [isSessionRestored, setIsSessionRestored] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
   const [platformFees, setPlatformFees] = useState<PlatformFees>({
     platformFee: 1.0, // 1% platform fee (fixed, non-adjustable by users)
@@ -538,6 +559,149 @@ const LaunchCollectionPage: React.FC = () => {
       setIsLoadingTokenInfo(false);
     }
   };
+
+  // Session Management Functions
+  const generateSessionId = (walletAddress: string) => {
+    return `collection_session_${walletAddress}_${Date.now()}`;
+  };
+
+  const saveSession = () => {
+    if (!publicKey) return;
+
+    const session: CollectionSession = {
+      sessionId,
+      walletAddress: publicKey.toBase58(),
+      currentStep,
+      collectionConfig,
+      traitCategories,
+      whitelistPhases,
+      bondingCurveConfig,
+      customCurveConfig,
+      nftGenerationConfig,
+      layers,
+      generatedNFTs,
+      lastSaved: new Date().toISOString(),
+      createdAt: sessionId ? JSON.parse(localStorage.getItem(sessionId) || '{}').createdAt || new Date().toISOString() : new Date().toISOString()
+    };
+
+    try {
+      localStorage.setItem(sessionId, JSON.stringify(session));
+      setLastSaved(new Date());
+      console.log('💾 Session saved:', sessionId);
+    } catch (error) {
+      console.error('❌ Failed to save session:', error);
+    }
+  };
+
+  const restoreSession = (walletAddress: string) => {
+    if (!walletAddress) return;
+
+    try {
+      // Look for existing sessions for this wallet
+      const sessionKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith(`collection_session_${walletAddress}_`)
+      );
+
+      if (sessionKeys.length === 0) {
+        console.log('📝 No existing session found for wallet:', walletAddress);
+        return;
+      }
+
+      // Get the most recent session
+      const latestSessionKey = sessionKeys.sort().pop();
+      if (!latestSessionKey) return;
+
+      const sessionData = localStorage.getItem(latestSessionKey);
+      if (!sessionData) return;
+
+      const session: CollectionSession = JSON.parse(sessionData);
+      
+      console.log('🔄 Restoring session:', session.sessionId);
+      
+      // Restore all state
+      setSessionId(session.sessionId);
+      setCurrentStep(session.currentStep);
+      setCollectionConfig(session.collectionConfig);
+      setTraitCategories(session.traitCategories);
+      setWhitelistPhases(session.whitelistPhases);
+      setBondingCurveConfig(session.bondingCurveConfig);
+      setCustomCurveConfig(session.customCurveConfig);
+      setNftGenerationConfig(session.nftGenerationConfig);
+      setLayers(session.layers);
+      setGeneratedNFTs(session.generatedNFTs);
+      setLastSaved(new Date(session.lastSaved));
+      setIsSessionRestored(true);
+
+      console.log('✅ Session restored successfully');
+    } catch (error) {
+      console.error('❌ Failed to restore session:', error);
+    }
+  };
+
+  const clearSession = () => {
+    if (!sessionId) return;
+
+    try {
+      localStorage.removeItem(sessionId);
+      setSessionId('');
+      setLastSaved(null);
+      setIsSessionRestored(false);
+      console.log('🗑️ Session cleared');
+    } catch (error) {
+      console.error('❌ Failed to clear session:', error);
+    }
+  };
+
+  const createNewSession = () => {
+    if (!publicKey) return;
+
+    const newSessionId = generateSessionId(publicKey.toBase58());
+    setSessionId(newSessionId);
+    setLastSaved(null);
+    setIsSessionRestored(false);
+    console.log('🆕 New session created:', newSessionId);
+  };
+
+  // Session Management Effects
+  useEffect(() => {
+    if (publicKey) {
+      setCollectionConfig(prev => ({
+        ...prev,
+        creatorAddress: publicKey.toBase58()
+      }));
+      
+      // Initialize session when wallet connects
+      if (!sessionId) {
+        const newSessionId = generateSessionId(publicKey.toBase58());
+        setSessionId(newSessionId);
+      }
+      
+      // Try to restore existing session
+      restoreSession(publicKey.toBase58());
+    }
+  }, [publicKey]);
+
+  // Auto-save session when data changes
+  useEffect(() => {
+    if (sessionId && publicKey && isSessionRestored) {
+      const timeoutId = setTimeout(() => {
+        saveSession();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    currentStep, collectionConfig, traitCategories, whitelistPhases, 
+    bondingCurveConfig, customCurveConfig, nftGenerationConfig, 
+    layers, generatedNFTs, sessionId, publicKey, isSessionRestored
+  ]);
+
+  // Save session when step changes
+  useEffect(() => {
+    if (sessionId && publicKey) {
+      saveSession();
+    }
+  }, [currentStep]);
 
   const handleTraitUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -2570,6 +2734,55 @@ const LaunchCollectionPage: React.FC = () => {
             <h1 className="text-4xl font-bold text-white text-center mb-8">
               🚀 Collection Launch Wizard
             </h1>
+            
+            {/* Session Management */}
+            {publicKey && (
+              <div className="mb-8 bg-white/10 rounded-lg p-4 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-sm">
+                      <span className="text-gray-400">Wallet:</span>
+                      <span className="text-white ml-2 font-mono text-xs">
+                        {publicKey.toBase58().slice(0, 8)}...{publicKey.toBase58().slice(-8)}
+                      </span>
+                    </div>
+                    {lastSaved && (
+                      <div className="text-sm">
+                        <span className="text-gray-400">Last Saved:</span>
+                        <span className="text-green-400 ml-2">
+                          {lastSaved.toLocaleTimeString()}
+                        </span>
+                      </div>
+                    )}
+                    {isSessionRestored && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-400 text-sm">🔄 Session Restored</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={saveSession}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
+                      💾 Save Now
+                    </button>
+                    <button
+                      onClick={createNewSession}
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
+                      🆕 New Session
+                    </button>
+                    <button
+                      onClick={clearSession}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
+                      🗑️ Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Progress Steps */}
             <div className="mb-8">
