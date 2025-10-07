@@ -1295,21 +1295,23 @@ const LaunchCollectionPage: React.FC = () => {
 
         const result = await response.json();
         console.log('✅ Deployment response received:', result);
+        console.log('🔍 Checking result.success:', result.success);
+        console.log('🔍 Checking result.collection:', result.collection);
         setDeploymentStatus('✅ Collection deployed successfully! Processing...');
 
-      if (result.success && result.collection) {
+      if (result.success) {
         const deployedCollectionData = {
-          name: result.collection.name,
-          symbol: result.collection.symbol,
-          description: result.collection.description,
-          imageUrl: result.collection.image,
-          externalUrl: result.collection.externalUrl,
-          maxSupply: result.collection.totalSupply,
-          mintPrice: result.collection.mintPrice,
-          pricingToken: result.collection.paymentToken,
+          name: result.collection?.name || collectionConfig.name,
+          symbol: result.collection?.symbol || collectionConfig.symbol,
+          description: result.collection?.description || collectionConfig.description,
+          imageUrl: result.collection?.image || collectionConfig.imageUrl,
+          externalUrl: result.collection?.externalUrl || collectionConfig.externalUrl,
+          maxSupply: result.collection?.totalSupply || collectionConfig.maxSupply,
+          mintPrice: result.collection?.mintPrice || collectionConfig.mintPrice,
+          pricingToken: result.collection?.paymentToken || collectionConfig.pricingToken,
         customTokenSymbol: collectionConfig.customTokenSymbol,
         royalty: collectionConfig.royalty,
-          creatorAddress: result.collection.creatorAddress,
+          creatorAddress: result.collection?.creatorAddress || collectionConfig.creatorAddress,
         mintType: collectionConfig.mintType,
         revealType: collectionConfig.revealType,
         delayedRevealSettings: collectionConfig.delayedRevealSettings,
@@ -1399,9 +1401,12 @@ const LaunchCollectionPage: React.FC = () => {
         }
       }
 
+      console.log('🎯 Calling nextStep() to advance to step 8...');
       nextStep();
+      console.log('✅ nextStep() called successfully');
       } else {
         setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
+        console.log('❌ Deployment failed, not advancing to next step');
       }
       } catch (fetchError) {
         clearTimeout(timeoutId);
