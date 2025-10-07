@@ -127,7 +127,8 @@ interface WhitelistPhase {
     addresses: string[];
     uploadFile?: File;
   };
-  priceMultiplier: number; // 1.0 = normal price, 0.5 = 50% discount, 1.5 = 50% premium
+  priceMultiplier: number | 'custom'; // 1.0 = normal price, 0.5 = 50% discount, 1.5 = 50% premium
+  customMultiplier?: number; // Custom multiplier value when priceMultiplier is 'custom'
   description?: string;
   requirements?: {
     minFollowers?: number;
@@ -2976,13 +2977,30 @@ const LaunchCollectionPage: React.FC = () => {
                         }}
                         className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
                       >
+                        <option value={0}>FREE Mint (0x)</option>
                         <option value={0.5}>50% Discount (0.5x)</option>
                         <option value={0.75}>25% Discount (0.75x)</option>
                         <option value={1.0}>Normal Price (1.0x)</option>
                         <option value={1.25}>25% Premium (1.25x)</option>
                         <option value={1.5}>50% Premium (1.5x)</option>
                         <option value={2.0}>100% Premium (2.0x)</option>
+                        <option value="custom">Custom Multiplier</option>
                       </select>
+                      {phase.priceMultiplier === 'custom' && (
+                        <div className="mt-2">
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="Enter custom multiplier (e.g., 0.1 for 90% discount)"
+                            onChange={(e) => {
+                              const newPhases = [...whitelistPhases];
+                              newPhases[index].customMultiplier = parseFloat(e.target.value) || 0;
+                              setWhitelistPhases(newPhases);
+                            }}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
 
