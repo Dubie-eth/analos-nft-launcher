@@ -1416,6 +1416,15 @@ const LaunchCollectionPage: React.FC = () => {
       console.log('🎯 Setting currentStep to 8 (Share) after successful deployment...');
       setCurrentStep(8);
       console.log('✅ currentStep set to 8 successfully');
+      
+      // Force a small delay to ensure state update
+      setTimeout(() => {
+        console.log('🔄 Forcing UI refresh after deployment...');
+        setCurrentStep(prev => {
+          console.log('🔄 State update triggered, current value:', prev);
+          return 8;
+        });
+      }, 100);
       } else {
         setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
         console.log('❌ Deployment failed, not advancing to next step');
@@ -3646,7 +3655,7 @@ const LaunchCollectionPage: React.FC = () => {
           </div>
         );
 
-      case 8:
+      case 7:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
