@@ -35,8 +35,7 @@ export class BlockchainFailSafeService {
     retryDelay: 1000,
     fallbackRPCs: [
       'https://rpc.analos.io',
-      'https://analos-mainnet.g.alchemy.com/v2/demo',
-      'https://analos.drpc.org'
+      'https://analos-mainnet.g.alchemy.com/v2/demo'
     ],
     blockchainVerificationEnabled: true,
     cacheValidationEnabled: true,

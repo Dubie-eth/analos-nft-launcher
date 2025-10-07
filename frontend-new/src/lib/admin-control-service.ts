@@ -300,13 +300,29 @@ export class AdminControlService {
     console.log('🔍 Looking for collection:', collectionName);
     console.log('📋 Available collections:', Array.from(this.collections.keys()));
     
-    const collection = this.collections.get(collectionName);
+    // Handle URL slug to collection name mapping
+    let actualCollectionName = collectionName;
+    const collectionNameMappings: { [key: string]: string } = {
+      'launch-on-los': 'The LosBros',
+      'the-losbros': 'The LosBros',
+      'los-bros': 'The LosBros',
+      'Launch On LOS': 'The LosBros',
+      'losbros': 'The LosBros',
+      'the-los-bros': 'The LosBros'
+    };
+    
+    if (collectionNameMappings[collectionName]) {
+      actualCollectionName = collectionNameMappings[collectionName];
+      console.log('🔄 Mapped collection name from', collectionName, 'to', actualCollectionName);
+    }
+    
+    const collection = this.collections.get(actualCollectionName);
     if (!collection) {
-      console.warn(`⚠️ Collection not found: ${collectionName}`);
+      console.warn(`⚠️ Collection not found: ${collectionName} -> ${actualCollectionName}`);
       return null;
     }
 
-    console.log('✅ Found collection:', collectionName);
+    console.log('✅ Found collection:', collectionName, '->', actualCollectionName);
     return collection;
   }
 
