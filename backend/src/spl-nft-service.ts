@@ -5,6 +5,7 @@ import {
   Transaction,
   SystemProgram,
   sendAndConfirmTransaction,
+  ComputeBudgetProgram,
 } from '@solana/web3.js';
 import {
   createInitializeMintInstruction,
@@ -71,6 +72,19 @@ export class SPLNFTService {
 
       // Create transaction
       const transaction = new Transaction();
+
+      // Add priority fee to get faster confirmation
+      transaction.add(
+        ComputeBudgetProgram.setComputeUnitPrice({
+          microLamports: 50000, // Higher priority fee
+        })
+      );
+
+      transaction.add(
+        ComputeBudgetProgram.setComputeUnitLimit({
+          units: 300000, // Enough compute units
+        })
+      );
 
       // 1. Create mint account
       transaction.add(
