@@ -387,10 +387,10 @@ Block Explorer: https://explorer.analos.io`
                 </Link>
               )}
               <Link 
-                href="/collections"
+                href="/mint-losbros"
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-4 px-10 rounded-xl text-lg transition-all duration-200 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >
-                🎨 Browse Collections
+                🎨 Mint NFTs
               </Link>
               <Link 
                 href="/explorer"
@@ -936,6 +936,8 @@ Block Explorer: https://explorer.analos.io`
               <h4 className="text-white font-semibold mb-4">Platform</h4>
               <ul className="space-y-2">
                 {isAdmin && <li><Link href="/admin" className="text-gray-400 hover:text-white">Admin Panel</Link></li>}
+                {isAdmin && <li><Link href="/admin-dashboard" className="text-gray-400 hover:text-white">Admin Dashboard</Link></li>}
+                {isAdmin && <li><Link href="/manage-collections" className="text-gray-400 hover:text-white">Manage Collections</Link></li>}
                 <li><Link href="/explorer" className="text-gray-400 hover:text-white">NFT Explorer</Link></li>
                 <li><Link href="/collections" className="text-gray-400 hover:text-white">Browse Collections</Link></li>
               </ul>

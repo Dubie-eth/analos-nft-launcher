@@ -47,6 +47,8 @@ export default function Navigation() {
   // Admin-only navigation items
   const adminNavItems = [
     { href: '/admin', label: 'Admin', icon: '⚙️' },
+    { href: '/admin-dashboard', label: 'Admin Dashboard', icon: '📊' },
+    { href: '/manage-collections', label: 'Manage Collections', icon: '🎨' },
   ];
 
   // Combine navigation items based on admin status

@@ -16,7 +16,7 @@ import VerificationModal from '../components/VerificationModal';
 import { CompactVerifiedBadge } from '../components/VerifiedBadge';
 import { adminControlService } from '../../lib/admin-control-service';
 import { adminPreviewService } from '../../lib/admin-preview-service';
-import { workingDeploymentService } from '../../lib/blockchain/working-deployment-service';
+// Removed old Anchor deployment service - now using new collection system
 import PostDeploymentEditor from '../components/PostDeploymentEditor';
 import BondingCurveLauncher from '../components/BondingCurveLauncher';
 import MintPagePreview from '../components/MintPagePreview';
@@ -570,102 +570,76 @@ function AdminPageContent() {
       console.log('🚀 Deploying collection with payload:', payload);
       console.log('💰 Price being sent:', payload.price, 'Type:', typeof payload.price);
 
-      // Use proper blockchain deployment service
-      console.log('🚀 Using proper blockchain deployment service...');
-      
-      const deploymentConfig = {
-        name: payload.name,
-        symbol: payload.symbol,
-        description: payload.description,
-        image: payload.image,
-        maxSupply: payload.maxSupply,
-        mintPrice: payload.price,
-        feePercentage: payload.feePercentage,
-        feeRecipient: payload.feeRecipient,
-        externalUrl: payload.externalUrl,
-        whitelist: currentCollection?.whitelist,
-        maxMintsPerWallet: currentCollection?.maxMintsPerWallet,
-        delayedReveal: currentCollection?.delayedReveal,
-        paymentTokens: currentCollection?.paymentTokens
+      // Prepare collection data for new system
+      console.log('🚀 Preparing collection data for new system...');
+
+      // Collection configuration for new system
+      console.log('📋 Preparing collection configuration...');
+
+      // Use the new collection system instead of old Anchor deployment
+      console.log('🚀 Using new collection system...');
+
+      const collectionDataForAPI = {
+        name: collectionData.name,
+        symbol: collectionData.symbol,
+        description: collectionData.description,
+        image: imageBase64,
+        externalUrl: collectionData.externalUrl,
+        creatorAddress: publicKey.toString(),
+        totalSupply: collectionData.maxSupply,
+        attributes: [
+          { trait_type: 'Collection', value: collectionData.name },
+          { trait_type: 'Platform', value: 'Analos NFT Launcher' }
+        ],
+        // Admin features
+        mintPrice: collectionData.price,
+        paymentToken: 'SOL',
+        maxMintsPerWallet: 0, // Unlimited by default
+        isTestMode: false,
+        whitelistEnabled: false,
+        bondingCurveEnabled: false
       };
 
-      setDeployStatus('Creating collection configuration...');
+      console.log('📤 Sending collection data to backend:', collectionDataForAPI);
 
-      // Debug fee recipient
-      console.log('🔍 Fee recipient from config:', deploymentConfig.feeRecipient);
-      console.log('🔍 Fee recipient type:', typeof deploymentConfig.feeRecipient);
-      console.log('🔍 Public key:', publicKey?.toString());
-
-      // Create collection configuration
-      const collectionConfig = {
-        name: deploymentConfig.name,
-        symbol: deploymentConfig.symbol,
-        description: deploymentConfig.description,
-        imageUri: deploymentConfig.image || '',
-        externalUrl: deploymentConfig.externalUrl,
-        maxSupply: deploymentConfig.maxSupply,
-        mintPrice: new (await import('@coral-xyz/anchor')).BN(deploymentConfig.mintPrice * 1e9), // Convert SOL to lamports
-        feePercentage: deploymentConfig.feePercentage,
-        feeRecipient: deploymentConfig.feeRecipient && deploymentConfig.feeRecipient.trim() 
-          ? new (await import('@solana/web3.js')).PublicKey(deploymentConfig.feeRecipient)
-          : publicKey,
-        creator: new (await import('@solana/web3.js')).PublicKey(publicKey.toString()),
-        deployedAt: new (await import('@coral-xyz/anchor')).BN(Date.now()),
-        platform: 'Analos NFT Launcher',
-        version: '1.0.0'
-      };
-
-      // Using working deployment service
-      console.log('🚀 Using working blockchain deployment service...');
-
-      const createResult = await workingDeploymentService.createCollection(
-        collectionConfig
-      );
-
-      if (!createResult.success) {
-        throw new Error(createResult.error || 'Failed to create collection');
-      }
-
-      console.log('✅ Collection created with Anchor:', createResult);
-      
-      setDeployStatus('Deploying to blockchain with Anchor...');
-
-      // Deploy collection to blockchain using working service
-      const deploymentResult = await workingDeploymentService.deployCollection(
-        createResult.collectionAddress!,
-        publicKey.toString(),
-        async (transaction: Transaction) => {
-          // Use the wallet's signTransaction method
-          return await sendTransaction(transaction, connection);
-        }
-      );
-
-      if (!deploymentResult.success) {
-        throw new Error(deploymentResult.error || 'Deployment failed');
-      }
-
-      console.log('✅ Deployment successful:', deploymentResult);
-
-      setDeployStatus(`Collection "${collectionData.name}" deployed successfully! 
-        Collection: ${deploymentResult.collectionAddress}
-        Transaction: ${deploymentResult.transactionSignature}
-        Explorer: ${deploymentResult.explorerUrl}`);
-      
-      // Enable the collection for minting
-      await adminControlService.updateCollection(collectionData.name, {
-        ...collectionData,
-        isActive: true,
-        mintingEnabled: true,
-        collectionAddress: deploymentResult.collectionAddress,
-        mintAddress: deploymentResult.mintAddress,
-        metadataAddress: deploymentResult.metadataAddress,
-        masterEditionAddress: deploymentResult.masterEditionAddress,
-        transactionSignature: deploymentResult.transactionSignature
+      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/create-collection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-wallet': publicKey.toString()
+        },
+        body: JSON.stringify(collectionDataForAPI)
       });
-      
-      setDeployStatus(`Collection deployed and enabled for minting! 
-        Collection: ${deploymentResult.collectionAddress}
-        Explorer: ${deploymentResult.explorerUrl}`);
+
+      const result = await response.json();
+
+      if (result.success && result.collection) {
+        console.log('✅ Collection created successfully:', result);
+
+        setDeployStatus(`Collection "${collectionData.name}" deployed successfully! 
+          Collection ID: ${result.collection.id}
+          Collection Mint: ${result.collection.collectionMint}
+          Transaction: ${result.signature}
+          Explorer: ${result.explorerUrl}`);
+        
+        // Enable the collection for minting
+        await adminControlService.updateCollection(collectionData.name, {
+          ...collectionData,
+          isActive: true,
+          mintingEnabled: true,
+          collectionAddress: result.collection.id,
+          mintAddress: result.collection.collectionMint,
+          metadataAddress: result.collection.id, // Use collection ID as metadata address
+          masterEditionAddress: result.collection.id, // Use collection ID as master edition address
+          transactionSignature: result.signature
+        });
+        
+        setDeployStatus(`Collection deployed and enabled for minting! 
+          Collection ID: ${result.collection.id}
+          Explorer: ${result.explorerUrl}`);
+      } else {
+        throw new Error(result.error || 'Failed to create collection');
+      }
     } catch (error) {
       setDeployStatus('Deployment failed. Please try again.');
       console.error('Deployment error:', error);

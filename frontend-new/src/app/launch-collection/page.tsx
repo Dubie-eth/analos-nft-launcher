@@ -347,64 +347,140 @@ const LaunchCollectionPage: React.FC = () => {
     setDeploymentStatus('🚀 Deploying collection to Analos blockchain...');
 
     try {
-      // Simulate deployment process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const deployedCollectionData = {
+      // Create collection with admin features using the backend
+      const collectionData = {
         name: collectionConfig.name,
         symbol: collectionConfig.symbol,
         description: collectionConfig.description,
-        imageUrl: collectionConfig.imageUrl,
+        image: collectionConfig.imageUrl,
         externalUrl: collectionConfig.externalUrl,
-        maxSupply: collectionConfig.maxSupply,
+        creatorAddress: collectionConfig.creatorAddress || publicKey.toBase58(),
+        totalSupply: collectionConfig.maxSupply,
+        attributes: [
+          { trait_type: 'Collection', value: collectionConfig.name },
+          { trait_type: 'Mint Type', value: collectionConfig.mintType },
+          { trait_type: 'Reveal Type', value: collectionConfig.revealType }
+        ],
+        // Admin features
         mintPrice: collectionConfig.mintPrice,
-        pricingToken: collectionConfig.pricingToken,
-        customTokenSymbol: collectionConfig.customTokenSymbol,
-        royalty: collectionConfig.royalty,
-        creatorAddress: collectionConfig.creatorAddress,
-        mintType: collectionConfig.mintType,
-        revealType: collectionConfig.revealType,
-        delayedRevealSettings: collectionConfig.delayedRevealSettings,
-        platformFees: platformFees,
-        traitCategories: traitCategories,
-        hostingConfig: hostingConfig,
-        whitelistPhases: whitelistPhases,
-        mintAddress: `mint_${Date.now()}`,
-        collectionAddress: `collection_${Date.now()}`,
-        mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
-        shareUrl: `https://analos-nft-launcher.vercel.app/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
-        referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
-        deployedAt: new Date().toISOString()
+        paymentToken: collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenSymbol || 'SOL' : collectionConfig.pricingToken,
+        maxMintsPerWallet: 0, // Unlimited by default
+        isTestMode: false,
+        whitelistEnabled: whitelistPhases.length > 0,
+        bondingCurveEnabled: collectionConfig.mintType === 'bonding-curve',
+        // Whitelist configuration
+        whitelist: whitelistPhases.length > 0 ? {
+          enabled: true,
+          addresses: [],
+          phases: whitelistPhases.map((phase, index) => ({
+            id: `phase_${index + 1}`,
+            name: phase.name,
+            enabled: true,
+            startDate: phase.startTime.toISOString(),
+            endDate: phase.endTime.toISOString(),
+            priceMultiplier: phase.price / collectionConfig.mintPrice,
+            maxMintsPerWallet: phase.maxMints,
+            description: `Phase ${index + 1} with social requirements`,
+            requirements: {
+              tokenMint: collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenAddress : undefined,
+              minBalance: 0,
+              tokenSymbol: collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenSymbol : collectionConfig.pricingToken
+            }
+          }))
+        } : undefined,
+        // Delayed reveal configuration
+        delayedReveal: collectionConfig.revealType === 'delayed' ? {
+          enabled: true,
+          type: collectionConfig.delayedRevealSettings?.revealTrigger === 'date' ? 'automatic' : 
+                collectionConfig.delayedRevealSettings?.revealTrigger === 'supply' ? 'completion' : 'manual',
+          revealTime: collectionConfig.delayedRevealSettings?.revealDate?.toISOString() || '',
+          revealAtCompletion: collectionConfig.delayedRevealSettings?.revealTrigger === 'supply',
+          placeholderImage: collectionConfig.delayedRevealSettings?.placeholderImage || ''
+        } : undefined,
+        // Bonding curve configuration
+        bondingCurveConfig: collectionConfig.mintType === 'bonding-curve' ? {
+          initialPrice: bondingCurveConfig.startingPrice,
+          priceIncrement: (bondingCurveConfig.endingPrice - bondingCurveConfig.startingPrice) / collectionConfig.maxSupply,
+          maxPrice: bondingCurveConfig.endingPrice,
+          curveType: bondingCurveConfig.type
+        } : undefined
       };
 
-      setDeployedCollection(deployedCollectionData);
-      setDeploymentStatus('✅ Collection deployed successfully!');
+      console.log('Creating collection with data:', collectionData);
 
-      // Save to localStorage for the collections page
-      const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
-      const newCollection = {
-        ...deployedCollectionData,
-        id: deployedCollectionData.collectionAddress,
-        pricingToken: collectionConfig.pricingToken,
-        customTokenSymbol: collectionConfig.customTokenSymbol,
-        mintType: collectionConfig.mintType,
-        revealType: collectionConfig.revealType,
-        stats: {
-          totalMinted: 0,
-          totalHolders: 0,
-          floorPrice: collectionConfig.mintPrice,
-          volumeTraded: 0
+      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/create-collection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-wallet': collectionConfig.creatorAddress || publicKey.toBase58()
         },
-        socials: {
-          twitter: collectionConfig.externalUrl?.includes('twitter') ? collectionConfig.externalUrl : undefined,
-          website: collectionConfig.externalUrl
-        }
-      };
-      savedCollections.push(newCollection);
-      localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
+        body: JSON.stringify(collectionData)
+      });
 
-      nextStep();
+      const result = await response.json();
+
+      if (result.success && result.collection) {
+        const deployedCollectionData = {
+          name: result.collection.name,
+          symbol: result.collection.symbol,
+          description: result.collection.description,
+          imageUrl: result.collection.image,
+          externalUrl: result.collection.externalUrl,
+          maxSupply: result.collection.totalSupply,
+          mintPrice: result.collection.mintPrice,
+          pricingToken: result.collection.paymentToken,
+          customTokenSymbol: collectionConfig.customTokenSymbol,
+          royalty: collectionConfig.royalty,
+          creatorAddress: result.collection.creatorAddress,
+          mintType: collectionConfig.mintType,
+          revealType: collectionConfig.revealType,
+          delayedRevealSettings: collectionConfig.delayedRevealSettings,
+          platformFees: platformFees,
+          traitCategories: traitCategories,
+          hostingConfig: hostingConfig,
+          whitelistPhases: whitelistPhases,
+          mintAddress: result.collection.collectionMint,
+          collectionAddress: result.collection.id,
+          mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
+          shareUrl: `https://analos-nft-launcher-9cxc.vercel.app/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
+          referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
+          deployedAt: new Date().toISOString(),
+          signature: result.signature,
+          explorerUrl: result.explorerUrl
+        };
+
+        setDeployedCollection(deployedCollectionData);
+        setDeploymentStatus('✅ Collection deployed successfully!');
+
+        // Save to localStorage for the collections page
+        const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+        const newCollection = {
+          ...deployedCollectionData,
+          id: result.collection.id,
+          pricingToken: collectionConfig.pricingToken,
+          customTokenSymbol: collectionConfig.customTokenSymbol,
+          mintType: collectionConfig.mintType,
+          revealType: collectionConfig.revealType,
+          stats: {
+            totalMinted: 0,
+            totalHolders: 0,
+            floorPrice: collectionConfig.mintPrice,
+            volumeTraded: 0
+          },
+          socials: {
+            twitter: collectionConfig.externalUrl?.includes('twitter') ? collectionConfig.externalUrl : undefined,
+            website: collectionConfig.externalUrl
+          }
+        };
+        savedCollections.push(newCollection);
+        localStorage.setItem('launched_collections', JSON.stringify(savedCollections));
+
+        nextStep();
+      } else {
+        setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
+      }
     } catch (error: any) {
+      console.error('Deployment error:', error);
       setDeploymentStatus(`❌ Deployment failed: ${error.message}`);
     } finally {
       setIsDeploying(false);
@@ -1459,17 +1535,30 @@ const LaunchCollectionPage: React.FC = () => {
                       <h4 className="text-white font-semibold mb-2">📊 Collection Stats</h4>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
-                          <span>Mint Address:</span>
-                          <span className="font-mono text-xs">{deployedCollection.mintAddress}</span>
+                          <span>Collection ID:</span>
+                          <span className="font-mono text-xs">{deployedCollection.collectionAddress}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Collection Address:</span>
-                          <span className="font-mono text-xs">{deployedCollection.collectionAddress}</span>
+                          <span>Collection Mint:</span>
+                          <span className="font-mono text-xs">{deployedCollection.mintAddress}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Deployed At:</span>
                           <span>{new Date(deployedCollection.deployedAt).toLocaleString()}</span>
                         </div>
+                        {deployedCollection.signature && (
+                          <div className="flex justify-between">
+                            <span>Transaction:</span>
+                            <a 
+                              href={deployedCollection.explorerUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="font-mono text-xs text-blue-400 hover:text-blue-300 underline"
+                            >
+                              View on Explorer
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1492,7 +1581,7 @@ const LaunchCollectionPage: React.FC = () => {
                       🎨 View Mint Page
                     </button>
                     <button
-                      onClick={() => window.open(`https://explorer.analos.io/account/${deployedCollection.mintAddress}`, '_blank')}
+                      onClick={() => window.open(`https://explorer.analos.com/account/${deployedCollection.mintAddress}`, '_blank')}
                       className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold py-3 px-6 rounded-lg"
                     >
                       🔍 View on Explorer
