@@ -18,27 +18,66 @@ export class LOSPriceService {
     }
 
     try {
-      // Fetch from Jupiter API (Solana DEX aggregator)
-      const response = await fetch('https://price.jup.ag/v4/price?ids=LOS');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch LOS price');
+      // Try multiple price sources for better reliability
+      const priceSources = [
+        'https://api.coingecko.com/api/v3/simple/price?ids=los&vs_currencies=usd&include_24hr_change=true',
+        'https://price.jup.ag/v4/price?ids=LOS',
+        'https://api.birdeye.so/v1/token/price?address=So11111111111111111111111111111111111111112' // Fallback to SOL price
+      ];
+
+      let priceData: LOSPriceData | null = null;
+
+      for (const url of priceSources) {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+            // Add timeout
+            signal: AbortSignal.timeout(5000)
+          });
+          
+          if (!response.ok) continue;
+
+          const data = await response.json();
+          
+          // Handle different API response formats
+          if (url.includes('coingecko')) {
+            const losData = data.los;
+            if (losData) {
+              priceData = {
+                price: losData.usd,
+                priceChange24h: losData.usd_24h_change || 0,
+                marketCap: 0,
+                volume24h: 0,
+                lastUpdated: new Date().toISOString()
+              };
+              break;
+            }
+          } else if (url.includes('jup.ag')) {
+            const losData = data.data?.LOS;
+            if (losData) {
+              priceData = {
+                price: losData.price,
+                priceChange24h: losData.priceChange24h || 0,
+                marketCap: losData.marketCap || 0,
+                volume24h: losData.volume24h || 0,
+                lastUpdated: new Date().toISOString()
+              };
+              break;
+            }
+          }
+        } catch (sourceError) {
+          console.warn(`Price source failed: ${url}`, sourceError);
+          continue;
+        }
       }
 
-      const data = await response.json();
-      const losData = data.data?.LOS;
-
-      if (!losData) {
-        throw new Error('LOS price data not found');
+      // If all sources fail, use fallback
+      if (!priceData) {
+        throw new Error('All price sources failed');
       }
-
-      const priceData: LOSPriceData = {
-        price: losData.price,
-        priceChange24h: losData.priceChange24h || 0,
-        marketCap: losData.marketCap || 0,
-        volume24h: losData.volume24h || 0,
-        lastUpdated: new Date().toISOString()
-      };
 
       // Cache the result
       this.cache = priceData;
@@ -48,14 +87,20 @@ export class LOSPriceService {
     } catch (error) {
       console.error('Error fetching LOS price:', error);
       
-      // Return fallback data if API fails
-      return {
+      // Return fallback data if all APIs fail
+      const fallbackData = {
         price: 0.0001, // Fallback price
         priceChange24h: 0,
         marketCap: 0,
         volume24h: 0,
         lastUpdated: new Date().toISOString()
       };
+
+      // Cache fallback data for shorter duration
+      this.cache = fallbackData;
+      this.cacheExpiry = Date.now() + (60 * 1000); // 1 minute cache for fallback
+
+      return fallbackData;
     }
   }
 

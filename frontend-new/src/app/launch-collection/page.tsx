@@ -705,7 +705,11 @@ const LaunchCollectionPage: React.FC = () => {
 
   // Dynamic pricing calculator (like Bueno.art)
   const calculateUpfrontCost = (collectionSize: number, storageMethod: string, perNftCost: number): number => {
-    let baseCost = collectionSize * perNftCost;
+    // Ensure all values are valid numbers
+    const validCollectionSize = collectionSize || 0;
+    const validPerNftCost = perNftCost || 0;
+    
+    let baseCost = validCollectionSize * validPerNftCost;
     
     // Storage method multipliers
     switch (storageMethod) {
@@ -1678,7 +1682,7 @@ const LaunchCollectionPage: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-center space-x-2">
                         <span className="text-white font-bold text-lg">
-                          {nftGenerationConfig.upfrontCost.toFixed(2)} LOS
+                          {(nftGenerationConfig.upfrontCost || 0).toFixed(2)} LOS
                         </span>
                       </div>
                     </div>
@@ -1894,11 +1898,11 @@ const LaunchCollectionPage: React.FC = () => {
                       <p className="text-gray-300 mb-3">Complete your payment to download</p>
                       <div className="bg-white/10 rounded p-3 mb-4">
                         <p className="text-white font-semibold">
-                          Total: {nftGenerationConfig.upfrontCost.toFixed(2)} LOS
+                          Total: {(nftGenerationConfig.upfrontCost || 0).toFixed(2)} LOS
                         </p>
                         {losPriceData && (
                           <p className="text-blue-400 text-sm">
-                            ≈ ${losPriceService.formatUSD(losPriceData.price, nftGenerationConfig.upfrontCost)} USD
+                            ≈ ${losPriceService.formatUSD(losPriceData.price, nftGenerationConfig.upfrontCost || 0)} USD
                           </p>
                         )}
                       </div>
