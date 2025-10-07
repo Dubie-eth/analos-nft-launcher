@@ -37,18 +37,14 @@ export default function Navigation() {
   // Base navigation items (always visible)
   const baseNavItems = [
     { href: '/', label: 'Home', icon: '🏠' },
-    { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' }, // Full collection launch wizard
-    { href: '/collections', label: 'Collections', icon: '🎨' }, // Browse all collections
-    { href: '/marketplace', label: 'Marketplace', icon: '🏪' }, // NFT Marketplace
+    { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
+    { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
     { href: '/explorer', label: 'Explorer', icon: '🔍' },
-    { href: '/profile', label: 'Profile', icon: '👤' },
   ];
 
   // Admin-only navigation items
   const adminNavItems = [
-    { href: '/admin', label: 'Admin', icon: '⚙️' },
-    { href: '/admin-dashboard', label: 'Admin Dashboard', icon: '📊' },
-    { href: '/manage-collections', label: 'Manage Collections', icon: '🎨' },
+    { href: '/admin', label: 'Admin Dashboard', icon: '🎛️' },
   ];
 
   // Combine navigation items based on admin status

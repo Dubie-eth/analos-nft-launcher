@@ -3,18 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
-import dynamic from 'next/dynamic';
-
-// Dynamic imports to avoid SSR issues
-const EnhancedNFTMinter = dynamic(() => import('@/app/components/EnhancedNFTMinter'), {
-  ssr: false,
-  loading: () => <div className="text-center text-white">Loading NFT minter...</div>
-});
-
-const TurnkeyTest = dynamic(() => import('@/app/components/TurnkeyTest'), {
-  ssr: false,
-  loading: () => <div className="text-center text-white">Loading Turnkey test...</div>
-});
 
 export default function MarketplacePage() {
   return (
@@ -27,27 +15,10 @@ export default function MarketplacePage() {
               🏪 NFT Marketplace
             </h1>
             <p className="text-xl text-gray-300 mb-8">
-              Create professional NFTs with SPL metadata and discover collections with advanced utilities
+              Discover and trade NFTs with advanced utilities on the Analos blockchain
             </p>
           </div>
 
-          {/* Turnkey Integration Test */}
-          <div className="mb-12">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">🔐 Turnkey Integration Test</h2>
-              <p className="text-gray-300">Test and configure Turnkey secure wallet integration</p>
-            </div>
-            <TurnkeyTest />
-          </div>
-
-          {/* Enhanced NFT Minter - Professional Minting */}
-          <div className="mb-12">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">🚀 Professional NFT Minter</h2>
-              <p className="text-gray-300">Create NFTs with SPL Token Metadata and Turnkey security</p>
-            </div>
-            <EnhancedNFTMinter />
-          </div>
 
 
           {/* Marketplace Options */}
