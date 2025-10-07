@@ -1413,9 +1413,9 @@ const LaunchCollectionPage: React.FC = () => {
         }
       }
 
-      console.log('🎯 Calling nextStep() to advance to step 8...');
-      nextStep();
-      console.log('✅ nextStep() called successfully');
+      console.log('🎯 Setting currentStep to 8 (Share) after successful deployment...');
+      setCurrentStep(8);
+      console.log('✅ currentStep set to 8 successfully');
       } else {
         setDeploymentStatus(`❌ Deployment failed: ${result.error || 'Unknown error'}`);
         console.log('❌ Deployment failed, not advancing to next step');
