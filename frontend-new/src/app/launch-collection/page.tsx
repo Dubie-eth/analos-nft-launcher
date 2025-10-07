@@ -67,7 +67,7 @@ interface GeneratedNFT {
 interface NFTGenerationConfig {
   paymentType: 'percentage' | 'upfront';
   percentageFee: number; // Percentage of each mint (e.g., 2.5 for 2.5%) - Admin controlled
-  upfrontCost: number; // One-time cost in LOS
+  upfrontCost: number; // One-time cost in LOS (Analos native token)
   generationEnabled: boolean;
   previewCount: number; // Number of NFTs to generate for preview
   isAdminControlled: boolean; // Whether payment settings are controlled by admin
@@ -213,7 +213,7 @@ const LaunchCollectionPage: React.FC = () => {
   const [nftGenerationConfig, setNftGenerationConfig] = useState<NFTGenerationConfig>({
     paymentType: 'percentage',
     percentageFee: 2.5, // 2.5% of each mint (admin controlled)
-    upfrontCost: 1000, // 1000 LOS upfront (admin controlled)
+    upfrontCost: 100, // 100 LOS upfront (Bueno.art style pricing)
     generationEnabled: false,
     previewCount: 10,
     isAdminControlled: true // Payment settings controlled by admin wallet
@@ -241,7 +241,7 @@ const LaunchCollectionPage: React.FC = () => {
   // Admin wallet validation
   const [isAdminWallet, setIsAdminWallet] = useState(false);
   const adminWallets = [
-    'Dubie-eth', // Add your admin wallet addresses here
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your actual wallet address
     // Add more admin wallet addresses as needed
   ];
   const [whitelistPhases, setWhitelistPhases] = useState<WhitelistPhase[]>([]);
@@ -681,11 +681,9 @@ const LaunchCollectionPage: React.FC = () => {
       
       // Check if wallet is admin wallet
       const walletAddress = publicKey.toBase58();
-      const isAdmin = adminWallets.some(adminWallet => 
-        walletAddress.toLowerCase().includes(adminWallet.toLowerCase()) ||
-        adminWallet.toLowerCase().includes(walletAddress.toLowerCase())
-      );
+      const isAdmin = adminWallets.includes(walletAddress);
       setIsAdminWallet(isAdmin);
+      console.log('🔍 Wallet check:', { walletAddress, isAdmin, adminWallets });
       
       // Initialize session when wallet connects
       if (!sessionId) {
@@ -1338,22 +1336,10 @@ const LaunchCollectionPage: React.FC = () => {
                 <h3 className="text-xl font-semibold text-white">💰 Generation Payment Options</h3>
                 {isAdminWallet && (
                   <div className="flex items-center space-x-2">
-                    <span className="text-green-400 text-sm">🔑 Admin Wallet</span>
-                    <span className="text-gray-400 text-xs">(Can modify payment settings)</span>
+                    <span className="text-green-400 text-sm">🔑 Admin Controls</span>
                   </div>
                 )}
               </div>
-              
-              {!isAdminWallet && (
-                <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-yellow-400">⚠️</span>
-                    <span className="text-yellow-300 text-sm">
-                      Payment settings are controlled by admin wallet. Contact admin to modify rates.
-                    </span>
-                  </div>
-                </div>
-              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -1387,9 +1373,6 @@ const LaunchCollectionPage: React.FC = () => {
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">Like Bueno.art - pay as you earn</p>
-                    {!isAdminWallet && (
-                      <p className="text-xs text-red-400 mt-1">Admin controlled</p>
-                    )}
                   </div>
                 </div>
 
@@ -1408,7 +1391,7 @@ const LaunchCollectionPage: React.FC = () => {
                       <div className="flex items-center justify-center space-x-2">
                         <input
                           type="number"
-                          step="100"
+                          step="10"
                           value={nftGenerationConfig.upfrontCost}
                           onChange={(e) => setNftGenerationConfig(prev => ({ ...prev, upfrontCost: parseFloat(e.target.value) || 0 }))}
                           className={`w-20 px-2 py-1 border rounded text-white text-sm text-center ${
@@ -1417,16 +1400,13 @@ const LaunchCollectionPage: React.FC = () => {
                               : 'bg-gray-500/20 border-gray-500/30 cursor-not-allowed'
                           }`}
                           min="0"
-                          max="100000"
+                          max="10000"
                           disabled={!isAdminWallet}
                         />
                         <span className="text-white text-sm">LOS</span>
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">One-time payment for all generation</p>
-                    {!isAdminWallet && (
-                      <p className="text-xs text-red-400 mt-1">Admin controlled</p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1440,17 +1420,6 @@ const LaunchCollectionPage: React.FC = () => {
                 />
                 <label className="text-white text-sm">Enable NFT Generation Service</label>
               </div>
-              
-              {isAdminWallet && (
-                <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-green-400">🔑</span>
-                    <span className="text-green-300 text-sm">
-                      Admin privileges: You can modify payment rates and settings.
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Upload Section */}
