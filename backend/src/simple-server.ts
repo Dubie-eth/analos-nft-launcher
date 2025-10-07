@@ -3566,16 +3566,16 @@ app.post('/api/collections/backup', (req, res) => {
 
     // In a real implementation, you'd save this to a database
     // For now, we'll store it in a simple in-memory backup store
-    if (!global.backupStore) {
-      global.backupStore = new Map();
+    if (!(global as any).backupStore) {
+      (global as any).backupStore = new Map();
     }
     
-    global.backupStore.set(backupId, backupData);
+    (global as any).backupStore.set(backupId, backupData);
     
     // Keep only the latest 10 backups
-    if (global.backupStore.size > 10) {
-      const oldestBackup = global.backupStore.keys().next().value;
-      global.backupStore.delete(oldestBackup);
+    if ((global as any).backupStore.size > 10) {
+      const oldestBackup = (global as any).backupStore.keys().next().value;
+      (global as any).backupStore.delete(oldestBackup);
     }
 
     console.log('✅ Collection backup saved:', backupId, backupCollections.length, 'collections');
@@ -3599,7 +3599,7 @@ app.post('/api/collections/backup', (req, res) => {
 app.get('/api/collections/backup', (req, res) => {
   try {
     // Get the latest backup
-    if (!global.backupStore || global.backupStore.size === 0) {
+    if (!(global as any).backupStore || (global as any).backupStore.size === 0) {
       return res.status(404).json({
         success: false,
         error: 'No backup data found'
@@ -3607,8 +3607,8 @@ app.get('/api/collections/backup', (req, res) => {
     }
 
     // Get the most recent backup
-    const latestBackup = Array.from(global.backupStore.values())
-      .sort((a, b) => b.timestamp - a.timestamp)[0];
+    const latestBackup = Array.from((global as any).backupStore.values())
+      .sort((a: any, b: any) => b.timestamp - a.timestamp)[0] as any;
 
     if (!latestBackup) {
       return res.status(404).json({
@@ -3638,16 +3638,16 @@ app.get('/api/collections/backup', (req, res) => {
 
 app.get('/api/collections/backup/list', (req, res) => {
   try {
-    if (!global.backupStore || global.backupStore.size === 0) {
+    if (!(global as any).backupStore || (global as any).backupStore.size === 0) {
       return res.json({
         success: true,
         backups: []
       });
     }
 
-    const backups = Array.from(global.backupStore.values())
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .map(backup => ({
+    const backups = Array.from((global as any).backupStore.values())
+      .sort((a: any, b: any) => b.timestamp - a.timestamp)
+      .map((backup: any) => ({
         id: backup.id,
         timestamp: backup.timestamp,
         version: backup.version,
