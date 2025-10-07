@@ -1182,8 +1182,8 @@ const LaunchCollectionPage: React.FC = () => {
             id: `phase_${index + 1}`,
             name: phase.name,
             enabled: true,
-            startDate: phase.startTime.toISOString(),
-            endDate: phase.endTime.toISOString(),
+            startDate: phase.startTime instanceof Date ? phase.startTime.toISOString() : new Date(phase.startTime).toISOString(),
+            endDate: phase.endTime instanceof Date ? phase.endTime.toISOString() : new Date(phase.endTime).toISOString(),
             priceMultiplier: phase.priceMultiplier,
             maxMintsPerWallet: phase.maxMintsPerWallet,
             maxMintsTotal: phase.maxMints,
@@ -3051,7 +3051,7 @@ const LaunchCollectionPage: React.FC = () => {
                       </label>
                       <input
                         type="datetime-local"
-                        value={phase.startTime.toISOString().slice(0, 16)}
+                        value={phase.startTime instanceof Date ? phase.startTime.toISOString().slice(0, 16) : new Date(phase.startTime).toISOString().slice(0, 16)}
                         onChange={(e) => {
                           const newPhases = [...whitelistPhases];
                           newPhases[index].startTime = new Date(e.target.value);
@@ -3067,7 +3067,7 @@ const LaunchCollectionPage: React.FC = () => {
                       </label>
                       <input
                         type="datetime-local"
-                        value={phase.endTime.toISOString().slice(0, 16)}
+                        value={phase.endTime instanceof Date ? phase.endTime.toISOString().slice(0, 16) : new Date(phase.endTime).toISOString().slice(0, 16)}
                         onChange={(e) => {
                           const newPhases = [...whitelistPhases];
                           newPhases[index].endTime = new Date(e.target.value);
