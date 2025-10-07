@@ -109,7 +109,7 @@ export default function ProfessionalNFTGenerator({ onComplete }: ProfessionalNFT
       case 'upload':
         return layers.length > 0;
       case 'configure':
-        return layers.every(layer => layer.traits.length > 0);
+        return layers.every(layer => layer.traits && layer.traits.length > 0);
       case 'settings':
         return collectionSettings.name.trim() !== '' && 
                collectionSettings.symbol.trim() !== '' && 
@@ -173,7 +173,7 @@ export default function ProfessionalNFTGenerator({ onComplete }: ProfessionalNFT
               const isActive = currentStep === step.id;
               const isCompleted = stepButtons.slice(0, index).every(s => 
                 s.id === 'upload' ? layers.length > 0 :
-                s.id === 'configure' ? layers.every(layer => layer.traits.length > 0) :
+                s.id === 'configure' ? layers.every(layer => layer.traits && layer.traits.length > 0) :
                 s.id === 'settings' ? collectionSettings.name.trim() !== '' : true
               );
               const canAccess = index === 0 || isCompleted;
