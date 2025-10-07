@@ -56,13 +56,35 @@ interface HostingConfig {
 interface WhitelistPhase {
   name: string;
   price: number;
-  maxMints: number;
+  maxMints: number; // Total mints for this phase
+  maxMintsPerWallet: number; // Max mints per individual wallet
   startTime: Date;
   endTime: Date;
   socialRequirements: {
     twitter?: boolean;
     discord?: boolean;
     telegram?: boolean;
+    instagram?: boolean;
+    tiktok?: boolean;
+  };
+  tokenRequirements?: {
+    enabled: boolean;
+    tokenMint?: string;
+    tokenSymbol?: string;
+    minBalance: number;
+    tokenType: 'SOL' | 'LOS' | 'LOL' | 'CUSTOM';
+  };
+  addressWhitelist?: {
+    enabled: boolean;
+    addresses: string[];
+    uploadFile?: File;
+  };
+  priceMultiplier: number; // 1.0 = normal price, 0.5 = 50% discount, 1.5 = 50% premium
+  description?: string;
+  requirements?: {
+    minFollowers?: number;
+    accountAge?: number; // days
+    verifiedAccount?: boolean;
   };
 }
 
@@ -325,13 +347,34 @@ const LaunchCollectionPage: React.FC = () => {
     const newPhase: WhitelistPhase = {
       name: `Phase ${whitelistPhases.length + 1}`,
       price: collectionConfig.mintPrice,
-      maxMints: 100,
+      maxMints: 100, // Total mints for this phase
+      maxMintsPerWallet: 1, // Max mints per individual wallet
       startTime: new Date(),
       endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       socialRequirements: {
         twitter: false,
         discord: false,
-        telegram: false
+        telegram: false,
+        instagram: false,
+        tiktok: false
+      },
+      tokenRequirements: {
+        enabled: false,
+        tokenMint: '',
+        tokenSymbol: 'SOL',
+        minBalance: 0,
+        tokenType: 'SOL'
+      },
+      addressWhitelist: {
+        enabled: false,
+        addresses: []
+      },
+      priceMultiplier: 1.0, // Normal price
+      description: '',
+      requirements: {
+        minFollowers: 0,
+        accountAge: 0,
+        verifiedAccount: false
       }
     };
     setWhitelistPhases([...whitelistPhases, newPhase]);
@@ -371,20 +414,27 @@ const LaunchCollectionPage: React.FC = () => {
         // Whitelist configuration
         whitelist: whitelistPhases.length > 0 ? {
           enabled: true,
-          addresses: [],
+          addresses: whitelistPhases.flatMap(phase => phase.addressWhitelist?.addresses || []),
           phases: whitelistPhases.map((phase, index) => ({
             id: `phase_${index + 1}`,
             name: phase.name,
             enabled: true,
             startDate: phase.startTime.toISOString(),
             endDate: phase.endTime.toISOString(),
-            priceMultiplier: phase.price / collectionConfig.mintPrice,
-            maxMintsPerWallet: phase.maxMints,
-            description: `Phase ${index + 1} with social requirements`,
+            priceMultiplier: phase.priceMultiplier,
+            maxMintsPerWallet: phase.maxMintsPerWallet,
+            maxMintsTotal: phase.maxMints,
+            description: phase.description || `Phase ${index + 1} with enhanced requirements`,
             requirements: {
-              tokenMint: collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenAddress : undefined,
-              minBalance: 0,
-              tokenSymbol: collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenSymbol : collectionConfig.pricingToken
+              tokenMint: phase.tokenRequirements?.enabled ? phase.tokenRequirements.tokenMint : 
+                        (collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenAddress : undefined),
+              minBalance: phase.tokenRequirements?.enabled ? phase.tokenRequirements.minBalance : 0,
+              tokenSymbol: phase.tokenRequirements?.enabled ? phase.tokenRequirements.tokenSymbol : 
+                          (collectionConfig.pricingToken === 'CUSTOM' ? collectionConfig.customTokenSymbol : collectionConfig.pricingToken),
+              socialRequirements: phase.socialRequirements,
+              minFollowers: phase.requirements?.minFollowers || 0,
+              accountAge: phase.requirements?.accountAge || 0,
+              verifiedAccount: phase.requirements?.verifiedAccount || false
             }
           }))
         } : undefined,
@@ -1280,8 +1330,22 @@ const LaunchCollectionPage: React.FC = () => {
               </button>
 
               {whitelistPhases.map((phase, index) => (
-                <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10 mb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div key={index} className="bg-white/5 rounded-lg p-6 border border-white/10 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-white font-semibold text-lg">{phase.name}</h4>
+                    <button
+                      onClick={() => {
+                        const newPhases = whitelistPhases.filter((_, i) => i !== index);
+                        setWhitelistPhases(newPhases);
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      🗑️ Remove Phase
+                    </button>
+                  </div>
+
+                  {/* Basic Phase Settings */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
                       <label className="block text-white text-sm font-medium mb-2">Phase Name</label>
                       <input
@@ -1293,12 +1357,14 @@ const LaunchCollectionPage: React.FC = () => {
                           setWhitelistPhases(newPhases);
                         }}
                         className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                        placeholder="e.g., OGs, VIP, Public"
                       />
                     </div>
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">Price (SOL)</label>
+                      <label className="block text-white text-sm font-medium mb-2">Base Price (SOL)</label>
                       <input
                         type="number"
+                        step="0.001"
                         value={phase.price}
                         onChange={(e) => {
                           const newPhases = [...whitelistPhases];
@@ -1309,7 +1375,30 @@ const LaunchCollectionPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">Max Mints</label>
+                      <label className="block text-white text-sm font-medium mb-2">Price Multiplier</label>
+                      <select
+                        value={phase.priceMultiplier}
+                        onChange={(e) => {
+                          const newPhases = [...whitelistPhases];
+                          newPhases[index].priceMultiplier = parseFloat(e.target.value);
+                          setWhitelistPhases(newPhases);
+                        }}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                      >
+                        <option value={0.5}>50% Discount (0.5x)</option>
+                        <option value={0.75}>25% Discount (0.75x)</option>
+                        <option value={1.0}>Normal Price (1.0x)</option>
+                        <option value={1.25}>25% Premium (1.25x)</option>
+                        <option value={1.5}>50% Premium (1.5x)</option>
+                        <option value={2.0}>100% Premium (2.0x)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Mint Limits */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">Max Total Mints (Phase)</label>
                       <input
                         type="number"
                         value={phase.maxMints}
@@ -1319,39 +1408,308 @@ const LaunchCollectionPage: React.FC = () => {
                           setWhitelistPhases(newPhases);
                         }}
                         className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                        placeholder="Total NFTs for this phase"
                       />
                     </div>
                     <div>
-                      <label className="block text-white text-sm font-medium mb-2">Social Requirements</label>
-                      <div className="flex space-x-4">
-                        <label className="flex items-center">
+                      <label className="block text-white text-sm font-medium mb-2">Max Mints per Wallet</label>
+                      <input
+                        type="number"
+                        value={phase.maxMintsPerWallet}
+                        onChange={(e) => {
+                          const newPhases = [...whitelistPhases];
+                          newPhases[index].maxMintsPerWallet = parseInt(e.target.value) || 0;
+                          setWhitelistPhases(newPhases);
+                        }}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                        placeholder="Per wallet limit"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time Windows */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">Start Time</label>
+                      <input
+                        type="datetime-local"
+                        value={phase.startTime.toISOString().slice(0, 16)}
+                        onChange={(e) => {
+                          const newPhases = [...whitelistPhases];
+                          newPhases[index].startTime = new Date(e.target.value);
+                          setWhitelistPhases(newPhases);
+                        }}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white text-sm font-medium mb-2">End Time</label>
+                      <input
+                        type="datetime-local"
+                        value={phase.endTime.toISOString().slice(0, 16)}
+                        onChange={(e) => {
+                          const newPhases = [...whitelistPhases];
+                          newPhases[index].endTime = new Date(e.target.value);
+                          setWhitelistPhases(newPhases);
+                        }}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Social Requirements */}
+                  <div className="mb-6">
+                    <label className="block text-white text-sm font-medium mb-3">Social Requirements</label>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      {[
+                        { key: 'twitter', label: 'Twitter', icon: '🐦' },
+                        { key: 'discord', label: 'Discord', icon: '💬' },
+                        { key: 'telegram', label: 'Telegram', icon: '📱' },
+                        { key: 'instagram', label: 'Instagram', icon: '📸' },
+                        { key: 'tiktok', label: 'TikTok', icon: '🎵' }
+                      ].map((social) => (
+                        <label key={social.key} className="flex items-center bg-white/5 rounded p-2">
                           <input
                             type="checkbox"
-                            checked={phase.socialRequirements.twitter}
+                            checked={phase.socialRequirements[social.key as keyof typeof phase.socialRequirements] || false}
                             onChange={(e) => {
                               const newPhases = [...whitelistPhases];
-                              newPhases[index].socialRequirements.twitter = e.target.checked;
+                              newPhases[index].socialRequirements[social.key as keyof typeof phase.socialRequirements] = e.target.checked;
                               setWhitelistPhases(newPhases);
                             }}
                             className="mr-2"
                           />
-                          <span className="text-white text-sm">Twitter</span>
+                          <span className="text-white text-sm">{social.icon} {social.label}</span>
                         </label>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={phase.socialRequirements.discord}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Token Requirements */}
+                  <div className="mb-6">
+                    <div className="flex items-center mb-3">
+                      <input
+                        type="checkbox"
+                        checked={phase.tokenRequirements?.enabled || false}
+                        onChange={(e) => {
+                          const newPhases = [...whitelistPhases];
+                          if (!newPhases[index].tokenRequirements) {
+                            newPhases[index].tokenRequirements = {
+                              enabled: false,
+                              tokenMint: '',
+                              tokenSymbol: 'SOL',
+                              minBalance: 0,
+                              tokenType: 'SOL'
+                            };
+                          }
+                          newPhases[index].tokenRequirements!.enabled = e.target.checked;
+                          setWhitelistPhases(newPhases);
+                        }}
+                        className="mr-2"
+                      />
+                      <label className="text-white text-sm font-medium">Token Requirements</label>
+                    </div>
+                    
+                    {phase.tokenRequirements?.enabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 rounded p-4">
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Token Type</label>
+                          <select
+                            value={phase.tokenRequirements?.tokenType || 'SOL'}
                             onChange={(e) => {
                               const newPhases = [...whitelistPhases];
-                              newPhases[index].socialRequirements.discord = e.target.checked;
+                              if (newPhases[index].tokenRequirements) {
+                                newPhases[index].tokenRequirements!.tokenType = e.target.value as any;
+                                newPhases[index].tokenRequirements!.tokenSymbol = e.target.value;
+                              }
                               setWhitelistPhases(newPhases);
                             }}
-                            className="mr-2"
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          >
+                            <option value="SOL">SOL</option>
+                            <option value="LOS">LOS</option>
+                            <option value="LOL">LOL</option>
+                            <option value="CUSTOM">Custom Token</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-white text-sm font-medium mb-2">Min Balance</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={phase.tokenRequirements?.minBalance || 0}
+                            onChange={(e) => {
+                              const newPhases = [...whitelistPhases];
+                              if (newPhases[index].tokenRequirements) {
+                                newPhases[index].tokenRequirements!.minBalance = parseFloat(e.target.value) || 0;
+                              }
+                              setWhitelistPhases(newPhases);
+                            }}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                            placeholder="Minimum token balance"
                           />
-                          <span className="text-white text-sm">Discord</span>
-                        </label>
+                        </div>
+                        {phase.tokenRequirements?.tokenType === 'CUSTOM' && (
+                          <div>
+                            <label className="block text-white text-sm font-medium mb-2">Custom Token Mint</label>
+                            <input
+                              type="text"
+                              value={phase.tokenRequirements?.tokenMint || ''}
+                              onChange={(e) => {
+                                const newPhases = [...whitelistPhases];
+                                if (newPhases[index].tokenRequirements) {
+                                  newPhases[index].tokenRequirements!.tokenMint = e.target.value;
+                                }
+                                setWhitelistPhases(newPhases);
+                              }}
+                              className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                              placeholder="Token mint address"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Address Whitelist */}
+                  <div className="mb-6">
+                    <div className="flex items-center mb-3">
+                      <input
+                        type="checkbox"
+                        checked={phase.addressWhitelist?.enabled || false}
+                        onChange={(e) => {
+                          const newPhases = [...whitelistPhases];
+                          if (!newPhases[index].addressWhitelist) {
+                            newPhases[index].addressWhitelist = {
+                              enabled: false,
+                              addresses: []
+                            };
+                          }
+                          newPhases[index].addressWhitelist!.enabled = e.target.checked;
+                          setWhitelistPhases(newPhases);
+                        }}
+                        className="mr-2"
+                      />
+                      <label className="text-white text-sm font-medium">Address Whitelist</label>
+                    </div>
+                    
+                    {phase.addressWhitelist?.enabled && (
+                      <div className="bg-white/5 rounded p-4">
+                        <div className="mb-3">
+                          <label className="block text-white text-sm font-medium mb-2">Upload Address List (CSV/TXT)</label>
+                          <input
+                            type="file"
+                            accept=".csv,.txt"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const text = event.target?.result as string;
+                                  const addresses = text.split('\n').map(addr => addr.trim()).filter(addr => addr);
+                                  const newPhases = [...whitelistPhases];
+                                  if (newPhases[index].addressWhitelist) {
+                                    newPhases[index].addressWhitelist!.addresses = addresses;
+                                    newPhases[index].addressWhitelist!.uploadFile = file;
+                                  }
+                                  setWhitelistPhases(newPhases);
+                                };
+                                reader.readAsText(file);
+                              }
+                            }}
+                            className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div className="text-white text-sm">
+                          {phase.addressWhitelist?.addresses.length || 0} addresses loaded
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Advanced Requirements */}
+                  <div className="mb-4">
+                    <label className="block text-white text-sm font-medium mb-3">Advanced Requirements</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 rounded p-4">
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Min Followers</label>
+                        <input
+                          type="number"
+                          value={phase.requirements?.minFollowers || 0}
+                          onChange={(e) => {
+                            const newPhases = [...whitelistPhases];
+                            if (!newPhases[index].requirements) {
+                              newPhases[index].requirements = {
+                                minFollowers: 0,
+                                accountAge: 0,
+                                verifiedAccount: false
+                              };
+                            }
+                            newPhases[index].requirements!.minFollowers = parseInt(e.target.value) || 0;
+                            setWhitelistPhases(newPhases);
+                          }}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          placeholder="Minimum followers"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white text-sm font-medium mb-2">Account Age (days)</label>
+                        <input
+                          type="number"
+                          value={phase.requirements?.accountAge || 0}
+                          onChange={(e) => {
+                            const newPhases = [...whitelistPhases];
+                            if (!newPhases[index].requirements) {
+                              newPhases[index].requirements = {
+                                minFollowers: 0,
+                                accountAge: 0,
+                                verifiedAccount: false
+                              };
+                            }
+                            newPhases[index].requirements!.accountAge = parseInt(e.target.value) || 0;
+                            setWhitelistPhases(newPhases);
+                          }}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                          placeholder="Minimum account age"
+                        />
+                      </div>
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={phase.requirements?.verifiedAccount || false}
+                          onChange={(e) => {
+                            const newPhases = [...whitelistPhases];
+                            if (!newPhases[index].requirements) {
+                              newPhases[index].requirements = {
+                                minFollowers: 0,
+                                accountAge: 0,
+                                verifiedAccount: false
+                              };
+                            }
+                            newPhases[index].requirements!.verifiedAccount = e.target.checked;
+                            setWhitelistPhases(newPhases);
+                          }}
+                          className="mr-2"
+                        />
+                        <label className="text-white text-sm">Verified Account Required</label>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-white text-sm font-medium mb-2">Phase Description</label>
+                    <textarea
+                      value={phase.description || ''}
+                      onChange={(e) => {
+                        const newPhases = [...whitelistPhases];
+                        newPhases[index].description = e.target.value;
+                        setWhitelistPhases(newPhases);
+                      }}
+                      className="w-full px-3 py-2 bg-white/10 border border-white/30 rounded text-white text-sm"
+                      rows={2}
+                      placeholder="Describe this whitelist phase..."
+                    />
                   </div>
                 </div>
               ))}
@@ -1421,12 +1779,25 @@ const LaunchCollectionPage: React.FC = () => {
                       <div className="mt-4">
                         <h3 className="font-semibold mb-2">Whitelist Phases:</h3>
                         {whitelistPhases.map((phase, index) => (
-                          <div key={index} className="text-sm bg-white/10 rounded p-2 mb-2">
-                            <div className="flex justify-between">
-                              <span>{phase.name}</span>
-                              <span>{phase.price} SOL</span>
+                          <div key={index} className="text-sm bg-white/10 rounded p-3 mb-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-semibold">{phase.name}</span>
+                              <span className="text-green-400">{phase.price * phase.priceMultiplier} SOL</span>
                             </div>
-                            <div className="text-xs text-gray-300">Max: {phase.maxMints} mints</div>
+                            <div className="text-xs text-gray-300 space-y-1">
+                              <div>Max Total: {phase.maxMints} mints</div>
+                              <div>Per Wallet: {phase.maxMintsPerWallet} mints</div>
+                              <div>Price: {phase.priceMultiplier}x multiplier</div>
+                              {phase.tokenRequirements?.enabled && (
+                                <div>Token Req: {phase.tokenRequirements.minBalance} {phase.tokenRequirements.tokenSymbol}</div>
+                              )}
+                              {phase.addressWhitelist?.enabled && (
+                                <div>Address List: {phase.addressWhitelist.addresses.length} addresses</div>
+                              )}
+                              {phase.requirements?.minFollowers > 0 && (
+                                <div>Min Followers: {phase.requirements.minFollowers}</div>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
