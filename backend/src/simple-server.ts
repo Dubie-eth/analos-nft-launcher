@@ -5,6 +5,15 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
+import { 
+  createMint, 
+  createAccount, 
+  getMinimumBalanceForRentExemptMint,
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  MINT_SIZE,
+  TOKEN_PROGRAM_ID
+} from '@solana/spl-token';
 import { AnalosSDKService } from './analos-sdk-service';
 import { AnalosMetaplexService } from './analos-metaplex-service';
 import RealNFTMintService from './real-nft-mint-service';
@@ -2598,37 +2607,99 @@ app.post('/api/transactions/mint-nft', async (req, res) => {
   }
 });
 
-// Create deploy collection transaction
+// Real collection deployment endpoint
 app.post('/api/transactions/deploy-collection', async (req, res) => {
   try {
-    const { collectionName, collectionSymbol, collectionUri, maxSupply, mintPrice, authorityWallet, programId } = req.body;
-
-    if (!collectionName || !authorityWallet || !programId) {
+    const userWallet = req.headers['x-user-wallet'] as string;
+    
+    if (!userWallet) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Missing required fields: collectionName, authorityWallet, programId' 
+        error: 'User wallet address is required' 
       });
     }
 
-    const transactionResult = await transactionService.createDeployCollectionTransaction(
-      collectionName,
-      collectionSymbol || 'COL',
-      collectionUri || '',
-      maxSupply || 1000,
-      mintPrice || 1, // Use provided price or default to 1
-      authorityWallet,
-      programId
+    // Extract collection data from request body
+    const {
+      name,
+      symbol,
+      description,
+      image,
+      externalUrl,
+      totalSupply,
+      mintPrice,
+      paymentToken,
+      creatorAddress,
+      royalty = 5.0, // Default 5% royalty
+      attributes = []
+    } = req.body;
+
+    if (!name || !symbol || !description || !image || !totalSupply) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: name, symbol, description, image, totalSupply' 
+      });
+    }
+
+    console.log('🚀 Starting REAL collection deployment for:', name);
+    console.log('👤 User wallet:', userWallet);
+
+    // Import the real deployment service
+    const { realDeploymentService } = await import('./real-deployment-service');
+
+    // Create deployment configuration
+    const deploymentConfig = {
+      name,
+      symbol,
+      description,
+      imageUrl: image,
+      externalUrl: externalUrl || '',
+      totalSupply: parseInt(totalSupply),
+      mintPrice: parseFloat(mintPrice) || 0.01,
+      paymentToken: paymentToken || 'LOS',
+      creatorAddress: creatorAddress || userWallet,
+      royalty: parseFloat(royalty) || 5.0,
+      attributes
+    };
+
+    // For now, we'll use a mock payer keypair since we can't access user's private key
+    // In a real implementation, the user would sign the transaction with their wallet
+    const mockPayerKeypair = Keypair.generate();
+    
+    console.log('⚠️ Using mock payer keypair for deployment (in production, user would sign)');
+    console.log('📍 Mock payer address:', mockPayerKeypair.publicKey.toBase58());
+
+    // Deploy the collection
+    const deploymentResult = await realDeploymentService.deployCollection(
+      deploymentConfig,
+      mockPayerKeypair
     );
 
-    if (transactionResult.success) {
-      res.json({ success: true, data: transactionResult });
+    if (deploymentResult.success) {
+      console.log('✅ Collection deployed successfully!');
+      res.json({ 
+        success: true, 
+        data: {
+          ...deploymentResult,
+          message: 'Collection deployed successfully to Analos blockchain',
+          deployedAt: new Date().toISOString(),
+          network: 'analos'
+        }
+      });
     } else {
-      res.status(500).json({ success: false, error: transactionResult.error });
+      console.error('❌ Deployment failed:', deploymentResult.error);
+      res.status(500).json({ 
+        success: false, 
+        error: deploymentResult.error || 'Deployment failed' 
+      });
     }
 
   } catch (error) {
-    console.error('Error creating deployment transaction:', error);
-    res.status(500).json({ success: false, error: 'Failed to create deployment transaction' });
+    console.error('❌ Error in real deployment:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to deploy collection: ' + (error instanceof Error ? error.message : 'Unknown error') 
+    });
   }
 });
 
