@@ -2942,7 +2942,7 @@ app.post('/api/mint-real-nft', async (req, res) => {
     console.log('🎨 Minting REAL NFT:', name);
     console.log('👤 Owner:', owner);
     
-    const nftMetadata: RealNFTMetadata = {
+    const nftMetadata: NFTMetadata = {
       name,
       symbol,
       description,
@@ -3889,7 +3889,7 @@ app.post('/api/update-nft-metadata', async (req, res) => {
 
     console.log('🔄 Updating NFT metadata:', mintAddress);
     
-    const newMetadata: RealNFTMetadata = {
+    const newMetadata: NFTMetadata = {
       name,
       symbol,
       description,
@@ -3922,7 +3922,7 @@ app.post('/api/update-nft-metadata', async (req, res) => {
       res.status(500).json({
         success: false,
         error: 'Failed to update NFT metadata',
-        details: result.error
+        details: 'Unknown error'
       });
     }
 

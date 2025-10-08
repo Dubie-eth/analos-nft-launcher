@@ -403,20 +403,20 @@ app.post('/api/collections/deploy', async (req, res) => {
     // Deploy to REAL blockchain using Analos SDKs
     let deploymentResult;
     try {
-      if (analosSDK) {
-        console.log('🎯 Using Analos SDKs for deployment...');
-        deploymentResult = await analosSDK.deployNFTCollection({
-          name: name.trim(),
-          symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
-          description: description?.trim() || '',
-          image: image || '',
-          maxSupply: Number(maxSupply),
-          price: Number(price),
-          feePercentage: Number(feePercentage) || 2.5,
-          feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-          externalUrl: externalUrl || ''
-        });
-      } else {
+      // if (analosSDK) {
+      //   console.log('🎯 Using Analos SDKs for deployment...');
+      //   deploymentResult = await analosSDK.deployNFTCollection({
+      //     name: name.trim(),
+      //     symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
+      //     description: description?.trim() || '',
+      //     image: image || '',
+      //     maxSupply: Number(maxSupply),
+      //     price: Number(price),
+      //     feePercentage: Number(feePercentage) || 2.5,
+      //     feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+      //     externalUrl: externalUrl || ''
+      //   });
+      // } else {
         console.log('⚠️ Analos SDK not available, using fallback...');
         deploymentResult = await smartContractService.deployNFTCollection({
           name: name.trim(),
@@ -563,15 +563,15 @@ app.post('/api/mint', async (req, res) => {
       // Use collectionId if available, otherwise fall back to poolAddress
       const identifier = collection.collectionId || collection.poolAddress;
       
-      if (analosSDK && identifier) {
-        console.log('🎯 Using Analos SDKs for minting...');
-        console.log('🎯 Using identifier:', identifier);
-        mintResult = await analosSDK.mintNFT(
-          identifier,
-          requestedQuantity,
-          walletAddress
-        );
-      } else {
+      // if (analosSDK && identifier) {
+      //   console.log('🎯 Using Analos SDKs for minting...');
+      //   console.log('🎯 Using identifier:', identifier);
+      //   mintResult = await analosSDK.mintNFT(
+      //     identifier,
+      //     requestedQuantity,
+      //     walletAddress
+      //   );
+      // } else {
         console.log('⚠️ Analos SDK not available, using fallback...');
         console.log('⚠️ Reason: analosSDK =', !!analosSDK, ', identifier =', identifier);
         mintResult = await smartContractService.mintNFT(
