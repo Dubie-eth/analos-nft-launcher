@@ -4,6 +4,7 @@ import "./globals.css";
 import { WalletContextProvider } from "./components/WalletProvider";
 import ClientNavigation from "./components/ClientNavigation";
 import "../lib/restore-losbros"; // Auto-restore LosBros collection
+import "../lib/initialize-beta-access"; // Initialize beta access system
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import StandardLayout from '../components/StandardLayout';
+import ComingSoonPage from '../components/ComingSoonPage';
+import { betaAccessService } from '../../lib/beta-access-service';
 import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting-service';
 import { LayerProcessor } from '../../lib/layer-processor';
 import { Layer, Trait } from '../../lib/nft-generator';
@@ -234,6 +236,24 @@ const cleanupLocalStorage = () => {
 const LaunchCollectionPage: React.FC = () => {
   const { publicKey, connected } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
+  const [hasBetaAccess, setHasBetaAccess] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  // Check beta access
+  useEffect(() => {
+    const checkAccess = () => {
+      if (connected && publicKey) {
+        const access = betaAccessService.hasBetaAccess(publicKey.toString());
+        setHasBetaAccess(access);
+      } else {
+        setHasBetaAccess(false);
+      }
+      setAccessChecked(true);
+    };
+
+    checkAccess();
+  }, [connected, publicKey]);
+
   const [collectionConfig, setCollectionConfig] = useState<CollectionConfig>({
     name: '',
     symbol: '',
@@ -3848,6 +3868,34 @@ const LaunchCollectionPage: React.FC = () => {
         return null;
     }
   };
+
+  // Show coming soon page if user doesn't have beta access
+  if (accessChecked && !hasBetaAccess) {
+    return (
+      <ComingSoonPage
+        featureName="Collection Launcher"
+        description="Create and deploy your NFT collection on the Analos blockchain with advanced features like bonding curves, delayed reveals, and automated metadata generation."
+        estimatedLaunch="Q1 2025"
+        onAccessGranted={() => {
+          setHasBetaAccess(true);
+        }}
+      />
+    );
+  }
+
+  // Show loading while checking access
+  if (!accessChecked) {
+    return (
+      <StandardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-white">Checking access permissions...</p>
+          </div>
+        </div>
+      </StandardLayout>
+    );
+  }
 
   return (
     <StandardLayout>
