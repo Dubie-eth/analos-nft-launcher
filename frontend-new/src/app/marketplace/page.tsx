@@ -50,7 +50,8 @@ export default function MarketplacePage() {
           try {
             const parsedCollections = JSON.parse(savedCollections);
             console.log('📦 Found collections in localStorage:', parsedCollections.length);
-            allCollections = [...allCollections, ...parsedCollections];
+            const localStorageCollections = parsedCollections.map((col: any) => ({ ...col, source: 'localStorage' }));
+            allCollections = [...allCollections, ...localStorageCollections];
           } catch (error) {
             console.error('Error parsing localStorage collections:', error);
           }
@@ -70,18 +71,19 @@ export default function MarketplacePage() {
             imageUrl: collection.imageUrl || '/api/placeholder/300/300',
             maxSupply: collection.totalSupply,
             totalMinted: 0,
-            mintPrice: collection.mintPrice,
+            mintPrice: collection.mintPrice || 10, // Use minimum fee if price is 0
             pricingToken: collection.paymentToken,
             mintType: collection.isTestMode ? 'Test' : 'Production',
             revealType: 'Instant',
             isActive: collection.isActive,
             mintingEnabled: collection.mintingEnabled,
             deployedAt: new Date().toISOString(),
-            creator: 'Admin',
+            creator: collection.creator || 'Admin',
             category: 'NFT Collection',
             website: '',
             twitter: '',
-            discord: ''
+            discord: '',
+            source: 'admin'
           }));
           
           allCollections = [...allCollections, ...adminCollectionsFormatted];
@@ -123,12 +125,30 @@ export default function MarketplacePage() {
           console.error('Error discovering blockchain collections:', error);
         }
         
-        // Remove duplicates based on collection name
-        const uniqueCollections = allCollections.filter((collection, index, self) => 
-          index === self.findIndex(c => c.name.toLowerCase() === collection.name.toLowerCase())
-        );
+        // Remove duplicates and prefer admin service collections (which have correct pricing)
+        const collectionsMap = new Map<string, Collection>();
         
+        allCollections.forEach(collection => {
+          const key = collection.name.toLowerCase();
+          const existing = collectionsMap.get(key);
+          
+          if (!existing) {
+            collectionsMap.set(key, collection);
+            console.log(`➕ Added collection "${collection.name}" from ${collection.source || 'unknown'}`);
+          } else {
+            // Prefer admin service collections or collections with better data
+            if (collection.source === 'admin' || 
+                (collection.mintPrice > 0 && existing.mintPrice === 0) ||
+                (collection.deployedAt && !existing.deployedAt)) {
+              collectionsMap.set(key, collection);
+              console.log(`🔄 Updated collection "${collection.name}" with better data from ${collection.source || 'unknown'}`);
+            }
+          }
+        });
+        
+        const uniqueCollections = Array.from(collectionsMap.values());
         console.log('✅ Total unique collections found:', uniqueCollections.length);
+        console.log('📋 Final collections:', uniqueCollections.map(c => `${c.name} (${c.source || 'unknown'}) - Price: ${c.mintPrice} ${c.pricingToken}`));
         setCollections(uniqueCollections);
         
       } catch (error) {
