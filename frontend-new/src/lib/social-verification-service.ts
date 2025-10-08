@@ -4,6 +4,8 @@
  * Supports Twitter/X, Telegram, Discord with webhook and manual verification
  */
 
+import { verificationConfigManager } from './verification-config-manager';
+
 export interface SocialPlatform {
   id: 'twitter' | 'telegram' | 'discord';
   name: string;
@@ -84,18 +86,19 @@ export class SocialVerificationService {
   constructor() {
     this.config = this.getDefaultConfig();
     this.initializeWebhooks();
-    console.log('🔐 Social Verification Service initialized');
+    console.log('🔐 Social Verification Service initialized with lenient settings');
   }
 
   /**
    * Get default configuration
+   * LENIENT SETTINGS FOR NEW COLLECTIONS - EASILY ADJUSTABLE LATER
    */
   private getDefaultConfig(): SocialVerificationConfig {
     return {
       platforms: {
         twitter: {
           enabled: true,
-          minFollowers: 1000,
+          minFollowers: 1, // LOWERED: Was 1000, now just 1 follower minimum
           requireVerification: false,
           // API keys should be in environment variables
           apiKey: process.env.TWITTER_API_KEY,
@@ -104,22 +107,22 @@ export class SocialVerificationService {
         },
         telegram: {
           enabled: true,
-          minMembers: 100,
+          minMembers: 1, // LOWERED: Was 100, now just 1 member minimum
           botToken: process.env.TELEGRAM_BOT_TOKEN
         },
         discord: {
           enabled: true,
-          minServerMembers: 500,
+          minServerMembers: 1, // LOWERED: Was 500, now just 1 member minimum
           botToken: process.env.DISCORD_BOT_TOKEN,
           clientId: process.env.DISCORD_CLIENT_ID
         }
       },
       scoring: {
-        twitterFollowerMultiplier: 0.001, // 1 follower = 0.001 points
-        telegramMemberMultiplier: 0.01,   // 1 member = 0.01 points
-        discordMemberMultiplier: 0.005,   // 1 member = 0.005 points
-        verifiedAccountBonus: 100,        // +100 points for verified accounts
-        multiplePlatformBonus: 50         // +50 points for multiple platforms
+        twitterFollowerMultiplier: 1.0, // INCREASED: Was 0.001, now 1 follower = 1 point
+        telegramMemberMultiplier: 1.0,  // INCREASED: Was 0.01, now 1 member = 1 point
+        discordMemberMultiplier: 1.0,   // INCREASED: Was 0.005, now 1 member = 1 point
+        verifiedAccountBonus: 10,       // LOWERED: Was 100, now +10 points for verified accounts
+        multiplePlatformBonus: 5        // LOWERED: Was 50, now +5 points for multiple platforms
       },
       manualVerification: {
         enabled: true,
@@ -161,7 +164,7 @@ export class SocialVerificationService {
       requestedAt: new Date(),
       status: 'pending',
       totalScore: 0,
-      requiredScore: 500 // Default required score
+      requiredScore: 10 // LOWERED: Was 500, now just 10 points required
     };
 
     // Store verification request
@@ -386,7 +389,7 @@ export class SocialVerificationService {
    */
   checkWhitelistEligibility(
     walletAddress: string,
-    requiredScore: number = 500
+    requiredScore: number = 10 // LOWERED: Was 500, now just 10 points required
   ): {
     eligible: boolean;
     currentScore: number;
@@ -496,6 +499,20 @@ export class SocialVerificationService {
   updateConfig(updates: Partial<SocialVerificationConfig>): void {
     this.config = { ...this.config, ...updates };
     console.log('✅ Social verification config updated');
+  }
+
+  /**
+   * Get current verification thresholds from config manager
+   */
+  getCurrentThresholds() {
+    return verificationConfigManager.getConfig();
+  }
+
+  /**
+   * Apply preset verification configuration
+   */
+  applyPresetConfig(presetName: string): boolean {
+    return verificationConfigManager.applyPreset(presetName);
   }
 
   /**
