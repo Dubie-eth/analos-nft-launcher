@@ -222,9 +222,6 @@ function CollectionMintContent() {
         } catch (error) {
           console.error('❌ Error force updating deployment status:', error);
         }
-        } catch (error) {
-          console.error('❌ Error ensuring tokenIdTracker collection:', error);
-        }
       }
 
       // Check admin controls first
