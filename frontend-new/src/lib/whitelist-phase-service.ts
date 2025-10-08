@@ -156,13 +156,44 @@ export class WhitelistPhaseService {
     used: number;
     maxAllowed: number;
   }> {
-    // TODO: This should check actual minted NFTs from blockchain
-    // For now, return the full allowance (this will be updated with real data)
-    return {
-      remaining: phase.maxMintsPerWallet,
-      used: 0,
-      maxAllowed: phase.maxMintsPerWallet
-    };
+    try {
+      // Check localStorage for minted NFTs first (for immediate updates)
+      const mintedNFTsKey = `minted_nfts_${walletAddress.toLowerCase()}`;
+      const mintedNFTs = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+      
+      // Filter NFTs by collection and phase
+      const collectionMints = mintedNFTs.filter((nft: any) => 
+        nft.collectionName === 'Los Bros' && 
+        nft.phase === phase.id &&
+        nft.timestamp >= new Date(phase.startDate).getTime() &&
+        nft.timestamp <= new Date(phase.endDate).getTime()
+      );
+      
+      const used = collectionMints.length;
+      const remaining = Math.max(0, phase.maxMintsPerWallet - used);
+      
+      console.log(`🎯 Whitelist mint tracking for ${walletAddress}:`, {
+        phase: phase.name,
+        used,
+        remaining,
+        maxAllowed: phase.maxMintsPerWallet,
+        mintedNFTs: collectionMints
+      });
+      
+      return {
+        remaining,
+        used,
+        maxAllowed: phase.maxMintsPerWallet
+      };
+    } catch (error) {
+      console.error('Error checking remaining mints:', error);
+      // Fallback to full allowance if there's an error
+      return {
+        remaining: phase.maxMintsPerWallet,
+        used: 0,
+        maxAllowed: phase.maxMintsPerWallet
+      };
+    }
   }
 
   /**

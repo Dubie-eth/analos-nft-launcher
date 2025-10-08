@@ -42,6 +42,7 @@ import BondingCurveStatus from '../../components/BondingCurveStatus';
 import BondingCurveGuide from '../../components/BondingCurveGuide';
 import SecurityNotice from '../../components/SecurityNotice';
 import VerificationBadge from '../../components/VerificationBadge';
+import { userNFTTracker, MintedNFT } from '@/lib/user-nft-tracker';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -576,6 +577,35 @@ function CollectionMintContent() {
           }));
         }
         
+        // Track minted NFTs for whitelist limits
+        try {
+          const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
+          const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+          
+          // Get current active phase for tracking
+          const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+          const activePhase = whitelistPhaseService.getCurrentActivePhase();
+          
+          // Add new mint records
+          const newMints = Array.from({ length: mintQuantity }, (_, index) => ({
+            id: `${signature}_${index}`,
+            signature,
+            collectionName: collection.name,
+            phase: activePhase?.id || 'unknown',
+            timestamp: Date.now(),
+            walletAddress: publicKey.toString(),
+            quantity: 1,
+            explorerUrl: `https://explorer.analos.io/tx/${signature}`
+          }));
+          
+          existingMints.push(...newMints);
+          localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+          
+          console.log(`🎯 Tracked ${mintQuantity} minted NFTs for whitelist limits:`, newMints);
+        } catch (error) {
+          console.error('Error tracking minted NFTs:', error);
+        }
+        
           setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
         
         // Refresh collection data from blockchain after successful mint
@@ -914,6 +944,14 @@ function CollectionMintContent() {
                     collectionName={collection.name}
                   />
 
+                  {/* User's Minted NFTs */}
+                  {connected && publicKey && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-white mb-3">Your Minted NFTs</h3>
+                      <UserMintedNFTs walletAddress={publicKey.toString()} collectionName={collection.name} />
+                    </div>
+                  )}
+
                   {/* Quantity Selector */}
                   <div className="mb-6">
                     <label className="block text-white/80 text-sm mb-3">Quantity (1-10)</label>
@@ -1101,6 +1139,99 @@ function CollectionMintContent() {
       </div>
       </StandardLayout>
     </MobileOptimizedLayout>
+  );
+}
+
+// User Minted NFTs Component
+function UserMintedNFTs({ walletAddress, collectionName }: { walletAddress: string; collectionName: string }) {
+  const [mintedNFTs, setMintedNFTs] = useState<MintedNFT[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadMintedNFTs = () => {
+      try {
+        const nfts = userNFTTracker.getMintedNFTsForCollection(walletAddress, collectionName);
+        setMintedNFTs(nfts);
+        console.log(`🎯 Loaded ${nfts.length} minted NFTs for ${collectionName}:`, nfts);
+      } catch (error) {
+        console.error('Error loading minted NFTs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMintedNFTs();
+    
+    // Refresh every 5 seconds to catch new mints
+    const interval = setInterval(loadMintedNFTs, 5000);
+    return () => clearInterval(interval);
+  }, [walletAddress, collectionName]);
+
+  if (loading) {
+    return (
+      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          <span className="text-white/80 text-sm">Loading your NFTs...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (mintedNFTs.length === 0) {
+    return (
+      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+        <p className="text-white/60 text-sm">No NFTs minted yet for this collection.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h4 className="text-white font-medium">Your Minted NFTs ({mintedNFTs.length})</h4>
+          <button
+            onClick={() => {
+              userNFTTracker.clearMintedNFTs(walletAddress);
+              setMintedNFTs([]);
+            }}
+            className="text-red-400 hover:text-red-300 text-xs underline"
+            title="Clear mint history (for testing)"
+          >
+            Clear
+          </button>
+        </div>
+        
+        <div className="space-y-2 max-h-32 overflow-y-auto">
+          {mintedNFTs.slice(0, 5).map((nft, index) => (
+            <div key={nft.id} className="flex items-center justify-between bg-white/5 rounded p-2 text-xs">
+              <div className="flex items-center space-x-2">
+                <span className="text-white/80">#{index + 1}</span>
+                <span className="text-white/60">{nft.phase}</span>
+                <span className="text-white/60">
+                  {new Date(nft.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+              <a
+                href={nft.explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
+                View
+              </a>
+            </div>
+          ))}
+        </div>
+        
+        {mintedNFTs.length > 5 && (
+          <p className="text-white/60 text-xs">
+            ... and {mintedNFTs.length - 5} more NFTs
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 
