@@ -258,7 +258,12 @@ export class AdminControlService {
         description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOL',
         imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
         createdAt: Date.now(),
-        lastModified: Date.now()
+        lastModified: Date.now(),
+        // Mark as deployed (will be updated with real deployment data when deployed)
+        deployed: false,
+        contractAddresses: undefined,
+        deploymentSignature: undefined,
+        deploymentDate: undefined
       });
     }
 

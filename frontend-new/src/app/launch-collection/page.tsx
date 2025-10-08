@@ -1360,29 +1360,52 @@ const LaunchCollectionPage: React.FC = () => {
             setDeployedCollection(deployedCollectionData);
             setDeploymentStatus('✅ Collection deployed successfully!');
 
-            // Add to admin control service
+            // Add to admin control service (update existing or create new)
             const { adminControlService } = await import('../../lib/admin-control-service');
-            await adminControlService.createCollection({
-              name: collectionConfig.name,
-              displayName: collectionConfig.name,
-              isActive: true,
-              mintingEnabled: true,
-              isTestMode: false,
-              totalSupply: collectionConfig.maxSupply,
-              mintPrice: collectionConfig.mintPrice,
-              paymentToken: collectionConfig.pricingToken,
-              description: collectionConfig.description,
-              imageUrl: collectionConfig.imageUrl,
-              // Add deployment data from SPL NFT service
-              deployed: true,
-              contractAddresses: {
-                mint: nftResult.mint,
-                tokenAccount: nftResult.tokenAccount,
-                signature: nftResult.signature
-              },
-              deploymentSignature: nftResult.signature,
-              deploymentDate: new Date().toISOString()
-            });
+            
+            // Check if collection already exists
+            const existingCollection = await adminControlService.getCollection(collectionConfig.name);
+            
+            if (existingCollection) {
+              // Update existing collection with deployment data
+              await adminControlService.updateCollection(collectionConfig.name, {
+                deployed: true,
+                contractAddresses: {
+                  mint: nftResult.mint,
+                  tokenAccount: nftResult.tokenAccount,
+                  signature: nftResult.signature
+                },
+                deploymentSignature: nftResult.signature,
+                deploymentDate: new Date().toISOString(),
+                isActive: true,
+                mintingEnabled: true
+              });
+              console.log('✅ Updated existing collection with deployment data:', collectionConfig.name);
+            } else {
+              // Create new collection with deployment data
+              await adminControlService.createCollection({
+                name: collectionConfig.name,
+                displayName: collectionConfig.name,
+                isActive: true,
+                mintingEnabled: true,
+                isTestMode: false,
+                totalSupply: collectionConfig.maxSupply,
+                mintPrice: collectionConfig.mintPrice,
+                paymentToken: collectionConfig.pricingToken,
+                description: collectionConfig.description,
+                imageUrl: collectionConfig.imageUrl,
+                // Add deployment data from SPL NFT service
+                deployed: true,
+                contractAddresses: {
+                  mint: nftResult.mint,
+                  tokenAccount: nftResult.tokenAccount,
+                  signature: nftResult.signature
+                },
+                deploymentSignature: nftResult.signature,
+                deploymentDate: new Date().toISOString()
+              });
+              console.log('✅ Created new collection with deployment data:', collectionConfig.name);
+            }
 
             // Save to localStorage for the collections page
             const savedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
