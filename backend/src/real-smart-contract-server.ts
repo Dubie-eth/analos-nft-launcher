@@ -417,8 +417,8 @@ app.post('/api/collections/deploy', async (req, res) => {
       //     externalUrl: externalUrl || ''
       //   });
       // } else {
-        console.log('⚠️ Analos SDK not available, using fallback...');
-        deploymentResult = await smartContractService.deployNFTCollection({
+      console.log('⚠️ Analos SDK not available, using fallback...');
+      deploymentResult = await smartContractService.deployNFTCollection({
           name: name.trim(),
           symbol: symbol?.trim().toUpperCase() || name.substring(0, 4).toUpperCase(),
           description: description?.trim() || '',
@@ -572,9 +572,9 @@ app.post('/api/mint', async (req, res) => {
       //     walletAddress
       //   );
       // } else {
-        console.log('⚠️ Analos SDK not available, using fallback...');
-        console.log('⚠️ Reason: analosSDK =', !!analosSDK, ', identifier =', identifier);
-        mintResult = await smartContractService.mintNFT(
+      console.log('⚠️ Analos SDK not available, using fallback...');
+      console.log('⚠️ Reason: analosSDK = false, identifier =', identifier);
+      mintResult = await smartContractService.mintNFT(
           collection.poolAddress,
           requestedQuantity,
           walletAddress,
