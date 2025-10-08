@@ -71,7 +71,7 @@ export default function MarketplacePage() {
             imageUrl: collection.imageUrl || '/api/placeholder/300/300',
             maxSupply: collection.totalSupply,
             totalMinted: 0,
-            mintPrice: collection.mintPrice || 10, // Use minimum fee if price is 0
+            mintPrice: collection.mintPrice, // Use actual collection price
             pricingToken: collection.paymentToken,
             mintType: collection.isTestMode ? 'Test' : 'Production',
             revealType: 'Instant',

@@ -255,7 +255,7 @@ export class AdminControlService {
         mintingEnabled: true,
         isTestMode: false,
         totalSupply: 2222,
-        mintPrice: 0, // Free mint
+        mintPrice: 4200.69, // Base price for Los Bros collection
         paymentToken: 'LOS', // Use LOS as payment token
         description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
         imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',

@@ -128,7 +128,8 @@ function CollectionMintContent() {
               deploymentDate: new Date().toISOString(),
               creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
               paymentToken: 'LOS', // Force update to LOS
-              description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS'
+              description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
+              mintPrice: 4200.69 // Set correct base price
             });
             console.log('✅ Force updated Los Bros collection with current data');
             
@@ -166,8 +167,8 @@ function CollectionMintContent() {
                     name: 'OGs Phase',
                     startTime: new Date('2025-10-03T00:00:00Z').getTime(),
                     endTime: new Date('2025-10-10T23:59:59Z').getTime(),
-                    maxMintsPerWallet: 2,
-                    price: 0.001, // 0.001x multiplier
+                    maxMintsPerWallet: 1, // Only 1 mint allowed during whitelist phase
+                    price: 0, // Completely free during whitelist phase
                     addresses: [],
                     active: true,
                     isTokenBased: true,
@@ -977,7 +978,7 @@ function CollectionMintContent() {
                       </div>
                       {feeBreakdown.isMinimumFeeEnforced && (
                         <div className="text-xs text-yellow-300/80 mt-2 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
-                          ⚠️ <strong>Minimum Fees Required:</strong> Even free whitelist mints require network fees (5.0 {currency}) and platform fees (5.0 {currency}) to process the blockchain transaction and prove ownership.
+                          ⚠️ <strong>Minimum Backend Service Fees Required:</strong> Even free whitelist mints require 10 {currency} minimum to cover backend services, data handling, blockchain transaction processing, and platform operations.
                         </div>
                       )}
                     </div>
