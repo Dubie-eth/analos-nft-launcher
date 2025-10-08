@@ -4274,11 +4274,17 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
+console.log('🚀 Starting server initialization...');
+console.log(`📡 PORT: ${PORT}`);
+console.log(`🌐 ANALOS_RPC_URL: ${ANALOS_RPC_URL}`);
+
 try {
   app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`✅ Server started successfully on port ${PORT}`);
     console.log(`🏥 Health check available at: http://0.0.0.0:${PORT}/health`);
     console.log(`🎯 Ready to accept requests!`);
+    console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`💰 PAYER_PRIVATE_KEY configured: ${!!process.env.PAYER_PRIVATE_KEY}`);
   }).on('error', (error) => {
     console.error('❌ Server failed to start:', error);
     process.exit(1);
