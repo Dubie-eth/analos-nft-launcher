@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import { AnalosSDKWrapper } from './analos-sdk-wrapper';
+// import { AnalosSDKWrapper } from './analos-sdk-wrapper';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -150,17 +150,17 @@ class RealSmartContractService {
 const smartContractService = new RealSmartContractService(connection);
 
 // Initialize Analos SDK wrapper
-let analosSDK: AnalosSDKWrapper;
+// let analosSDK: AnalosSDKWrapper;
 try {
   console.log('🚀 Initializing Analos SDK wrapper...');
-  analosSDK = new AnalosSDKWrapper(connection);
-  analosSDK.initialize().then(() => {
-    console.log('✅ Analos SDK wrapper initialized successfully');
-  }).catch((error: any) => {
-    console.error('❌ Failed to initialize Analos SDK wrapper:', error);
-    console.error('❌ Error details:', error.message);
-    console.error('❌ Error stack:', error.stack);
-  });
+  // analosSDK = new AnalosSDKWrapper(connection);
+  // analosSDK.initialize().then(() => {
+  //   console.log('✅ Analos SDK wrapper initialized successfully');
+  // }).catch((error: any) => {
+  //   console.error('❌ Failed to initialize Analos SDK wrapper:', error);
+  //   console.error('❌ Error details:', error.message);
+  //   console.error('❌ Error stack:', error.stack);
+  // });
 } catch (error) {
   console.error('❌ Failed to create Analos SDK wrapper:', error);
 }
