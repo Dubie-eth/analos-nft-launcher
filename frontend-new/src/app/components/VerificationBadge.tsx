@@ -40,12 +40,42 @@ export default function VerificationBadge({
         setLoading(true);
         setError(null);
 
+        // First, check localStorage for verification data (fallback for when backend is reset)
+        const localVerificationKey = `verification_${collectionId}`;
+        const localVerification = localStorage.getItem(localVerificationKey);
+        
+        if (localVerification) {
+          try {
+            const parsedVerification = JSON.parse(localVerification);
+            // Check if verification is still valid (not expired)
+            if (parsedVerification.isVerified && !parsedVerification.isExpired) {
+              console.log('✅ Using localStorage verification data for:', collectionId);
+              setVerificationStatus(parsedVerification);
+              setLoading(false);
+              return;
+            } else if (parsedVerification.isExpired) {
+              console.log('⚠️ LocalStorage verification expired for:', collectionId);
+              // Remove expired verification from localStorage
+              localStorage.removeItem(localVerificationKey);
+            }
+          } catch (parseError) {
+            console.warn('Failed to parse localStorage verification:', parseError);
+            localStorage.removeItem(localVerificationKey);
+          }
+        }
+
+        // If no valid localStorage data, try backend
         const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/verification/status/${collectionId}`);
         
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data?.verificationStatus) {
-            setVerificationStatus(data.data.verificationStatus);
+            const verificationStatus = data.data.verificationStatus;
+            setVerificationStatus(verificationStatus);
+            
+            // Store in localStorage as backup
+            localStorage.setItem(localVerificationKey, JSON.stringify(verificationStatus));
+            console.log('✅ Stored verification data in localStorage for:', collectionId);
           }
         } else if (response.status !== 404) {
           // 404 is normal for unverified collections

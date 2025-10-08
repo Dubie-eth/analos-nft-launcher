@@ -48,6 +48,24 @@ function FastVerificationForm({ walletAddress, onComplete }: { walletAddress: st
         setSuccess('✅ Verification completed successfully! Your collection is now verified for 90 days.');
         setTweetUrl('');
         setVerificationCode('');
+        
+        // Store verification data in localStorage as backup
+        const collectionId = `collection_${walletAddress}`;
+        const verificationData = {
+          isVerified: true,
+          verifiedPlatforms: ['twitter'],
+          verificationDate: new Date().toISOString(),
+          verificationExpiresAt: new Date(Date.now() + (90 * 24 * 60 * 60 * 1000)).toISOString(), // 90 days from now
+          verificationId: startResult.verificationId,
+          badgeUrl: `/api/verification/badge/${startResult.verificationId}`,
+          isExpired: false,
+          validityPeriod: '90 days'
+        };
+        
+        const localVerificationKey = `verification_${collectionId}`;
+        localStorage.setItem(localVerificationKey, JSON.stringify(verificationData));
+        console.log('✅ Stored verification data in localStorage:', collectionId, verificationData);
+        
         onComplete();
       } else {
         setError('Verification failed. Please check your tweet URL and code.');
