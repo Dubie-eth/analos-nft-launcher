@@ -254,8 +254,8 @@ export class AdminControlService {
         isTestMode: false,
         totalSupply: 2222,
         mintPrice: 0, // Free mint
-        paymentToken: 'LOL',
-        description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+        paymentToken: 'LOS', // Use LOS as payment token
+        description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
         imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
         createdAt: Date.now(),
         lastModified: Date.now(),

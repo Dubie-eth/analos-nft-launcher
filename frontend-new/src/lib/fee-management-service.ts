@@ -28,9 +28,9 @@ export class FeeManagementService {
   private readonly PLATFORM_WALLET = 'YOUR_PLATFORM_FEES_WALLET_ADDRESS'; // Will be set when you provide it
   
   // Minimum fees to ensure blockchain transaction and platform operations
-  private readonly MINIMUM_NETWORK_FEE = 0.005; // 0.005 LOS for network fees
-  private readonly MINIMUM_PLATFORM_FEE = 0.01; // 0.01 LOS minimum platform fee
-  private readonly MINIMUM_TOTAL_FEE = 0.015; // 0.015 LOS total minimum (network + platform)
+  private readonly MINIMUM_NETWORK_FEE = 5.0; // 5.0 LOS for network fees
+  private readonly MINIMUM_PLATFORM_FEE = 5.0; // 5.0 LOS minimum platform fee
+  private readonly MINIMUM_TOTAL_FEE = 10.0; // 10.0 LOS total minimum (network + platform)
   
   // Collection fee configurations
   private collectionFees: Map<string, CollectionFeeConfig> = new Map();
@@ -217,7 +217,7 @@ export class FeeManagementService {
       totalPrice: fees.totalPrice,
       platformFeePercentage: fees.platformFeePercentage,
       creatorFeePercentage: fees.creatorFeePercentage,
-      paymentToken: config?.name === 'The LosBros' || config?.name === 'Los Bros' ? 'LOL' : 'LOS',
+      paymentToken: 'LOS', // All collections use LOS as payment token
       isMinimumFeeEnforced,
       originalPrice: isWhitelistMint ? originalPrice : undefined
     };

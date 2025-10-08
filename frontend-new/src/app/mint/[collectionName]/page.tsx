@@ -161,19 +161,19 @@ function CollectionMintContent() {
                     active: true,
                     isTokenBased: true,
                     tokenRequirements: [{
-                      tokenMint: 'LOL_TOKEN_MINT_ADDRESS', // Will be set properly
-                      minAmount: 1000000, // 1M LOL tokens
-                      decimals: 6,
-                      tokenSymbol: 'LOL'
+                      tokenMint: 'LOS_TOKEN_MINT_ADDRESS', // Will be set properly
+                      minAmount: 1000000000, // 1 LOS in lamports
+                      decimals: 9,
+                      tokenSymbol: 'LOS'
                     }]
                   }]
                 },
                 paymentTokens: [{
-                  mint: 'LOL_TOKEN_MINT_ADDRESS',
-                  symbol: 'LOL',
-                  decimals: 6,
+                  mint: 'LOS_TOKEN_MINT_ADDRESS',
+                  symbol: 'LOS',
+                  decimals: 9,
                   pricePerNFT: 0,
-                  minBalanceForWhitelist: 1000000,
+                  minBalanceForWhitelist: 1000000000, // 1 LOS in lamports
                   accepted: true
                 }]
               }
@@ -870,7 +870,7 @@ function CollectionMintContent() {
                       </div>
                       {feeBreakdown.isMinimumFeeEnforced && (
                         <div className="text-xs text-yellow-300/80 mt-2 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
-                          ⚠️ <strong>Minimum Fees Required:</strong> Even free whitelist mints require network fees (0.005 {currency}) and platform fees (0.01 {currency}) to process the blockchain transaction and prove ownership.
+                          ⚠️ <strong>Minimum Fees Required:</strong> Even free whitelist mints require network fees (5.0 {currency}) and platform fees (5.0 {currency}) to process the blockchain transaction and prove ownership.
                         </div>
                       )}
                     </div>
