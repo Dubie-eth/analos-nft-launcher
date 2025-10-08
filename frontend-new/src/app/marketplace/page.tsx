@@ -44,14 +44,27 @@ export default function MarketplacePage() {
       try {
         let allCollections: Collection[] = [];
         
-        // 1. Load from localStorage (deployed collections)
+        // 1. Load from localStorage (deployed collections) - but filter out old/duplicate data
         const savedCollections = localStorage.getItem('launched_collections');
         if (savedCollections) {
           try {
             const parsedCollections = JSON.parse(savedCollections);
             console.log('📦 Found collections in localStorage:', parsedCollections.length);
-            const localStorageCollections = parsedCollections.map((col: any) => ({ ...col, source: 'localStorage' }));
+            
+            // Filter out old collections that might conflict with admin service
+            const filteredCollections = parsedCollections.filter((col: any) => {
+              // Keep only collections that don't have admin service equivalents
+              const isLosBros = col.name === 'Los Bros' || col.name === 'The LosBros';
+              if (isLosBros) {
+                console.log(`🗑️ Filtering out old cached "${col.name}" collection (will use admin service data instead)`);
+                return false;
+              }
+              return true;
+            });
+            
+            const localStorageCollections = filteredCollections.map((col: any) => ({ ...col, source: 'localStorage' }));
             allCollections = [...allCollections, ...localStorageCollections];
+            console.log('📦 Added filtered localStorage collections:', localStorageCollections.length);
           } catch (error) {
             console.error('Error parsing localStorage collections:', error);
           }
@@ -60,8 +73,12 @@ export default function MarketplacePage() {
         // 2. Load from admin control service
         try {
           const { adminControlService } = await import('@/lib/admin-control-service');
-          const adminCollections = await adminControlService.getAllCollections();
-          console.log('🎛️ Found collections in admin service:', adminCollections.length);
+          const allAdminCollections = await adminControlService.getAllCollections();
+          console.log('🎛️ Found collections in admin service:', allAdminCollections.length);
+          
+          // Filter to only show active collections
+          const adminCollections = allAdminCollections.filter(collection => collection.isActive && collection.mintingEnabled);
+          console.log('🎛️ Active collections in admin service:', adminCollections.length);
           
           const adminCollectionsFormatted: Collection[] = adminCollections.map(collection => ({
             id: `admin_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
@@ -128,21 +145,23 @@ export default function MarketplacePage() {
         // Remove duplicates and prefer admin service collections (which have correct pricing)
         const collectionsMap = new Map<string, Collection>();
         
-        allCollections.forEach(collection => {
+        // Sort collections by priority: admin > blockchain > localStorage
+        const sortedCollections = allCollections.sort((a, b) => {
+          const priority = { 'admin': 3, 'blockchain': 2, 'localStorage': 1 };
+          const aPriority = priority[a.source as keyof typeof priority] || 0;
+          const bPriority = priority[b.source as keyof typeof priority] || 0;
+          return bPriority - aPriority;
+        });
+        
+        sortedCollections.forEach(collection => {
           const key = collection.name.toLowerCase();
           const existing = collectionsMap.get(key);
           
           if (!existing) {
             collectionsMap.set(key, collection);
-            console.log(`➕ Added collection "${collection.name}" from ${collection.source || 'unknown'}`);
+            console.log(`➕ Added collection "${collection.name}" from ${collection.source || 'unknown'} (price: ${collection.mintPrice} ${collection.pricingToken})`);
           } else {
-            // Prefer admin service collections or collections with better data
-            if (collection.source === 'admin' || 
-                (collection.mintPrice > 0 && existing.mintPrice === 0) ||
-                (collection.deployedAt && !existing.deployedAt)) {
-              collectionsMap.set(key, collection);
-              console.log(`🔄 Updated collection "${collection.name}" with better data from ${collection.source || 'unknown'}`);
-            }
+            console.log(`🚫 Skipping duplicate "${collection.name}" from ${collection.source || 'unknown'} (already have from ${existing.source || 'unknown'})`);
           }
         });
         
