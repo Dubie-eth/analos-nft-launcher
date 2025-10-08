@@ -4069,7 +4069,25 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'Analos NFT Launcher Backend',
+    version: '2.0.3',
     status: 'running',
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      HAS_PAYER_KEY: !!process.env.PAYER_PRIVATE_KEY,
+      PAYER_KEY_LENGTH: process.env.PAYER_PRIVATE_KEY ? process.env.PAYER_PRIVATE_KEY.length : 0,
+      RPC_URL: process.env.ANALOS_RPC_URL || 'Not set'
+    }
+  });
+});
+
+// Environment diagnostics endpoint
+app.get('/api/env', (req, res) => {
+  res.json({
+    NODE_ENV: process.env.NODE_ENV,
+    HAS_PAYER_KEY: !!process.env.PAYER_PRIVATE_KEY,
+    PAYER_KEY_LENGTH: process.env.PAYER_PRIVATE_KEY ? process.env.PAYER_PRIVATE_KEY.length : 0,
+    RPC_URL: process.env.ANALOS_RPC_URL || 'Not set',
     timestamp: new Date().toISOString()
   });
 });
