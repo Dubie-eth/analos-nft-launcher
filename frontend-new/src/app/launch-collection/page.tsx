@@ -1291,14 +1291,22 @@ const LaunchCollectionPage: React.FC = () => {
       try {
         setDeploymentStatus('🚀 Creating deployment transaction...');
         
-        // Use the wallet-integrated deployment flow
-        const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/transactions/deploy-collection', {
+        // Use the working SPL NFT service that creates real blockchain transactions
+        const splNFTData = {
+          name: collectionData.name,
+          symbol: collectionData.symbol,
+          description: collectionData.description,
+          image: collectionData.image,
+          attributes: collectionData.attributes,
+          ownerAddress: publicKey.toBase58()
+        };
+
+        const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-spl-nft', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-user-wallet': publicKey.toBase58()
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(collectionData),
+          body: JSON.stringify(splNFTData),
           signal: controller.signal
         });
 
@@ -1308,37 +1316,13 @@ const LaunchCollectionPage: React.FC = () => {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const transactionResult = await response.json();
-        console.log('✅ Transaction creation response received:', transactionResult);
+        const nftResult = await response.json();
+        console.log('✅ SPL NFT creation response received:', nftResult);
         
-        if (transactionResult.success && transactionResult.data) {
-          setDeploymentStatus('🔐 Please sign the transaction in your wallet...');
+        if (nftResult.success) {
+          setDeploymentStatus('✅ NFT created successfully on blockchain!');
           
-          // TODO: Integrate actual wallet signing here
-          // For now, we'll simulate wallet signing
-          const mockSignature = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          
-          setDeploymentStatus('📤 Submitting signed transaction...');
-          
-          // Submit the signed transaction
-          const submitResponse = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/transactions/submit', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-user-wallet': publicKey.toBase58()
-            },
-            body: JSON.stringify({
-              transaction: transactionResult.data,
-              signature: mockSignature,
-              collectionData: collectionData
-            }),
-            signal: controller.signal
-          });
-          
-          const submitResult = await submitResponse.json();
-          console.log('✅ Transaction submission response:', submitResult);
-          
-          if (submitResult.success) {
+          // The SPL NFT service creates the NFT directly, no additional transaction submission needed
             const deployedCollectionData = {
               name: collectionConfig.name,
               symbol: collectionConfig.symbol,
@@ -1354,18 +1338,23 @@ const LaunchCollectionPage: React.FC = () => {
               mintType: collectionConfig.mintType,
               revealType: collectionConfig.revealType,
               delayedRevealSettings: collectionConfig.delayedRevealSettings,
+              // Real blockchain data from SPL NFT service
+              mint: nftResult.mint,
+              tokenAccount: nftResult.tokenAccount,
+              signature: nftResult.signature,
+              explorerUrl: nftResult.explorerUrl,
               platformFees: platformFees,
               traitCategories: traitCategories,
               hostingConfig: hostingConfig,
               whitelistPhases: whitelistPhases,
-              mintAddress: submitResult.data?.mintAddress || `mint_${collectionConfig.name.toLowerCase().replace(/\s+/g, '_')}`,
-              collectionAddress: submitResult.data?.collectionAddress || `collection_${collectionConfig.name.toLowerCase().replace(/\s+/g, '_')}`,
+              mintAddress: nftResult.mint || `mint_${collectionConfig.name.toLowerCase().replace(/\s+/g, '_')}`,
+              collectionAddress: nftResult.mint || `collection_${collectionConfig.name.toLowerCase().replace(/\s+/g, '_')}`,
               mintPageUrl: `/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
               shareUrl: `https://analos-nft-launcher-9cxc.vercel.app/mint/${collectionConfig.name.toLowerCase().replace(/\s+/g, '-')}`,
               referralCode: `ref_${Math.random().toString(36).substr(2, 9)}`,
               deployedAt: new Date().toISOString(),
-              signature: submitResult.data?.signature || mockSignature,
-              explorerUrl: submitResult.data?.explorerUrl || `https://explorer.analos.io/tx/${mockSignature}`
+              signature: nftResult.signature,
+              explorerUrl: nftResult.explorerUrl
             };
 
             setDeployedCollection(deployedCollectionData);
