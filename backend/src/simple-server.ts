@@ -4037,14 +4037,22 @@ app.get('/health', (req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      version: '2.0.1',
+      version: '2.0.3',
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        HAS_PAYER_KEY: !!process.env.PAYER_PRIVATE_KEY,
+        PAYER_KEY_LENGTH: process.env.PAYER_PRIVATE_KEY ? process.env.PAYER_PRIVATE_KEY.length : 0,
+        RPC_URL: process.env.ANALOS_RPC_URL || 'Not set'
+      },
       endpoints: {
         mintInstructions: '/api/mint/instructions',
         mint: '/api/mint',
         createNft: '/api/create-nft',
         mintRealNft: '/api/mint-real-nft',
         updateNftMetadata: '/api/update-nft-metadata',
-        collections: '/api/collections'
+        collections: '/api/collections',
+        backup: '/api/collections/backup',
+        deployCollection: '/api/transactions/deploy-collection'
       }
     });
   } catch (error) {
