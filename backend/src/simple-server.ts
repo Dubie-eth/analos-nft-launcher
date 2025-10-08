@@ -2707,11 +2707,17 @@ app.post('/api/transactions/deploy-collection', async (req, res) => {
       const ownerPublicKey = new PublicKey(finalCreatorAddress);
       
       console.log('🎨 Creating collection NFT using SPL NFT service...');
-      const result = await splNFTService.createNFT(
-        payerKeypair,
-        ownerPublicKey,
-        metadata
-      );
+      console.log('🔑 Payer keypair loaded:', payerKeypair.publicKey.toBase58());
+      console.log('👤 Owner public key:', ownerPublicKey.toBase58());
+      console.log('📝 Metadata:', JSON.stringify(metadata, null, 2));
+      
+      try {
+        const result = await splNFTService.createNFT(
+          payerKeypair,
+          ownerPublicKey,
+          metadata
+        );
+        console.log('📊 SPL NFT service result:', result);
       
       if (result.success) {
         console.log('✅ Collection NFT created successfully using SPL service!');
@@ -2732,6 +2738,13 @@ app.post('/api/transactions/deploy-collection', async (req, res) => {
         res.status(500).json({ 
           success: false, 
           error: result.error || 'SPL NFT deployment failed' 
+        });
+      }
+      } catch (nftServiceError) {
+        console.error('❌ SPL NFT service error:', nftServiceError);
+        res.status(500).json({ 
+          success: false, 
+          error: 'SPL NFT service failed: ' + (nftServiceError instanceof Error ? nftServiceError.message : 'Unknown error') 
         });
       }
     } catch (deploymentError) {
