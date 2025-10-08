@@ -144,6 +144,7 @@ export class FeeManagementService {
 
     return {
       basePrice, // Amount creator receives (after fees deducted)
+      originalBasePrice: config.basePrice, // Original base price before any discounts
       platformFee, // Amount platform receives
       platformFeePercentage: config.platformFeePercentage,
       creatorFee, // Amount sent to creator's fee wallet

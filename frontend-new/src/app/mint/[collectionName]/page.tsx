@@ -833,6 +833,18 @@ function CollectionMintContent() {
           {/* Wallet Download & Beta Warning Section */}
           <WalletDownloadSection />
 
+          {/* Debug: Show creator info */}
+          {connected && publicKey && collection && (
+            <div className="mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+              <h4 className="text-white font-semibold mb-2">Debug: Creator Info</h4>
+              <div className="text-sm space-y-1">
+                <p className="text-gray-300">Your Wallet: <span className="text-green-400">{publicKey.toString()}</span></p>
+                <p className="text-gray-300">Collection Creator: <span className="text-blue-400">{collection.creator || 'Not Set'}</span></p>
+                <p className="text-gray-300">Match: <span className={collection.creator && publicKey.toString() === collection.creator ? "text-green-400" : "text-red-400"}>{collection.creator && publicKey.toString() === collection.creator ? '✅ YES' : '❌ NO'}</span></p>
+              </div>
+            </div>
+          )}
+
           {/* Social Verification Section - Only for Collection Creator */}
           {connected && publicKey && collection && collection.creator && publicKey.toString() === collection.creator && (
             <div className="mb-8">
@@ -1020,7 +1032,7 @@ function CollectionMintContent() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-white/80">
                         <span>Base Price per NFT:</span>
-                        <span>{feeBreakdown.basePrice.toFixed(2)} {currency}</span>
+                        <span>{(feeBreakdown.originalBasePrice || feeBreakdown.basePrice || 4200.69).toFixed(2)} {currency}</span>
                       </div>
                       <div className="flex justify-between text-white/80">
                         <span>Platform Fee ({feeBreakdown.platformFeePercentage}%):</span>

@@ -27,8 +27,8 @@ export class WhitelistPhaseService {
       enabled: true,
       startDate: '2025-10-03T00:00:00Z',
       endDate: '2025-10-10T23:59:59Z', // Extended to next week
-      priceMultiplier: 0.001, // 0.1% of base price = 4.20069 $LOS
-      maxMintsPerWallet: 2, // HARDCODED: Max 2 mints per wallet
+      priceMultiplier: 0.0, // FREE for whitelist phase
+      maxMintsPerWallet: 1, // HARDCODED: Max 1 mint per wallet
       description: 'Early supporters with 1M+ $LOL tokens',
       requirements: {
         tokenMint: 'ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6',
