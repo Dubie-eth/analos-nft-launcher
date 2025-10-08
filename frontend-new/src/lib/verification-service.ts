@@ -118,7 +118,7 @@ export class VerificationService {
       minimumPlatforms: 1, // At least one social platform required
       requiredPlatforms: [], // No specific platforms required
       optionalPlatforms: ['twitter', 'discord', 'telegram', 'instagram', 'youtube', 'website'],
-      verificationPeriod: 90 // Re-verify every 90 days
+      verificationPeriod: 0 // Permanent verification - no re-verification needed
     };
   }
 
@@ -370,21 +370,37 @@ export class VerificationService {
 
   /**
    * Check if verification is expired
+   * Verification is permanent and only expires if wallet changes
    */
   isVerificationExpired(verificationDate: string): boolean {
-    const verificationTime = new Date(verificationDate).getTime();
-    const now = new Date().getTime();
-    const verificationPeriod = this.getVerificationRequirements().verificationPeriod;
-    const expirationTime = verificationTime + (verificationPeriod * 24 * 60 * 60 * 1000);
-    
-    return now > expirationTime;
+    // Verification never expires - it's permanent once verified
+    return false;
   }
 
   /**
    * Get verification disclaimer text
    */
   getVerificationDisclaimer(): string {
-    return "This verified badge indicates that the collection creator has connected at least one social media account. It does not constitute an endorsement of the collection or its content by LosLauncher. Please conduct your own research before making any purchases.";
+    return "✅ This verified badge indicates that the collection creator has connected at least one social media account and verified ownership with their wallet. Verification is permanent unless the wallet changes. This does not constitute an endorsement of the collection or its content by LosLauncher. Please conduct your own research before making any purchases.";
+  }
+
+  /**
+   * Check if wallet has changed for a collection
+   * This would trigger re-verification
+   */
+  async checkWalletChange(collectionId: string, currentWallet: string): Promise<boolean> {
+    try {
+      const verification = await this.getVerificationStatus(collectionId);
+      if (!verification) {
+        return false; // No verification exists
+      }
+      
+      // Check if the wallet has changed
+      return verification.ownerWallet.toLowerCase() !== currentWallet.toLowerCase();
+    } catch (error) {
+      console.error('❌ Error checking wallet change:', error);
+      return false;
+    }
   }
 }
 
