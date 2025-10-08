@@ -324,31 +324,54 @@ let blockchainService: any;
 let analosSDKService: any;
 let analosMetaplexService: any;
 
+// Initialize services with individual error handling to prevent startup hanging
 try {
   console.log('🔧 Initializing blockchain service...');
   blockchainService = new AnalosBlockchainService();
   console.log('✅ Blockchain service initialized');
-  
-  console.log('🔧 Initializing Analos SDK service...');
-  analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
-  console.log('✅ Analos SDK service initialized');
-  
-  console.log('🔧 Initializing Analos Metaplex service...');
-  analosMetaplexService = new AnalosMetaplexService(connection, blockchainService.walletKeypair);
-  console.log('✅ Analos Metaplex service initialized');
-  
+} catch (error) {
+  console.error('❌ Failed to initialize blockchain service:', error);
+}
+
+try {
+  if (blockchainService) {
+    console.log('🔧 Initializing Analos SDK service...');
+    analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
+    console.log('✅ Analos SDK service initialized');
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Analos SDK service:', error);
+}
+
+try {
+  if (blockchainService) {
+    console.log('🔧 Initializing Analos Metaplex service...');
+    analosMetaplexService = new AnalosMetaplexService(connection, blockchainService.walletKeypair);
+    console.log('✅ Analos Metaplex service initialized');
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Analos Metaplex service:', error);
+}
+
+try {
   console.log('🔧 Initializing Real NFT Mint Service...');
   realNFTMintService = new RealNFTMintService(ANALOS_RPC_URL);
   console.log('✅ Real NFT Mint Service initialized with proper Solana programs');
-  
-  // Initialize Real Metaplex NFT Service
-  console.log('🔧 Initializing Real Metaplex NFT Service...');
-  realMetaplexNFTService = new RealMetaplexNFTService(ANALOS_RPC_URL, blockchainService.walletKeypair);
-  console.log('✅ Real Metaplex NFT Service initialized');
 } catch (error) {
-  console.error('❌ Failed to initialize services:', error);
-  console.log('⚠️  Server will continue with limited functionality');
+  console.error('❌ Failed to initialize Real NFT Mint Service:', error);
 }
+
+try {
+  if (blockchainService) {
+    console.log('🔧 Initializing Real Metaplex NFT Service...');
+    realMetaplexNFTService = new RealMetaplexNFTService(ANALOS_RPC_URL, blockchainService.walletKeypair);
+    console.log('✅ Real Metaplex NFT Service initialized');
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Real Metaplex NFT Service:', error);
+}
+
+console.log('🎯 Service initialization completed - server ready to start');
 
 // Skip SDK bridge initialization for now to prevent Railway crashes
 // We'll use direct smart contract integration instead
