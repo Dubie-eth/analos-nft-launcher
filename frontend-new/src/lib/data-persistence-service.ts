@@ -184,11 +184,21 @@ export class DataPersistenceService {
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          console.log('📋 No backup data found on backend (this is normal for first-time setup)');
+          return [];
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      return data.collections || [];
+      if (data.success && data.collections) {
+        console.log('✅ Loaded backup from backend:', data.collections.length, 'collections');
+        return data.collections;
+      } else {
+        console.log('📋 No collections in backend backup');
+        return [];
+      }
     } catch (error) {
       console.error('❌ Failed to load from backend:', error);
       throw error;
