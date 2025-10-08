@@ -53,6 +53,8 @@ function CollectionMintContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const collectionName = decodeURIComponent(params.collectionName as string);
+  console.log('🔍 Raw collection name from URL:', params.collectionName);
+  console.log('🔍 Decoded collection name:', collectionName);
   
   // Check for preview mode
   const isPreviewMode = searchParams.get('preview') === 'true';
@@ -94,18 +96,30 @@ function CollectionMintContent() {
         return;
       }
       
+      console.log('🔄 Starting collection fetch with timeout protection...');
+      
+      // Add timeout protection to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Collection fetch timeout')), 15000); // 15 second timeout
+      });
+      
       console.log('📡 Fetching collection with blockchain-first service:', collectionName);
       
       // Handle collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'The LosBros' || collectionName === 'los-bros') {
+      if (collectionName === 'The LosBros' || collectionName === 'los-bros' || collectionName === 'Los Bros') {
         actualCollectionName = 'Los Bros';
         console.log('🔄 Mapping collection name from', collectionName, 'to "Los Bros"');
       }
+      
+      console.log('🎯 Using collection name for blockchain lookup:', actualCollectionName);
 
-      // Try blockchain-first service first
-      try {
-        const blockchainFirstCollection = await blockchainFirstFrontendService.getCollection(actualCollectionName);
+      // Create the main fetch promise
+      const fetchPromise = (async () => {
+        // Try blockchain-first service first
+        try {
+          console.log('🔄 Attempting to load collection from blockchain-first service...');
+          const blockchainFirstCollection = await blockchainFirstFrontendService.getCollection(actualCollectionName);
         if (blockchainFirstCollection) {
           console.log('✅ Collection loaded from blockchain-first service:', blockchainFirstCollection);
           
@@ -133,9 +147,9 @@ function CollectionMintContent() {
           setCollection(convertedCollection);
           return;
         }
-      } catch (error) {
-        console.log('⚠️ Blockchain-first service not available, falling back to legacy system');
-      }
+           } catch (error) {
+             console.log('⚠️ Blockchain-first service not available, falling back to legacy system:', error);
+           }
       
       // Clear old cached collection data and force refresh from admin service
       if (collectionName === 'los-bros') {
@@ -417,10 +431,19 @@ function CollectionMintContent() {
       } else {
         setMintStatus('Collection not found on blockchain');
         console.log('❌ Collection not found on blockchain:', collectionName);
-      }
+        }
+      })();
+      
+      // Race between fetch and timeout
+      await Promise.race([fetchPromise, timeoutPromise]);
+      
     } catch (error) {
       console.error('❌ Failed to fetch collection from blockchain:', error);
-      setMintStatus('Failed to load collection from blockchain');
+      if (error instanceof Error && error.message === 'Collection fetch timeout') {
+        setMintStatus('Collection loading timed out. Please refresh the page.');
+      } else {
+        setMintStatus('Failed to load collection from blockchain');
+      }
     } finally {
       setLoading(false);
     }
@@ -1503,25 +1526,37 @@ function UserMintedNFTs({ walletAddress, collectionName }: { walletAddress: stri
         </div>
         
         <div className="space-y-2 max-h-32 overflow-y-auto">
-          {mintedNFTs.slice(0, 5).map((nft, index) => (
-            <div key={nft.id} className="flex items-center justify-between bg-white/5 rounded p-2 text-xs">
-              <div className="flex items-center space-x-2">
-                <span className="text-white/80">#{nft.tokenId}</span>
-                <span className="text-white/60">{nft.phase}</span>
-                <span className="text-white/60">
-                  {new Date(nft.timestamp).toLocaleTimeString()}
-                </span>
+          {mintedNFTs.slice(0, 5).map((nft, index) => {
+            // Debug log to check NFT data
+            console.log(`🔍 NFT ${index + 1} data:`, {
+              id: nft.id,
+              tokenId: nft.tokenId,
+              collectionName: nft.collectionName,
+              phase: nft.phase,
+              signature: nft.signature,
+              explorerUrl: nft.explorerUrl
+            });
+            
+            return (
+              <div key={nft.id} className="flex items-center justify-between bg-white/5 rounded p-2 text-xs">
+                <div className="flex items-center space-x-2">
+                  <span className="text-white/80">#{nft.tokenId || 'N/A'}</span>
+                  <span className="text-white/60">{nft.phase || 'Unknown'}</span>
+                  <span className="text-white/60">
+                    {new Date(nft.timestamp || Date.now()).toLocaleTimeString()}
+                  </span>
+                </div>
+                <a
+                  href={nft.explorerUrl || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 underline"
+                >
+                  View
+                </a>
               </div>
-              <a
-                href={nft.explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 underline"
-              >
-                View
-              </a>
-            </div>
-          ))}
+            );
+          })}
         </div>
         
         {mintedNFTs.length > 5 && (
