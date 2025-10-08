@@ -6,11 +6,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
-
-// ES module equivalent of __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export interface MintedNFT {
   id: string;
@@ -53,7 +48,7 @@ export class NFTTrackingService {
   private collectionsFile: string;
 
   constructor() {
-    this.dataDir = path.join(__dirname, '../data');
+    this.dataDir = path.join(process.cwd(), 'data');
     this.nftsFile = path.join(this.dataDir, 'minted-nfts.json');
     this.statsFile = path.join(this.dataDir, 'user-stats.json');
     this.collectionsFile = path.join(this.dataDir, 'collection-stats.json');

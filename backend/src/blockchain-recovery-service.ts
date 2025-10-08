@@ -4,7 +4,7 @@
  * Rebuilds the NFT tracking database from on-chain data
  */
 
-import { Connection, PublicKey } from '@solana/web3.js';
+// Using Analos blockchain APIs instead of Solana Web3.js
 import { nftTrackingService, MintedNFT } from './nft-tracking-service';
 
 export interface BlockchainNFT {
@@ -35,12 +35,12 @@ export interface RecoveryStats {
 }
 
 export class BlockchainRecoveryService {
-  private connection: Connection;
   private knownMints: Set<string> = new Set();
+  private readonly ANALOS_RPC_URL = process.env.ANALOS_RPC_URL || 'https://rpc.analos.io';
+  private readonly ANALOS_EXPLORER_URL = 'https://explorer.analos.io';
 
   constructor() {
-    this.connection = new Connection('https://rpc.analos.io', 'confirmed');
-    console.log('🔍 Blockchain Recovery Service initialized');
+    console.log('🔍 Blockchain Recovery Service initialized for Analos');
   }
 
   /**
@@ -61,12 +61,24 @@ export class BlockchainRecoveryService {
       const mint = new PublicKey(mintAddress);
       const nfts: BlockchainNFT[] = [];
 
-      // Get all token accounts for this mint
-      const tokenAccounts = await this.connection.getTokenAccountsByMint(mint);
+      // Get all token accounts for this mint (using RPC method)
+      const tokenAccounts = await this.connection.getProgramAccounts(new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), {
+        filters: [
+          {
+            dataSize: 165, // Token account data size
+          },
+          {
+            memcmp: {
+              offset: 0,
+              bytes: mint.toBase58(),
+            },
+          },
+        ],
+      });
       
-      console.log(`📊 Found ${tokenAccounts.value.length} token accounts for mint ${mintAddress}`);
+      console.log(`📊 Found ${tokenAccounts.length} token accounts for mint ${mintAddress}`);
 
-      for (const { pubkey, account } of tokenAccounts.value) {
+      for (const { pubkey, account } of tokenAccounts) {
         try {
           // Get account info to find owner
           const accountInfo = await this.connection.getAccountInfo(pubkey);

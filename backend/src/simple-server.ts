@@ -14,8 +14,8 @@ import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PE
 // import { splNFTService } from './spl-nft-service'; // Temporarily disabled
 // import { collectionService } from './collection-service'; // Temporarily disabled
 // import nftGeneratorRoutes from './nft-generator-routes'; // Temporarily disabled
-import { nftTrackingService } from '../dist/nft-tracking-service.js';
-import { blockchainNFTScanner } from '../dist/blockchain-nft-scanner.js';
+import { nftTrackingService } from './nft-tracking-service';
+// import { blockchainNFTScanner } from '../dist/blockchain-nft-scanner.js';
 import { blockchainRecoveryService } from './blockchain-recovery-service';
 import { blockchainFirstNFTService } from './blockchain-first-nft-service';
 import './initialize-recovery'; // Initialize recovery system on startup
@@ -25,8 +25,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Initialize services
-let realNFTMintService: RealNFTMintService | null = null;
-let realMetaplexNFTService: RealMetaplexNFTService | null = null;
+// let realNFTMintService: RealNFTMintService | null = null;
+// let realMetaplexNFTService: RealMetaplexNFTService | null = null;
 
 // Force redeploy - mint instructions endpoint ready v2.0.1
 // This endpoint creates real blockchain transaction instructions for wallet signing
@@ -5047,7 +5047,6 @@ app.post('/api/blockchain-first/rebuild-database', async (req, res) => {
     const result = await blockchainFirstNFTService.rebuildDatabaseFromBlockchain();
     
     res.json({
-      success: true,
       message: 'Blockchain-first database rebuild completed',
       ...result
     });
