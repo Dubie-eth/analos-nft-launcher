@@ -118,7 +118,7 @@ export class VerificationService {
       minimumPlatforms: 1, // At least one social platform required
       requiredPlatforms: [], // No specific platforms required
       optionalPlatforms: ['twitter', 'discord', 'telegram', 'instagram', 'youtube', 'website'],
-      verificationPeriod: 0 // Permanent verification - no re-verification needed
+      verificationPeriod: 90 // Re-verify every 90 days to keep verification fresh
     };
   }
 
@@ -370,18 +370,22 @@ export class VerificationService {
 
   /**
    * Check if verification is expired
-   * Verification is permanent and only expires if wallet changes
+   * Verification expires after 90 days or if wallet changes
    */
   isVerificationExpired(verificationDate: string): boolean {
-    // Verification never expires - it's permanent once verified
-    return false;
+    const verificationTime = new Date(verificationDate).getTime();
+    const now = new Date().getTime();
+    const verificationPeriod = this.getVerificationRequirements().verificationPeriod;
+    const expirationTime = verificationTime + (verificationPeriod * 24 * 60 * 60 * 1000);
+    
+    return now > expirationTime;
   }
 
   /**
    * Get verification disclaimer text
    */
   getVerificationDisclaimer(): string {
-    return "✅ This verified badge indicates that the collection creator has connected at least one social media account and verified ownership with their wallet. Verification is permanent unless the wallet changes. This does not constitute an endorsement of the collection or its content by LosLauncher. Please conduct your own research before making any purchases.";
+    return "✅ This verified badge indicates that the collection creator has connected at least one social media account and verified ownership with their wallet. Verification is valid for 90 days and must be renewed to maintain verified status. This does not constitute an endorsement of the collection or its content by LosLauncher. Please conduct your own research before making any purchases.";
   }
 
   /**
