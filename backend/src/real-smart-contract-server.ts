@@ -429,7 +429,6 @@ app.post('/api/collections/deploy', async (req, res) => {
           feeRecipient: feeRecipient || '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
           externalUrl: externalUrl || ''
         });
-      }
     } catch (sdkError) {
       console.error('❌ SDK deployment failed, using fallback:', sdkError);
       deploymentResult = await smartContractService.deployNFTCollection({
@@ -580,7 +579,6 @@ app.post('/api/mint', async (req, res) => {
           walletAddress,
           collection.mintPrice
         );
-      }
     } catch (sdkError) {
       console.error('❌ SDK minting failed, using fallback:', sdkError);
       mintResult = await smartContractService.mintNFT(
