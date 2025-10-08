@@ -4052,7 +4052,7 @@ app.get('/health', (req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      version: '2.0.3',
+      version: '2.0.4',
       environment: {
         NODE_ENV: process.env.NODE_ENV,
         HAS_PAYER_KEY: !!process.env.PAYER_PRIVATE_KEY,
