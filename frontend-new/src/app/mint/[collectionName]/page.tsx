@@ -115,7 +115,7 @@ function CollectionMintContent() {
           console.log('✅ Cleared old Los Bros collection data from localStorage');
           
           // Force update the admin control service with current data
-          const { adminControlService } = await import('../../lib/admin-control-service');
+          const { adminControlService } = await import('@/lib/admin-control-service');
           await adminControlService.updateCollection('Los Bros', {
             deployed: true,
             contractAddresses: {
@@ -144,7 +144,7 @@ function CollectionMintContent() {
       // Ensure the collection exists in tokenIdTracker for minting
       try {
         const collectionMint = `collection_los_bros`;
-        const { tokenIdTracker } = await import('../../lib/token-id-tracker');
+        const { tokenIdTracker } = await import('@/lib/token-id-tracker');
         
         // Check if collection already exists in tokenIdTracker
         const existingCollection = tokenIdTracker.getCollectionInfo(collectionMint);
@@ -201,7 +201,7 @@ function CollectionMintContent() {
 
       // Force update the collection data to ensure deployment status is properly set
       try {
-        const { adminControlService } = await import('../../lib/admin-control-service');
+        const { adminControlService } = await import('@/lib/admin-control-service');
         const currentCollection = await adminControlService.getCollection('Los Bros');
         
         if (currentCollection && !currentCollection.deployed) {

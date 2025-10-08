@@ -72,23 +72,29 @@ export class VerificationConfigManager {
   }
 
   /**
-   * Initialize configuration in localStorage
+   * Initialize configuration in localStorage (SSR-safe)
    */
   private initializeConfig(): void {
-    if (!localStorage.getItem(this.CONFIG_KEY)) {
-      localStorage.setItem(this.CONFIG_KEY, JSON.stringify(this.DEFAULT_CONFIG));
-      console.log('✅ Verification config initialized with lenient settings');
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      if (!localStorage.getItem(this.CONFIG_KEY)) {
+        localStorage.setItem(this.CONFIG_KEY, JSON.stringify(this.DEFAULT_CONFIG));
+        console.log('✅ Verification config initialized with lenient settings');
+      }
     }
   }
 
   /**
-   * Get current verification configuration
+   * Get current verification configuration (SSR-safe)
    */
   getConfig(): VerificationThresholds {
     try {
-      const stored = localStorage.getItem(this.CONFIG_KEY);
-      if (stored) {
-        return JSON.parse(stored);
+      // Check if we're in a browser environment
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem(this.CONFIG_KEY);
+        if (stored) {
+          return JSON.parse(stored);
+        }
       }
     } catch (error) {
       console.error('Error loading verification config:', error);
@@ -97,25 +103,31 @@ export class VerificationConfigManager {
   }
 
   /**
-   * Update verification configuration (admin function)
+   * Update verification configuration (admin function, SSR-safe)
    */
   updateConfig(updates: Partial<VerificationThresholds>): void {
     try {
-      const currentConfig = this.getConfig();
-      const updatedConfig = { ...currentConfig, ...updates };
-      localStorage.setItem(this.CONFIG_KEY, JSON.stringify(updatedConfig));
-      console.log('✅ Verification config updated:', updatedConfig);
+      // Check if we're in a browser environment
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const currentConfig = this.getConfig();
+        const updatedConfig = { ...currentConfig, ...updates };
+        localStorage.setItem(this.CONFIG_KEY, JSON.stringify(updatedConfig));
+        console.log('✅ Verification config updated:', updatedConfig);
+      }
     } catch (error) {
       console.error('Error updating verification config:', error);
     }
   }
 
   /**
-   * Reset to default configuration
+   * Reset to default configuration (SSR-safe)
    */
   resetToDefault(): void {
-    localStorage.setItem(this.CONFIG_KEY, JSON.stringify(this.DEFAULT_CONFIG));
-    console.log('✅ Verification config reset to default');
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem(this.CONFIG_KEY, JSON.stringify(this.DEFAULT_CONFIG));
+      console.log('✅ Verification config reset to default');
+    }
   }
 
   /**

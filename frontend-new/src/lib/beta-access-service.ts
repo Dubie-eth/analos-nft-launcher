@@ -26,6 +26,16 @@ export class BetaAccessService {
   private readonly BETA_CONFIG_KEY = 'beta_access_config';
 
   /**
+   * SSR-safe localStorage access helper
+   */
+  private safeLocalStorage(): Storage | null {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      return localStorage;
+    }
+    return null;
+  }
+
+  /**
    * Initialize default configuration
    */
   constructor() {
@@ -33,14 +43,15 @@ export class BetaAccessService {
   }
 
   private initializeDefaultConfig() {
-    if (!localStorage.getItem(this.BETA_CONFIG_KEY)) {
+    const storage = this.safeLocalStorage();
+    if (storage && !storage.getItem(this.BETA_CONFIG_KEY)) {
       const defaultConfig: BetaAccessConfig = {
         isPublicAccessEnabled: false,
         publicLaunchDate: new Date('2025-01-01').getTime(),
         maxBetaUsers: 50,
         currentBetaUsers: 0
       };
-      localStorage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(defaultConfig));
+      storage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(defaultConfig));
     }
   }
 
@@ -55,10 +66,13 @@ export class BetaAccessService {
       status: 'pending'
     };
 
-    // Store request
-    const requests = this.getBetaAccessRequests();
-    requests.push(request);
-    localStorage.setItem(this.BETA_REQUESTS_KEY, JSON.stringify(requests));
+    // Store request (SSR-safe)
+    const storage = this.safeLocalStorage();
+    if (storage) {
+      const requests = this.getBetaAccessRequests();
+      requests.push(request);
+      storage.setItem(this.BETA_REQUESTS_KEY, JSON.stringify(requests));
+    }
 
     console.log('✅ Beta access request submitted:', request);
     return request;
@@ -69,7 +83,11 @@ export class BetaAccessService {
    */
   getBetaAccessRequests(): BetaAccessRequest[] {
     try {
-      return JSON.parse(localStorage.getItem(this.BETA_REQUESTS_KEY) || '[]');
+      const storage = this.safeLocalStorage();
+      if (storage) {
+        return JSON.parse(storage.getItem(this.BETA_REQUESTS_KEY) || '[]');
+      }
+      return [];
     } catch (error) {
       console.error('Error getting beta access requests:', error);
       return [];
@@ -88,8 +106,12 @@ export class BetaAccessService {
       }
 
       // Check whitelist
-      const whitelist = JSON.parse(localStorage.getItem(this.BETA_WHITELIST_KEY) || '[]');
-      return whitelist.includes(walletAddress.toLowerCase());
+      const storage = this.safeLocalStorage();
+      if (storage) {
+        const whitelist = JSON.parse(storage.getItem(this.BETA_WHITELIST_KEY) || '[]');
+        return whitelist.includes(walletAddress.toLowerCase());
+      }
+      return false;
     } catch (error) {
       console.error('Error checking beta access:', error);
       return false;
@@ -101,11 +123,14 @@ export class BetaAccessService {
    */
   addToBetaWhitelist(walletAddress: string, approvedBy: string, notes?: string): boolean {
     try {
-      const whitelist = JSON.parse(localStorage.getItem(this.BETA_WHITELIST_KEY) || '[]');
+      const storage = this.safeLocalStorage();
+      if (!storage) return false;
+      
+      const whitelist = JSON.parse(storage.getItem(this.BETA_WHITELIST_KEY) || '[]');
       
       if (!whitelist.includes(walletAddress.toLowerCase())) {
         whitelist.push(walletAddress.toLowerCase());
-        localStorage.setItem(this.BETA_WHITELIST_KEY, JSON.stringify(whitelist));
+        storage.setItem(this.BETA_WHITELIST_KEY, JSON.stringify(whitelist));
 
         // Update request status if exists
         this.updateRequestStatus(walletAddress, 'approved', approvedBy, notes);
@@ -113,7 +138,7 @@ export class BetaAccessService {
         // Update config
         const config = this.getBetaAccessConfig();
         config.currentBetaUsers = whitelist.length;
-        localStorage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(config));
+        storage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(config));
 
         console.log('✅ Added wallet to beta whitelist:', walletAddress);
         return true;
@@ -131,11 +156,14 @@ export class BetaAccessService {
    */
   removeFromBetaWhitelist(walletAddress: string): boolean {
     try {
-      const whitelist = JSON.parse(localStorage.getItem(this.BETA_WHITELIST_KEY) || '[]');
+      const storage = this.safeLocalStorage();
+      if (!storage) return false;
+      
+      const whitelist = JSON.parse(storage.getItem(this.BETA_WHITELIST_KEY) || '[]');
       const updatedWhitelist = whitelist.filter((addr: string) => addr !== walletAddress.toLowerCase());
       
       if (updatedWhitelist.length !== whitelist.length) {
-        localStorage.setItem(this.BETA_WHITELIST_KEY, JSON.stringify(updatedWhitelist));
+        storage.setItem(this.BETA_WHITELIST_KEY, JSON.stringify(updatedWhitelist));
 
         // Update request status if exists
         this.updateRequestStatus(walletAddress, 'rejected');
@@ -143,7 +171,7 @@ export class BetaAccessService {
         // Update config
         const config = this.getBetaAccessConfig();
         config.currentBetaUsers = updatedWhitelist.length;
-        localStorage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(config));
+        storage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(config));
 
         console.log('✅ Removed wallet from beta whitelist:', walletAddress);
         return true;
@@ -161,7 +189,15 @@ export class BetaAccessService {
    */
   getBetaAccessConfig(): BetaAccessConfig {
     try {
-      return JSON.parse(localStorage.getItem(this.BETA_CONFIG_KEY) || '{}');
+      const storage = this.safeLocalStorage();
+      if (storage) {
+        return JSON.parse(storage.getItem(this.BETA_CONFIG_KEY) || '{}');
+      }
+      return {
+        isPublicAccessEnabled: false,
+        maxBetaUsers: 50,
+        currentBetaUsers: 0
+      };
     } catch (error) {
       console.error('Error getting beta access config:', error);
       return {
@@ -177,10 +213,13 @@ export class BetaAccessService {
    */
   updateBetaAccessConfig(config: Partial<BetaAccessConfig>): void {
     try {
-      const currentConfig = this.getBetaAccessConfig();
-      const updatedConfig = { ...currentConfig, ...config };
-      localStorage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(updatedConfig));
-      console.log('✅ Beta access config updated:', updatedConfig);
+      const storage = this.safeLocalStorage();
+      if (storage) {
+        const currentConfig = this.getBetaAccessConfig();
+        const updatedConfig = { ...currentConfig, ...config };
+        storage.setItem(this.BETA_CONFIG_KEY, JSON.stringify(updatedConfig));
+        console.log('✅ Beta access config updated:', updatedConfig);
+      }
     } catch (error) {
       console.error('Error updating beta access config:', error);
     }
@@ -191,7 +230,11 @@ export class BetaAccessService {
    */
   getBetaWhitelist(): string[] {
     try {
-      return JSON.parse(localStorage.getItem(this.BETA_WHITELIST_KEY) || '[]');
+      const storage = this.safeLocalStorage();
+      if (storage) {
+        return JSON.parse(storage.getItem(this.BETA_WHITELIST_KEY) || '[]');
+      }
+      return [];
     } catch (error) {
       console.error('Error getting beta whitelist:', error);
       return [];
@@ -212,7 +255,10 @@ export class BetaAccessService {
         request.approvedBy = approvedBy;
         request.notes = notes;
         
-        localStorage.setItem(this.BETA_REQUESTS_KEY, JSON.stringify(requests));
+        const storage = this.safeLocalStorage();
+        if (storage) {
+          storage.setItem(this.BETA_REQUESTS_KEY, JSON.stringify(requests));
+        }
         console.log('✅ Updated request status:', request);
       }
     } catch (error) {
@@ -232,11 +278,14 @@ export class BetaAccessService {
    * Clear all data (for testing)
    */
   clearAllData(): void {
-    localStorage.removeItem(this.BETA_REQUESTS_KEY);
-    localStorage.removeItem(this.BETA_WHITELIST_KEY);
-    localStorage.removeItem(this.BETA_CONFIG_KEY);
-    this.initializeDefaultConfig();
-    console.log('🧹 Cleared all beta access data');
+    const storage = this.safeLocalStorage();
+    if (storage) {
+      storage.removeItem(this.BETA_REQUESTS_KEY);
+      storage.removeItem(this.BETA_WHITELIST_KEY);
+      storage.removeItem(this.BETA_CONFIG_KEY);
+      this.initializeDefaultConfig();
+      console.log('🧹 Cleared all beta access data');
+    }
   }
 }
 
