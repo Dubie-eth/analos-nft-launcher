@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import StandardLayout from '@/app/components/StandardLayout';
-import { userNFTTracker, MintedNFT } from '@/lib/user-nft-tracker';
+import { backendNFTTracker, MintedNFT } from '@/lib/backend-nft-tracker';
 
 interface UserNFT {
   id: string;
@@ -56,19 +56,19 @@ export default function ProfilePage() {
     
     setLoading(true);
     try {
-      // Get real minted NFTs from the tracking service
-      const mintedNFTs = userNFTTracker.getMintedNFTs(publicKey.toString());
-      console.log('🎯 Loading user NFTs from tracking service:', mintedNFTs);
+      // Get real minted NFTs from the backend (persistent storage)
+      const { nfts: mintedNFTs, stats } = await backendNFTTracker.getUserNFTs(publicKey.toString());
+      console.log('🎯 Loading user NFTs from backend:', mintedNFTs);
       
       // Convert MintedNFT to UserNFT format
       const userNFTs: UserNFT[] = mintedNFTs.map((mintedNFT, index) => ({
         id: mintedNFT.id,
-        name: `${mintedNFT.collectionName} #${mintedNFT.id.split('_')[1] || index + 1}`,
+        name: `${mintedNFT.collectionName} #${mintedNFT.tokenId}`,
         image: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
         collection: mintedNFT.collectionName,
-        mintAddress: mintedNFT.signature,
+        mintAddress: mintedNFT.mintSignature,
         metadata: {
-          name: `${mintedNFT.collectionName} #${mintedNFT.id.split('_')[1] || index + 1}`,
+          name: `${mintedNFT.collectionName} #${mintedNFT.tokenId}`,
           description: `Minted NFT from ${mintedNFT.collectionName} collection`,
           image: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
           attributes: [
@@ -88,18 +88,16 @@ export default function ProfilePage() {
       setUserNFTs(userNFTs);
       
       // Calculate user stats from real data
-      const stats: UserStats = {
-        totalNFTs: userNFTs.length,
-        collections: new Set(userNFTs.map(nft => nft.collection)).size,
-        totalValue: userNFTs.reduce((sum, nft) => sum + (nft.rarity?.score || 0) * 0.1, 0),
+      // Use stats from backend
+      const userStats: UserStats = {
+        totalNFTs: stats.totalNFTs,
+        collections: Object.keys(stats.collections).length,
+        totalValue: stats.totalValue,
         rarestNFT: userNFTs.length > 0 ? userNFTs[0] : undefined
       };
       
-      setUserStats(stats);
-      
-      // Also get detailed statistics from the tracker
-      const detailedStats = userNFTTracker.getMintStatistics(publicKey.toString());
-      console.log('📊 User mint statistics:', detailedStats);
+      setUserStats(userStats);
+      console.log('📊 User mint statistics from backend:', stats);
       
         } catch (error) {
       console.error('Error loading user NFTs:', error);

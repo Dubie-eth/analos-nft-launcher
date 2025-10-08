@@ -273,32 +273,34 @@ export default function MarketplacePage() {
       
       console.log(`✅ NFT minted successfully: ${signature}`);
       
-      // Track the minted NFT in userNFTTracker (same as main mint page)
+      // Track the minted NFT on backend (persistent storage)
       try {
-        const { userNFTTracker, MintedNFT } = await import('@/lib/user-nft-tracker');
+        const { backendNFTTracker } = await import('@/lib/backend-nft-tracker');
         const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
         
         const activePhase = whitelistPhaseService.getCurrentActivePhase();
         
-          const mintedNFT: MintedNFT = {
-            id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            signature: signature,
-            collectionName: collection.name, // Use actual collection name
-            phase: activePhase?.id || 'phase_3_public',
-            timestamp: Date.now(),
-            walletAddress: publicKey.toString(),
-            quantity: 1,
-            explorerUrl: `https://explorer.analos.io/tx/${signature}`,
-            tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
-          };
+        // Generate next token ID from backend
+        const tokenId = await backendNFTTracker.generateNextTokenId(collection.name);
         
-        // Store in localStorage for tracking
-        const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
-        const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
-        existingMints.push(mintedNFT);
-        localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+        const mintedNFT = backendNFTTracker.createMintedNFT(
+          collection.name,
+          tokenId,
+          publicKey.toString(),
+          signature,
+          activePhase?.id || 'phase_3_public',
+          collection.mintPrice || 4200.69,
+          collection.paymentToken || 'LOS'
+        );
         
-        console.log('✅ NFT tracked successfully from marketplace:', mintedNFT);
+        // Track on backend (persistent storage)
+        const tracked = await backendNFTTracker.trackMintedNFT(mintedNFT);
+        
+        if (tracked) {
+          console.log('✅ NFT tracked on backend:', mintedNFT);
+        } else {
+          console.error('❌ Failed to track NFT on backend');
+        }
         
       } catch (error) {
         console.error('Error tracking minted NFT from marketplace:', error);

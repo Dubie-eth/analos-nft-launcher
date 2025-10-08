@@ -14,6 +14,7 @@ import { metaplexNFTService, NFTMetadata } from './metaplex-nft-service';
 import { splNFTService } from './spl-nft-service';
 import { collectionService } from './collection-service';
 import nftGeneratorRoutes from './nft-generator-routes';
+import { nftTrackingService, MintedNFT } from './nft-tracking-service';
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
 const app = express();
@@ -4374,6 +4375,197 @@ app.get('/api/collections/backup/list', (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to list collection backups'
+    });
+  }
+});
+
+// =============================================================================
+// NFT TRACKING API ENDPOINTS - PERSISTENT STORAGE
+// =============================================================================
+
+// Track a minted NFT
+app.post('/api/nft/track', (req, res) => {
+  try {
+    const nft: MintedNFT = req.body;
+    
+    // Validate required fields
+    if (!nft.id || !nft.tokenId || !nft.collectionName || !nft.walletAddress || !nft.mintSignature) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required NFT tracking fields' 
+      });
+    }
+    
+    // Track the NFT
+    nftTrackingService.trackMintedNFT(nft);
+    
+    res.json({ 
+      success: true, 
+      message: 'NFT tracked successfully',
+      nftId: nft.id
+    });
+  } catch (error) {
+    console.error('❌ Error tracking NFT:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to track NFT' 
+    });
+  }
+});
+
+// Get user's NFTs
+app.get('/api/nft/user/:walletAddress', (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+    
+    if (!walletAddress) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Wallet address is required' 
+      });
+    }
+    
+    const nfts = nftTrackingService.getUserNFTs(walletAddress);
+    const stats = nftTrackingService.getUserStats(walletAddress);
+    
+    res.json({ 
+      success: true, 
+      nfts,
+      stats
+    });
+  } catch (error) {
+    console.error('❌ Error getting user NFTs:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get user NFTs' 
+    });
+  }
+});
+
+// Get collection NFTs
+app.get('/api/nft/collection/:collectionName', (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    
+    if (!collectionName) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection name is required' 
+      });
+    }
+    
+    const nfts = nftTrackingService.getCollectionNFTs(collectionName);
+    const stats = nftTrackingService.getCollectionStats(collectionName);
+    
+    res.json({ 
+      success: true, 
+      nfts,
+      stats
+    });
+  } catch (error) {
+    console.error('❌ Error getting collection NFTs:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get collection NFTs' 
+    });
+  }
+});
+
+// Get next token ID for a collection
+app.get('/api/nft/next-token-id/:collectionName', (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    
+    if (!collectionName) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection name is required' 
+      });
+    }
+    
+    const nextTokenId = nftTrackingService.generateNextTokenId(collectionName);
+    
+    res.json({ 
+      success: true, 
+      nextTokenId
+    });
+  } catch (error) {
+    console.error('❌ Error getting next token ID:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get next token ID' 
+    });
+  }
+});
+
+// Get all NFT statistics (admin)
+app.get('/api/nft/stats', (req, res) => {
+  try {
+    const allNFTs = nftTrackingService.getAllNFTs();
+    const allUserStats = nftTrackingService.getAllUserStats();
+    const allCollectionStats = nftTrackingService.getAllCollectionStats();
+    
+    res.json({ 
+      success: true, 
+      totalNFTs: allNFTs.length,
+      totalUsers: Object.keys(allUserStats).length,
+      totalCollections: Object.keys(allCollectionStats).length,
+      stats: {
+        users: allUserStats,
+        collections: allCollectionStats
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error getting NFT stats:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get NFT stats' 
+    });
+  }
+});
+
+// Backup all NFT data (admin)
+app.get('/api/nft/backup', (req, res) => {
+  try {
+    const backup = nftTrackingService.backupData();
+    
+    res.json({ 
+      success: true, 
+      backup,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error creating NFT backup:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to create backup' 
+    });
+  }
+});
+
+// Restore NFT data from backup (admin)
+app.post('/api/nft/restore', (req, res) => {
+  try {
+    const { backup } = req.body;
+    
+    if (!backup) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Backup data is required' 
+      });
+    }
+    
+    nftTrackingService.restoreData(backup);
+    
+    res.json({ 
+      success: true, 
+      message: 'NFT data restored successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error restoring NFT data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to restore data' 
     });
   }
 });
