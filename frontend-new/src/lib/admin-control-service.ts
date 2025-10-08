@@ -263,6 +263,13 @@ export class AdminControlService {
         creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your actual creator wallet address
         createdAt: Date.now(),
         lastModified: Date.now(),
+        // Add delayed reveal configuration
+        delayedReveal: {
+          enabled: true,
+          type: 'manual',
+          placeholderImage: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          revealDate: new Date('2025-10-15T00:00:00Z').getTime() // Manual reveal - admin controlled
+        },
         // Mark as deployed with real blockchain deployment data
         deployed: true,
         contractAddresses: {
