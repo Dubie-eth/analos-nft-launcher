@@ -2675,6 +2675,7 @@ app.post('/api/transactions/deploy-collection', async (req, res) => {
       
       // Load payer keypair (this should be set up in environment)
       const payerPrivateKey = process.env.PAYER_PRIVATE_KEY;
+      console.log('🔍 DEBUG: PAYER_PRIVATE_KEY check - has key:', !!payerPrivateKey, 'length:', payerPrivateKey ? payerPrivateKey.length : 0);
       if (!payerPrivateKey) {
         console.warn('⚠️ PAYER_PRIVATE_KEY not set, using mock deployment');
         // Fallback to mock deployment if no payer keypair
@@ -2700,6 +2701,7 @@ app.post('/api/transactions/deploy-collection', async (req, res) => {
         return;
       }
       
+      console.log('✅ PAYER_PRIVATE_KEY found, proceeding with real deployment');
       const payerKeypair = Keypair.fromSecretKey(
         Buffer.from(JSON.parse(payerPrivateKey))
       );
