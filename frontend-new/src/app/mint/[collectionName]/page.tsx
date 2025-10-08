@@ -41,6 +41,7 @@ import { blockchainPriceService } from '@/lib/blockchain-price-service';
 import BondingCurveStatus from '../../components/BondingCurveStatus';
 import BondingCurveGuide from '../../components/BondingCurveGuide';
 import SecurityNotice from '../../components/SecurityNotice';
+import VerificationBadge from '../../components/VerificationBadge';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -592,7 +593,16 @@ function CollectionMintContent() {
                   alt={collection.name}
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />
-                <h1 className="text-3xl font-bold text-white mb-2">{collection.name}</h1>
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold text-white">{collection.name}</h1>
+                  <VerificationBadge 
+                    collectionId={`collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
+                    collectionName={collection.name}
+                    size="large"
+                    showTooltip={true}
+                    className="group"
+                  />
+                </div>
                 <p className="text-white/80 mb-4">{collection.description}</p>
                 <div className="flex justify-center space-x-4 text-sm text-white/60">
                   <span>Symbol: {collection.symbol}</span>

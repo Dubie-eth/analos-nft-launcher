@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
+import VerificationBadge from '@/app/components/VerificationBadge';
 
 interface Collection {
   id: string;
@@ -288,7 +289,16 @@ export default function MarketplacePage() {
 
                   {/* Collection Info */}
                   <div className="mb-4">
-                    <h3 className="text-xl font-bold text-white mb-2">{collection.name}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-bold text-white">{collection.name}</h3>
+                      <VerificationBadge 
+                        collectionId={collection.id}
+                        collectionName={collection.name}
+                        size="medium"
+                        showTooltip={true}
+                        className="group"
+                      />
+                    </div>
                     <p className="text-gray-300 text-sm mb-3 line-clamp-2">{collection.description}</p>
                     
                     <div className="space-y-2 text-sm">

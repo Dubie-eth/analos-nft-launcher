@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import StandardLayout from '../components/StandardLayout';
+import VerificationBadge from '../components/VerificationBadge';
 
 interface Collection {
   id: string;
@@ -294,9 +295,18 @@ const CollectionsPage: React.FC = () => {
                     {/* Collection Info */}
                     <div className="p-6">
                       <div className="mb-4">
-                        <h3 className="text-xl font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">
-                          {collection.name}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors">
+                            {collection.name}
+                          </h3>
+                          <VerificationBadge 
+                            collectionId={collection.id}
+                            collectionName={collection.name}
+                            size="medium"
+                            showTooltip={true}
+                            className="group"
+                          />
+                        </div>
                         <p className="text-gray-300 text-sm mb-2">
                           {collection.description.length > 100 
                             ? `${collection.description.substring(0, 100)}...`
