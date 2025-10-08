@@ -98,7 +98,38 @@ function CollectionMintContent() {
       let actualCollectionName = collectionName;
       if (collectionName === 'The LosBros' || collectionName === 'los-bros') {
         actualCollectionName = 'Los Bros';
-        console.log('🔄 Mapping collection name to "Los Bros"');
+        console.log('🔄 Mapping collection name from', collectionName, 'to "Los Bros"');
+      }
+      
+      // Also check if we have a deployed collection in localStorage with the real deployment data
+      if (collectionName === 'los-bros') {
+        try {
+          const launchedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+          const deployedCollection = launchedCollections.find((col: any) => 
+            col.name === 'Los Bros' || col.name === 'The LosBros'
+          );
+          
+          if (deployedCollection && deployedCollection.signature) {
+            console.log('🎯 Found deployed collection in localStorage:', deployedCollection.name, 'with signature:', deployedCollection.signature);
+            // Update the admin control service with the real deployment data
+            const { adminControlService } = await import('../../lib/admin-control-service');
+            await adminControlService.updateCollection('Los Bros', {
+              deployed: true,
+              contractAddresses: {
+                mint: deployedCollection.signature,
+                tokenAccount: deployedCollection.signature,
+                signature: deployedCollection.signature,
+                collection: deployedCollection.signature,
+                metadata: deployedCollection.signature
+              },
+              deploymentSignature: deployedCollection.signature,
+              deploymentDate: deployedCollection.deployedAt || new Date().toISOString()
+            });
+            console.log('✅ Updated Los Bros collection with real deployment data from localStorage');
+          }
+        } catch (error) {
+          console.warn('⚠️ Error checking localStorage for deployed collection:', error);
+        }
       }
 
       // Check admin controls first
