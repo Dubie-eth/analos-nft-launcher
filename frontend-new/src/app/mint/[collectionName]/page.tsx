@@ -102,126 +102,125 @@ function CollectionMintContent() {
         console.log('🔄 Mapping collection name from', collectionName, 'to "Los Bros"');
       }
       
-        // Clear old cached collection data and force refresh from admin service
-        if (collectionName === 'los-bros') {
-          try {
-            console.log('🧹 Clearing old cached collection data...');
-            // Clear old localStorage data that might contain outdated collection info
-            const launchedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
-            const updatedCollections = launchedCollections.filter((col: any) => 
-              col.name !== 'Los Bros' && col.name !== 'The LosBros'
-            );
-            localStorage.setItem('launched_collections', JSON.stringify(updatedCollections));
-            console.log('✅ Cleared old Los Bros collection data from localStorage');
-            
-            // Force update the admin control service with current data
-            const { adminControlService } = await import('../../lib/admin-control-service');
-            await adminControlService.updateCollection('Los Bros', {
-              deployed: true,
-              contractAddresses: {
-                mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
-              },
-              deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              deploymentDate: new Date().toISOString(),
-              creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
-              paymentToken: 'LOS', // Force update to LOS
-              description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
-              mintPrice: 4200.69 // Set correct base price
-            });
-            console.log('✅ Force updated Los Bros collection with current data');
-            
-            // Force reload the collection data to ensure we get the updated info
-            console.log('🔄 Forcing collection data reload...');
-          } catch (error) {
-            console.error('❌ Error clearing cached data:', error);
-          }
-        }
-
-        // Ensure the collection exists in tokenIdTracker for minting
+      // Clear old cached collection data and force refresh from admin service
+      if (collectionName === 'los-bros') {
         try {
-          const collectionMint = `collection_los_bros`;
-          const { tokenIdTracker } = await import('../../lib/token-id-tracker');
+          console.log('🧹 Clearing old cached collection data...');
+          // Clear old localStorage data that might contain outdated collection info
+          const launchedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+          const updatedCollections = launchedCollections.filter((col: any) => 
+            col.name !== 'Los Bros' && col.name !== 'The LosBros'
+          );
+          localStorage.setItem('launched_collections', JSON.stringify(updatedCollections));
+          console.log('✅ Cleared old Los Bros collection data from localStorage');
           
-          // Check if collection already exists in tokenIdTracker
-          const existingCollection = tokenIdTracker.getCollectionInfo(collectionMint);
-          if (!existingCollection) {
-            console.log('🏗️ Creating Los Bros collection in tokenIdTracker...');
-            tokenIdTracker.createCollection(
-              collectionMint,
-              'Los Bros',
-              2222, // totalSupply
-              0, // mintPrice (free mint)
-              {
-                maxMintsPerWallet: 10,
-                delayedReveal: {
-                  enabled: false,
-                  type: 'manual',
-                  placeholderImage: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
-                },
-                whitelist: {
-                  enabled: true,
-                  addresses: [],
-                  phases: [{
-                    name: 'OGs Phase',
-                    startTime: new Date('2025-10-03T00:00:00Z').getTime(),
-                    endTime: new Date('2025-10-10T23:59:59Z').getTime(),
-                    maxMintsPerWallet: 1, // Only 1 mint allowed during whitelist phase
-                    price: 0, // Completely free during whitelist phase
-                    addresses: [],
-                    active: true,
-                    isTokenBased: true,
-                    tokenRequirements: [{
-                      tokenMint: 'LOS_TOKEN_MINT_ADDRESS', // Will be set properly
-                      minAmount: 1000000000, // 1 LOS in lamports (1 LOS = 1,000,000,000 lamports)
-                      decimals: 9,
-                      tokenSymbol: 'LOS'
-                    }]
-                  }]
-                },
-                paymentTokens: [{
-                  mint: 'LOS_TOKEN_MINT_ADDRESS',
-                  symbol: 'LOS',
-                  decimals: 9,
-                  pricePerNFT: 0,
-                  minBalanceForWhitelist: 1000000000, // 1 LOS in lamports
-                  accepted: true
-                }]
-              }
-            );
-            console.log('✅ Created Los Bros collection in tokenIdTracker');
-          }
-        } catch (error) {
-          console.warn('⚠️ Error checking localStorage for deployed collection:', error);
-        }
-
-        // Force update the collection data to ensure deployment status is properly set
-        try {
+          // Force update the admin control service with current data
           const { adminControlService } = await import('../../lib/admin-control-service');
-          const currentCollection = await adminControlService.getCollection('Los Bros');
+          await adminControlService.updateCollection('Los Bros', {
+            deployed: true,
+            contractAddresses: {
+              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+            },
+            deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+            deploymentDate: new Date().toISOString(),
+            creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+            paymentToken: 'LOS', // Force update to LOS
+            description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
+            mintPrice: 4200.69 // Set correct base price
+          });
+          console.log('✅ Force updated Los Bros collection with current data');
           
-          if (currentCollection && !currentCollection.deployed) {
-            console.log('🔧 Force updating Los Bros deployment status...');
-            await adminControlService.updateCollection('Los Bros', {
-              deployed: true,
-              contractAddresses: {
-                mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-                metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
-              },
-              deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              deploymentDate: new Date().toISOString()
-            });
-            console.log('✅ Force updated Los Bros deployment status');
-          }
+          // Force reload the collection data to ensure we get the updated info
+          console.log('🔄 Forcing collection data reload...');
         } catch (error) {
-          console.error('❌ Error force updating deployment status:', error);
+          console.error('❌ Error clearing cached data:', error);
         }
+      }
+
+      // Ensure the collection exists in tokenIdTracker for minting
+      try {
+        const collectionMint = `collection_los_bros`;
+        const { tokenIdTracker } = await import('../../lib/token-id-tracker');
+        
+        // Check if collection already exists in tokenIdTracker
+        const existingCollection = tokenIdTracker.getCollectionInfo(collectionMint);
+        if (!existingCollection) {
+          console.log('🏗️ Creating Los Bros collection in tokenIdTracker...');
+          tokenIdTracker.createCollection(
+            collectionMint,
+            'Los Bros',
+            2222, // totalSupply
+            0, // mintPrice (free mint)
+            {
+              maxMintsPerWallet: 10,
+              delayedReveal: {
+                enabled: false,
+                type: 'manual',
+                placeholderImage: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+              },
+              whitelist: {
+                enabled: true,
+                addresses: [],
+                phases: [{
+                  name: 'OGs Phase',
+                  startTime: new Date('2025-10-03T00:00:00Z').getTime(),
+                  endTime: new Date('2025-10-10T23:59:59Z').getTime(),
+                  maxMintsPerWallet: 1, // Only 1 mint allowed during whitelist phase
+                  price: 0, // Completely free during whitelist phase
+                  addresses: [],
+                  active: true,
+                  isTokenBased: true,
+                  tokenRequirements: [{
+                    tokenMint: 'LOS_TOKEN_MINT_ADDRESS', // Will be set properly
+                    minAmount: 1000000000, // 1 LOS in lamports (1 LOS = 1,000,000,000 lamports)
+                    decimals: 9,
+                    tokenSymbol: 'LOS'
+                  }]
+                }]
+              },
+              paymentTokens: [{
+                mint: 'LOS_TOKEN_MINT_ADDRESS',
+                symbol: 'LOS',
+                decimals: 9,
+                pricePerNFT: 0,
+                minBalanceForWhitelist: 1000000000, // 1 LOS in lamports
+                accepted: true
+              }]
+            }
+          );
+          console.log('✅ Created Los Bros collection in tokenIdTracker');
+        }
+      } catch (error) {
+        console.warn('⚠️ Error checking localStorage for deployed collection:', error);
+      }
+
+      // Force update the collection data to ensure deployment status is properly set
+      try {
+        const { adminControlService } = await import('../../lib/admin-control-service');
+        const currentCollection = await adminControlService.getCollection('Los Bros');
+        
+        if (currentCollection && !currentCollection.deployed) {
+          console.log('🔧 Force updating Los Bros deployment status...');
+          await adminControlService.updateCollection('Los Bros', {
+            deployed: true,
+            contractAddresses: {
+              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+            },
+            deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+            deploymentDate: new Date().toISOString()
+          });
+          console.log('✅ Force updated Los Bros deployment status');
+        }
+      } catch (error) {
+        console.error('❌ Error force updating deployment status:', error);
       }
 
       // Check admin controls first
