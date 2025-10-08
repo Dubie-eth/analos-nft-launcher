@@ -295,8 +295,12 @@ function CollectionMintContent() {
         }
         
         if (collection) {
-          // Get fee breakdown
-          const feeBreakdown = feeManagementService.getFeeBreakdown(actualCollectionName);
+          // Get fee breakdown with whitelist pricing support
+          const feeBreakdown = feeManagementService.getFeeBreakdown(
+            actualCollectionName,
+            isWhitelisted, // isWhitelistMint
+            isWhitelisted ? whitelistMultiplier : 1.0 // whitelistMultiplier
+          );
           
           blockchainData = {
             name: collection.name,
@@ -935,7 +939,7 @@ function CollectionMintContent() {
                 <div className="flex items-center justify-center gap-2 md:gap-3 mb-2">
                   <h1 className="text-2xl md:text-3xl font-bold text-white break-words">{collection.name}</h1>
                   <VerificationBadge 
-                    collectionId={`collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
+                    collectionId={collection.creator ? `collection_${collection.creator}` : `collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
                     collectionName={collection.name}
                     size="large"
                     showTooltip={true}
@@ -1201,8 +1205,50 @@ function CollectionMintContent() {
                         canMint: canMintFromWhitelist,
                         remainingMints: whitelistRemainingMints
                       } : undefined}
-                      onMintSuccess={(result) => {
+                      onMintSuccess={async (result) => {
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+                        
+                        // Track the minted NFT in userNFTTracker
+                        try {
+                          if (publicKey && result.transactionSignature) {
+                            console.log('🎯 Tracking minted NFT in userNFTTracker...');
+                            
+                            // Get current active phase for tracking
+                            const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+                            const activePhase = whitelistPhaseService.getCurrentActivePhase();
+                            
+                            const mintedNFT: MintedNFT = {
+                              id: `${collectionName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              signature: result.transactionSignature,
+                              collectionName: collectionName,
+                              phase: activePhase?.id || 'phase_3_public', // Use phase ID instead of name
+                              timestamp: Date.now(),
+                              walletAddress: publicKey.toString(),
+                              quantity: result.quantity || 1,
+                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`
+                            };
+                            
+                            // Store in localStorage for tracking
+                            const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
+                            const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+                            existingMints.push(mintedNFT);
+                            localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+                            
+                            console.log('✅ NFT tracked successfully:', mintedNFT);
+                            
+                            // Update supply counter
+                            setCollection(prevCollection => prevCollection ? {
+                              ...prevCollection,
+                              currentSupply: (prevCollection.currentSupply || 0) + result.quantity
+                            } : null);
+                            
+                            // Update whitelist remaining mints
+                            setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - result.quantity));
+                          }
+                        } catch (error) {
+                          console.error('Error tracking minted NFT:', error);
+                        }
+                        
                         fetchCollectionInfo(); // Refresh collection info
                       }}
                       onMintError={(error) => {
