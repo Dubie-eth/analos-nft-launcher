@@ -113,7 +113,7 @@ export class DirectNFTMintService {
             userLolAccount, // source
             feeRecipientLolAccount, // destination
             payer, // authority
-            totalCost * Math.pow(10, paymentTokenDecimals), // Use verified decimals
+            Math.round(totalCost * Math.pow(10, paymentTokenDecimals)), // Ensure integer for BigInt
           );
           
           transaction.add(lolTransferInstruction);
@@ -146,7 +146,7 @@ export class DirectNFTMintService {
           const paymentInstruction = SystemProgram.transfer({
             fromPubkey: payer,
             toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Fee recipient
-            lamports: totalCost * Math.pow(10, 6), // LOS has 6 decimals, not 9
+            lamports: Math.round(totalCost * Math.pow(10, 6)), // Ensure integer for BigInt, LOS has 6 decimals
           });
           transaction.add(paymentInstruction);
           console.log('✅ Added LOS payment instruction');
@@ -169,7 +169,7 @@ export class DirectNFTMintService {
             userTokenAccount, // source
             feeRecipientTokenAccount, // destination
             payer, // authority
-            totalCost * Math.pow(10, paymentTokenDecimals), // Use verified decimals
+            Math.round(totalCost * Math.pow(10, paymentTokenDecimals)), // Ensure integer for BigInt
           );
           
           transaction.add(tokenTransferInstruction);
