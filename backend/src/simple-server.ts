@@ -5,16 +5,20 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
-import { AnalosSDKService } from './analos-sdk-service';
-import { AnalosMetaplexService } from './analos-metaplex-service';
-import RealNFTMintService from './real-nft-mint-service';
-import { RealMetaplexNFTService } from './real-metaplex-nft-service';
-import { metaplexNFTService, NFTMetadata } from './metaplex-nft-service';
+// import { AnalosSDKService } from './analos-sdk-service'; // Temporarily disabled
+// import { AnalosMetaplexService } from './analos-metaplex-service'; // Temporarily disabled
+// import RealNFTMintService from './real-nft-mint-service'; // Temporarily disabled
+// import { RealMetaplexNFTService } from './real-metaplex-nft-service'; // Temporarily disabled
+// import { metaplexNFTService, NFTMetadata } from './metaplex-nft-service'; // Temporarily disabled
 // import { realNFTMintingService, RealNFTMetadata } from './real-nft-minting-service';
-import { splNFTService } from './spl-nft-service';
-import { collectionService } from './collection-service';
-import nftGeneratorRoutes from './nft-generator-routes';
-import { nftTrackingService, MintedNFT } from './nft-tracking-service';
+// import { splNFTService } from './spl-nft-service'; // Temporarily disabled
+// import { collectionService } from './collection-service'; // Temporarily disabled
+// import nftGeneratorRoutes from './nft-generator-routes'; // Temporarily disabled
+import { nftTrackingService } from '../dist/nft-tracking-service.js';
+import { blockchainNFTScanner } from '../dist/blockchain-nft-scanner.js';
+import { blockchainRecoveryService } from './blockchain-recovery-service';
+import { blockchainFirstNFTService } from './blockchain-first-nft-service';
+import './initialize-recovery'; // Initialize recovery system on startup
 // const { AnalosSDKBridge } = require('./analos-sdk-bridge'); // Temporarily disabled due to deployment issues
 
 const app = express();
@@ -335,11 +339,12 @@ try {
 }
 
 try {
-  if (blockchainService) {
-    console.log('🔧 Initializing Analos SDK service...');
-    analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
-    console.log('✅ Analos SDK service initialized');
-  }
+  // Temporarily disabled
+  // if (blockchainService) {
+  //   console.log('🔧 Initializing Analos SDK service...');
+  //   analosSDKService = new AnalosSDKService(connection, blockchainService.walletKeypair);
+  //   console.log('✅ Analos SDK service initialized');
+  // }
 } catch (error) {
   console.error('❌ Failed to initialize Analos SDK service:', error);
 }
@@ -4165,7 +4170,7 @@ process.on('uncaughtException', (error) => {
 });
 
 // NFT Generator API routes
-app.use('/api/nft-generator', nftGeneratorRoutes);
+// app.use('/api/nft-generator', nftGeneratorRoutes); // Temporarily disabled
 
 // Collections update endpoint for admin panel
 app.post('/api/collections/update', async (req, res) => {
@@ -4566,6 +4571,601 @@ app.post('/api/nft/restore', (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: 'Failed to restore data' 
+    });
+  }
+});
+
+// =============================================================================
+// BLOCKCHAIN RECOVERY API ENDPOINTS
+// =============================================================================
+
+// Trigger blockchain scan and database rebuild
+app.post('/api/blockchain/recover', async (req, res) => {
+  try {
+    console.log('🔍 Starting blockchain recovery process...');
+    
+    const result = await blockchainNFTScanner.rebuildDatabase();
+    
+    res.json({
+      success: true,
+      message: 'Blockchain recovery completed successfully',
+      result: {
+        totalNFTs: result.totalNFTs,
+        totalCollections: result.totalCollections,
+        collections: result.collections.map(c => ({
+          name: c.collectionName,
+          totalMinted: c.totalMinted,
+          totalRevenue: c.totalRevenue,
+          lastMint: c.lastMint
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error during blockchain recovery:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Blockchain recovery failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Scan specific collection
+app.post('/api/blockchain/scan-collection', async (req, res) => {
+  try {
+    const { mintAddress, collectionName } = req.body;
+    
+    if (!mintAddress || !collectionName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mint address and collection name are required'
+      });
+    }
+    
+    console.log(`🔍 Scanning collection ${collectionName} at ${mintAddress}...`);
+    
+    const nfts = await blockchainNFTScanner.scanMintForNFTs(mintAddress, collectionName);
+    
+    res.json({
+      success: true,
+      message: `Found ${nfts.length} NFTs for ${collectionName}`,
+      nfts: nfts.map(nft => ({
+        mintAddress: nft.mintAddress,
+        ownerAddress: nft.ownerAddress,
+        tokenId: nft.tokenId,
+        mintSignature: nft.mintSignature,
+        mintTimestamp: nft.mintTimestamp,
+        price: nft.price,
+        currency: nft.currency
+      }))
+    });
+  } catch (error) {
+    console.error('❌ Error scanning collection:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Collection scan failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Validate recovered data
+app.get('/api/blockchain/validate', async (req, res) => {
+  try {
+    console.log('🔍 Validating recovered data...');
+    
+    const validation = await blockchainNFTScanner.validateRecovery();
+    
+    res.json({
+      success: true,
+      message: 'Validation completed',
+      validation
+    });
+  } catch (error) {
+    console.error('❌ Error validating recovery:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Validation failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Get NFT details from blockchain
+app.get('/api/blockchain/nft/:mintAddress', async (req, res) => {
+  try {
+    const { mintAddress } = req.params;
+    
+    if (!mintAddress) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mint address is required'
+      });
+    }
+    
+    const nftDetails = await blockchainNFTScanner.getNFTDetails(mintAddress);
+    
+    if (!nftDetails) {
+      return res.status(404).json({
+        success: false,
+        error: 'NFT not found on blockchain'
+      });
+    }
+    
+    res.json({
+      success: true,
+      nft: nftDetails
+    });
+  } catch (error) {
+    console.error('❌ Error getting NFT details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get NFT details',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Get blockchain recovery status
+app.get('/api/blockchain/recovery-status', async (req, res) => {
+  try {
+    const trackedNFTs = nftTrackingService.getAllNFTs();
+    const userStats = nftTrackingService.getAllUserStats();
+    const collectionStats = nftTrackingService.getAllCollectionStats();
+    
+    const recoveredNFTs = trackedNFTs.filter(nft => 
+      nft.metadata?.recovered === true || nft.phase === 'recovered'
+    );
+    
+    res.json({
+      success: true,
+      status: {
+        totalTrackedNFTs: trackedNFTs.length,
+        recoveredNFTs: recoveredNFTs.length,
+        totalUsers: Object.keys(userStats).length,
+        totalCollections: Object.keys(collectionStats).length,
+        lastRecovery: recoveredNFTs.length > 0 ? 
+          Math.max(...recoveredNFTs.map(nft => nft.mintedAt)) : null
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error getting recovery status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get recovery status'
+    });
+  }
+});
+
+// =============================================================================
+// BLOCKCHAIN RECOVERY API ENDPOINTS
+// =============================================================================
+
+// Add known mint addresses for scanning
+app.post('/api/recovery/add-mints', (req, res) => {
+  try {
+    const { mints } = req.body;
+    
+    if (!mints || !Array.isArray(mints)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Mints array is required' 
+      });
+    }
+    
+    blockchainRecoveryService.addKnownMints(mints);
+    
+    res.json({ 
+      success: true, 
+      message: `Added ${mints.length} mint addresses for scanning`,
+      mints
+    });
+  } catch (error) {
+    console.error('❌ Error adding mints for recovery:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to add mints' 
+    });
+  }
+});
+
+// Scan specific mint for NFTs
+app.get('/api/recovery/scan-mint/:mintAddress', async (req, res) => {
+  try {
+    const { mintAddress } = req.params;
+    
+    if (!mintAddress) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Mint address is required' 
+      });
+    }
+    
+    const nfts = await blockchainRecoveryService.scanMintForNFTs(mintAddress);
+    
+    res.json({ 
+      success: true, 
+      mintAddress,
+      nfts,
+      count: nfts.length
+    });
+  } catch (error) {
+    console.error('❌ Error scanning mint:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to scan mint' 
+    });
+  }
+});
+
+// Scan wallet for NFTs
+app.get('/api/recovery/scan-wallet/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+    
+    if (!walletAddress) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Wallet address is required' 
+      });
+    }
+    
+    const nfts = await blockchainRecoveryService.scanWalletForNFTs(walletAddress);
+    
+    res.json({ 
+      success: true, 
+      walletAddress,
+      nfts,
+      count: nfts.length
+    });
+  } catch (error) {
+    console.error('❌ Error scanning wallet:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to scan wallet' 
+    });
+  }
+});
+
+// Start full blockchain recovery scan
+app.post('/api/recovery/scan-all', async (req, res) => {
+  try {
+    console.log('🚀 Starting full blockchain recovery scan...');
+    
+    const result = await blockchainRecoveryService.scanAllKnownMints();
+    
+    res.json({ 
+      success: true, 
+      message: 'Blockchain recovery scan completed',
+      ...result
+    });
+  } catch (error) {
+    console.error('❌ Error during blockchain recovery scan:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to complete blockchain recovery scan' 
+    });
+  }
+});
+
+// Recover and save NFTs to backend
+app.post('/api/recovery/save-nfts', async (req, res) => {
+  try {
+    const { nfts } = req.body;
+    
+    if (!nfts || !Array.isArray(nfts)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'NFTs array is required' 
+      });
+    }
+    
+    await blockchainRecoveryService.recoverAndSaveNFTs(nfts);
+    
+    res.json({ 
+      success: true, 
+      message: `Recovered and saved ${nfts.length} NFTs to backend`
+    });
+  } catch (error) {
+    console.error('❌ Error saving recovered NFTs:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to save recovered NFTs' 
+    });
+  }
+});
+
+// Get recovery report
+app.get('/api/recovery/report', async (req, res) => {
+  try {
+    const report = await blockchainRecoveryService.getRecoveryReport();
+    
+    res.json({ 
+      success: true, 
+      report
+    });
+  } catch (error) {
+    console.error('❌ Error getting recovery report:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get recovery report' 
+    });
+  }
+});
+
+// Full recovery process (scan + save)
+app.post('/api/recovery/full-recovery', async (req, res) => {
+  try {
+    console.log('🚀 Starting full blockchain recovery process...');
+    
+    // Step 1: Scan all known mints
+    const scanResult = await blockchainRecoveryService.scanAllKnownMints();
+    
+    // Step 2: Save recovered NFTs
+    if (scanResult.nfts.length > 0) {
+      await blockchainRecoveryService.recoverAndSaveNFTs(scanResult.nfts);
+    }
+    
+    // Step 3: Get final report
+    const finalReport = await blockchainRecoveryService.getRecoveryReport();
+    
+    res.json({ 
+      success: true, 
+      message: 'Full blockchain recovery completed',
+      scanResults: scanResult,
+      finalReport
+    });
+  } catch (error) {
+    console.error('❌ Error during full blockchain recovery:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to complete full blockchain recovery' 
+    });
+  }
+});
+
+// =============================================================================
+// BLOCKCHAIN-FIRST NFT API ENDPOINTS
+// =============================================================================
+
+// Create NFT with full blockchain metadata
+app.post('/api/blockchain-first/create-nft', async (req, res) => {
+  try {
+    const {
+      collectionName,
+      tokenId,
+      ownerWallet,
+      mintPhase,
+      mintPrice,
+      paymentToken,
+      creatorWallet,
+      customAttributes
+    } = req.body;
+
+    if (!collectionName || !tokenId || !ownerWallet || !mintPhase) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: collectionName, tokenId, ownerWallet, mintPhase'
+      });
+    }
+
+    const result = await blockchainFirstNFTService.createNFTWithFullMetadata(
+      collectionName,
+      tokenId,
+      ownerWallet,
+      mintPhase,
+      mintPrice || 0,
+      paymentToken || 'LOS',
+      creatorWallet || ownerWallet,
+      customAttributes || []
+    );
+
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Error creating blockchain-first NFT:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create NFT with blockchain metadata'
+    });
+  }
+});
+
+// Add known collection for tracking
+app.post('/api/blockchain-first/add-collection', (req, res) => {
+  try {
+    const {
+      collectionName,
+      totalSupply,
+      currentSupply,
+      mintPrice,
+      paymentToken,
+      creatorWallet,
+      isActive,
+      mintingEnabled,
+      phases,
+      deployedAt
+    } = req.body;
+
+    if (!collectionName || !creatorWallet) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: collectionName, creatorWallet'
+      });
+    }
+
+    blockchainFirstNFTService.addKnownCollection({
+      collectionName,
+      totalSupply: totalSupply || 0,
+      currentSupply: currentSupply || 0,
+      mintPrice: mintPrice || 0,
+      paymentToken: paymentToken || 'LOS',
+      creatorWallet,
+      isActive: isActive !== false,
+      mintingEnabled: mintingEnabled !== false,
+      phases: phases || [],
+      deployedAt: deployedAt || Date.now()
+    });
+
+    res.json({
+      success: true,
+      message: `Collection ${collectionName} added to blockchain-first tracking`
+    });
+  } catch (error) {
+    console.error('❌ Error adding collection:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add collection'
+    });
+  }
+});
+
+// Get next token ID for collection
+app.get('/api/blockchain-first/next-token-id/:collectionName', async (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const nextTokenId = await blockchainFirstNFTService.getNextTokenId(collectionName);
+    
+    res.json({
+      success: true,
+      collectionName,
+      nextTokenId
+    });
+  } catch (error) {
+    console.error('❌ Error getting next token ID:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get next token ID'
+    });
+  }
+});
+
+// Rebuild database from blockchain
+app.post('/api/blockchain-first/rebuild-database', async (req, res) => {
+  try {
+    console.log('🚀 Starting blockchain-first database rebuild...');
+    
+    const result = await blockchainFirstNFTService.rebuildDatabaseFromBlockchain();
+    
+    res.json({
+      success: true,
+      message: 'Blockchain-first database rebuild completed',
+      ...result
+    });
+  } catch (error) {
+    console.error('❌ Error rebuilding database:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to rebuild database from blockchain'
+    });
+  }
+});
+
+// Verify NFT ownership
+app.get('/api/blockchain-first/verify-ownership/:mintAddress/:walletAddress', async (req, res) => {
+  try {
+    const { mintAddress, walletAddress } = req.params;
+    
+    const isOwner = await blockchainFirstNFTService.verifyNFTOwnership(mintAddress, walletAddress);
+    
+    res.json({
+      success: true,
+      mintAddress,
+      walletAddress,
+      isOwner
+    });
+  } catch (error) {
+    console.error('❌ Error verifying NFT ownership:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify NFT ownership'
+    });
+  }
+});
+
+// Get tracked collections
+app.get('/api/blockchain-first/collections', (req, res) => {
+  try {
+    const collections = blockchainFirstNFTService.getTrackedCollections();
+    
+    res.json({
+      success: true,
+      collections,
+      count: collections.length
+    });
+  } catch (error) {
+    console.error('❌ Error getting tracked collections:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get tracked collections'
+    });
+  }
+});
+
+// Get collection data
+app.get('/api/blockchain-first/collection/:collectionName', (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const collectionData = blockchainFirstNFTService.getCollectionData(collectionName);
+    
+    if (!collectionData) {
+      return res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      collection: collectionData
+    });
+  } catch (error) {
+    console.error('❌ Error getting collection data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get collection data'
+    });
+  }
+});
+
+// Update collection data
+app.put('/api/blockchain-first/collection/:collectionName', (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    const updates = req.body;
+    
+    blockchainFirstNFTService.updateCollectionData(collectionName, updates);
+    
+    res.json({
+      success: true,
+      message: `Collection ${collectionName} updated successfully`
+    });
+  } catch (error) {
+    console.error('❌ Error updating collection data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update collection data'
+    });
+  }
+});
+
+// Scan collection for NFTs
+app.get('/api/blockchain-first/scan-collection/:mintAddress', async (req, res) => {
+  try {
+    const { mintAddress } = req.params;
+    
+    const nfts = await blockchainFirstNFTService.scanCollectionForNFTs(mintAddress);
+    
+    res.json({
+      success: true,
+      mintAddress,
+      nfts,
+      count: nfts.length
+    });
+  } catch (error) {
+    console.error('❌ Error scanning collection:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to scan collection'
     });
   }
 });

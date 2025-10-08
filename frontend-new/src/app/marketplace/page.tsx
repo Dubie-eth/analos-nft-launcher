@@ -273,33 +273,38 @@ export default function MarketplacePage() {
       
       console.log(`✅ NFT minted successfully: ${signature}`);
       
-      // Track the minted NFT on backend (persistent storage)
+      // Track the minted NFT using blockchain-first system
       try {
-        const { backendNFTTracker } = await import('@/lib/backend-nft-tracker');
+        const { blockchainFirstNFTService } = await import('@/lib/blockchain-first-nft-service');
         const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
         
         const activePhase = whitelistPhaseService.getCurrentActivePhase();
         
-        // Generate next token ID from backend
-        const tokenId = await backendNFTTracker.generateNextTokenId(collection.name);
+        // Generate next token ID from blockchain-first system
+        const tokenIdResult = await blockchainFirstNFTService.getNextTokenId(collection.name);
+        const tokenId = tokenIdResult.success ? tokenIdResult.nextTokenId! : 1;
         
-        const mintedNFT = backendNFTTracker.createMintedNFT(
+        // Create NFT with full blockchain metadata
+        const createResult = await blockchainFirstNFTService.createNFTWithFullMetadata(
           collection.name,
           tokenId,
           publicKey.toString(),
-          signature,
           activePhase?.id || 'phase_3_public',
           collection.mintPrice || 4200.69,
-          collection.paymentToken || 'LOS'
+          collection.paymentToken || 'LOS',
+          collection.creator || publicKey.toString(),
+          [
+            { trait_type: 'Minted From', value: 'Marketplace' },
+            { trait_type: 'Platform', value: 'Analos NFT Launcher' }
+          ]
         );
         
-        // Track on backend (persistent storage)
-        const tracked = await backendNFTTracker.trackMintedNFT(mintedNFT);
+        const tracked = createResult.success;
         
         if (tracked) {
-          console.log('✅ NFT tracked on backend:', mintedNFT);
+          console.log('✅ NFT created with blockchain-first metadata:', createResult.mint);
         } else {
-          console.error('❌ Failed to track NFT on backend');
+          console.error('❌ Failed to create blockchain-first NFT:', createResult.error);
         }
         
       } catch (error) {

@@ -4,8 +4,13 @@
  * This ensures data is never lost when users clear their cache
  */
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface MintedNFT {
   id: string;
@@ -19,6 +24,9 @@ export interface MintedNFT {
   currency: string;
   metadata?: any;
 }
+
+// Export as type for runtime access
+export type { MintedNFT as MintedNFTType };
 
 export interface UserNFTStats {
   walletAddress: string;

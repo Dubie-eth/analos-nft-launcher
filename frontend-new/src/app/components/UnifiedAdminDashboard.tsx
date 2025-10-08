@@ -9,6 +9,8 @@ import { isAuthorizedAdmin } from '@/lib/admin-config';
 import ManualRevealInterface from './ManualRevealInterface';
 import MetadataManagementDashboard from './MetadataManagementDashboard';
 import DataBackupPanel from './DataBackupPanel';
+import BlockchainRecovery from './BlockchainRecovery';
+import BlockchainFirstAdmin from './BlockchainFirstAdmin';
 
 interface CollectionStats {
   name: string;
@@ -31,7 +33,7 @@ interface AdminStats {
 
 export default function UnifiedAdminDashboard() {
   const { publicKey, connected } = useWallet();
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'reveal' | 'metadata' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'reveal' | 'metadata' | 'backup' | 'recovery' | 'blockchain-first'>('overview');
   const [collections, setCollections] = useState<any[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -246,6 +248,8 @@ export default function UnifiedAdminDashboard() {
               { id: 'reveal', label: 'Manual Reveal', icon: '🎭' },
               { id: 'metadata', label: 'Metadata', icon: '📝' },
               { id: 'backup', label: 'Data Backup', icon: '💾' },
+              { id: 'recovery', label: 'Blockchain Recovery', icon: '🔍' },
+              { id: 'blockchain-first', label: 'Blockchain-First', icon: '🔗' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map((tab) => (
               <button
@@ -420,6 +424,18 @@ export default function UnifiedAdminDashboard() {
         {activeTab === 'backup' && (
           <div>
             <DataBackupPanel />
+          </div>
+        )}
+
+        {activeTab === 'recovery' && (
+          <div>
+            <BlockchainRecovery />
+          </div>
+        )}
+
+        {activeTab === 'blockchain-first' && (
+          <div>
+            <BlockchainFirstAdmin />
           </div>
         )}
 
