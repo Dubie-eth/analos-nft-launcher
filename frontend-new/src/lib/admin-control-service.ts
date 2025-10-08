@@ -259,7 +259,7 @@ export class AdminControlService {
         paymentToken: 'LOS', // Use LOS as payment token
         description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
         imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-        creator: '2CumQ3Citygtbth6JHaMJ6mHfpArRAAJvbHrzMX3gFKrmx1Rc3N2qpbaGEMyMpidPhDLoAdakoSHqbM3E2xS8MLY', // Your actual wallet address
+        creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your actual creator wallet address
         createdAt: Date.now(),
         lastModified: Date.now(),
         // Mark as deployed with real blockchain deployment data

@@ -126,7 +126,7 @@ function CollectionMintContent() {
               },
               deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
               deploymentDate: new Date().toISOString(),
-              creator: '2CumQ3Citygtbth6JHaMJ6mHfpArRAAJvbHrzMX3gFKrmx1Rc3N2qpbaGEMyMpidPhDLoAdakoSHqbM3E2xS8MLY',
+              creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
               paymentToken: 'LOS', // Force update to LOS
               description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS'
             });
@@ -480,10 +480,52 @@ function CollectionMintContent() {
       
       console.log('✅ REAL NFT transaction signed by wallet and mint keypairs');
       
+      // Check if the signer is the collection admin/creator and log the transaction
+      if (collection && collection.creator && publicKey.toString() === collection.creator) {
+        console.log('🔐 ADMIN TRANSACTION DETECTED:', {
+          adminWallet: publicKey.toString(),
+          collectionName: collection.name,
+          mintQuantity: mintQuantity,
+          timestamp: new Date().toISOString(),
+          transactionType: 'NFT_MINT'
+        });
+        
+        // Store admin transaction log in localStorage for reference
+        const adminLogs = JSON.parse(localStorage.getItem('admin_transaction_logs') || '[]');
+        adminLogs.push({
+          adminWallet: publicKey.toString(),
+          collectionName: collection.name,
+          mintQuantity: mintQuantity,
+          timestamp: new Date().toISOString(),
+          transactionType: 'NFT_MINT',
+          action: 'Admin minted NFT(s)'
+        });
+        localStorage.setItem('admin_transaction_logs', JSON.stringify(adminLogs));
+        console.log('📝 Admin transaction logged to localStorage');
+      }
+      
       // Send the transaction
         const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       console.log('🎉 REAL NFT transaction sent to blockchain!');
       console.log('🔗 Transaction signature:', signature);
+      
+      // Log transaction signature with admin info if applicable
+      if (collection && collection.creator && publicKey.toString() === collection.creator) {
+        console.log('🔐 ADMIN TRANSACTION SIGNATURE:', {
+          signature: signature,
+          adminWallet: publicKey.toString(),
+          collectionName: collection.name,
+          explorerUrl: `https://explorer.analos.io/tx/${signature}`
+        });
+        
+        // Update admin transaction log with signature
+        const adminLogs = JSON.parse(localStorage.getItem('admin_transaction_logs') || '[]');
+        if (adminLogs.length > 0) {
+          adminLogs[adminLogs.length - 1].signature = signature;
+          adminLogs[adminLogs.length - 1].explorerUrl = `https://explorer.analos.io/tx/${signature}`;
+          localStorage.setItem('admin_transaction_logs', JSON.stringify(adminLogs));
+        }
+      }
         
         setMintStatus('NFT minting transaction sent! Confirming...');
 
