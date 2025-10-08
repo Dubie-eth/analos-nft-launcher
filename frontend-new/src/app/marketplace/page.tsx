@@ -30,7 +30,7 @@ interface Collection {
 }
 
 export default function MarketplacePage() {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, signTransaction } = useWallet();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -242,26 +242,80 @@ export default function MarketplacePage() {
     setMinting(prev => ({ ...prev, [collection.id]: true }));
 
     try {
-      // Simulate minting process
       console.log(`🎯 Minting NFT from collection: ${collection.name}`);
       
-      // Here you would implement the actual minting logic
-      // For now, we'll simulate a successful mint
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use the same minting logic as the main mint page
+      const { DirectNFTMintService } = await import('@/lib/direct-nft-mint');
+      const directMintService = new DirectNFTMintService();
       
-      alert(`✅ Successfully minted NFT from ${collection.name}!`);
+      const collectionData = {
+        name: collection.name,
+        symbol: collection.symbol || collection.name.substring(0, 4),
+        description: collection.description || '',
+        image: collection.imageUrl || '',
+        mintPrice: collection.mintPrice || 4200.69,
+        paymentToken: 'LOS'
+      };
+      
+      // Create real NFT mint transaction
+      const { transaction, mintKeypairs } = await directMintService.createRealNFTMintTransaction(
+        collection.name,
+        1, // quantity
+        publicKey.toString(),
+        collectionData
+      );
+      
+      // Sign transaction with wallet
+      const signedTransaction = await signTransaction!(transaction);
+      
+      // Submit transaction
+      const signature = await directMintService.submitTransaction(signedTransaction);
+      
+      console.log(`✅ NFT minted successfully: ${signature}`);
+      
+      // Track the minted NFT in userNFTTracker (same as main mint page)
+      try {
+        const { userNFTTracker, MintedNFT } = await import('@/lib/user-nft-tracker');
+        const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+        
+        const activePhase = whitelistPhaseService.getCurrentActivePhase();
+        
+        const mintedNFT: MintedNFT = {
+          id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          signature: signature,
+          collectionName: collection.name,
+          phase: activePhase?.id || 'phase_3_public',
+          timestamp: Date.now(),
+          walletAddress: publicKey.toString(),
+          quantity: 1,
+          explorerUrl: `https://explorer.analos.io/tx/${signature}`
+        };
+        
+        // Store in localStorage for tracking
+        const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
+        const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+        existingMints.push(mintedNFT);
+        localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+        
+        console.log('✅ NFT tracked successfully from marketplace:', mintedNFT);
+        
+      } catch (error) {
+        console.error('Error tracking minted NFT from marketplace:', error);
+      }
+      
+      alert(`✅ Successfully minted NFT from ${collection.name}! Transaction: ${signature}`);
       
       // Refresh collection data
       const updatedCollections = collections.map(c => 
         c.id === collection.id 
-          ? { ...c, totalMinted: c.totalMinted + 1 }
+          ? { ...c, currentSupply: (c.currentSupply || 0) + 1 }
           : c
       );
       setCollections(updatedCollections);
       
     } catch (error) {
-      console.error('Error minting NFT:', error);
-      alert('❌ Failed to mint NFT. Please try again.');
+      console.error('Error minting NFT from marketplace:', error);
+      alert(`❌ Failed to mint NFT: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setMinting(prev => ({ ...prev, [collection.id]: false }));
     }

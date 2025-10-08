@@ -74,6 +74,36 @@ export default function NFTCollectionManager({ className = '' }: NFTCollectionMa
       if (result.success) {
         setMintResult(result);
         console.log('✅ NFT minted successfully:', result);
+        
+        // Track the minted NFT in userNFTTracker (same as other mint buttons)
+        try {
+          const { userNFTTracker, MintedNFT } = await import('@/lib/user-nft-tracker');
+          const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+          
+          const activePhase = whitelistPhaseService.getCurrentActivePhase();
+          
+          const mintedNFT: MintedNFT = {
+            id: `${collectionData.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            signature: result.signature || result.transactionSignature || 'unknown',
+            collectionName: collectionData.name,
+            phase: activePhase?.id || 'phase_3_public',
+            timestamp: Date.now(),
+            walletAddress: publicKey.toString(),
+            quantity: 1,
+            explorerUrl: result.explorerUrl || `https://explorer.analos.io/tx/${result.signature || 'unknown'}`
+          };
+          
+          // Store in localStorage for tracking
+          const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
+          const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+          existingMints.push(mintedNFT);
+          localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+          
+          console.log('✅ NFT tracked successfully from NFTCollectionManager:', mintedNFT);
+          
+        } catch (error) {
+          console.error('Error tracking minted NFT from NFTCollectionManager:', error);
+        }
       } else {
         throw new Error(result.error || 'NFT minting failed');
       }
