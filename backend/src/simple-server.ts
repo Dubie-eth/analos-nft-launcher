@@ -3551,6 +3551,50 @@ app.get('/api/verification/status/:collectionId', (req, res) => {
   }
 });
 
+// Debug endpoint to see all verifications
+app.get('/api/verification/debug/all', (req, res) => {
+  try {
+    if (!(global as any).verificationStore) {
+      return res.json({ 
+        success: true, 
+        data: { 
+          verifications: [],
+          count: 0,
+          message: 'No verification store found'
+        }
+      });
+    }
+
+    const allVerifications = [];
+    for (const [id, data] of (global as any).verificationStore.entries()) {
+      allVerifications.push({
+        id,
+        collectionId: data.collectionId,
+        status: data.status,
+        ownerWallet: data.ownerWallet,
+        platform: data.platform,
+        verifiedAt: data.verifiedAt,
+        createdAt: data.createdAt
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        verifications: allVerifications,
+        count: allVerifications.length,
+        message: `Found ${allVerifications.length} verifications`
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error getting all verifications:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get verifications' 
+    });
+  }
+});
+
 // Update badge settings
 app.put('/api/verification/badge-settings', (req, res) => {
   try {
