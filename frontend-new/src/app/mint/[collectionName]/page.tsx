@@ -142,6 +142,7 @@ function CollectionMintContent() {
         }
 
         // Ensure the collection exists in tokenIdTracker for minting
+        try {
           const collectionMint = `collection_los_bros`;
           const { tokenIdTracker } = await import('../../lib/token-id-tracker');
           
@@ -220,6 +221,9 @@ function CollectionMintContent() {
           }
         } catch (error) {
           console.error('❌ Error force updating deployment status:', error);
+        }
+        } catch (error) {
+          console.error('❌ Error ensuring tokenIdTracker collection:', error);
         }
       }
 
