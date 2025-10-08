@@ -20,31 +20,25 @@ export function initializeLosBrosCollection() {
     mintingEnabled: true,
     phases: [
       {
-        id: 'phase_1_ogs',
         name: 'OGs Phase',
-        startTime: Date.now(),
-        endTime: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days from now
-        maxMintsPerWallet: 1,
         price: 0, // Free for whitelist
-        isWhitelistOnly: true
+        supply: 500,
+        startTime: Date.now(),
+        endTime: Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 days from now
       },
       {
-        id: 'phase_2_whitelist',
         name: 'Whitelist Phase',
-        startTime: Date.now() + (30 * 24 * 60 * 60 * 1000),
-        endTime: Date.now() + (60 * 24 * 60 * 60 * 1000), // 60 days from now
-        maxMintsPerWallet: 2,
         price: 2100.35, // 50% discount
-        isWhitelistOnly: true
+        supply: 1000,
+        startTime: Date.now() + (30 * 24 * 60 * 60 * 1000),
+        endTime: Date.now() + (60 * 24 * 60 * 60 * 1000) // 60 days from now
       },
       {
-        id: 'phase_3_public',
         name: 'Public Phase',
-        startTime: Date.now() + (60 * 24 * 60 * 60 * 1000),
-        endTime: Date.now() + (365 * 24 * 60 * 60 * 1000), // 1 year from now
-        maxMintsPerWallet: 10,
         price: 4200.69, // Full price
-        isWhitelistOnly: false
+        supply: 722,
+        startTime: Date.now() + (60 * 24 * 60 * 60 * 1000),
+        endTime: Date.now() + (365 * 24 * 60 * 60 * 1000) // 1 year from now
       }
     ],
     deployedAt: Date.now()
