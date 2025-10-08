@@ -56,6 +56,18 @@ export interface CollectionConfig {
   imageUrl: string;
   createdAt: number;
   lastModified: number;
+  // Deployment data
+  deployed?: boolean;
+  contractAddresses?: {
+    mint?: string;
+    tokenAccount?: string;
+    signature?: string;
+    collection?: string;
+    metadata?: string;
+    masterEdition?: string;
+  };
+  deploymentSignature?: string;
+  deploymentDate?: string;
   // Advanced settings
   whitelist?: WhitelistConfig;
   maxMintsPerWallet?: number;

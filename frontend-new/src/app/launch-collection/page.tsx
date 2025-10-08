@@ -1372,7 +1372,16 @@ const LaunchCollectionPage: React.FC = () => {
               mintPrice: collectionConfig.mintPrice,
               paymentToken: collectionConfig.pricingToken,
               description: collectionConfig.description,
-              imageUrl: collectionConfig.imageUrl
+              imageUrl: collectionConfig.imageUrl,
+              // Add deployment data from SPL NFT service
+              deployed: true,
+              contractAddresses: {
+                mint: nftResult.mint,
+                tokenAccount: nftResult.tokenAccount,
+                signature: nftResult.signature
+              },
+              deploymentSignature: nftResult.signature,
+              deploymentDate: new Date().toISOString()
             });
 
             // Save to localStorage for the collections page
