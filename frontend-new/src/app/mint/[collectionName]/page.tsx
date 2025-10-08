@@ -1208,7 +1208,8 @@ function CollectionMintContent() {
                               timestamp: Date.now(),
                               walletAddress: publicKey.toString(),
                               quantity: result.nftsReceived || 1,
-                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionHash}`
+                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionHash}`,
+                              tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
                             };
                             
                             // Store in localStorage for tracking
@@ -1272,7 +1273,8 @@ function CollectionMintContent() {
                               timestamp: Date.now(),
                               walletAddress: publicKey.toString(),
                               quantity: result.quantity || 1,
-                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`
+                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`,
+                              tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
                             };
                             
                             // Store in localStorage for tracking
@@ -1341,7 +1343,8 @@ function CollectionMintContent() {
                               timestamp: Date.now(),
                               walletAddress: publicKey.toString(),
                               quantity: result.quantity || 1,
-                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`
+                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`,
+                              tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
                             };
                             
                             // Store in localStorage for tracking
@@ -1460,7 +1463,7 @@ function UserMintedNFTs({ walletAddress, collectionName }: { walletAddress: stri
           {mintedNFTs.slice(0, 5).map((nft, index) => (
             <div key={nft.id} className="flex items-center justify-between bg-white/5 rounded p-2 text-xs">
               <div className="flex items-center space-x-2">
-                <span className="text-white/80">#{index + 1}</span>
+                <span className="text-white/80">#{nft.tokenId}</span>
                 <span className="text-white/60">{nft.phase}</span>
                 <span className="text-white/60">
                   {new Date(nft.timestamp).toLocaleTimeString()}

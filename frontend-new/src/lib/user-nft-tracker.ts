@@ -12,9 +12,53 @@ export interface MintedNFT {
   walletAddress: string;
   quantity: number;
   explorerUrl: string;
+  tokenId: number; // Add unique token ID
 }
 
 export class UserNFTTracker {
+  /**
+   * Generate unique token ID for a collection
+   * Uses timestamp-based approach to ensure uniqueness across all users
+   */
+  generateTokenId(collectionName: string): number {
+    try {
+      // Get all existing NFTs for this collection across all users
+      const allExistingNFTs: MintedNFT[] = [];
+      
+      // Check localStorage for all users' minted NFTs
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('minted_nfts_')) {
+          try {
+            const userNFTs = JSON.parse(localStorage.getItem(key) || '[]');
+            const collectionNFTs = userNFTs.filter((nft: MintedNFT) => 
+              nft.collectionName === collectionName
+            );
+            allExistingNFTs.push(...collectionNFTs);
+          } catch (error) {
+            console.warn('Failed to parse user NFTs:', error);
+          }
+        }
+      }
+      
+      // Find the highest token ID for this collection
+      const maxTokenId = allExistingNFTs.reduce((max, nft) => 
+        Math.max(max, nft.tokenId || 0), 0
+      );
+      
+      // Generate new token ID (highest + 1)
+      const newTokenId = maxTokenId + 1;
+      
+      console.log(`🎯 Generated token ID ${newTokenId} for collection ${collectionName} (max existing: ${maxTokenId})`);
+      return newTokenId;
+      
+    } catch (error) {
+      console.error('Error generating token ID:', error);
+      // Fallback to timestamp-based ID
+      return Math.floor(Date.now() / 1000) % 1000000;
+    }
+  }
+
   /**
    * Get all minted NFTs for a wallet
    */

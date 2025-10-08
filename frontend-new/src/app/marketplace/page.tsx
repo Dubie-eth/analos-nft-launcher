@@ -288,7 +288,8 @@ export default function MarketplacePage() {
             timestamp: Date.now(),
             walletAddress: publicKey.toString(),
             quantity: 1,
-            explorerUrl: `https://explorer.analos.io/tx/${signature}`
+            explorerUrl: `https://explorer.analos.io/tx/${signature}`,
+            tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
           };
         
         // Store in localStorage for tracking

@@ -90,7 +90,8 @@ export default function NFTCollectionManager({ className = '' }: NFTCollectionMa
           timestamp: Date.now(),
           walletAddress: publicKey.toString(),
           quantity: 1,
-          explorerUrl: result.explorerUrl || `https://explorer.analos.io/tx/${result.signature || 'unknown'}`
+          explorerUrl: result.explorerUrl || `https://explorer.analos.io/tx/${result.signature || 'unknown'}`,
+          tokenId: userNFTTracker.generateTokenId(collectionData.name) // Generate unique token ID
         };
           
           // Store in localStorage for tracking
