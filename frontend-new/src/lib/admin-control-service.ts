@@ -49,6 +49,7 @@ export interface CollectionConfig {
   mintingEnabled: boolean;
   isTestMode: boolean;
   totalSupply: number;
+  currentSupply?: number; // Current minted supply (for tracking)
   mintPrice: number;
   paymentToken: string;
   paymentTokens?: PaymentToken[]; // Multi-token payment configuration

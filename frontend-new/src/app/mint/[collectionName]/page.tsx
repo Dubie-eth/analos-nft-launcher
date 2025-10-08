@@ -447,6 +447,16 @@ function CollectionMintContent() {
       console.log('🎯 Max mints per wallet:', eligibility.maxMints);
       
       // Use direct frontend minting with proper payment processing
+      // Check if user has reached their whitelist limit
+      if (isWhitelisted && whitelistRemainingMints !== null && whitelistRemainingMints <= 0) {
+        throw new Error('You have reached your whitelist mint limit for this phase');
+      }
+      
+      // Check if quantity exceeds remaining whitelist mints
+      if (isWhitelisted && whitelistRemainingMints !== null && mintQuantity > whitelistRemainingMints) {
+        throw new Error(`You can only mint ${whitelistRemainingMints} more NFT(s) in this phase`);
+      }
+      
       console.log('🎯 Using direct frontend minting with payment processing...');
       
       const directMintService = new DirectNFTMintService();
@@ -575,6 +585,21 @@ function CollectionMintContent() {
             ...prevCollection,
             currentSupply: currentCollection.currentSupply
           }));
+          
+          // Also update the admin control service for persistence
+          try {
+            const { adminControlService } = await import('@/lib/admin-control-service');
+            const adminCollection = await adminControlService.getCollection(collection.name);
+            if (adminCollection) {
+              await adminControlService.updateCollection(collection.name, {
+                ...adminCollection,
+                currentSupply: currentCollection.currentSupply
+              });
+              console.log('✅ Updated admin control service with new supply:', currentCollection.currentSupply);
+            }
+          } catch (error) {
+            console.error('Error updating admin control service:', error);
+          }
         }
         
         // Track minted NFTs for whitelist limits
@@ -602,11 +627,18 @@ function CollectionMintContent() {
           localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
           
           console.log(`🎯 Tracked ${mintQuantity} minted NFTs for whitelist limits:`, newMints);
+          
+          // Force refresh the page to update whitelist status
+          console.log('🔄 Forcing page refresh to update whitelist status...');
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000); // Wait 3 seconds to show success message first
+          
         } catch (error) {
           console.error('Error tracking minted NFTs:', error);
         }
         
-          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}`);
+          setMintStatus(`Successfully minted ${mintQuantity} NFT(s)! Transaction: ${signature}. Page will refresh in 3 seconds...`);
         
         // Refresh collection data from blockchain after successful mint
         setTimeout(async () => {
