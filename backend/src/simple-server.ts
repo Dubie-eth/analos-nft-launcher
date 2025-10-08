@@ -5,10 +5,11 @@
 
 import express from 'express';
 import cors from 'cors';
-import { nftTrackingService, MintedNFT } from './nft-tracking-service';
-import { blockchainRecoveryService } from './blockchain-recovery-service';
-import { blockchainFirstNFTService } from './blockchain-first-nft-service';
-import './initialize-recovery'; // Initialize recovery system on startup
+import { nftTrackingService } from './nft-tracking-service.js';
+import type { MintedNFT } from './nft-tracking-service.js';
+import { blockchainRecoveryService } from './blockchain-recovery-service.js';
+import { blockchainFirstNFTService } from './blockchain-first-nft-service.js';
+import './initialize-recovery.js'; // Initialize recovery system on startup
 
 const app = express();
 const PORT = process.env.PORT || 3001;

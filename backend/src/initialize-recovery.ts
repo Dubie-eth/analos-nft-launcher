@@ -3,7 +3,7 @@
  * Adds known mint addresses and prepares for NFT recovery
  */
 
-import { blockchainRecoveryService } from './blockchain-recovery-service';
+import { blockchainRecoveryService } from './blockchain-recovery-service.js';
 
 export function initializeRecoverySystem() {
   console.log('🚀 Initializing Blockchain Recovery System...');

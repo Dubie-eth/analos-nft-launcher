@@ -5,7 +5,8 @@
  */
 
 // Using Analos blockchain APIs instead of Solana Web3.js
-import { nftTrackingService, MintedNFT } from './nft-tracking-service';
+import { nftTrackingService } from './nft-tracking-service.js';
+import type { MintedNFT } from './nft-tracking-service.js';
 
 export interface OnChainNFTMetadata {
   // Standard NFT metadata
