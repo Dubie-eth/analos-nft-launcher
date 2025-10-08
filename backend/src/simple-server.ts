@@ -2635,6 +2635,7 @@ app.post('/api/transactions/deploy-collection', async (req, res) => {
     console.log('👤 Creator:', finalCreatorAddress);
     console.log('📊 Supply:', finalTotalSupply);
     console.log('💰 Price:', finalMintPrice);
+    console.log('🔄 Railway deployment test - updated endpoint');
 
     // Create mock deployment result (this was working before)
     const mockDeploymentResult = {
