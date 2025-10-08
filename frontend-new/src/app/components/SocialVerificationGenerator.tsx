@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Twitter, MessageCircle, Users, CheckCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
 import { socialVerificationService, SocialAccount } from '@/lib/social-verification-service';
+import { verificationService } from '@/lib/verification-service';
 
 interface SocialVerificationGeneratorProps {
   walletAddress: string;
@@ -33,19 +34,45 @@ export default function SocialVerificationGenerator({
     setRequiredScore(eligibility.requiredScore);
   };
 
-  const addSocialAccount = (platform: 'twitter' | 'telegram' | 'discord') => {
-    const newAccount: SocialAccount = {
-      platform,
-      username: '',
-      verificationStatus: 'pending',
-      verificationMethod: 'manual',
-      verificationData: {
-        verificationCode: generateVerificationCode(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-      }
-    };
-    
-    setSocialAccounts(prev => [...prev, newAccount]);
+  const addSocialAccount = async (platform: 'twitter' | 'telegram' | 'discord') => {
+    try {
+      // Get verification code from backend with emojis
+      const verificationResult = await verificationService.startVerification(
+        `collection_${walletAddress}`,
+        walletAddress,
+        platform,
+        '' // username will be filled later
+      );
+
+      const newAccount: SocialAccount = {
+        platform,
+        username: '',
+        verificationStatus: 'pending',
+        verificationMethod: 'manual',
+        verificationData: {
+          verificationCode: verificationResult.verificationCode,
+          verificationId: verificationResult.verificationId,
+          expiresAt: new Date(verificationResult.expiresAt)
+        }
+      };
+      
+      setSocialAccounts(prev => [...prev, newAccount]);
+    } catch (error) {
+      console.error('Error getting verification code:', error);
+      // Fallback to local generation if backend fails
+      const newAccount: SocialAccount = {
+        platform,
+        username: '',
+        verificationStatus: 'pending',
+        verificationMethod: 'manual',
+        verificationData: {
+          verificationCode: generateVerificationCode(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        }
+      };
+      
+      setSocialAccounts(prev => [...prev, newAccount]);
+    }
   };
 
   const updateAccountUsername = (index: number, username: string) => {
@@ -143,29 +170,29 @@ export default function SocialVerificationGenerator({
   };
 
   const getVerificationInstructions = (platform: string, account: SocialAccount) => {
-    const code = account.verificationData?.verificationCode;
+    const code = account.verificationData?.verificationCode || 'Loading...';
     
     switch (platform) {
       case 'twitter':
         return {
           title: 'Post a Tweet',
           instructions: `Post the following tweet with the verification code:`,
-          message: `I'm verifying my account for @LaunchOnLOS NFT platform! 🚀 #LaunchOnLOS #AnalosNFT Code: ${code}`,
-          link: `https://twitter.com/compose/tweet?text=${encodeURIComponent(`I'm verifying my account for @LaunchOnLOS NFT platform! 🚀 #LaunchOnLOS #AnalosNFT Code: ${code}`)}`
+          message: `🎯 Verifying my NFT collection on LosLauncher! Code: ${code} #LosLauncher #Analos`,
+          link: `https://twitter.com/compose/tweet?text=${encodeURIComponent(`🎯 Verifying my NFT collection on LosLauncher! Code: ${code} #LosLauncher #Analos`)}`
         };
       case 'telegram':
         return {
           title: 'Send a Message',
           instructions: `Send a message to our Telegram bot with the verification code:`,
-          message: `Verifying my account for LaunchOnLOS NFT platform! 🚀 Code: ${code}`,
-          link: 'https://t.me/LaunchOnLOSBot'
+          message: `🎯 Verifying my NFT collection on LosLauncher! Code: ${code}`,
+          link: 'https://t.me/LosLauncherBot'
         };
       case 'discord':
         return {
           title: 'Join Discord Server',
           instructions: `Join our Discord server and send a message with the verification code:`,
-          message: `Verifying my account for LaunchOnLOS NFT platform! 🚀 Code: ${code}`,
-          link: 'https://discord.gg/launchonlos'
+          message: `🎯 Verifying my NFT collection on LosLauncher! Code: ${code}`,
+          link: 'https://discord.gg/loslauncher'
         };
       default:
         return null;
