@@ -7,6 +7,7 @@ import { tokenIdTracker } from '../../lib/token-id-tracker';
 import { blockchainFailSafeService } from '../../lib/blockchain-failsafe-service';
 import { adminControlService } from '../../lib/admin-control-service';
 import { feeManagementService } from '../../lib/fee-management-service';
+import { nftExplorerService, ExplorerNFT as ExplorerNFTType, CollectionStats, WalletStats } from '../../lib/nft-explorer-service';
 import Link from 'next/link';
 import StandardLayout from '../components/StandardLayout';
 
@@ -38,6 +39,13 @@ export default function ExplorerPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [collections, setCollections] = useState<CollectionInfo[]>([]);
   const [collectionsLoading, setCollectionsLoading] = useState(false);
+  
+  // New state for NFT explorer
+  const [explorerNFTs, setExplorerNFTs] = useState<ExplorerNFTType[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState<string>('All Collections');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'recent' | 'collections' | 'wallets'>('recent');
+  const [globalStats, setGlobalStats] = useState<any>(null);
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -48,7 +56,25 @@ export default function ExplorerPage() {
     
     // Fetch collections on mount
     fetchCollections();
+    
+    // Load explorer data
+    loadExplorerData();
   }, []);
+
+  // Load NFT explorer data
+  const loadExplorerData = () => {
+    try {
+      const allNFTs = nftExplorerService.getAllMintedNFTs();
+      setExplorerNFTs(allNFTs);
+      
+      const stats = nftExplorerService.getGlobalStats();
+      setGlobalStats(stats);
+      
+      console.log('🔍 Loaded explorer data:', { nfts: allNFTs.length, stats });
+    } catch (error) {
+      console.error('Error loading explorer data:', error);
+    }
+  };
 
   const fetchCollections = async () => {
     setCollectionsLoading(true);
@@ -249,6 +275,182 @@ export default function ExplorerPage() {
             </div>
           </div>
         )}
+
+        {/* NFT Explorer Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">🔍 NFT Explorer</h2>
+            <button
+              onClick={loadExplorerData}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+
+          {/* Global Stats */}
+          {globalStats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{globalStats.totalNFTs}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Total NFTs</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{globalStats.totalWallets}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Unique Wallets</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{globalStats.totalCollections}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Collections</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{globalStats.recentMints.length}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Recent Mints</div>
+              </div>
+            </div>
+          )}
+
+          {/* View Mode Tabs */}
+          <div className="flex space-x-2 mb-4">
+            {(['recent', 'collections', 'wallets'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  viewMode === mode
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                {mode === 'recent' && '🕒 Recent Mints'}
+                {mode === 'collections' && '🎨 By Collection'}
+                {mode === 'wallets' && '👤 By Wallet'}
+              </button>
+            ))}
+          </div>
+
+          {/* Search and Filter */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <input
+              type="text"
+              placeholder="Search by wallet address, transaction, or collection..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            />
+            <select
+              value={selectedCollection}
+              onChange={(e) => setSelectedCollection(e.target.value)}
+              className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="All Collections">All Collections</option>
+              <option value="Los Bros">Los Bros</option>
+            </select>
+          </div>
+
+          {/* Recent Mints Display */}
+          {viewMode === 'recent' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Mints</h3>
+              <div className="space-y-3">
+                {explorerNFTs.slice(0, 20).map((nft, index) => (
+                  <div key={nft.id} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {nft.collectionName} #{nft.id.split('_')[1] || index + 1}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Wallet: {nft.walletDisplay} • Phase: {nft.phase} • {new Date(nft.timestamp).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                      <a
+                        href={nft.explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors"
+                      >
+                        View
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Collections View */}
+          {viewMode === 'collections' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Collections</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {['Los Bros'].map((collectionName) => {
+                  const stats = nftExplorerService.getCollectionStats(collectionName);
+                  return (
+                    <div key={collectionName} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                      <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{collectionName}</h4>
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalMints}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Total Mints</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.uniqueWallets}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Unique Wallets</div>
+                        </div>
+                      </div>
+                      {stats.latestMint && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Latest: {stats.latestMint.walletDisplay} • {new Date(stats.latestMint.timestamp).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Wallets View */}
+          {viewMode === 'wallets' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Minters</h3>
+              <div className="space-y-3">
+                {nftExplorerService.getTopMinters('Los Bros', 10).map((wallet, index) => (
+                  <div key={wallet.walletAddress} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 dark:text-white">{wallet.walletDisplay}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {wallet.totalMints} mint{wallet.totalMints !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSearchQuery(wallet.walletAddress);
+                          setViewMode('recent');
+                        }}
+                        className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm font-medium transition-colors"
+                      >
+                        View NFTs
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* NFT Grid */}
         {nfts.length > 0 && (

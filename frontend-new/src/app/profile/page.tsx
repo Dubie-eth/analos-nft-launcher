@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import StandardLayout from '@/app/components/StandardLayout';
+import { userNFTTracker, MintedNFT } from '@/lib/user-nft-tracker';
 
 interface UserNFT {
   id: string;
@@ -55,70 +56,51 @@ export default function ProfilePage() {
     
     setLoading(true);
     try {
-      // In a real implementation, this would fetch from the blockchain
-      // For now, we'll simulate some data
-      const mockNFTs: UserNFT[] = [
-        {
-          id: '1',
-          name: 'Los Bros #1',
-          image: '/api/placeholder/400/400',
-          collection: 'Los Bros',
-          mintAddress: 'So11111111111111111111111111111111111111112',
-          metadata: {
-            name: 'Los Bros #1',
-            description: 'A unique Los Bros NFT',
-            image: '/api/placeholder/400/400',
-            attributes: [
-              { trait_type: 'Background', value: 'Sunset' },
-              { trait_type: 'Hat', value: 'Baseball Cap' },
-              { trait_type: 'Eyes', value: 'Cool' },
-              { trait_type: 'Rarity', value: 'Common' }
-            ]
-          },
-          rarity: {
-            score: 85,
-            rank: 150,
-            totalSupply: 2222
-          }
-        },
-        {
-          id: '2',
-          name: 'Los Bros #42',
-          image: '/api/placeholder/400/400',
-          collection: 'Los Bros',
-          mintAddress: 'So11111111111111111111111111111111111111113',
-          metadata: {
-            name: 'Los Bros #42',
-            description: 'A rare Los Bros NFT',
-            image: '/api/placeholder/400/400',
-            attributes: [
-              { trait_type: 'Background', value: 'Galaxy' },
-              { trait_type: 'Hat', value: 'Crown' },
-              { trait_type: 'Eyes', value: 'Legendary' },
-              { trait_type: 'Rarity', value: 'Legendary' }
-            ]
-          },
-          rarity: {
-            score: 95,
-            rank: 5,
-            totalSupply: 2222
-          }
-        }
-      ];
-
-      setUserNFTs(mockNFTs);
+      // Get real minted NFTs from the tracking service
+      const mintedNFTs = userNFTTracker.getMintedNFTs(publicKey.toString());
+      console.log('🎯 Loading user NFTs from tracking service:', mintedNFTs);
       
-      // Calculate user stats
+      // Convert MintedNFT to UserNFT format
+      const userNFTs: UserNFT[] = mintedNFTs.map((mintedNFT, index) => ({
+        id: mintedNFT.id,
+        name: `${mintedNFT.collectionName} #${mintedNFT.id.split('_')[1] || index + 1}`,
+        image: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+        collection: mintedNFT.collectionName,
+        mintAddress: mintedNFT.signature,
+        metadata: {
+          name: `${mintedNFT.collectionName} #${mintedNFT.id.split('_')[1] || index + 1}`,
+          description: `Minted NFT from ${mintedNFT.collectionName} collection`,
+          image: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+          attributes: [
+            { trait_type: 'Collection', value: mintedNFT.collectionName },
+            { trait_type: 'Phase', value: mintedNFT.phase },
+            { trait_type: 'Mint Date', value: new Date(mintedNFT.timestamp).toLocaleDateString() },
+            { trait_type: 'Transaction', value: mintedNFT.signature.slice(0, 8) + '...' }
+          ]
+        },
+        rarity: {
+          score: 80 + Math.floor(Math.random() * 20), // Random rarity for now
+          rank: index + 1,
+          totalSupply: 2222
+        }
+      }));
+
+      setUserNFTs(userNFTs);
+      
+      // Calculate user stats from real data
       const stats: UserStats = {
-        totalNFTs: mockNFTs.length,
-        collections: new Set(mockNFTs.map(nft => nft.collection)).size,
-        totalValue: mockNFTs.reduce((sum, nft) => sum + (nft.rarity?.score || 0) * 0.1, 0),
-        rarestNFT: mockNFTs.reduce((rarest, nft) => 
-          !rarest || (nft.rarity && nft.rarity.rank < rarest.rarity!.rank) ? nft : rarest
-        )
+        totalNFTs: userNFTs.length,
+        collections: new Set(userNFTs.map(nft => nft.collection)).size,
+        totalValue: userNFTs.reduce((sum, nft) => sum + (nft.rarity?.score || 0) * 0.1, 0),
+        rarestNFT: userNFTs.length > 0 ? userNFTs[0] : undefined
       };
       
       setUserStats(stats);
+      
+      // Also get detailed statistics from the tracker
+      const detailedStats = userNFTTracker.getMintStatistics(publicKey.toString());
+      console.log('📊 User mint statistics:', detailedStats);
+      
         } catch (error) {
       console.error('Error loading user NFTs:', error);
     } finally {
