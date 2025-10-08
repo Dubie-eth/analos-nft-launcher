@@ -27,6 +27,11 @@ export class FeeManagementService {
   private readonly DEFAULT_PLATFORM_FEE_PERCENTAGE = 2.5; // 2.5% platform fee
   private readonly PLATFORM_WALLET = 'YOUR_PLATFORM_FEES_WALLET_ADDRESS'; // Will be set when you provide it
   
+  // Minimum fees to ensure blockchain transaction and platform operations
+  private readonly MINIMUM_NETWORK_FEE = 0.005; // 0.005 LOS for network fees
+  private readonly MINIMUM_PLATFORM_FEE = 0.01; // 0.01 LOS minimum platform fee
+  private readonly MINIMUM_TOTAL_FEE = 0.015; // 0.015 LOS total minimum (network + platform)
+  
   // Collection fee configurations
   private collectionFees: Map<string, CollectionFeeConfig> = new Map();
 
@@ -59,6 +64,16 @@ export class FeeManagementService {
       platformWallet: this.PLATFORM_WALLET
     });
 
+    // Los Bros - newly deployed collection (free mint but with minimum fees)
+    this.collectionFees.set('Los Bros', {
+      name: 'Los Bros',
+      basePrice: 0, // Free mint
+      platformFeePercentage: 2.5, // 2.5% platform fee
+      creatorFeePercentage: 1.0, // 1% creator fee
+      creatorWallet: 'LOSBROS_CREATOR_WALLET', // Will be set when you provide it
+      platformWallet: this.PLATFORM_WALLET
+    });
+
     // Default for new collections
     this.collectionFees.set('New Collection', {
       name: 'New Collection',
@@ -71,11 +86,12 @@ export class FeeManagementService {
   }
 
   /**
-   * Calculate fee structure for a collection
+   * Calculate fee structure for a collection with minimum fee enforcement
    * IMPORTANT: Fees are deducted FROM the set price, not added on top
    * User pays the full price, but creator receives (price - fees)
+   * WHITELIST MINTING: Even "free" mints must pay minimum network + platform fees
    */
-  calculateFees(collectionName: string): FeeStructure {
+  calculateFees(collectionName: string, isWhitelistMint: boolean = false, whitelistMultiplier: number = 1.0): FeeStructure {
     const config = this.collectionFees.get(collectionName);
     if (!config) {
       console.warn(`⚠️ Fee configuration not found for collection: ${collectionName}, using default`);
@@ -98,16 +114,32 @@ export class FeeManagementService {
       };
     }
 
-    // CHANGED: The set price IS the total price user pays
-    const totalPrice = config.basePrice; // This is what the user pays (never exceeds)
+    // Calculate the effective price (considering whitelist multiplier)
+    let effectivePrice = config.basePrice;
+    
+    if (isWhitelistMint && whitelistMultiplier < 1.0) {
+      effectivePrice = config.basePrice * whitelistMultiplier;
+      console.log(`🎯 Whitelist pricing applied: ${config.basePrice} * ${whitelistMultiplier} = ${effectivePrice}`);
+    }
+    
+    // ENFORCE MINIMUM FEES: Even "free" whitelist mints must pay minimum network + platform fees
+    const totalPrice = Math.max(effectivePrice, this.MINIMUM_TOTAL_FEE);
+    
+    if (totalPrice > effectivePrice) {
+      console.log(`💰 Minimum fee enforcement: ${effectivePrice} -> ${totalPrice} (minimum network + platform fees required)`);
+    }
+    
     const totalFeePercentage = config.platformFeePercentage + config.creatorFeePercentage;
     
     // Calculate fees as a portion of the total price
-    const platformFee = (totalPrice * config.platformFeePercentage) / (100 + totalFeePercentage);
-    const creatorFee = (totalPrice * config.creatorFeePercentage) / (100 + totalFeePercentage);
+    let platformFee = (totalPrice * config.platformFeePercentage) / (100 + totalFeePercentage);
+    let creatorFee = (totalPrice * config.creatorFeePercentage) / (100 + totalFeePercentage);
     
-    // Creator receives: total price minus all fees
-    const basePrice = totalPrice - platformFee - creatorFee;
+    // Ensure minimum platform fee for blockchain operations
+    platformFee = Math.max(platformFee, this.MINIMUM_PLATFORM_FEE);
+    
+    // Creator receives: total price minus all fees (but never negative)
+    const basePrice = Math.max(0, totalPrice - platformFee - creatorFee);
 
     return {
       basePrice, // Amount creator receives (after fees deducted)
@@ -154,9 +186,13 @@ export class FeeManagementService {
   }
 
   /**
-   * Get fee breakdown for display
+   * Get fee breakdown for display (supports whitelist pricing)
    */
-  getFeeBreakdown(collectionName: string): {
+  getFeeBreakdown(
+    collectionName: string, 
+    isWhitelistMint: boolean = false, 
+    whitelistMultiplier: number = 1.0
+  ): {
     basePrice: number;
     platformFee: number;
     creatorFee: number;
@@ -164,9 +200,15 @@ export class FeeManagementService {
     platformFeePercentage: number;
     creatorFeePercentage: number;
     paymentToken: string;
+    isMinimumFeeEnforced: boolean;
+    originalPrice?: number;
   } {
-    const fees = this.calculateFees(collectionName);
+    const fees = this.calculateFees(collectionName, isWhitelistMint, whitelistMultiplier);
     const config = this.collectionFees.get(collectionName);
+    
+    // Check if minimum fees were enforced
+    const originalPrice = isWhitelistMint ? config?.basePrice * whitelistMultiplier : config?.basePrice;
+    const isMinimumFeeEnforced = fees.totalPrice > (originalPrice || 0);
     
     return {
       basePrice: fees.basePrice,
@@ -175,7 +217,9 @@ export class FeeManagementService {
       totalPrice: fees.totalPrice,
       platformFeePercentage: fees.platformFeePercentage,
       creatorFeePercentage: fees.creatorFeePercentage,
-      paymentToken: config?.name === 'The LosBros' ? 'LOL' : 'LOS'
+      paymentToken: config?.name === 'The LosBros' || config?.name === 'Los Bros' ? 'LOL' : 'LOS',
+      isMinimumFeeEnforced,
+      originalPrice: isWhitelistMint ? originalPrice : undefined
     };
   }
 

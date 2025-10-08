@@ -555,10 +555,15 @@ function CollectionMintContent() {
 
   const remainingSupply = collection.totalSupply - collection.currentSupply;
   
-  // Calculate cost using fee breakdown from fee management service
-  const feeBreakdown = collection.feeBreakdown || feeManagementService.getFeeBreakdown(collection.name);
-  // Only use whitelist price if user is actually whitelisted AND whitelist price exists
-  const effectivePrice = (whitelistPrice !== null && isWhitelisted) ? whitelistPrice : feeBreakdown.totalPrice;
+  // Calculate cost using fee breakdown from fee management service (with whitelist support)
+  const feeBreakdown = collection.feeBreakdown || feeManagementService.getFeeBreakdown(
+    collection.name, 
+    isWhitelisted && whitelistMultiplier < 1.0, // isWhitelistMint
+    whitelistMultiplier // whitelistMultiplier
+  );
+  
+  // The fee breakdown now handles minimum fee enforcement automatically
+  const effectivePrice = feeBreakdown.totalPrice;
   let totalCost = effectivePrice * mintQuantity;
   let currency = collection.paymentToken === 'LOL' ? '$LOL' : '$LOS';
   
@@ -779,12 +784,19 @@ function CollectionMintContent() {
                           {(whitelistPrice !== null && isWhitelisted) ? (
                             <span className="flex flex-col items-end space-y-1">
                               <span className="flex items-center space-x-2">
-                                <span className="text-white/60 line-through">{feeBreakdown.totalPrice.toFixed(2)} {currency}</span>
+                                {feeBreakdown.originalPrice && feeBreakdown.originalPrice > 0 && (
+                                  <span className="text-white/60 line-through">{feeBreakdown.originalPrice.toFixed(5)} {currency}</span>
+                                )}
                                 <span className="text-green-400 font-semibold">{effectivePrice.toFixed(5)} {currency}</span>
                               </span>
                               <span className="text-green-400 text-xs bg-green-500/20 px-2 py-1 rounded">
                                 WHITELIST {whitelistMultiplier === 0 ? 'FREE' : `${whitelistMultiplier}x`}
                               </span>
+                              {feeBreakdown.isMinimumFeeEnforced && (
+                                <span className="text-yellow-400 text-xs bg-yellow-500/20 px-2 py-1 rounded">
+                                  MINIMUM FEES APPLIED
+                                </span>
+                              )}
                             </span>
                           ) : (
                             `${feeBreakdown.totalPrice.toFixed(2)} ${currency}`
@@ -803,6 +815,11 @@ function CollectionMintContent() {
                       <div className="text-xs text-white/60 mt-2">
                         💰 Platform Fee: {platformFee.toFixed(2)} {currency} | Creator Fee: {creatorFee.toFixed(2)} {currency}
                       </div>
+                      {feeBreakdown.isMinimumFeeEnforced && (
+                        <div className="text-xs text-yellow-300/80 mt-2 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
+                          ⚠️ <strong>Minimum Fees Required:</strong> Even free whitelist mints require network fees (0.005 {currency}) and platform fees (0.01 {currency}) to process the blockchain transaction and prove ownership.
+                        </div>
+                      )}
                     </div>
                   </div>
 
