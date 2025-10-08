@@ -8,6 +8,134 @@ interface SocialVerificationProps {
   onVerificationComplete?: (eligible: boolean, score: number) => void;
 }
 
+// Fast Verification Form Component
+function FastVerificationForm({ walletAddress, onComplete }: { walletAddress: string; onComplete: () => void }) {
+  const [tweetUrl, setTweetUrl] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleFastVerification = async () => {
+    if (!tweetUrl || !verificationCode) {
+      setError('Please provide both tweet URL and verification code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const { verificationService } = await import('@/lib/verification-service');
+      
+      // Start verification process first
+      const startResult = await verificationService.startVerification(
+        `collection_${walletAddress}`,
+        walletAddress,
+        'twitter',
+        ''
+      );
+
+      // Complete with fast verification
+      const result = await verificationService.fastCompleteVerification(
+        startResult.verificationId,
+        tweetUrl,
+        verificationCode
+      );
+
+      if (result.success) {
+        setSuccess('✅ Verification completed successfully! Your collection is now verified for 90 days.');
+        setTweetUrl('');
+        setVerificationCode('');
+        onComplete();
+      } else {
+        setError('Verification failed. Please check your tweet URL and code.');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Tweet URL
+        </label>
+        <input
+          type="url"
+          value={tweetUrl}
+          onChange={(e) => setTweetUrl(e.target.value)}
+          placeholder="https://twitter.com/username/status/1234567890"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          Paste the full URL of your tweet containing the verification code
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Verification Code
+        </label>
+        <input
+          type="text"
+          value={verificationCode}
+          onChange={(e) => setVerificationCode(e.target.value)}
+          placeholder="LOS123456🎯"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          Enter the verification code from your tweet
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+          <p className="text-red-300 text-sm">{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+          <p className="text-green-300 text-sm">{success}</p>
+        </div>
+      )}
+
+      <button
+        onClick={handleFastVerification}
+        disabled={loading || !tweetUrl || !verificationCode}
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
+      >
+        {loading ? (
+          <span className="flex items-center justify-center space-x-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Verifying...</span>
+          </span>
+        ) : (
+          <span className="flex items-center justify-center space-x-2">
+            <span>⚡</span>
+            <span>Verify Instantly (30s)</span>
+          </span>
+        )}
+      </button>
+
+      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+        <h5 className="text-blue-300 font-medium text-sm mb-2">💡 How it works:</h5>
+        <ol className="text-blue-200 text-xs space-y-1 list-decimal list-inside">
+          <li>Post a tweet with your verification code</li>
+          <li>Copy the tweet URL</li>
+          <li>Paste it here with the verification code</li>
+          <li>Get verified instantly!</li>
+        </ol>
+      </div>
+    </div>
+  );
+}
+
 export default function SocialVerification({ walletAddress, onVerificationComplete }: SocialVerificationProps) {
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([]);
   const [newAccount, setNewAccount] = useState<Partial<SocialAccount>>({
@@ -23,7 +151,7 @@ export default function SocialVerification({ walletAddress, onVerificationComple
     missingRequirements: string[];
   } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'add' | 'verify' | 'status'>('add');
+  const [activeTab, setActiveTab] = useState<'add' | 'verify' | 'fast' | 'status'>('add');
 
   const platforms: SocialPlatform[] = [
     { id: 'twitter', name: 'Twitter/X', icon: '🐦', verificationUrl: 'https://twitter.com' },
@@ -132,6 +260,16 @@ export default function SocialVerification({ walletAddress, onVerificationComple
             }`}
           >
             Verify ({socialAccounts.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('fast')}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              activeTab === 'fast' 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            ⚡ Fast (30s)
           </button>
           <button
             onClick={() => setActiveTab('status')}
@@ -328,6 +466,23 @@ export default function SocialVerification({ walletAddress, onVerificationComple
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'fast' && (
+        <div className="space-y-4">
+          <h4 className="text-white font-medium text-lg">⚡ Fast Verification (30 seconds)</h4>
+          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <span className="text-2xl">⚡</span>
+              <span className="text-white font-medium">Lightning Fast Verification</span>
+            </div>
+            <p className="text-gray-300 text-sm mb-4">
+              Submit your tweet URL directly for instant verification. No waiting for manual approval!
+            </p>
+            
+            <FastVerificationForm walletAddress={walletAddress} onComplete={() => loadVerificationStatus()} />
+          </div>
         </div>
       )}
 

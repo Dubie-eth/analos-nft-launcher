@@ -163,7 +163,61 @@ export class VerificationService {
   }
 
   /**
-   * Complete verification by providing proof
+   * Fast verification with tweet URL submission (30 seconds)
+   */
+  async fastCompleteVerification(
+    verificationId: string,
+    tweetUrl: string,
+    verificationCode: string
+  ): Promise<{
+    success: boolean;
+    verificationId: string;
+    verifiedAt: string;
+    tweetUrl: string;
+    verificationExpiresAt: string;
+    isPermanent: boolean;
+    validityPeriod: string;
+    note: string;
+  }> {
+    try {
+      const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/fast-complete`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          verificationId,
+          tweetUrl,
+          verificationCode,
+          timestamp: new Date().toISOString()
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Fast verification failed');
+      }
+
+      return {
+        success: data.success,
+        verificationId: data.data.verificationId,
+        verifiedAt: data.data.verifiedAt,
+        tweetUrl: data.data.tweetUrl,
+        verificationExpiresAt: data.data.verificationExpiresAt,
+        isPermanent: data.data.isPermanent,
+        validityPeriod: data.data.validityPeriod,
+        note: data.data.note
+      };
+    } catch (error) {
+      console.error('❌ Fast verification failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Complete verification by providing proof (manual/old method)
    */
   async completeVerification(
     verificationId: string,

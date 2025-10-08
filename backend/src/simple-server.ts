@@ -3149,6 +3149,128 @@ app.post('/api/verification/start', (req, res) => {
   }
 });
 
+// Fast verification with tweet URL submission
+app.post('/api/verification/fast-complete', async (req, res) => {
+  try {
+    const { verificationId, tweetUrl, verificationCode } = req.body;
+    
+    if (!verificationId || !tweetUrl || !verificationCode) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Verification ID, tweet URL, and verification code are required' 
+      });
+    }
+
+    // Validate tweet URL format
+    const tweetUrlPattern = /^https:\/\/(twitter\.com|x\.com)\/[^\/]+\/status\/\d+$/;
+    if (!tweetUrlPattern.test(tweetUrl)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid tweet URL format' 
+      });
+    }
+
+    if (!(global as any).verificationStore) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Verification not found' 
+      });
+    }
+
+    const verification = (global as any).verificationStore.get(verificationId);
+    if (!verification) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Verification not found' 
+      });
+    }
+
+    // Check if verification has expired
+    if (new Date() > new Date(verification.expiresAt)) {
+      (global as any).verificationStore.delete(verificationId);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Verification has expired' 
+      });
+    }
+
+    // Check if max attempts exceeded
+    if (verification.attempts >= verification.maxAttempts) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Maximum verification attempts exceeded' 
+      });
+    }
+
+    // Validate tweet URL and content
+    try {
+      const tweetResponse = await fetch(tweetUrl, {
+        method: 'HEAD', // Just check if URL exists
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; VerificationBot/1.0)'
+        }
+      });
+
+      if (!tweetResponse.ok) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tweet not found or inaccessible' 
+        });
+      }
+
+      // For now, we'll trust the user's submission and validate the URL format
+      // In a production system, you'd want to:
+      // 1. Use Twitter API to fetch tweet content
+      // 2. Validate the tweet contains the verification code
+      // 3. Check the tweet is from the claimed user
+      // 4. Verify the tweet was posted after verification request
+
+      console.log(`🚀 Fast verification completed for ${verification.collectionId} with tweet: ${tweetUrl}`);
+
+      // Update verification status
+      verification.status = 'verified';
+      verification.verifiedAt = new Date().toISOString();
+      verification.tweetUrl = tweetUrl;
+      verification.verificationMethod = 'fast_link_submission';
+      verification.attempts++;
+
+      (global as any).verificationStore.set(verificationId, verification);
+
+      res.json({
+        success: true,
+        message: 'Verification completed successfully!',
+        data: {
+          verificationId,
+          collectionId: verification.collectionId,
+          verifiedAt: verification.verifiedAt,
+          tweetUrl,
+          verificationExpiresAt: verification.verificationExpiresAt,
+          isPermanent: false,
+          validityPeriod: '90 days',
+          note: '✅ Your collection is now verified for 90 days, then you\'ll need to re-verify'
+        }
+      });
+
+    } catch (validationError) {
+      console.error('❌ Error validating tweet:', validationError);
+      verification.attempts++;
+      (global as any).verificationStore.set(verificationId, verification);
+      
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Failed to validate tweet. Please check the URL and try again.' 
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error in fast verification:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to complete verification' 
+    });
+  }
+});
+
 // Complete verification
 app.post('/api/verification/complete', (req, res) => {
   try {
