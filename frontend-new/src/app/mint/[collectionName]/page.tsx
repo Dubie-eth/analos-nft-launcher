@@ -492,12 +492,18 @@ function CollectionMintContent() {
       console.log('🔑 Mint keypairs generated:', mintKeypairs.length);
       
       // Sign the transaction with both wallet and mint keypairs
-      const signedTransaction = await signTransaction(transaction);
+      // For mobile compatibility, ensure the transaction is properly prepared
+      console.log('📱 Preparing transaction for mobile wallet signing...');
       
-      // Add mint keypairs to the transaction
+      // Add mint keypairs first (before wallet signing)
       mintKeypairs.forEach(keypair => {
-        signedTransaction.partialSign(keypair);
+        transaction.partialSign(keypair);
+        console.log('✅ Added mint keypair signature:', keypair.publicKey.toBase58());
       });
+      
+      // Then sign with wallet
+      const signedTransaction = await signTransaction(transaction);
+      console.log('✅ Wallet signature added to transaction');
       
       console.log('✅ REAL NFT transaction signed by wallet and mint keypairs');
       
@@ -662,16 +668,32 @@ function CollectionMintContent() {
       });
       
       if (error instanceof Error) {
-        // Provide more specific error messages
-        if (error.message.includes('toBase58')) {
-          setMintStatus('Minting failed: Invalid wallet address or transaction data. Please refresh and try again.');
-        } else if (error.message.includes('User rejected')) {
-          setMintStatus('Minting cancelled: Transaction was rejected in your wallet.');
-        } else if (error.message.includes('Insufficient funds')) {
-          setMintStatus('Minting failed: Insufficient LOS balance for transaction.');
-        } else {
-        setMintStatus(`Minting failed: ${error.message}`);
+        // Enhanced mobile error handling
+        let errorMessage = error.message;
+        
+        // Check for mobile-specific errors
+        if (errorMessage.includes('Signature verification failed') || errorMessage.includes('Missing signature')) {
+          errorMessage = 'Wallet signature failed. Please try again or check your wallet connection.';
+        } else if (errorMessage.includes('toBase58')) {
+          errorMessage = 'Invalid wallet address or transaction data. Please refresh and try again.';
+        } else if (errorMessage.includes('User rejected')) {
+          errorMessage = 'Transaction was cancelled. Please try again.';
+        } else if (errorMessage.includes('Insufficient funds')) {
+          errorMessage = 'Insufficient LOS balance for transaction.';
+        } else if (errorMessage.includes('Network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
         }
+        
+        // Add mobile-specific debugging
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.log('📱 Error details:', {
+          isMobile,
+          userAgent: navigator.userAgent,
+          error: errorMessage,
+          originalError: error.message
+        });
+        
+        setMintStatus(`Minting failed: ${errorMessage}`);
       } else {
         setMintStatus('Minting failed. Please try again.');
       }
@@ -730,20 +752,20 @@ function CollectionMintContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold text-white">Mint NFTs</h1>
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 space-y-4 md:space-y-0">
+            <h1 className="text-2xl md:text-4xl font-bold text-white">Mint NFTs</h1>
+            <div className="flex flex-col md:flex-row items-stretch md:items-center space-y-2 md:space-y-0 md:space-x-4 w-full md:w-auto">
               <button
                 onClick={() => {
                   blockchainDataService.clearCacheManually();
                   window.location.reload();
                 }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm md:text-base"
               >
                 🔄 Refresh Data
               </button>
-            <WalletMultiButton />
-          </div>
+              <WalletMultiButton />
+            </div>
           </div>
 
           {/* Wallet Download & Beta Warning Section */}
@@ -770,9 +792,9 @@ function CollectionMintContent() {
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {/* Collection Info */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 md:p-6 lg:p-8 shadow-2xl">
               <div className="text-center mb-6">
                 <div className="flex justify-between items-start mb-4">
                   <div></div>
@@ -790,8 +812,8 @@ function CollectionMintContent() {
                   alt={collection.name}
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-white">{collection.name}</h1>
+                <div className="flex items-center justify-center gap-2 md:gap-3 mb-2">
+                  <h1 className="text-2xl md:text-3xl font-bold text-white break-words">{collection.name}</h1>
                   <VerificationBadge 
                     collectionId={`collection_${collection.name.toLowerCase().replace(/\s+/g, '_')}`}
                     collectionName={collection.name}
@@ -800,10 +822,10 @@ function CollectionMintContent() {
                     className="group"
                   />
                 </div>
-                <p className="text-white/80 mb-4">{collection.description}</p>
-                <div className="flex justify-center space-x-4 text-sm text-white/60">
+                <p className="text-white/80 mb-4 text-sm md:text-base break-words">{collection.description}</p>
+                <div className="flex flex-col md:flex-row justify-center items-center space-y-1 md:space-y-0 md:space-x-4 text-xs md:text-sm text-white/60">
                   <span>Symbol: {collection.symbol}</span>
-                  <span>•</span>
+                  <span className="hidden md:inline">•</span>
                   <span>Supply: {collection.currentSupply}/{collection.totalSupply}</span>
                   <span>•</span>
                   <button
@@ -867,8 +889,8 @@ function CollectionMintContent() {
             </div>
 
             {/* Mint Interface */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl">
-              <h2 className="text-2xl font-bold text-white mb-6">Mint NFTs</h2>
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 md:p-6 lg:p-8 shadow-2xl">
+              <h2 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-6">Mint NFTs</h2>
               
               {/* Not Eligible Notice */}
               
@@ -894,16 +916,16 @@ function CollectionMintContent() {
 
                   {/* Quantity Selector */}
                   <div className="mb-6">
-                    <label className="block text-white/80 text-sm mb-2">Quantity (1-10)</label>
-                    <div className="flex items-center space-x-4">
+                    <label className="block text-white/80 text-sm mb-3">Quantity (1-10)</label>
+                    <div className="flex items-center justify-center space-x-4">
                       <button
                         onClick={() => setMintQuantity(Math.max(1, mintQuantity - 1))}
-                        className="bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-lg transition-colors"
+                        className="bg-white/20 hover:bg-white/30 text-white w-12 h-12 md:w-10 md:h-10 rounded-lg transition-colors text-xl font-bold"
                         disabled={mintQuantity <= 1}
                       >
                         -
                       </button>
-                      <span className="text-white text-xl font-semibold min-w-[3rem] text-center">
+                      <span className="text-white text-2xl md:text-xl font-semibold min-w-[4rem] md:min-w-[3rem] text-center">
                         {mintQuantity}
                       </span>
                       <button
@@ -914,7 +936,7 @@ function CollectionMintContent() {
                             : 10;
                           setMintQuantity(Math.min(maxAllowed, mintQuantity + 1));
                         }}
-                        className="bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-lg transition-colors"
+                        className="bg-white/20 hover:bg-white/30 text-white w-12 h-12 md:w-10 md:h-10 rounded-lg transition-colors text-xl font-bold"
                         disabled={mintQuantity >= (whitelistRemainingMints !== undefined && whitelistRemainingMints > 0 ? Math.min(10, whitelistRemainingMints) : 10)}
                       >
                         +
@@ -1062,8 +1084,8 @@ function CollectionMintContent() {
                   )}
 
                   {mintStatus && (
-                    <div className="mt-4 p-3 bg-white/10 rounded-lg">
-                      <p className="text-white text-sm">{mintStatus}</p>
+                    <div className="mt-4 p-3 md:p-4 bg-white/10 rounded-lg">
+                      <p className="text-white text-sm md:text-base break-words">{mintStatus}</p>
                     </div>
                   )}
                 </div>
