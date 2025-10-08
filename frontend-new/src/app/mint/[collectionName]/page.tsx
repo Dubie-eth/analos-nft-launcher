@@ -94,11 +94,11 @@ function CollectionMintContent() {
       
       console.log('📡 Fetching collection with blockchain fail-safes:', collectionName);
       
-      // Redirect "The LosBros" to "Test" collection for development
+      // Handle collection name mapping
       let actualCollectionName = collectionName;
-      if (collectionName === 'The LosBros') {
-        actualCollectionName = 'Test';
-        console.log('🔄 Redirecting "The LosBros" to "Test" collection for development');
+      if (collectionName === 'The LosBros' || collectionName === 'los-bros') {
+        actualCollectionName = 'Los Bros';
+        console.log('🔄 Mapping collection name to "Los Bros"');
       }
 
       // Check admin controls first

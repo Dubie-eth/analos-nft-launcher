@@ -232,6 +232,24 @@ export class AdminControlService {
       });
     }
 
+    // Los Bros - Newly deployed collection
+    if (!this.collections.has('Los Bros')) {
+      this.collections.set('Los Bros', {
+        name: 'Los Bros',
+        displayName: 'Los Bros - Newly Deployed Collection',
+        isActive: true,
+        mintingEnabled: true,
+        isTestMode: false,
+        totalSupply: 2222,
+        mintPrice: 0, // Free mint
+        paymentToken: 'LOL',
+        description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+        imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+        createdAt: Date.now(),
+        lastModified: Date.now()
+      });
+    }
+
     // Placeholder for additional collections
     this.collections.set('New Collection', {
       name: 'New Collection',
@@ -260,7 +278,7 @@ export class AdminControlService {
       testModeEnabled: true,
       maintenanceMode: false,
       emergencyStop: false,
-      allowedCollections: ['Test', 'The LosBros'], // Test and LosBros allowed
+      allowedCollections: ['Test', 'The LosBros', 'Los Bros'], // Test and LosBros collections allowed
       blockedWallets: [],
       rateLimits: {
         mintsPerMinute: 10,
@@ -305,10 +323,11 @@ export class AdminControlService {
     const collectionNameMappings: { [key: string]: string } = {
       'launch-on-los': 'The LosBros',
       'the-losbros': 'The LosBros',
-      'los-bros': 'The LosBros',
+      'los-bros': 'Los Bros',
       'Launch On LOS': 'The LosBros',
-      'losbros': 'The LosBros',
-      'the-los-bros': 'The LosBros'
+      'losbros': 'Los Bros',
+      'the-los-bros': 'The LosBros',
+      'Los Bros': 'Los Bros'
     };
     
     if (collectionNameMappings[collectionName]) {
