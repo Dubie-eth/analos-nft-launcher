@@ -52,78 +52,86 @@ export class BlockchainRecoveryService {
   }
 
   /**
-   * Scan for NFTs from a specific mint address
+   * Scan for NFTs from a specific mint address using Analos APIs
    */
   async scanMintForNFTs(mintAddress: string): Promise<BlockchainNFT[]> {
     try {
-      console.log(`🔍 Scanning mint ${mintAddress} for NFTs...`);
+      console.log(`🔍 Scanning Analos mint ${mintAddress} for NFTs...`);
       
-      const mint = new PublicKey(mintAddress);
       const nfts: BlockchainNFT[] = [];
 
-      // Get all token accounts for this mint (using RPC method)
-      const tokenAccounts = await this.connection.getProgramAccounts(new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), {
-        filters: [
-          {
-            dataSize: 165, // Token account data size
-          },
-          {
-            memcmp: {
-              offset: 0,
-              bytes: mint.toBase58(),
-            },
-          },
-        ],
+      // Use Analos RPC API to get token accounts
+      const response = await fetch(`${this.ANALOS_RPC_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getProgramAccounts',
+          params: [
+            'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+            {
+              filters: [
+                { dataSize: 165 },
+                {
+                  memcmp: {
+                    offset: 0,
+                    bytes: mintAddress
+                  }
+                }
+              ]
+            }
+          ]
+        })
       });
+
+      const data: any = await response.json();
       
-      console.log(`📊 Found ${tokenAccounts.length} token accounts for mint ${mintAddress}`);
+      if (!data.result) {
+        console.log(`📊 No token accounts found for mint ${mintAddress}`);
+        return [];
+      }
 
-      for (const { pubkey, account } of tokenAccounts) {
+      console.log(`📊 Found ${data.result.length} token accounts for mint ${mintAddress}`);
+
+      for (const tokenAccount of data.result) {
         try {
-          // Get account info to find owner
-          const accountInfo = await this.connection.getAccountInfo(pubkey);
-          if (!accountInfo || !accountInfo.data) continue;
-
-          // Parse token account data to get owner
-          const owner = this.parseTokenAccountOwner(accountInfo.data);
+          // Parse token account data
+          const owner = this.parseTokenAccountOwnerFromBase64(tokenAccount.account.data[0]);
           if (!owner) continue;
 
-          // Get transaction history to find creation transaction
-          const signatures = await this.connection.getSignaturesForAddress(pubkey, { limit: 1 });
-          if (signatures.length === 0) continue;
+          // Get transaction history from Analos explorer
+          const txResponse = await fetch(`${this.ANALOS_EXPLORER_URL}/api/v1/transactions?account=${tokenAccount.pubkey}&limit=1`);
+          const txData: any = await txResponse.json();
 
-          const transaction = await this.connection.getTransaction(signatures[0].signature, {
-            maxSupportedTransactionVersion: 0
-          });
-
-          if (!transaction) continue;
-
-          // Try to get metadata if available
-          const metadata = await this.getTokenMetadata(pubkey);
+          // Get metadata from Analos
+          const metadata = await this.getTokenMetadata(tokenAccount.pubkey);
 
           const nft: BlockchainNFT = {
             mint: mintAddress,
-            owner: owner.toString(),
-            tokenAccount: pubkey.toString(),
+            owner,
+            tokenAccount: tokenAccount.pubkey,
             metadata,
-            transactionSignature: signatures[0].signature,
-            blockTime: signatures[0].blockTime || 0,
-            slot: signatures[0].slot
+            transactionSignature: txData.transactions?.[0]?.signature || 'unknown',
+            blockTime: txData.transactions?.[0]?.blockTime || 0,
+            slot: txData.transactions?.[0]?.slot || 0
           };
 
           nfts.push(nft);
-          console.log(`✅ Found NFT: ${mintAddress} owned by ${owner.toString().slice(0, 8)}...`);
+          console.log(`✅ Found Analos NFT: ${mintAddress} owned by ${owner.slice(0, 8)}...`);
 
         } catch (error) {
-          console.error(`❌ Error processing token account ${pubkey.toString()}:`, error);
+          console.error(`❌ Error processing token account ${tokenAccount.pubkey}:`, error);
         }
       }
 
-      console.log(`🎯 Scanned ${mintAddress}: Found ${nfts.length} NFTs`);
+      console.log(`🎯 Scanned Analos mint ${mintAddress}: Found ${nfts.length} NFTs`);
       return nfts;
 
     } catch (error) {
-      console.error(`❌ Error scanning mint ${mintAddress}:`, error);
+      console.error(`❌ Error scanning Analos mint ${mintAddress}:`, error);
       return [];
     }
   }
@@ -231,35 +239,50 @@ export class BlockchainRecoveryService {
   }
 
   /**
-   * Parse token account data to extract owner
+   * Parse token account data to extract owner from Analos base64 data
    */
-  private parseTokenAccountOwner(data: Buffer): PublicKey | null {
+  private parseTokenAccountOwnerFromBase64(base64Data: string): string | null {
     try {
-      // Token account layout: owner is at offset 32 (32 bytes)
+      const data = Buffer.from(base64Data, 'base64');
       if (data.length < 64) return null;
-      
       const ownerBytes = data.slice(32, 64);
-      return new PublicKey(ownerBytes);
+      return Buffer.from(ownerBytes).toString('hex');
     } catch (error) {
-      console.error('Error parsing token account owner:', error);
+      console.error('Error parsing token account owner from Analos data:', error);
       return null;
     }
   }
 
   /**
-   * Get token metadata (simplified - would need full metadata program integration)
+   * Get token metadata from Analos
    */
-  private async getTokenMetadata(tokenAccount: PublicKey): Promise<any> {
+  private async getTokenMetadata(tokenAccount: string): Promise<any> {
     try {
-      // This is a simplified version - in production, you'd query the Metaplex metadata program
-      // For now, we'll return basic info that we can extract
+      // Query Analos metadata API
+      const response = await fetch(`${this.ANALOS_EXPLORER_URL}/api/v1/token-metadata/${tokenAccount}`);
+      const metadata: any = await response.json();
+
+      if (metadata && metadata.name) {
+        return metadata;
+      }
+
+      // Fallback metadata
       return {
-        mint: tokenAccount.toString(),
-        // Additional metadata would be fetched from Metaplex metadata program
+        mint: tokenAccount,
+        name: `NFT #${tokenAccount.slice(0, 8)}`,
+        symbol: 'NFT',
+        description: 'NFT from Analos blockchain',
+        image: `https://api.analos-nft-launcher.com/nft-image/placeholder/${tokenAccount}`
       };
     } catch (error) {
-      console.error('Error getting token metadata:', error);
-      return null;
+      console.error('Error getting token metadata from Analos:', error);
+      return {
+        mint: tokenAccount,
+        name: `NFT #${tokenAccount.slice(0, 8)}`,
+        symbol: 'NFT',
+        description: 'NFT from Analos blockchain',
+        image: `https://api.analos-nft-launcher.com/nft-image/placeholder/${tokenAccount}`
+      };
     }
   }
 
@@ -296,76 +319,95 @@ export class BlockchainRecoveryService {
   }
 
   /**
-   * Scan for NFTs by wallet address
+   * Scan for NFTs by wallet address using Analos APIs
    */
   async scanWalletForNFTs(walletAddress: string): Promise<BlockchainNFT[]> {
     try {
-      console.log(`🔍 Scanning wallet ${walletAddress} for NFTs...`);
+      console.log(`🔍 Scanning Analos wallet ${walletAddress} for NFTs...`);
       
-      const wallet = new PublicKey(walletAddress);
       const allNFTs: BlockchainNFT[] = [];
 
-      // Get all token accounts owned by this wallet
-      const tokenAccounts = await this.connection.getTokenAccountsByOwner(wallet, {
-        programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') // Token program
+      // Use Analos RPC API to get wallet's token accounts
+      const response = await fetch(`${this.ANALOS_RPC_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getTokenAccountsByOwner',
+          params: [
+            walletAddress,
+            {
+              programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
+            }
+          ]
+        })
       });
 
-      console.log(`📊 Found ${tokenAccounts.value.length} token accounts for wallet ${walletAddress}`);
+      const data: any = await response.json();
+      
+      if (!data.result || !data.result.value) {
+        console.log(`📊 No token accounts found for wallet ${walletAddress}`);
+        return [];
+      }
 
-      for (const { pubkey, account } of tokenAccounts.value) {
+      console.log(`📊 Found ${data.result.value.length} token accounts for wallet ${walletAddress}`);
+
+      for (const tokenAccount of data.result.value) {
         try {
           // Parse token account to get mint
-          const mint = this.parseTokenAccountMint(account.data);
+          const mint = this.parseTokenAccountMintFromBase64(tokenAccount.account.data[0]);
           if (!mint) continue;
 
           // Skip if we don't know this mint
-          if (!this.knownMints.has(mint.toString())) continue;
+          if (!this.knownMints.has(mint)) continue;
 
-          // Get transaction history
-          const signatures = await this.connection.getSignaturesForAddress(pubkey, { limit: 1 });
-          if (signatures.length === 0) continue;
+          // Get transaction history from Analos explorer
+          const txResponse = await fetch(`${this.ANALOS_EXPLORER_URL}/api/v1/transactions?account=${tokenAccount.pubkey}&limit=1`);
+          const txData: any = await txResponse.json();
 
-          const metadata = await this.getTokenMetadata(pubkey);
+          const metadata = await this.getTokenMetadata(tokenAccount.pubkey);
 
           const nft: BlockchainNFT = {
-            mint: mint.toString(),
+            mint,
             owner: walletAddress,
-            tokenAccount: pubkey.toString(),
+            tokenAccount: tokenAccount.pubkey,
             metadata,
-            transactionSignature: signatures[0].signature,
-            blockTime: signatures[0].blockTime || 0,
-            slot: signatures[0].slot
+            transactionSignature: txData.transactions?.[0]?.signature || 'unknown',
+            blockTime: txData.transactions?.[0]?.blockTime || 0,
+            slot: txData.transactions?.[0]?.slot || 0
           };
 
           allNFTs.push(nft);
-          console.log(`✅ Found NFT in wallet: ${mint.toString()} owned by ${walletAddress.slice(0, 8)}...`);
+          console.log(`✅ Found Analos NFT in wallet: ${mint} owned by ${walletAddress.slice(0, 8)}...`);
 
         } catch (error) {
-          console.error(`❌ Error processing token account ${pubkey.toString()}:`, error);
+          console.error(`❌ Error processing token account ${tokenAccount.pubkey}:`, error);
         }
       }
 
-      console.log(`🎯 Scanned wallet ${walletAddress}: Found ${allNFTs.length} NFTs`);
+      console.log(`🎯 Scanned Analos wallet ${walletAddress}: Found ${allNFTs.length} NFTs`);
       return allNFTs;
 
     } catch (error) {
-      console.error(`❌ Error scanning wallet ${walletAddress}:`, error);
+      console.error(`❌ Error scanning Analos wallet ${walletAddress}:`, error);
       return [];
     }
   }
 
   /**
-   * Parse token account data to extract mint
+   * Parse token account data to extract mint from Analos base64 data
    */
-  private parseTokenAccountMint(data: Buffer): PublicKey | null {
+  private parseTokenAccountMintFromBase64(base64Data: string): string | null {
     try {
-      // Token account layout: mint is at offset 0 (32 bytes)
+      const data = Buffer.from(base64Data, 'base64');
       if (data.length < 32) return null;
-      
       const mintBytes = data.slice(0, 32);
-      return new PublicKey(mintBytes);
+      return Buffer.from(mintBytes).toString('hex');
     } catch (error) {
-      console.error('Error parsing token account mint:', error);
+      console.error('Error parsing token account mint from Analos data:', error);
       return null;
     }
   }
