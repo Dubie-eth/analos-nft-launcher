@@ -241,6 +241,13 @@ function CollectionMintContent() {
       try {
         // Get collection config from admin service
         const collection = await adminControlService.getCollection(actualCollectionName);
+        console.log('📋 Collection from admin control service:', collection);
+        console.log('🔍 Collection creator check:', {
+          collectionName: actualCollectionName,
+          collectionCreator: collection?.creator,
+          creatorType: typeof collection?.creator,
+          creatorLength: collection?.creator?.length
+        });
         if (collection) {
           // Get fee breakdown
           const feeBreakdown = feeManagementService.getFeeBreakdown(actualCollectionName);
@@ -368,6 +375,19 @@ function CollectionMintContent() {
       return () => clearInterval(interval);
     }
   }, [collectionName]); // Removed fetchCollectionInfo from dependencies to prevent re-renders
+
+  // Debug social verification access
+  useEffect(() => {
+    if (connected && publicKey && collection) {
+      console.log('🔍 Social Verification Debug:', {
+        connected,
+        publicKey: publicKey.toString(),
+        collectionCreator: collection.creator,
+        isCreator: publicKey.toString() === collection.creator,
+        shouldShowVerification: connected && publicKey && collection && collection.creator && publicKey.toString() === collection.creator
+      });
+    }
+  }, [connected, publicKey, collection]);
 
   const handleMint = async () => {
     if (!connected || !publicKey || !signTransaction) {
