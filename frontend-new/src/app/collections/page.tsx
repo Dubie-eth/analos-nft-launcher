@@ -44,15 +44,66 @@ const CollectionsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'price-low' | 'price-high' | 'supply'>('newest');
 
-  // Load collections from localStorage (in production, this would come from a database)
+  // Load collections from multiple sources
   useEffect(() => {
-    const loadCollections = () => {
+    const loadCollections = async () => {
       try {
+        let allCollections: Collection[] = [];
+        
+        // 1. Load from localStorage (deployed collections)
         const savedCollections = localStorage.getItem('launched_collections');
         if (savedCollections) {
-          const parsedCollections = JSON.parse(savedCollections);
-          setCollections(parsedCollections);
+          try {
+            const parsedCollections = JSON.parse(savedCollections);
+            console.log('📦 Found collections in localStorage:', parsedCollections.length);
+            allCollections = [...allCollections, ...parsedCollections];
+          } catch (error) {
+            console.error('Error parsing localStorage collections:', error);
+          }
         }
+        
+        // 2. Load from admin control service
+        try {
+          const { adminControlService } = await import('@/lib/admin-control-service');
+          const adminCollections = await adminControlService.getAllCollections();
+          console.log('🎛️ Found collections in admin service:', adminCollections.length);
+          
+          // Convert admin service collections to Collection format
+          const adminCollectionsFormatted: Collection[] = adminCollections.map(collection => ({
+            id: `admin_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+            name: collection.name,
+            symbol: collection.name.substring(0, 4).toUpperCase(),
+            description: collection.description || 'No description available',
+            imageUrl: collection.imageUrl || '/api/placeholder/300/300',
+            maxSupply: collection.totalSupply,
+            totalMinted: 0, // This would come from blockchain data
+            mintPrice: collection.mintPrice,
+            pricingToken: collection.paymentToken,
+            mintType: collection.isTestMode ? 'Test' : 'Production',
+            revealType: 'Instant',
+            isActive: collection.isActive,
+            mintingEnabled: collection.mintingEnabled,
+            deployedAt: new Date().toISOString(),
+            creator: 'Admin',
+            category: 'NFT Collection',
+            website: '',
+            twitter: '',
+            discord: ''
+          }));
+          
+          allCollections = [...allCollections, ...adminCollectionsFormatted];
+        } catch (error) {
+          console.error('Error loading admin service collections:', error);
+        }
+        
+        // 3. Remove duplicates based on collection name
+        const uniqueCollections = allCollections.filter((collection, index, self) => 
+          index === self.findIndex(c => c.name.toLowerCase() === collection.name.toLowerCase())
+        );
+        
+        console.log('✅ Total unique collections found:', uniqueCollections.length);
+        setCollections(uniqueCollections);
+        
       } catch (error) {
         console.error('Error loading collections:', error);
       } finally {

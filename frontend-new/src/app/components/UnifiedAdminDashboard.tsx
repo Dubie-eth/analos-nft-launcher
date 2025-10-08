@@ -48,23 +48,70 @@ export default function UnifiedAdminDashboard() {
   const loadAdminData = async () => {
     try {
       setLoading(true);
+      console.log('🔍 Loading admin data...');
       
-      // Load collections from localStorage
+      let allCollections: any[] = [];
+      
+      // 1. Load collections from localStorage (deployed collections)
       const storedCollections = localStorage.getItem('launched_collections');
       if (storedCollections) {
-        const collectionsData = JSON.parse(storedCollections);
-        setCollections(collectionsData);
-        
-        // Calculate admin stats
-        const stats: AdminStats = {
-          totalCollections: collectionsData.length,
-          activeCollections: collectionsData.filter((c: any) => c.isActive).length,
-          totalNFTsMinted: collectionsData.reduce((sum: number, c: any) => sum + (c.totalMinted || 0), 0),
-          totalVolume: collectionsData.reduce((sum: number, c: any) => sum + (c.volumeTraded || 0), 0),
-          platformFees: collectionsData.reduce((sum: number, c: any) => sum + (c.platformFees || 0), 0)
-        };
-        setAdminStats(stats);
+        try {
+          const collectionsData = JSON.parse(storedCollections);
+          console.log('📦 Found collections in localStorage:', collectionsData.length);
+          allCollections = [...allCollections, ...collectionsData];
+        } catch (error) {
+          console.error('Error parsing localStorage collections:', error);
+        }
       }
+      
+      // 2. Load collections from admin control service
+      try {
+        const adminCollections = await adminControlService.getAllCollections();
+        console.log('🎛️ Found collections in admin service:', adminCollections.length);
+        
+        // Convert admin service collections to the format expected by the dashboard
+        const adminCollectionsFormatted = adminCollections.map(collection => ({
+          id: `admin_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+          name: collection.name,
+          symbol: collection.name.substring(0, 4).toUpperCase(),
+          description: collection.description || 'No description available',
+          imageUrl: collection.imageUrl || '/api/placeholder/300/300',
+          maxSupply: collection.totalSupply,
+          totalMinted: 0, // This would come from blockchain data
+          mintPrice: collection.mintPrice,
+          pricingToken: collection.paymentToken,
+          mintType: collection.isTestMode ? 'Test' : 'Production',
+          revealType: 'Instant',
+          isActive: collection.isActive,
+          mintingEnabled: collection.mintingEnabled,
+          deployedAt: new Date().toISOString(),
+          platformFees: 0,
+          volumeTraded: 0
+        }));
+        
+        allCollections = [...allCollections, ...adminCollectionsFormatted];
+      } catch (error) {
+        console.error('Error loading admin service collections:', error);
+      }
+      
+      // 3. Remove duplicates based on collection name
+      const uniqueCollections = allCollections.filter((collection, index, self) => 
+        index === self.findIndex(c => c.name.toLowerCase() === collection.name.toLowerCase())
+      );
+      
+      console.log('✅ Total unique collections found:', uniqueCollections.length);
+      setCollections(uniqueCollections);
+      
+      // Calculate admin stats
+      const stats: AdminStats = {
+        totalCollections: uniqueCollections.length,
+        activeCollections: uniqueCollections.filter((c: any) => c.isActive).length,
+        totalNFTsMinted: uniqueCollections.reduce((sum: number, c: any) => sum + (c.totalMinted || 0), 0),
+        totalVolume: uniqueCollections.reduce((sum: number, c: any) => sum + (c.volumeTraded || 0), 0),
+        platformFees: uniqueCollections.reduce((sum: number, c: any) => sum + (c.platformFees || 0), 0)
+      };
+      setAdminStats(stats);
+      
     } catch (error) {
       console.error('Error loading admin data:', error);
     } finally {
