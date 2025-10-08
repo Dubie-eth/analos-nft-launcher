@@ -841,12 +841,22 @@ function CollectionMintContent() {
 
   const remainingSupply = collection.totalSupply - collection.currentSupply;
   
-  // Calculate cost using fee breakdown from fee management service (with whitelist support)
+  // Use fee breakdown from collection data (already calculated with correct whitelist parameters)
   const feeBreakdown = collection.feeBreakdown || feeManagementService.getFeeBreakdown(
     collection.name, 
-    isWhitelisted && whitelistMultiplier < 1.0, // isWhitelistMint
-    whitelistMultiplier // whitelistMultiplier
+    isWhitelisted, // isWhitelistMint
+    isWhitelisted ? whitelistMultiplier : 1.0 // whitelistMultiplier
   );
+  
+  // Debug log for fee breakdown
+  console.log('🔍 Fee breakdown for UI display:', {
+    hasCollectionFeeBreakdown: !!collection.feeBreakdown,
+    originalBasePrice: feeBreakdown.originalBasePrice,
+    basePrice: feeBreakdown.basePrice,
+    totalPrice: feeBreakdown.totalPrice,
+    isWhitelisted,
+    whitelistMultiplier
+  });
   
   // The fee breakdown now handles minimum fee enforcement automatically
   const effectivePrice = feeBreakdown.totalPrice;
@@ -1165,11 +1175,59 @@ function CollectionMintContent() {
                       collectionName={collection.name}
                       quantity={mintQuantity}
                       losAmount={totalCost || 0}
-                      onMintSuccess={(result) => {
+                      onMintSuccess={async (result) => {
+                        // Check whitelist limit before processing success
+                        if (isWhitelisted && whitelistRemainingMints !== null && whitelistRemainingMints <= 0) {
+                          setMintStatus('❌ You have reached your whitelist mint limit for this phase');
+                          return;
+                        }
+                        
                         setMintStatus(`Successfully minted ${result.nftsReceived} NFT(s) via bonding curve! Transaction: ${result.transactionHash}`);
                         if (result.revealTriggered) {
                           setMintStatus(prev => prev + ' 🎉 Collection revealed!');
                         }
+                        
+                        // Track the minted NFT in userNFTTracker
+                        try {
+                          if (publicKey && result.transactionHash) {
+                            console.log('🎯 Tracking minted NFT in userNFTTracker (bonding curve)...');
+                            
+                            // Get current active phase for tracking
+                            const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+                            const activePhase = whitelistPhaseService.getCurrentActivePhase();
+                            
+                            const mintedNFT: MintedNFT = {
+                              id: `${collectionName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              signature: result.transactionHash,
+                              collectionName: collectionName,
+                              phase: activePhase?.id || 'phase_3_public',
+                              timestamp: Date.now(),
+                              walletAddress: publicKey.toString(),
+                              quantity: result.nftsReceived || 1,
+                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionHash}`
+                            };
+                            
+                            // Store in localStorage for tracking
+                            const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
+                            const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+                            existingMints.push(mintedNFT);
+                            localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+                            
+                            console.log('✅ NFT tracked successfully (bonding curve):', mintedNFT);
+                            
+                            // Update supply counter
+                            setCollection(prevCollection => prevCollection ? {
+                              ...prevCollection,
+                              currentSupply: (prevCollection.currentSupply || 0) + (result.nftsReceived || 1)
+                            } : null);
+                            
+                            // Update whitelist remaining mints
+                            setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - (result.nftsReceived || 1)));
+                          }
+                        } catch (error) {
+                          console.error('Error tracking minted NFT (bonding curve):', error);
+                        }
+                        
                         fetchCollectionInfo(); // Refresh collection info
                       }}
                       onMintError={(error) => {
@@ -1184,8 +1242,56 @@ function CollectionMintContent() {
                       totalCost={totalCost}
                       currency={currency}
                       lolBalanceInfo={lolBalanceInfo}
-                      onMintSuccess={(result) => {
+                      onMintSuccess={async (result) => {
+                        // Check whitelist limit before processing success
+                        if (isWhitelisted && whitelistRemainingMints !== null && whitelistRemainingMints <= 0) {
+                          setMintStatus('❌ You have reached your whitelist mint limit for this phase');
+                          return;
+                        }
+                        
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
+                        
+                        // Track the minted NFT in userNFTTracker
+                        try {
+                          if (publicKey && result.transactionSignature) {
+                            console.log('🎯 Tracking minted NFT in userNFTTracker (advanced)...');
+                            
+                            // Get current active phase for tracking
+                            const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+                            const activePhase = whitelistPhaseService.getCurrentActivePhase();
+                            
+                            const mintedNFT: MintedNFT = {
+                              id: `${collectionName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              signature: result.transactionSignature,
+                              collectionName: collectionName,
+                              phase: activePhase?.id || 'phase_3_public',
+                              timestamp: Date.now(),
+                              walletAddress: publicKey.toString(),
+                              quantity: result.quantity || 1,
+                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`
+                            };
+                            
+                            // Store in localStorage for tracking
+                            const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
+                            const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
+                            existingMints.push(mintedNFT);
+                            localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+                            
+                            console.log('✅ NFT tracked successfully (advanced):', mintedNFT);
+                            
+                            // Update supply counter
+                            setCollection(prevCollection => prevCollection ? {
+                              ...prevCollection,
+                              currentSupply: (prevCollection.currentSupply || 0) + (result.quantity || 1)
+                            } : null);
+                            
+                            // Update whitelist remaining mints
+                            setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - (result.quantity || 1)));
+                          }
+                        } catch (error) {
+                          console.error('Error tracking minted NFT (advanced):', error);
+                        }
+                        
                         fetchCollectionInfo(); // Refresh collection info
                       }}
                       onMintError={(error) => {
@@ -1206,6 +1312,12 @@ function CollectionMintContent() {
                         remainingMints: whitelistRemainingMints
                       } : undefined}
                       onMintSuccess={async (result) => {
+                        // Check whitelist limit before processing success
+                        if (isWhitelisted && whitelistRemainingMints !== null && whitelistRemainingMints <= 0) {
+                          setMintStatus('❌ You have reached your whitelist mint limit for this phase');
+                          return;
+                        }
+                        
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
                         
                         // Track the minted NFT in userNFTTracker
