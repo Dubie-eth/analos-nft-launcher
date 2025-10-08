@@ -123,9 +123,9 @@ export class SocialVerificationService {
       },
       manualVerification: {
         enabled: true,
-        twitterVerificationTweet: "I'm verifying my account for @LaunchOnLOS NFT platform! 🚀 #LaunchOnLOS #AnalosNFT",
-        telegramVerificationMessage: "Verifying my account for LaunchOnLOS NFT platform! 🚀",
-        discordVerificationMessage: "Verifying my account for LaunchOnLOS NFT platform! 🚀"
+        twitterVerificationTweet: "🎯 Verifying my NFT collection on LosLauncher! Code: {CODE} #LosLauncher #Analos",
+        telegramVerificationMessage: "🎯 Verifying my NFT collection on LosLauncher! Code: {CODE}",
+        discordVerificationMessage: "🎯 Verifying my NFT collection on LosLauncher! Code: {CODE}"
       }
     };
   }
@@ -242,9 +242,11 @@ export class SocialVerificationService {
         account.verificationStatus = 'pending';
         account.verificationMethod = 'manual';
         // Generate unique verification code
+        const verificationCode = this.generateVerificationCode();
         account.verificationData = {
-          verificationCode: this.generateVerificationCode(),
-          tweetText: `${this.config.manualVerification.twitterVerificationTweet} Code: ${account.verificationData?.verificationCode}`,
+          verificationCode: verificationCode,
+          tweetText: this.config.manualVerification.twitterVerificationTweet.replace('{CODE}', verificationCode),
+          messageText: this.config.manualVerification.twitterVerificationTweet.replace('{CODE}', verificationCode),
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
         };
       }
@@ -271,9 +273,10 @@ export class SocialVerificationService {
       if (this.config.manualVerification.enabled) {
         account.verificationStatus = 'pending';
         account.verificationMethod = 'manual';
+        const verificationCode = this.generateVerificationCode();
         account.verificationData = {
-          verificationCode: this.generateVerificationCode(),
-          messageText: `${this.config.manualVerification.telegramVerificationMessage} Code: ${this.generateVerificationCode()}`,
+          verificationCode: verificationCode,
+          messageText: this.config.manualVerification.telegramVerificationMessage.replace('{CODE}', verificationCode),
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
         };
       }
@@ -300,9 +303,10 @@ export class SocialVerificationService {
       if (this.config.manualVerification.enabled) {
         account.verificationStatus = 'pending';
         account.verificationMethod = 'manual';
+        const verificationCode = this.generateVerificationCode();
         account.verificationData = {
-          verificationCode: this.generateVerificationCode(),
-          messageText: `${this.config.manualVerification.discordVerificationMessage} Code: ${this.generateVerificationCode()}`,
+          verificationCode: verificationCode,
+          messageText: this.config.manualVerification.discordVerificationMessage.replace('{CODE}', verificationCode),
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
         };
       }
@@ -466,10 +470,10 @@ export class SocialVerificationService {
   }
 
   /**
-   * Generate verification code
+   * Generate verification code with emojis
    */
   private generateVerificationCode(): string {
-    return Math.random().toString(36).substr(2, 8).toUpperCase();
+    return `LOS${Math.random().toString(36).substr(2, 6).toUpperCase()}🎯`;
   }
 
   /**
