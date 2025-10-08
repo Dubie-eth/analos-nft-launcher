@@ -697,6 +697,13 @@ export class AdminControlService {
       maintenanceMode: this.adminSettings.maintenanceMode
     };
   }
+
+  /**
+   * Get all collections as an array
+   */
+  getAllCollections(): CollectionConfig[] {
+    return Array.from(this.collections.values());
+  }
 }
 
 export const adminControlService = new AdminControlService();
