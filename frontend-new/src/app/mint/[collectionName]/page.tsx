@@ -43,6 +43,7 @@ import BondingCurveGuide from '../../components/BondingCurveGuide';
 import SecurityNotice from '../../components/SecurityNotice';
 import VerificationBadge from '../../components/VerificationBadge';
 import { userNFTTracker, MintedNFT } from '@/lib/user-nft-tracker';
+import { blockchainFirstFrontendService } from '@/lib/blockchain-first-frontend-service';
 
 // Use the blockchain collection data interface
 type CollectionInfo = BlockchainCollectionData;
@@ -93,13 +94,47 @@ function CollectionMintContent() {
         return;
       }
       
-      console.log('📡 Fetching collection with blockchain fail-safes:', collectionName);
+      console.log('📡 Fetching collection with blockchain-first service:', collectionName);
       
       // Handle collection name mapping
       let actualCollectionName = collectionName;
       if (collectionName === 'The LosBros' || collectionName === 'los-bros') {
         actualCollectionName = 'Los Bros';
         console.log('🔄 Mapping collection name from', collectionName, 'to "Los Bros"');
+      }
+
+      // Try blockchain-first service first
+      try {
+        const blockchainFirstCollection = await blockchainFirstFrontendService.getCollection(actualCollectionName);
+        if (blockchainFirstCollection) {
+          console.log('✅ Collection loaded from blockchain-first service:', blockchainFirstCollection);
+          
+          // Convert to the expected format
+          const convertedCollection: CollectionInfo = {
+            id: actualCollectionName,
+            name: blockchainFirstCollection.collectionName,
+            description: `Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS.`,
+            imageUrl: '/api/placeholder/400/400',
+            symbol: 'LBs',
+            totalSupply: blockchainFirstCollection.totalSupply,
+            currentSupply: blockchainFirstCollection.currentSupply,
+            basePrice: blockchainFirstCollection.mintPrice,
+            currency: blockchainFirstCollection.paymentToken,
+            creator: blockchainFirstCollection.creatorWallet,
+            contractAddresses: {
+              collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+            },
+            deployed: true,
+            lastFetched: now
+          };
+          
+          setCollection(convertedCollection);
+          return;
+        }
+      } catch (error) {
+        console.log('⚠️ Blockchain-first service not available, falling back to legacy system');
       }
       
       // Clear old cached collection data and force refresh from admin service
@@ -1256,46 +1291,50 @@ function CollectionMintContent() {
                         
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
                         
-                        // Track the minted NFT in userNFTTracker
+                        // Track the minted NFT using blockchain-first service
                         try {
                           if (publicKey && result.transactionSignature) {
-                            console.log('🎯 Tracking minted NFT in userNFTTracker (advanced)...');
+                            console.log('🎯 Tracking minted NFT with blockchain-first service...');
                             
                             // Get current active phase for tracking
                             const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
                             const activePhase = whitelistPhaseService.getCurrentActivePhase();
                             
-                            const mintedNFT: MintedNFT = {
-                              id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                              signature: result.transactionSignature,
-                              collectionName: collection.name, // Use actual collection name, not URL parameter
-                              phase: activePhase?.id || 'phase_3_public',
-                              timestamp: Date.now(),
-                              walletAddress: publicKey.toString(),
-                              quantity: result.quantity || 1,
-                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`,
-                              tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
-                            };
+                            // Get next token ID from blockchain-first service
+                            const tokenId = await blockchainFirstFrontendService.getNextTokenId(collection.name);
                             
-                            // Store in localStorage for tracking
-                            const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
-                            const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
-                            existingMints.push(mintedNFT);
-                            localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+                            // Create NFT with full blockchain metadata
+                            const createResult = await blockchainFirstFrontendService.createNFTWithFullMetadata(
+                              collection.name,
+                              tokenId,
+                              publicKey.toString(),
+                              activePhase?.id || 'phase_3_public',
+                              totalCost || 4200.69,
+                              currency || 'LOS',
+                              publicKey.toString(),
+                              [
+                                { trait_type: 'Minted From', value: 'Analos NFT Launcher' },
+                                { trait_type: 'Platform', value: 'Blockchain-First' }
+                              ]
+                            );
                             
-                            console.log('✅ NFT tracked successfully (advanced):', mintedNFT);
-                            
-                            // Update supply counter
-                            setCollection(prevCollection => prevCollection ? {
-                              ...prevCollection,
-                              currentSupply: (prevCollection.currentSupply || 0) + (result.quantity || 1)
-                            } : null);
-                            
-                            // Update whitelist remaining mints
-                            setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - (result.quantity || 1)));
+                            if (createResult.success) {
+                              console.log('✅ NFT created and tracked in blockchain-first system:', createResult);
+                              
+                              // Update supply counter
+                              setCollection(prevCollection => prevCollection ? {
+                                ...prevCollection,
+                                currentSupply: (prevCollection.currentSupply || 0) + (result.quantity || 1)
+                              } : null);
+                              
+                              // Update whitelist remaining mints
+                              setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - (result.quantity || 1)));
+                            } else {
+                              console.error('❌ Failed to create NFT in blockchain-first system:', createResult.error);
+                            }
                           }
                         } catch (error) {
-                          console.error('Error tracking minted NFT (advanced):', error);
+                          console.error('Error tracking minted NFT with blockchain-first service:', error);
                         }
                         
                         fetchCollectionInfo(); // Refresh collection info

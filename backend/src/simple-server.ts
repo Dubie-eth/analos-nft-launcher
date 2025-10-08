@@ -10,6 +10,7 @@ import type { MintedNFT } from './nft-tracking-service.js';
 import { blockchainRecoveryService } from './blockchain-recovery-service.js';
 import { blockchainFirstNFTService } from './blockchain-first-nft-service.js';
 import './initialize-recovery.js'; // Initialize recovery system on startup
+import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
 
 const app = express();
 const PORT = process.env.PORT || 3001;

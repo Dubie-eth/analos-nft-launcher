@@ -10,7 +10,8 @@ export function initializeRecoverySystem() {
   
   // Known mint addresses from the platform
   const knownMints = [
-    '3Dev3fBL3irYTLMSefeiVJpguaJzUe2YPRWn4p6mdzBB', // Los Bros collection
+    '3Dev3fBL3irYTLMSefeiVJpguaJzUe2YPRWn4p6mdzBB', // Original recovery mint
+    '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP', // Los Bros collection
     // Add more mint addresses as they are deployed
   ];
   
