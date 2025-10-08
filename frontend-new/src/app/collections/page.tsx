@@ -96,6 +96,40 @@ const CollectionsPage: React.FC = () => {
           console.error('Error loading admin service collections:', error);
         }
         
+        // 3. Discover collections from blockchain
+        try {
+          const { blockchainDataService } = await import('@/lib/blockchain-data-service');
+          const blockchainCollections = await blockchainDataService.discoverBlockchainCollections();
+          console.log('🔗 Found collections on blockchain:', blockchainCollections.length);
+          
+          // Convert blockchain collections to Collection format
+          const blockchainCollectionsFormatted: Collection[] = blockchainCollections.map(collection => ({
+            id: `blockchain_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+            name: collection.name,
+            symbol: collection.name.substring(0, 4).toUpperCase(),
+            description: 'Collection discovered on blockchain',
+            imageUrl: '/api/placeholder/300/300',
+            maxSupply: collection.totalSupply,
+            totalMinted: collection.currentSupply,
+            mintPrice: collection.mintPrice,
+            pricingToken: collection.paymentToken,
+            mintType: 'Production',
+            revealType: 'Instant',
+            isActive: collection.isActive,
+            mintingEnabled: true,
+            deployedAt: new Date().toISOString(),
+            creator: 'Blockchain',
+            category: 'NFT Collection',
+            website: '',
+            twitter: '',
+            discord: ''
+          }));
+          
+          allCollections = [...allCollections, ...blockchainCollectionsFormatted];
+        } catch (error) {
+          console.error('Error discovering blockchain collections:', error);
+        }
+        
         // 3. Remove duplicates based on collection name
         const uniqueCollections = allCollections.filter((collection, index, self) => 
           index === self.findIndex(c => c.name.toLowerCase() === collection.name.toLowerCase())

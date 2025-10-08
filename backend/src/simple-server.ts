@@ -3078,6 +3078,387 @@ app.post('/api/collections/:collectionId/bulk-reveal', (req, res) => {
   }
 });
 
+// ===== VERIFICATION ENDPOINTS =====
+
+// Start verification process
+app.post('/api/verification/start', (req, res) => {
+  try {
+    const { collectionId, ownerWallet, socialLinks, platform, accountHandle } = req.body;
+    
+    if (!collectionId || !ownerWallet) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection ID and owner wallet are required' 
+      });
+    }
+
+    // Generate a unique verification code with emojis
+    const verificationCode = `LOS${Math.random().toString(36).substr(2, 6).toUpperCase()}🎯`;
+    const verificationId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Calculate expiration time for the verification CODE (24 hours from now)
+    // Note: Once verified, the verification itself lasts 90 days
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const verificationExpiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    
+    // Store verification data
+    if (!(global as any).verificationStore) {
+      (global as any).verificationStore = new Map();
+    }
+    
+    (global as any).verificationStore.set(verificationId, {
+      collectionId,
+      ownerWallet,
+      platform: platform || 'twitter',
+      accountHandle: accountHandle || '',
+      socialLinks: socialLinks || {},
+      verificationCode,
+      verificationId,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      expiresAt, // Code expires in 24 hours
+      verificationExpiresAt, // Verification itself expires in 90 days
+      attempts: 0,
+      maxAttempts: 3
+    });
+
+    console.log(`🎯 Verification started for collection ${collectionId} with code: ${verificationCode}`);
+
+    res.json({
+      success: true,
+      data: {
+        verificationId,
+        verificationCode,
+        verificationUrl: `https://twitter.com/intent/tweet?text=🎯%20Verifying%20my%20NFT%20collection%20on%20LosLauncher!%20Code:%20${verificationCode}%20%23LosLauncher%20%23Analos`,
+        expiresAt,
+        verificationExpiresAt,
+        platform: platform || 'twitter',
+        instructions: `Post this verification message on ${platform || 'Twitter'}: "🎯 Verifying my NFT collection on LosLauncher! Code: ${verificationCode} #LosLauncher #Analos"`,
+        isPermanent: false,
+        validityPeriod: '90 days',
+        note: '✅ Once verified, your collection stays verified for 90 days, then you\'ll need to re-verify'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error starting verification:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to start verification process' 
+    });
+  }
+});
+
+// Complete verification
+app.post('/api/verification/complete', (req, res) => {
+  try {
+    const { verificationId, proofData } = req.body;
+    
+    if (!verificationId || !proofData) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Verification ID and proof data are required' 
+      });
+    }
+
+    if (!(global as any).verificationStore) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Verification not found' 
+      });
+    }
+
+    const verification = (global as any).verificationStore.get(verificationId);
+    if (!verification) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Verification not found' 
+      });
+    }
+
+    // Check if verification has expired
+    if (new Date() > new Date(verification.expiresAt)) {
+      (global as any).verificationStore.delete(verificationId);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Verification has expired' 
+      });
+    }
+
+    // Check if max attempts exceeded
+    if (verification.attempts >= verification.maxAttempts) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Maximum verification attempts exceeded' 
+      });
+    }
+
+    verification.attempts++;
+
+    // For now, we'll simulate verification success
+    // In a real implementation, you would:
+    // 1. Check the social media post for the verification code
+    // 2. Verify the account ownership
+    // 3. Validate the proof data
+
+    verification.status = 'verified';
+    verification.verifiedAt = new Date().toISOString();
+    verification.proofData = proofData;
+    verification.isPermanent = false;
+
+    console.log(`✅ Verification completed for collection ${verification.collectionId} - Valid for 90 days`);
+
+    res.json({
+      success: true,
+      data: {
+        isVerified: true,
+        verifiedPlatforms: [verification.platform],
+        verificationDate: verification.verifiedAt,
+        verificationExpiresAt: verification.verificationExpiresAt,
+        verificationId: verification.verificationId,
+        badgeUrl: `/api/verification/badge/${verificationId}`,
+        isPermanent: false,
+        validityPeriod: '90 days',
+        message: '🎉 Verification successful! Your collection is now verified for 90 days! ✅',
+        note: 'Your verification will remain active for 90 days. You\'ll need to re-verify after that to maintain your verified status.'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error completing verification:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to complete verification' 
+    });
+  }
+});
+
+// Get verification status
+app.get('/api/verification/status/:collectionId', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    
+    if (!(global as any).verificationStore) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No verification found' 
+      });
+    }
+
+    // Find verification by collection ID
+    let verification = null;
+    for (const [id, data] of (global as any).verificationStore.entries()) {
+      if (data.collectionId === collectionId) {
+        verification = data;
+        break;
+      }
+    }
+
+    if (!verification) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'No verification found for this collection' 
+      });
+    }
+
+    // Check if verification has expired (90 days)
+    const isExpired = verification.verificationExpiresAt && 
+                      new Date() > new Date(verification.verificationExpiresAt);
+
+    res.json({
+      success: true,
+      data: {
+        collectionId: verification.collectionId,
+        collectionName: `Collection ${verification.collectionId}`,
+        ownerWallet: verification.ownerWallet,
+        verificationStatus: {
+          isVerified: verification.status === 'verified' && !isExpired,
+          verifiedPlatforms: (verification.status === 'verified' && !isExpired) ? [verification.platform] : [],
+          verificationDate: verification.verifiedAt || verification.createdAt,
+          verificationExpiresAt: verification.verificationExpiresAt,
+          verificationId: verification.verificationId,
+          badgeUrl: `/api/verification/badge/${verification.verificationId}`,
+          isExpired: isExpired,
+          validityPeriod: '90 days'
+        },
+        socialLinks: verification.socialLinks,
+        badgeDisplay: {
+          showBadge: true,
+          badgePosition: 'top-right',
+          badgeSize: 'medium'
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error getting verification status:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get verification status' 
+    });
+  }
+});
+
+// Update badge settings
+app.put('/api/verification/badge-settings', (req, res) => {
+  try {
+    const { collectionId, badgeDisplay } = req.body;
+    
+    if (!collectionId || !badgeDisplay) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection ID and badge display settings are required' 
+      });
+    }
+
+    // In a real implementation, you would update the badge settings in the database
+    console.log(`🎨 Badge settings updated for collection ${collectionId}:`, badgeDisplay);
+
+    res.json({
+      success: true,
+      message: 'Badge settings updated successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating badge settings:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to update badge settings' 
+    });
+  }
+});
+
+// Check if wallet has changed (requires re-verification)
+app.post('/api/verification/check-wallet', (req, res) => {
+  try {
+    const { collectionId, currentWallet } = req.body;
+    
+    if (!collectionId || !currentWallet) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Collection ID and current wallet are required' 
+      });
+    }
+
+    if (!(global as any).verificationStore) {
+      return res.json({
+        success: true,
+        data: {
+          walletChanged: false,
+          needsReverification: false,
+          message: 'No verification exists yet'
+        }
+      });
+    }
+
+    // Find verification by collection ID
+    let verification = null;
+    for (const [id, data] of (global as any).verificationStore.entries()) {
+      if (data.collectionId === collectionId && data.status === 'verified') {
+        verification = data;
+        break;
+      }
+    }
+
+    if (!verification) {
+      return res.json({
+        success: true,
+        data: {
+          walletChanged: false,
+          needsReverification: false,
+          message: 'No verification exists yet'
+        }
+      });
+    }
+
+    // Check if wallet has changed
+    const walletChanged = verification.ownerWallet.toLowerCase() !== currentWallet.toLowerCase();
+
+    if (walletChanged) {
+      console.log(`⚠️ Wallet changed for collection ${collectionId} - re-verification required`);
+      
+      // Mark old verification as invalid
+      verification.status = 'wallet_changed';
+      verification.walletChangedAt = new Date().toISOString();
+      verification.oldWallet = verification.ownerWallet;
+      verification.newWallet = currentWallet;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        walletChanged,
+        needsReverification: walletChanged,
+        oldWallet: walletChanged ? verification.ownerWallet : null,
+        newWallet: walletChanged ? currentWallet : null,
+        message: walletChanged 
+          ? '⚠️ Wallet changed - please verify again with your new wallet'
+          : '✅ Wallet unchanged - verification still valid'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error checking wallet change:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to check wallet change' 
+    });
+  }
+});
+
+// Generate verification badge
+app.get('/api/verification/badge/:verificationId', (req, res) => {
+  try {
+    const { verificationId } = req.params;
+    const { size = 'medium' } = req.query;
+    
+    if (!(global as any).verificationStore) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Verification not found' 
+      });
+    }
+
+    const verification = (global as any).verificationStore.get(verificationId);
+    if (!verification || verification.status !== 'verified') {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Verification not found or not verified' 
+      });
+    }
+
+    // Generate a simple SVG badge with emojis
+    const badgeSizes = {
+      small: { width: 24, height: 24 },
+      medium: { width: 32, height: 32 },
+      large: { width: 48, height: 48 }
+    };
+
+    const dimensions = badgeSizes[size as keyof typeof badgeSizes] || badgeSizes.medium;
+    
+    const svgBadge = `
+      <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="${dimensions.width/2}" cy="${dimensions.height/2}" r="${dimensions.width/2 - 2}" 
+                fill="#10B981" stroke="#059669" stroke-width="2"/>
+        <text x="${dimensions.width/2}" y="${dimensions.height/2 + 4}" 
+              text-anchor="middle" font-size="${dimensions.width * 0.6}" 
+              fill="white" font-family="Arial, sans-serif">✅</text>
+      </svg>
+    `;
+
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.send(svgBadge);
+
+  } catch (error) {
+    console.error('❌ Error generating verification badge:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate verification badge' 
+    });
+  }
+});
+
 // Image Upload endpoint
 app.post('/api/upload-image', upload.single('file'), (req, res) => {
   try {

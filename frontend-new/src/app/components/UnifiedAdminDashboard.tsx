@@ -94,6 +94,37 @@ export default function UnifiedAdminDashboard() {
         console.error('Error loading admin service collections:', error);
       }
       
+      // 3. Discover collections from blockchain
+      try {
+        const blockchainCollections = await blockchainDataService.discoverBlockchainCollections();
+        console.log('🔗 Found collections on blockchain:', blockchainCollections.length);
+        
+        // Convert blockchain collections to the format expected by the dashboard
+        const blockchainCollectionsFormatted = blockchainCollections.map(collection => ({
+          id: `blockchain_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
+          name: collection.name,
+          symbol: collection.name.substring(0, 4).toUpperCase(),
+          description: 'Collection discovered on blockchain',
+          imageUrl: '/api/placeholder/300/300',
+          maxSupply: collection.totalSupply,
+          totalMinted: collection.currentSupply,
+          mintPrice: collection.mintPrice,
+          pricingToken: collection.paymentToken,
+          mintType: 'Production',
+          revealType: 'Instant',
+          isActive: collection.isActive,
+          mintingEnabled: true,
+          deployedAt: new Date().toISOString(),
+          platformFees: 0,
+          volumeTraded: 0,
+          source: 'blockchain'
+        }));
+        
+        allCollections = [...allCollections, ...blockchainCollectionsFormatted];
+      } catch (error) {
+        console.error('Error discovering blockchain collections:', error);
+      }
+      
       // 3. Remove duplicates based on collection name
       const uniqueCollections = allCollections.filter((collection, index, self) => 
         index === self.findIndex(c => c.name.toLowerCase() === collection.name.toLowerCase())
