@@ -1052,7 +1052,11 @@ function CollectionMintContent() {
                   {connected && publicKey && (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-white mb-3">Your Minted NFTs</h3>
-                      <UserMintedNFTs walletAddress={publicKey.toString()} collectionName={collection.name} />
+                      <UserMintedNFTs 
+                        walletAddress={publicKey.toString()} 
+                        collectionName={collection.name}
+                        key={`${publicKey.toString()}-${collection.name}-${Date.now()}`} // Force re-render when needed
+                      />
                     </div>
                   )}
 
@@ -1197,9 +1201,9 @@ function CollectionMintContent() {
                             const activePhase = whitelistPhaseService.getCurrentActivePhase();
                             
                             const mintedNFT: MintedNFT = {
-                              id: `${collectionName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                               signature: result.transactionHash,
-                              collectionName: collectionName,
+                              collectionName: collection.name, // Use actual collection name, not URL parameter
                               phase: activePhase?.id || 'phase_3_public',
                               timestamp: Date.now(),
                               walletAddress: publicKey.toString(),
@@ -1261,9 +1265,9 @@ function CollectionMintContent() {
                             const activePhase = whitelistPhaseService.getCurrentActivePhase();
                             
                             const mintedNFT: MintedNFT = {
-                              id: `${collectionName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                               signature: result.transactionSignature,
-                              collectionName: collectionName,
+                              collectionName: collection.name, // Use actual collection name, not URL parameter
                               phase: activePhase?.id || 'phase_3_public',
                               timestamp: Date.now(),
                               walletAddress: publicKey.toString(),
@@ -1330,9 +1334,9 @@ function CollectionMintContent() {
                             const activePhase = whitelistPhaseService.getCurrentActivePhase();
                             
                             const mintedNFT: MintedNFT = {
-                              id: `${collectionName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                              id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                               signature: result.transactionSignature,
-                              collectionName: collectionName,
+                              collectionName: collection.name, // Use actual collection name, not URL parameter
                               phase: activePhase?.id || 'phase_3_public', // Use phase ID instead of name
                               timestamp: Date.now(),
                               walletAddress: publicKey.toString(),
@@ -1395,24 +1399,25 @@ function UserMintedNFTs({ walletAddress, collectionName }: { walletAddress: stri
   const [mintedNFTs, setMintedNFTs] = useState<MintedNFT[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadMintedNFTs = () => {
-      try {
-        const nfts = userNFTTracker.getMintedNFTsForCollection(walletAddress, collectionName);
-        setMintedNFTs(nfts);
-        console.log(`🎯 Loaded ${nfts.length} minted NFTs for ${collectionName}:`, nfts);
-      } catch (error) {
-        console.error('Error loading minted NFTs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadMintedNFTs = () => {
+    try {
+      const nfts = userNFTTracker.getMintedNFTsForCollection(walletAddress, collectionName);
+      setMintedNFTs(nfts);
+      console.log(`🎯 Loaded ${nfts.length} minted NFTs for ${collectionName}:`, nfts);
+    } catch (error) {
+      console.error('Error loading minted NFTs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadMintedNFTs();
     
-    // Refresh every 5 seconds to catch new mints
-    const interval = setInterval(loadMintedNFTs, 5000);
-    return () => clearInterval(interval);
+    // Set up periodic refresh to catch new mints
+    const refreshInterval = setInterval(loadMintedNFTs, 2000); // Refresh every 2 seconds
+    
+    return () => clearInterval(refreshInterval);
   }, [walletAddress, collectionName]);
 
   if (loading) {

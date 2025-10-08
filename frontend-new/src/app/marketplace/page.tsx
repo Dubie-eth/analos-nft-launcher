@@ -280,16 +280,16 @@ export default function MarketplacePage() {
         
         const activePhase = whitelistPhaseService.getCurrentActivePhase();
         
-        const mintedNFT: MintedNFT = {
-          id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          signature: signature,
-          collectionName: collection.name,
-          phase: activePhase?.id || 'phase_3_public',
-          timestamp: Date.now(),
-          walletAddress: publicKey.toString(),
-          quantity: 1,
-          explorerUrl: `https://explorer.analos.io/tx/${signature}`
-        };
+          const mintedNFT: MintedNFT = {
+            id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            signature: signature,
+            collectionName: collection.name, // Use actual collection name
+            phase: activePhase?.id || 'phase_3_public',
+            timestamp: Date.now(),
+            walletAddress: publicKey.toString(),
+            quantity: 1,
+            explorerUrl: `https://explorer.analos.io/tx/${signature}`
+          };
         
         // Store in localStorage for tracking
         const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;

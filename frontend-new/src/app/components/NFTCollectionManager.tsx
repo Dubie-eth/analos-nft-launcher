@@ -82,16 +82,16 @@ export default function NFTCollectionManager({ className = '' }: NFTCollectionMa
           
           const activePhase = whitelistPhaseService.getCurrentActivePhase();
           
-          const mintedNFT: MintedNFT = {
-            id: `${collectionData.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            signature: result.signature || result.transactionSignature || 'unknown',
-            collectionName: collectionData.name,
-            phase: activePhase?.id || 'phase_3_public',
-            timestamp: Date.now(),
-            walletAddress: publicKey.toString(),
-            quantity: 1,
-            explorerUrl: result.explorerUrl || `https://explorer.analos.io/tx/${result.signature || 'unknown'}`
-          };
+        const mintedNFT: MintedNFT = {
+          id: `${collectionData.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          signature: result.signature || result.transactionSignature || 'unknown',
+          collectionName: collectionData.name, // Use actual collection name
+          phase: activePhase?.id || 'phase_3_public',
+          timestamp: Date.now(),
+          walletAddress: publicKey.toString(),
+          quantity: 1,
+          explorerUrl: result.explorerUrl || `https://explorer.analos.io/tx/${result.signature || 'unknown'}`
+        };
           
           // Store in localStorage for tracking
           const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
