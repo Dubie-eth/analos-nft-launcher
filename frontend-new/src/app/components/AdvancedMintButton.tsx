@@ -133,7 +133,7 @@ export default function AdvancedMintButton({
     return (
       <button
         disabled
-        className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl font-semibold cursor-not-allowed"
+        className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl font-semibold cursor-not-allowed mobile-btn"
       >
         Connect Wallet to Mint
       </button>
@@ -144,7 +144,7 @@ export default function AdvancedMintButton({
     return (
       <button
         disabled
-        className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl font-semibold cursor-not-allowed"
+        className="w-full bg-gray-400 text-white py-4 px-6 rounded-xl font-semibold cursor-not-allowed mobile-btn"
       >
         Checking Eligibility...
       </button>
@@ -156,7 +156,7 @@ export default function AdvancedMintButton({
       <div className="space-y-3">
         <button
           disabled
-          className="w-full bg-red-500 text-white py-4 px-6 rounded-xl font-semibold cursor-not-allowed"
+          className="w-full bg-red-500 text-white py-4 px-6 rounded-xl font-semibold cursor-not-allowed mobile-btn"
         >
           Cannot Mint: {mintCheck.reason}
         </button>
@@ -177,7 +177,7 @@ export default function AdvancedMintButton({
       <button
         onClick={handleMint}
         disabled={minting || (losBalanceInfo && !losBalanceInfo.hasMinimumBalance)}
-        className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+        className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl mobile-btn"
         title={losBalanceInfo && !losBalanceInfo.hasMinimumBalance ? 'You need more $LOS tokens to mint' : ''}
       >
         {minting ? (
