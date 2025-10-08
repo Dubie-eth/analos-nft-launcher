@@ -56,6 +56,8 @@ export interface CollectionConfig {
   imageUrl: string;
   createdAt: number;
   lastModified: number;
+  // Creator/Deployer information
+  creator?: string; // Wallet address of the collection creator/deployer
   // Deployment data
   deployed?: boolean;
   contractAddresses?: {
@@ -257,6 +259,7 @@ export class AdminControlService {
         paymentToken: 'LOS', // Use LOS as payment token
         description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
         imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+        creator: 'YOUR_CREATOR_WALLET_ADDRESS', // This should be set to the actual deployer's wallet address
         createdAt: Date.now(),
         lastModified: Date.now(),
         // Mark as deployed with real blockchain deployment data

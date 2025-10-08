@@ -675,15 +675,24 @@ function CollectionMintContent() {
           {/* Wallet Download & Beta Warning Section */}
           <WalletDownloadSection />
 
-          {/* Social Verification Section */}
-          {connected && publicKey && (
+          {/* Social Verification Section - Only for Collection Creator */}
+          {connected && publicKey && collection && collection.creator && publicKey.toString() === collection.creator && (
             <div className="mb-8">
-              <SocialVerification 
-                walletAddress={publicKey.toString()}
-                onVerificationComplete={(eligible, score) => {
-                  console.log(`Social verification status: eligible=${eligible}, score=${score}`);
-                }}
-              />
+              <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-lg p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <span className="text-2xl">🔐</span>
+                  <h3 className="text-xl font-bold text-white">Collection Creator Verification</h3>
+                </div>
+                <p className="text-gray-300 text-sm mb-4">
+                  As the collection creator, you can verify your collection with social media accounts to build trust and credibility.
+                </p>
+                <SocialVerification 
+                  walletAddress={publicKey.toString()}
+                  onVerificationComplete={(eligible, score) => {
+                    console.log(`Social verification status: eligible=${eligible}, score=${score}`);
+                  }}
+                />
+              </div>
             </div>
           )}
 

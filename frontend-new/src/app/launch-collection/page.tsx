@@ -1377,6 +1377,7 @@ const LaunchCollectionPage: React.FC = () => {
                 },
                 deploymentSignature: nftResult.signature,
                 deploymentDate: new Date().toISOString(),
+                creator: publicKey?.toString(), // Set the creator to the current wallet
                 isActive: true,
                 mintingEnabled: true
               });
@@ -1394,6 +1395,7 @@ const LaunchCollectionPage: React.FC = () => {
                 paymentToken: collectionConfig.pricingToken,
                 description: collectionConfig.description,
                 imageUrl: collectionConfig.imageUrl,
+                creator: publicKey?.toString(), // Set the creator to the current wallet
                 // Add deployment data from SPL NFT service
                 deployed: true,
                 contractAddresses: {

@@ -392,6 +392,7 @@ export class BlockchainDataService {
               paymentToken: 'LOS',
               description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
               imageUrl: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
+              creator: 'YOUR_CREATOR_WALLET_ADDRESS', // This should be set to the actual deployer's wallet address
               deployed: true,
               contractAddresses: {
                 mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
