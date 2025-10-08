@@ -60,6 +60,16 @@ export class TokenIDConsistencyService {
       lockTimestamp: 0
     });
 
+    // Los Bros - newly deployed collection
+    this.tokenSequences.set('Los Bros', {
+      collectionName: 'Los Bros',
+      nextTokenId: 1,
+      lockedTokens: new Map(),
+      totalSupply: 2222,
+      isLocked: false, // Ready for minting
+      lockTimestamp: 0
+    });
+
     // New Collection - ready for setup
     this.tokenSequences.set('New Collection', {
       collectionName: 'New Collection',

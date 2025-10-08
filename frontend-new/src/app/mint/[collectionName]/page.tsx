@@ -127,6 +127,59 @@ function CollectionMintContent() {
             });
             console.log('✅ Updated Los Bros collection with real deployment data from localStorage');
           }
+
+          // Ensure the collection exists in tokenIdTracker for minting
+          const collectionMint = `collection_los_bros`;
+          const { tokenIdTracker } = await import('../../lib/token-id-tracker');
+          
+          // Check if collection already exists in tokenIdTracker
+          const existingCollection = tokenIdTracker.getCollectionInfo(collectionMint);
+          if (!existingCollection) {
+            console.log('🏗️ Creating Los Bros collection in tokenIdTracker...');
+            tokenIdTracker.createCollection(
+              collectionMint,
+              'Los Bros',
+              2222, // totalSupply
+              0, // mintPrice (free mint)
+              {
+                maxMintsPerWallet: 10,
+                delayedReveal: {
+                  enabled: false,
+                  type: 'manual',
+                  placeholderImage: 'https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm'
+                },
+                whitelist: {
+                  enabled: true,
+                  addresses: [],
+                  phases: [{
+                    name: 'OGs Phase',
+                    startTime: new Date('2025-10-03T00:00:00Z').getTime(),
+                    endTime: new Date('2025-10-10T23:59:59Z').getTime(),
+                    maxMintsPerWallet: 2,
+                    price: 0.001, // 0.001x multiplier
+                    addresses: [],
+                    active: true,
+                    isTokenBased: true,
+                    tokenRequirements: [{
+                      tokenMint: 'LOL_TOKEN_MINT_ADDRESS', // Will be set properly
+                      minAmount: 1000000, // 1M LOL tokens
+                      decimals: 6,
+                      tokenSymbol: 'LOL'
+                    }]
+                  }]
+                },
+                paymentTokens: [{
+                  mint: 'LOL_TOKEN_MINT_ADDRESS',
+                  symbol: 'LOL',
+                  decimals: 6,
+                  pricePerNFT: 0,
+                  minBalanceForWhitelist: 1000000,
+                  accepted: true
+                }]
+              }
+            );
+            console.log('✅ Created Los Bros collection in tokenIdTracker');
+          }
         } catch (error) {
           console.warn('⚠️ Error checking localStorage for deployed collection:', error);
         }
