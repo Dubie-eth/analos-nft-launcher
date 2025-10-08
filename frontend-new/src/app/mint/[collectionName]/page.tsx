@@ -294,8 +294,8 @@ function CollectionMintContent() {
         const blockchainCollection: BlockchainCollectionData = {
           id: blockchainData.collectionAddress,
           name: blockchainData.name,
-          symbol: '$LOL',
-          description: 'Launch On LOS setting the standard for NFT minting on #ANALOS with $LOL',
+          symbol: 'LBs', // Correct symbol for Los Bros
+          description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS',
           imageUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
           mintPrice: blockchainData.mintPrice,
           totalSupply: blockchainData.totalSupply,
@@ -309,7 +309,9 @@ function CollectionMintContent() {
           metadataAddress: `metadata_${blockchainData.mintAddress}`,
           masterEditionAddress: `master_edition_${blockchainData.mintAddress}`,
           arweaveUrl: 'https://gateway.pinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm',
-          paymentToken: blockchainData.paymentToken
+          paymentToken: blockchainData.paymentToken,
+          // Add creator field for social verification
+          creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'
         };
         
         // Add timestamp for caching
