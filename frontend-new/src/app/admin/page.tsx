@@ -5,7 +5,7 @@ import StandardLayout from '@/app/components/StandardLayout';
 import UnifiedAdminDashboard from '@/app/components/UnifiedAdminDashboard';
 
 export default function AdminPage() {
-  return (
+    return (
     <StandardLayout>
       <UnifiedAdminDashboard />
     </StandardLayout>

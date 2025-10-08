@@ -128,11 +128,14 @@ export class VerificationService {
   async startVerification(
     collectionId: string,
     ownerWallet: string,
-    socialLinks: Record<string, string>
+    platform: 'twitter' | 'discord' | 'telegram' | 'instagram' | 'tiktok',
+    accountHandle: string
   ): Promise<{
     verificationId: string;
+    verificationCode: string;
     verificationUrl: string;
     expiresAt: string;
+    instructions: string;
   }> {
     const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/start`;
     const response = await fetch(url, {
@@ -143,7 +146,9 @@ export class VerificationService {
       body: JSON.stringify({
         collectionId,
         ownerWallet,
-        socialLinks,
+        platform,
+        accountHandle,
+        socialLinks: {}, // Will be populated later
         timestamp: new Date().toISOString()
       }),
     });

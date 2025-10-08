@@ -49,14 +49,18 @@ export class BlockchainDataService {
   // Track initialization to prevent duplicate logging
   private static initializationLogged = false;
   
-  // Global infinite loop prevention
+  // Global infinite loop prevention - more aggressive
   private static globalCallTracker: Map<string, { count: number; timestamp: number }> = new Map();
-  private static readonly GLOBAL_MAX_CALLS_PER_MINUTE = 10;
+  private static readonly GLOBAL_MAX_CALLS_PER_MINUTE = 5; // Reduced from 10 to 5
   
   // Circuit breaker for failing collections
   private static circuitBreaker: Map<string, { failures: number; lastFailure: number; isOpen: boolean }> = new Map();
-  private static readonly MAX_FAILURES = 5;
-  private static readonly CIRCUIT_BREAKER_TIMEOUT = 300000; // 5 minutes
+  private static readonly MAX_FAILURES = 3; // Reduced from 5 to 3
+  private static readonly CIRCUIT_BREAKER_TIMEOUT = 600000; // Increased to 10 minutes
+  
+  // Block repeated calls for the same collection within a short time
+  private static recentCalls: Map<string, number> = new Map();
+  private static readonly CALL_COOLDOWN = 30000; // 30 seconds cooldown between calls
   
   // Collection configurations - will be managed by admin controls and fee management
   private async getCollectionConfig(collectionName: string) {
@@ -142,8 +146,17 @@ export class BlockchainDataService {
    */
   async getCollectionData(collectionName: string): Promise<BlockchainCollectionData | null> {
     try {
-      // Global rate limiting check to prevent infinite loops
       const now = Date.now();
+      
+      // Check recent calls cooldown first
+      const recentCallKey = `recent_${collectionName}`;
+      const lastCall = BlockchainDataService.recentCalls.get(recentCallKey);
+      if (lastCall && (now - lastCall) < BlockchainDataService.CALL_COOLDOWN) {
+        console.warn(`🚨 CALL COOLDOWN ACTIVE for ${collectionName} - blocking call for ${Math.round((BlockchainDataService.CALL_COOLDOWN - (now - lastCall)) / 1000)} more seconds`);
+        return null;
+      }
+      
+      // Global rate limiting check to prevent infinite loops
       const globalCallKey = `global_calls_${collectionName}`;
       const globalCallData = BlockchainDataService.globalCallTracker.get(globalCallKey);
       
@@ -160,6 +173,9 @@ export class BlockchainDataService {
       } else {
         BlockchainDataService.globalCallTracker.set(globalCallKey, { count: 1, timestamp: now });
       }
+      
+      // Update recent calls tracker
+      BlockchainDataService.recentCalls.set(recentCallKey, now);
 
       // Circuit breaker check
       const circuitBreakerKey = `circuit_${collectionName}`;

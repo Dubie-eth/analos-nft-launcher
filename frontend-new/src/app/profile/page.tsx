@@ -12,7 +12,7 @@ interface UserNFT {
   mintAddress: string;
   tokenAddress?: string;
   metadata: {
-    name: string;
+  name: string;
     description: string;
     image: string;
     attributes?: Array<{
@@ -119,7 +119,7 @@ export default function ProfilePage() {
       };
       
       setUserStats(stats);
-    } catch (error) {
+        } catch (error) {
       console.error('Error loading user NFTs:', error);
     } finally {
       setLoading(false);
@@ -181,13 +181,13 @@ export default function ProfilePage() {
     <StandardLayout>
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
+        {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-2">👤 Your Profile</h1>
             <p className="text-gray-300">
               Wallet: {publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Not connected'}
             </p>
-          </div>
+        </div>
 
           {/* User Stats */}
           {userStats && (
@@ -197,34 +197,34 @@ export default function ProfilePage() {
                 <div className="bg-blue-500/20 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-blue-300">{userStats.totalNFTs}</div>
                   <div className="text-sm text-blue-200">Total NFTs</div>
-                </div>
+              </div>
                 <div className="bg-green-500/20 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-green-300">{userStats.collections}</div>
                   <div className="text-sm text-green-200">Collections</div>
-                </div>
+              </div>
                 <div className="bg-purple-500/20 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-purple-300">{userStats.totalValue.toFixed(2)} LOS</div>
                   <div className="text-sm text-purple-200">Est. Value</div>
-                </div>
+            </div>
                 <div className="bg-yellow-500/20 p-4 rounded-lg text-center">
                   <div className="text-2xl font-bold text-yellow-300">
                     {userStats.rarestNFT ? `#${userStats.rarestNFT.rarity?.rank}` : 'N/A'}
-                  </div>
+          </div>
                   <div className="text-sm text-yellow-200">Rarest NFT</div>
-                </div>
               </div>
             </div>
+          </div>
           )}
 
-          {/* NFT Collection */}
+        {/* NFT Collection */}
           <div className="bg-white/10 rounded-xl p-6 border border-white/20">
             <h2 className="text-xl font-semibold text-white mb-4">Your NFT Collection</h2>
             
-            {loading ? (
+              {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
                 <p className="text-gray-300 mt-2">Loading your NFTs...</p>
-              </div>
+          </div>
             ) : userNFTs.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-6xl mb-4">🎨</div>
@@ -235,18 +235,18 @@ export default function ProfilePage() {
                   className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all"
                 >
                   Browse Collections
-                </a>
-              </div>
-            ) : (
+              </a>
+            </div>
+          ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {userNFTs.map((nft) => (
                   <div key={nft.id} className="bg-white/5 rounded-lg p-4 border border-white/10 hover:border-purple-500/50 transition-all">
                     <div className="aspect-square bg-gray-800 rounded-lg mb-3 flex items-center justify-center">
-                      <img
-                        src={nft.image}
-                        alt={nft.name}
+                    <img
+                      src={nft.image}
+                      alt={nft.name}
                         className="w-full h-full object-cover rounded-lg"
-                        onError={(e) => {
+                      onError={(e) => {
                           e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5GVCBJbWFnZTwvdGV4dD48L3N2Zz4=';
                         }}
                       />
@@ -260,17 +260,17 @@ export default function ProfilePage() {
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-300">Rarity Score:</span>
                           <span className="text-purple-300 font-semibold">{nft.rarity.score}</span>
-                        </div>
+                    </div>
                       )}
                       
                       {nft.rarity && (
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-300">Rank:</span>
                           <span className="text-yellow-300 font-semibold">#{nft.rarity.rank}</span>
-                        </div>
+                      </div>
                       )}
                     </div>
-
+                    
                     <div className="mt-4 space-y-2">
                       <button
                         onClick={() => {
@@ -287,12 +287,12 @@ export default function ProfilePage() {
                       >
                         View on Explorer
                       </button>
-                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         </div>
 
         {/* Transfer Modal */}
