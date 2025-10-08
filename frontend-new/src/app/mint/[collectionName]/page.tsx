@@ -101,34 +101,45 @@ function CollectionMintContent() {
         console.log('🔄 Mapping collection name from', collectionName, 'to "Los Bros"');
       }
       
-      // Also check if we have a deployed collection in localStorage with the real deployment data
-      if (collectionName === 'los-bros') {
-        try {
-          const launchedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
-          const deployedCollection = launchedCollections.find((col: any) => 
-            col.name === 'Los Bros' || col.name === 'The LosBros'
-          );
-          
-          if (deployedCollection && deployedCollection.signature) {
-            console.log('🎯 Found deployed collection in localStorage:', deployedCollection.name, 'with signature:', deployedCollection.signature);
-            // Update the admin control service with the real deployment data
+        // Clear old cached collection data and force refresh from admin service
+        if (collectionName === 'los-bros') {
+          try {
+            console.log('🧹 Clearing old cached collection data...');
+            // Clear old localStorage data that might contain outdated collection info
+            const launchedCollections = JSON.parse(localStorage.getItem('launched_collections') || '[]');
+            const updatedCollections = launchedCollections.filter((col: any) => 
+              col.name !== 'Los Bros' && col.name !== 'The LosBros'
+            );
+            localStorage.setItem('launched_collections', JSON.stringify(updatedCollections));
+            console.log('✅ Cleared old Los Bros collection data from localStorage');
+            
+            // Force update the admin control service with current data
             const { adminControlService } = await import('../../lib/admin-control-service');
             await adminControlService.updateCollection('Los Bros', {
               deployed: true,
               contractAddresses: {
-                mint: deployedCollection.signature,
-                tokenAccount: deployedCollection.signature,
-                signature: deployedCollection.signature,
-                collection: deployedCollection.signature,
-                metadata: deployedCollection.signature
+                mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+                tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+                signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+                collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+                metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
               },
-              deploymentSignature: deployedCollection.signature,
-              deploymentDate: deployedCollection.deployedAt || new Date().toISOString()
+              deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+              deploymentDate: new Date().toISOString(),
+              creator: '2CumQ3Citygtbth6JHaMJ6mHfpArRAAJvbHrzMX3gFKrmx1Rc3N2qpbaGEMyMpidPhDLoAdakoSHqbM3E2xS8MLY',
+              paymentToken: 'LOS', // Force update to LOS
+              description: 'Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS'
             });
-            console.log('✅ Updated Los Bros collection with real deployment data from localStorage');
+            console.log('✅ Force updated Los Bros collection with current data');
+            
+            // Force reload the collection data to ensure we get the updated info
+            console.log('🔄 Forcing collection data reload...');
+          } catch (error) {
+            console.error('❌ Error clearing cached data:', error);
           }
+        }
 
-          // Ensure the collection exists in tokenIdTracker for minting
+        // Ensure the collection exists in tokenIdTracker for minting
           const collectionMint = `collection_los_bros`;
           const { tokenIdTracker } = await import('../../lib/token-id-tracker');
           
@@ -162,7 +173,7 @@ function CollectionMintContent() {
                     isTokenBased: true,
                     tokenRequirements: [{
                       tokenMint: 'LOS_TOKEN_MINT_ADDRESS', // Will be set properly
-                      minAmount: 1000000000, // 1 LOS in lamports
+                      minAmount: 1000000000, // 1 LOS in lamports (1 LOS = 1,000,000,000 lamports)
                       decimals: 9,
                       tokenSymbol: 'LOS'
                     }]
