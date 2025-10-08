@@ -1311,7 +1311,7 @@ const LaunchCollectionPage: React.FC = () => {
         const transactionResult = await response.json();
         console.log('✅ Transaction creation response received:', transactionResult);
         
-        if (transactionResult.success && transactionResult.data?.transaction) {
+        if (transactionResult.success && transactionResult.data) {
           setDeploymentStatus('🔐 Please sign the transaction in your wallet...');
           
           // TODO: Integrate actual wallet signing here
@@ -1328,7 +1328,7 @@ const LaunchCollectionPage: React.FC = () => {
               'x-user-wallet': publicKey.toBase58()
             },
             body: JSON.stringify({
-              transaction: transactionResult.data.transaction,
+              transaction: transactionResult.data,
               signature: mockSignature,
               collectionData: collectionData
             }),
