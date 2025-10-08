@@ -555,7 +555,7 @@ app.post('/api/mint', async (req, res) => {
     let mintResult;
     try {
       console.log('🔍 Debug: Checking SDK availability...');
-      console.log('🔍 analosSDK available:', !!analosSDK);
+      console.log('🔍 analosSDK available: false');
       console.log('🔍 collection.collectionId:', collection.collectionId);
       console.log('🔍 collection.poolAddress:', collection.poolAddress);
       

@@ -2947,7 +2947,6 @@ app.post('/api/mint-real-nft', async (req, res) => {
       symbol,
       description,
       image,
-      externalUrl: externalUrl || '',
       attributes: attributes || [
         { trait_type: 'Collection', value: 'Los Bros NFT' },
         { trait_type: 'Network', value: 'Analos' },
