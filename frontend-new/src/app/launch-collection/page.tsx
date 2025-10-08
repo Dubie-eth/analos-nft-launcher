@@ -1429,13 +1429,9 @@ const LaunchCollectionPage: React.FC = () => {
             setCurrentStep(8);
             console.log('✅ currentStep set to 8 successfully');
             
-          } else {
-            setDeploymentStatus(`❌ Transaction submission failed: ${submitResult.error || 'Unknown error'}`);
-            console.log('❌ Transaction submission failed, not advancing to next step');
-          }
         } else {
-          setDeploymentStatus(`❌ Transaction creation failed: ${transactionResult.error || 'Unknown error'}`);
-          console.log('❌ Transaction creation failed, not advancing to next step');
+          setDeploymentStatus(`❌ SPL NFT creation failed: ${nftResult.error || 'Unknown error'}`);
+          console.log('❌ SPL NFT creation failed, not advancing to next step');
         }
       } catch (fetchError) {
         clearTimeout(timeoutId);
