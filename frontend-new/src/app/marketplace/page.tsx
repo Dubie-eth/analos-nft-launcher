@@ -51,14 +51,23 @@ export default function MarketplacePage() {
             const parsedCollections = JSON.parse(savedCollections);
             console.log('📦 Found collections in localStorage:', parsedCollections.length);
             
-            // Filter out old collections that might conflict with admin service
+            // Filter to only show collections with actual deployment data
             const filteredCollections = parsedCollections.filter((col: any) => {
-              // Keep only collections that don't have admin service equivalents
+              // Only keep collections that have actual blockchain deployment data
+              const hasDeploymentData = col.signature && col.signature !== 'Unknown' && col.signature.length > 20;
+              
+              if (!hasDeploymentData) {
+                console.log(`🗑️ Filtering out "${col.name}" - no deployment data (signature: ${col.signature})`);
+                return false;
+              }
+              
+              // Also filter out old Los Bros collections that might conflict with admin service
               const isLosBros = col.name === 'Los Bros' || col.name === 'The LosBros';
               if (isLosBros) {
                 console.log(`🗑️ Filtering out old cached "${col.name}" collection (will use admin service data instead)`);
                 return false;
               }
+              
               return true;
             });
             
@@ -76,9 +85,15 @@ export default function MarketplacePage() {
           const allAdminCollections = await adminControlService.getAllCollections();
           console.log('🎛️ Found collections in admin service:', allAdminCollections.length);
           
-          // Filter to only show active collections
-          const adminCollections = allAdminCollections.filter(collection => collection.isActive && collection.mintingEnabled);
-          console.log('🎛️ Active collections in admin service:', adminCollections.length);
+          // Filter to only show collections that are truly deployed to the blockchain
+          const adminCollections = allAdminCollections.filter(collection => 
+            collection.isActive && 
+            collection.mintingEnabled && 
+            collection.deployed && 
+            collection.contractAddresses?.mint && 
+            collection.creator
+          );
+          console.log('🎛️ Deployed collections in admin service:', adminCollections.length);
           
           const adminCollectionsFormatted: Collection[] = adminCollections.map(collection => ({
             id: `admin_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
@@ -108,13 +123,21 @@ export default function MarketplacePage() {
           console.error('Error loading admin service collections:', error);
         }
         
-        // 3. Discover collections from blockchain
+        // 3. Discover collections from blockchain (only truly deployed collections)
         try {
           const { blockchainDataService } = await import('@/lib/blockchain-data-service');
           const blockchainCollections = await blockchainDataService.discoverBlockchainCollections();
           console.log('🔗 Found collections on blockchain:', blockchainCollections.length);
           
-          const blockchainCollectionsFormatted: Collection[] = blockchainCollections.map(collection => ({
+          // Filter to only show collections with actual blockchain deployment data
+          const deployedBlockchainCollections = blockchainCollections.filter(collection => 
+            collection.mintAddress && 
+            collection.mintAddress !== 'Unknown' && 
+            collection.mintAddress !== 'Admin Managed'
+          );
+          console.log('🔗 Truly deployed blockchain collections:', deployedBlockchainCollections.length);
+          
+          const blockchainCollectionsFormatted: Collection[] = deployedBlockchainCollections.map(collection => ({
             id: `blockchain_${collection.name.toLowerCase().replace(/\s+/g, '_')}`,
             name: collection.name,
             symbol: collection.name.substring(0, 4).toUpperCase(),
