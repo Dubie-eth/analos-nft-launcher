@@ -39,7 +39,7 @@ export class BackendNFTTracker {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
     console.log('🎯 Backend NFT Tracker initialized');
   }
 

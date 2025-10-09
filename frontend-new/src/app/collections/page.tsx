@@ -77,19 +77,30 @@ const CollectionsPage: React.FC = () => {
             description: collection.description || 'No description available',
             imageUrl: collection.imageUrl || '/api/placeholder/300/300',
             maxSupply: collection.totalSupply,
-            totalMinted: 0, // This would come from blockchain data
             mintPrice: collection.mintPrice,
-            pricingToken: collection.paymentToken,
-            mintType: collection.isTestMode ? 'Test' : 'Production',
-            revealType: 'Instant',
-            isActive: collection.isActive,
-            mintingEnabled: collection.mintingEnabled,
+            pricingToken: collection.paymentToken === 'LOS' ? 'LOS' : 'CUSTOM',
+            customTokenSymbol: collection.paymentToken !== 'LOS' ? collection.paymentToken : undefined,
+            royalty: collection.royalty || 0,
+            creatorAddress: collection.creator || '',
+            mintAddress: collection.mintAddress || '',
+            collectionAddress: collection.collectionAddress || '',
+            mintPageUrl: `/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`,
+            shareUrl: '',
+            referralCode: '',
             deployedAt: new Date().toISOString(),
-            creator: 'Admin',
-            category: 'NFT Collection',
-            website: '',
-            twitter: '',
-            discord: ''
+            mintType: collection.isTestMode ? 'bonding-curve' : 'standard',
+            revealType: 'instant',
+            stats: {
+              totalMinted: collection.currentSupply || 0,
+              totalHolders: 0,
+              floorPrice: collection.mintPrice,
+              volumeTraded: 0
+            },
+            socials: {
+              twitter: '',
+              discord: '',
+              website: ''
+            }
           }));
           
           allCollections = [...allCollections, ...adminCollectionsFormatted];
@@ -111,19 +122,30 @@ const CollectionsPage: React.FC = () => {
             description: 'Collection discovered on blockchain',
             imageUrl: '/api/placeholder/300/300',
             maxSupply: collection.totalSupply,
-            totalMinted: collection.currentSupply,
             mintPrice: collection.mintPrice,
-            pricingToken: collection.paymentToken,
-            mintType: 'Production',
-            revealType: 'Instant',
-            isActive: collection.isActive,
-            mintingEnabled: true,
+            pricingToken: collection.paymentToken === 'LOS' ? 'LOS' : 'CUSTOM',
+            customTokenSymbol: collection.paymentToken !== 'LOS' ? collection.paymentToken : undefined,
+            royalty: 0,
+            creatorAddress: collection.creator || '',
+            mintAddress: collection.mintAddress || '',
+            collectionAddress: collection.collectionAddress || '',
+            mintPageUrl: `/mint/${collection.name.toLowerCase().replace(/\s+/g, '-')}`,
+            shareUrl: '',
+            referralCode: '',
             deployedAt: new Date().toISOString(),
-            creator: 'Blockchain',
-            category: 'NFT Collection',
-            website: '',
-            twitter: '',
-            discord: ''
+            mintType: 'standard',
+            revealType: 'instant',
+            stats: {
+              totalMinted: collection.currentSupply || 0,
+              totalHolders: 0,
+              floorPrice: collection.mintPrice,
+              volumeTraded: 0
+            },
+            socials: {
+              twitter: '',
+              discord: '',
+              website: ''
+            }
           }));
           
           allCollections = [...allCollections, ...blockchainCollectionsFormatted];
@@ -182,7 +204,7 @@ const CollectionsPage: React.FC = () => {
   };
 
   const getProgressPercentage = (collection: Collection) => {
-    return Math.round((collection.stats.totalMinted / collection.maxSupply) * 100);
+    return Math.round(((collection.stats?.totalMinted || 0) / collection.maxSupply) * 100);
   };
 
   if (loading) {
@@ -287,7 +309,7 @@ const CollectionsPage: React.FC = () => {
                       </div>
                       <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1">
                         <span className="text-white text-sm font-medium">
-                          {collection.stats.totalMinted} / {collection.maxSupply}
+                          {collection.stats?.totalMinted || 0} / {collection.maxSupply}
                         </span>
                       </div>
                     </div>
@@ -351,7 +373,7 @@ const CollectionsPage: React.FC = () => {
                       {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div className="text-center">
-                          <div className="text-white font-bold">{collection.stats.totalHolders}</div>
+                          <div className="text-white font-bold">{collection.stats?.totalHolders || 0}</div>
                           <div className="text-gray-400 text-xs">Holders</div>
                         </div>
                         <div className="text-center">

@@ -3,7 +3,7 @@
  * Interacts with the blockchain-first backend API
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
 
 export interface OnChainNFTMetadata {
   name: string;
