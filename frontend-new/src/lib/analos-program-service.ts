@@ -82,15 +82,8 @@ class AnalosLaunchpadService {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = authority;
 
-      // Ensure the transaction requires signing by adding a system program instruction
-      // This forces the wallet to actually sign the transaction
-      console.log('🔧 Adding system program instruction to ensure signature requirement');
-      const transferInstruction = SystemProgram.transfer({
-        fromPubkey: authority,
-        toPubkey: authority, // Transfer to self (0 SOL) - this is just to require signing
-        lamports: 0
-      });
-      transaction.add(transferInstruction);
+      // Note: We're only using the custom program instruction
+      // The transaction should require signing because the authority is a signer
 
       console.log('📝 Transaction created with', transaction.instructions.length, 'instructions, ready for signing');
       console.log('   Instructions:', transaction.instructions.map((ix, i) => `${i}: ${ix.programId.toString()}`));
@@ -215,9 +208,56 @@ class AnalosLaunchpadService {
     authority: PublicKey,
     params: InitializeCollectionParams
   ) {
-    // For now, let's create a simple instruction without custom discriminator
-    // This will help us test if the program is reachable at all
-    // We'll add proper instruction data once we confirm connectivity
+    // Create proper instruction data for initializeCollection
+    // Based on your program's expected format
+    
+    // Instruction discriminator (first 8 bytes) - let's try a simpler approach
+    // For now, let's use a minimal instruction that might work with your program
+    // We'll start with just the discriminator and see what happens
+    const discriminator = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]); // Minimal discriminator
+    
+    // Serialize the parameters
+    const nameBuffer = Buffer.from(params.name, 'utf8');
+    const symbolBuffer = Buffer.from(params.symbol, 'utf8');
+    const descriptionBuffer = Buffer.from(params.description, 'utf8');
+    const imageBuffer = Buffer.from(params.image, 'utf8');
+    
+    // Create the instruction data buffer
+    const instructionData = Buffer.concat([
+      discriminator,
+      Buffer.alloc(4), // u32: max_supply
+      Buffer.alloc(8), // u64: mint_price (in lamports)
+      Buffer.alloc(4), // u32: name length
+      nameBuffer,
+      Buffer.alloc(4), // u32: symbol length  
+      symbolBuffer,
+      Buffer.alloc(4), // u32: description length
+      descriptionBuffer,
+      Buffer.alloc(4), // u32: image length
+      imageBuffer
+    ]);
+    
+    // Write the actual values
+    let offset = 8; // Skip discriminator
+    instructionData.writeUInt32LE(params.maxSupply || 2222, offset); // max_supply
+    offset += 4;
+    instructionData.writeBigUInt64LE(BigInt(Math.floor((params.mintPrice || 4200.69) * 1e9)), offset); // mint_price in lamports
+    offset += 8;
+    instructionData.writeUInt32LE(nameBuffer.length, offset); // name length
+    offset += 4;
+    nameBuffer.copy(instructionData, offset);
+    offset += nameBuffer.length;
+    instructionData.writeUInt32LE(symbolBuffer.length, offset); // symbol length
+    offset += 4;
+    symbolBuffer.copy(instructionData, offset);
+    offset += symbolBuffer.length;
+    instructionData.writeUInt32LE(descriptionBuffer.length, offset); // description length
+    offset += 4;
+    descriptionBuffer.copy(instructionData, offset);
+    offset += descriptionBuffer.length;
+    instructionData.writeUInt32LE(imageBuffer.length, offset); // image length
+    offset += 4;
+    imageBuffer.copy(instructionData, offset);
     
     const instruction = {
       programId: this.programId,
@@ -226,14 +266,15 @@ class AnalosLaunchpadService {
         { pubkey: authority, isSigner: true, isWritable: true },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
-      data: Buffer.from([]) // Empty data for basic connectivity test
+      data: instructionData
     };
 
-    console.log('🔧 Created basic instruction for connectivity test');
+    console.log('🔧 Created initializeCollection instruction with proper data');
     console.log('   Program ID:', this.programId.toString());
     console.log('   Collection Config:', collectionConfig.toString());
     console.log('   Authority:', authority.toString());
-    console.log('   Note: Using empty instruction data to test program accessibility');
+    console.log('   Instruction data length:', instructionData.length);
+    console.log('   Instruction data (hex):', instructionData.toString('hex'));
     
     return instruction;
   }
