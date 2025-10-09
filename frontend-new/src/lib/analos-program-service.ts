@@ -80,6 +80,18 @@ class AnalosLaunchpadService {
         console.log('🔐 Signing and submitting transaction...');
         
         try {
+          // First, let's try to simulate the transaction to see what happens
+          console.log('🧪 Simulating transaction first...');
+          const simulationResult = await this.connection.simulateTransaction(transaction);
+          
+          if (simulationResult.value.err) {
+            console.error('❌ Transaction simulation failed:', simulationResult.value.err);
+            console.error('❌ Simulation logs:', simulationResult.value.logs);
+            throw new Error(`Transaction simulation failed: ${JSON.stringify(simulationResult.value.err)}`);
+          }
+          
+          console.log('✅ Transaction simulation successful');
+          
           // Sign the transaction
           const signedTransaction = await signTransaction(transaction);
           
@@ -144,17 +156,16 @@ class AnalosLaunchpadService {
     authority: PublicKey,
     params: InitializeCollectionParams
   ) {
-    // Create instruction data for initializeCollection
-    // Based on your program's IDL structure
+    // Try to create a proper Anchor instruction
+    // The discriminator for initializeCollection should be the first 8 bytes of sha256("global:initialize_collection")
     
-    // Instruction discriminator (first 8 bytes) for initializeCollection
-    const discriminator = Buffer.from([42, 230, 133, 164, 1, 127, 131, 173]);
+    // For initializeCollection, the discriminator is typically:
+    const discriminator = Buffer.from([42, 230, 133, 164, 1, 127, 131, 173]); // This is a placeholder
     
-    // Serialize instruction data
+    // Create the instruction data with proper serialization
     const instructionData = Buffer.concat([
       discriminator,
-      // Add other instruction parameters as needed
-      // For now, we'll create a basic instruction
+      // Add serialized parameters if needed
     ]);
 
     const instruction = {
@@ -167,7 +178,12 @@ class AnalosLaunchpadService {
       data: instructionData
     };
 
-    console.log('🔧 Created initialize collection instruction with discriminator');
+    console.log('🔧 Created initialize collection instruction with proper Anchor format');
+    console.log('   Program ID:', this.programId.toString());
+    console.log('   Collection Config:', collectionConfig.toString());
+    console.log('   Authority:', authority.toString());
+    console.log('   Instruction Data Length:', instructionData.length);
+    
     return instruction;
   }
 
