@@ -275,17 +275,16 @@ export default function MarketplacePage() {
       
       // Track the minted NFT using blockchain-first system
       try {
-        const { blockchainFirstNFTService } = await import('@/lib/blockchain-first-nft-service');
+        const { blockchainFirstFrontendService } = await import('@/lib/blockchain-first-frontend-service');
         const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
         
         const activePhase = whitelistPhaseService.getCurrentActivePhase();
         
         // Generate next token ID from blockchain-first system
-        const tokenIdResult = await blockchainFirstNFTService.getNextTokenId(collection.name);
-        const tokenId = tokenIdResult.success ? tokenIdResult.nextTokenId! : 1;
+        const tokenId = await blockchainFirstFrontendService.getNextTokenId(collection.name);
         
         // Create NFT with full blockchain metadata
-        const createResult = await blockchainFirstNFTService.createNFTWithFullMetadata(
+        const createResult = await blockchainFirstFrontendService.createNFTWithFullMetadata(
           collection.name,
           tokenId,
           publicKey.toString(),
@@ -299,12 +298,10 @@ export default function MarketplacePage() {
           ]
         );
         
-        const tracked = createResult.success;
-        
-        if (tracked) {
-          console.log('✅ NFT created with blockchain-first metadata:', createResult.mint);
+        if (createResult.success) {
+          console.log('✅ NFT created and tracked in blockchain-first system:', createResult);
         } else {
-          console.error('❌ Failed to create blockchain-first NFT:', createResult.error);
+          console.error('❌ Failed to create NFT in blockchain-first system:', createResult.error);
         }
         
       } catch (error) {

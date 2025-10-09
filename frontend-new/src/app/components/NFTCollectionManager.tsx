@@ -75,32 +75,36 @@ export default function NFTCollectionManager({ className = '' }: NFTCollectionMa
         setMintResult(result);
         console.log('✅ NFT minted successfully:', result);
         
-        // Track the minted NFT in userNFTTracker (same as other mint buttons)
+        // Track the minted NFT using blockchain-first service
         try {
-          const { userNFTTracker, MintedNFT } = await import('@/lib/user-nft-tracker');
+          const { blockchainFirstFrontendService } = await import('@/lib/blockchain-first-frontend-service');
           const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
           
           const activePhase = whitelistPhaseService.getCurrentActivePhase();
           
-        const mintedNFT: MintedNFT = {
-          id: `${collectionData.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          signature: result.signature || result.transactionSignature || 'unknown',
-          collectionName: collectionData.name, // Use actual collection name
-          phase: activePhase?.id || 'phase_3_public',
-          timestamp: Date.now(),
-          walletAddress: publicKey.toString(),
-          quantity: 1,
-          explorerUrl: result.explorerUrl || `https://explorer.analos.io/tx/${result.signature || 'unknown'}`,
-          tokenId: userNFTTracker.generateTokenId(collectionData.name) // Generate unique token ID
-        };
+          // Get next token ID from blockchain-first service
+          const tokenId = await blockchainFirstFrontendService.getNextTokenId(collectionData.name);
           
-          // Store in localStorage for tracking
-          const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
-          const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
-          existingMints.push(mintedNFT);
-          localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
+          // Create NFT with full blockchain metadata
+          const createResult = await blockchainFirstFrontendService.createNFTWithFullMetadata(
+            collectionData.name,
+            tokenId,
+            publicKey.toString(),
+            activePhase?.id || 'phase_3_public',
+            collectionData.mintPrice || 4200.69,
+            'LOS',
+            publicKey.toString(),
+            [
+              { trait_type: 'Minted From', value: 'NFT Collection Manager' },
+              { trait_type: 'Platform', value: 'Analos NFT Launcher' }
+            ]
+          );
           
-          console.log('✅ NFT tracked successfully from NFTCollectionManager:', mintedNFT);
+          if (createResult.success) {
+            console.log('✅ NFT created and tracked in blockchain-first system:', createResult);
+          } else {
+            console.error('❌ Failed to create NFT in blockchain-first system:', createResult.error);
+          }
           
         } catch (error) {
           console.error('Error tracking minted NFT from NFTCollectionManager:', error);

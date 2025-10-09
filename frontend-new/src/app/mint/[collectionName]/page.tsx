@@ -1392,47 +1392,51 @@ function CollectionMintContent() {
                         
                         setMintStatus(`Successfully minted ${result.quantity} NFT(s)! Transaction: ${result.transactionSignature}`);
                         
-                        // Track the minted NFT in userNFTTracker
-                        try {
-                          if (publicKey && result.transactionSignature) {
-                            console.log('🎯 Tracking minted NFT in userNFTTracker...');
-                            
-                            // Get current active phase for tracking
-                            const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
-                            const activePhase = whitelistPhaseService.getCurrentActivePhase();
-                            
-                            const mintedNFT: MintedNFT = {
-                              id: `${collection.name}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                              signature: result.transactionSignature,
-                              collectionName: collection.name, // Use actual collection name, not URL parameter
-                              phase: activePhase?.id || 'phase_3_public', // Use phase ID instead of name
-                              timestamp: Date.now(),
-                              walletAddress: publicKey.toString(),
-                              quantity: result.quantity || 1,
-                              explorerUrl: `https://explorer.analos.io/tx/${result.transactionSignature}`,
-                              tokenId: userNFTTracker.generateTokenId(collection.name) // Generate unique token ID
-                            };
-                            
-                            // Store in localStorage for tracking
-                            const mintedNFTsKey = `minted_nfts_${publicKey.toString().toLowerCase()}`;
-                            const existingMints = JSON.parse(localStorage.getItem(mintedNFTsKey) || '[]');
-                            existingMints.push(mintedNFT);
-                            localStorage.setItem(mintedNFTsKey, JSON.stringify(existingMints));
-                            
-                            console.log('✅ NFT tracked successfully:', mintedNFT);
-                            
-                            // Update supply counter
-                            setCollection(prevCollection => prevCollection ? {
-                              ...prevCollection,
-                              currentSupply: (prevCollection.currentSupply || 0) + result.quantity
-                            } : null);
-                            
-                            // Update whitelist remaining mints
-                            setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - result.quantity));
-                          }
-                        } catch (error) {
-                          console.error('Error tracking minted NFT:', error);
-                        }
+                            // Track the minted NFT using blockchain-first service
+                            try {
+                              if (publicKey && result.transactionSignature) {
+                                console.log('🎯 Tracking minted NFT with blockchain-first service...');
+                                
+                                // Get current active phase for tracking
+                                const { whitelistPhaseService } = await import('@/lib/whitelist-phase-service');
+                                const activePhase = whitelistPhaseService.getCurrentActivePhase();
+                                
+                                // Get next token ID from blockchain-first service
+                                const tokenId = await blockchainFirstFrontendService.getNextTokenId(collection.name);
+                                
+                                // Create NFT with full blockchain metadata
+                                const createResult = await blockchainFirstFrontendService.createNFTWithFullMetadata(
+                                  collection.name,
+                                  tokenId,
+                                  publicKey.toString(),
+                                  activePhase?.id || 'phase_3_public',
+                                  totalCost || 4200.69,
+                                  currency || 'LOS',
+                                  publicKey.toString(),
+                                  [
+                                    { trait_type: 'Minted From', value: 'Analos NFT Launcher' },
+                                    { trait_type: 'Platform', value: 'Blockchain-First' }
+                                  ]
+                                );
+                                
+                                if (createResult.success) {
+                                  console.log('✅ NFT created and tracked in blockchain-first system:', createResult);
+                                  
+                                  // Update supply counter
+                                  setCollection(prevCollection => prevCollection ? {
+                                    ...prevCollection,
+                                    currentSupply: (prevCollection.currentSupply || 0) + result.quantity
+                                  } : null);
+                                  
+                                  // Update whitelist remaining mints
+                                  setWhitelistRemainingMints(prev => Math.max(0, (prev || 0) - result.quantity));
+                                } else {
+                                  console.error('❌ Failed to create NFT in blockchain-first system:', createResult.error);
+                                }
+                              }
+                            } catch (error) {
+                              console.error('Error tracking minted NFT with blockchain-first service:', error);
+                            }
                         
                         fetchCollectionInfo(); // Refresh collection info
                       }}
