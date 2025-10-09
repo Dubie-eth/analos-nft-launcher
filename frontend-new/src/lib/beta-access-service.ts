@@ -3,6 +3,8 @@
  * Manages beta access whitelist for launchpad features
  */
 
+import { isAuthorizedAdmin } from './admin-config';
+
 export interface BetaAccessRequest {
   id: string;
   walletAddress: string;
@@ -99,6 +101,12 @@ export class BetaAccessService {
    */
   hasBetaAccess(walletAddress: string): boolean {
     try {
+      // Check if user is an admin - admins always have access
+      if (isAuthorizedAdmin(walletAddress)) {
+        console.log('🔒 Admin detected, granting beta access:', walletAddress);
+        return true;
+      }
+
       // Check if public access is enabled
       const config = this.getBetaAccessConfig();
       if (config.isPublicAccessEnabled) {
