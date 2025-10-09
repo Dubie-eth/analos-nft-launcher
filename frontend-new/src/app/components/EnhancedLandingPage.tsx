@@ -49,14 +49,36 @@ export default function EnhancedLandingPage() {
         setCollectionStats(stats);
       } catch (error) {
         console.error('Error fetching collection stats:', error);
+        // Set fallback stats to prevent infinite loading
+        setCollectionStats({
+          totalCollections: 1,
+          totalNFTs: 0,
+          totalVolume: 0,
+          activeCollections: 1
+        });
       }
     };
+
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('⚠️ Stats fetch timeout, using fallback data');
+      setCollectionStats({
+        totalCollections: 1,
+        totalNFTs: 0,
+        totalVolume: 0,
+        activeCollections: 1
+      });
+    }, 5000); // 5 second timeout
 
     fetchStats();
     
     // Refresh stats every 30 seconds
     const statsInterval = setInterval(fetchStats, 30000);
-    return () => clearInterval(statsInterval);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(statsInterval);
+    };
   }, []);
 
   // Fetch featured collection data
@@ -96,14 +118,38 @@ export default function EnhancedLandingPage() {
         }
       } catch (error) {
         console.error('Error fetching featured collection data:', error);
+        // Set fallback data to prevent infinite loading
+        setFeaturedCollection({
+          name: 'LosBros Collection',
+          totalSupply: 2222,
+          mintPrice: 4200.69,
+          paymentToken: 'LOS',
+          currentSupply: 0
+        });
       }
     };
+
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('⚠️ Collection data fetch timeout, using fallback data');
+      setFeaturedCollection({
+        name: 'LosBros Collection',
+        totalSupply: 2222,
+        mintPrice: 4200.69,
+        paymentToken: 'LOS',
+        currentSupply: 0
+      });
+    }, 10000); // 10 second timeout
 
     fetchFeaturedCollection();
     
     // Refresh every 60 seconds
     const collectionInterval = setInterval(fetchFeaturedCollection, 60000);
-    return () => clearInterval(collectionInterval);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(collectionInterval);
+    };
   }, []);
 
   const features = [
