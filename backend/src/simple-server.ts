@@ -415,6 +415,77 @@ app.post('/api/recovery/full-recovery', async (req, res) => {
 });
 
 // =============================================================================
+// COLLECTIONS API ENDPOINTS (for data persistence service)
+// =============================================================================
+
+// Collections backup endpoint
+app.post('/api/collections/backup', (req, res) => {
+  try {
+    const { collections, timestamp, version } = req.body;
+    
+    if (!collections || !Array.isArray(collections)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Collections array is required'
+      });
+    }
+    
+    // For now, just acknowledge receipt - in a real system you'd save to database
+    console.log(`📦 Received collections backup: ${collections.length} collections, version ${version}, timestamp ${timestamp}`);
+    
+    res.json({
+      success: true,
+      message: `Collections backup received: ${collections.length} collections`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error handling collections backup:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process collections backup'
+    });
+  }
+});
+
+// =============================================================================
+// VERIFICATION API ENDPOINTS
+// =============================================================================
+
+// Get verification status for a collection
+app.get('/api/verification/status/:collectionId', (req, res) => {
+  try {
+    const { collectionId } = req.params;
+    
+    if (!collectionId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Collection ID is required'
+      });
+    }
+    
+    // For now, return a default verification status
+    // In a real system, this would check actual verification data
+    res.json({
+      success: true,
+      collectionId,
+      isVerified: false,
+      verificationData: {
+        twitter: { verified: false, followers: 0 },
+        telegram: { verified: false, members: 0 },
+        discord: { verified: false, members: 0 }
+      },
+      lastChecked: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error getting verification status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get verification status'
+    });
+  }
+});
+
+// =============================================================================
 // BLOCKCHAIN-FIRST NFT API ENDPOINTS
 // =============================================================================
 
