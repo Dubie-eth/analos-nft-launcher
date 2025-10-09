@@ -4,6 +4,7 @@
  */
 
 import { isAuthorizedAdmin } from './admin-config';
+import { tokenHolderService } from './token-holder-service';
 
 export interface BetaAccessRequest {
   id: string;
@@ -117,12 +118,87 @@ export class BetaAccessService {
       const storage = this.safeLocalStorage();
       if (storage) {
         const whitelist = JSON.parse(storage.getItem(this.BETA_WHITELIST_KEY) || '[]');
-        return whitelist.includes(walletAddress.toLowerCase());
+        if (whitelist.includes(walletAddress.toLowerCase())) {
+          console.log('✅ Wallet found in beta whitelist:', walletAddress);
+          return true;
+        }
       }
+
       return false;
     } catch (error) {
       console.error('Error checking beta access:', error);
       return false;
+    }
+  }
+
+  /**
+   * Check if wallet has beta access (async version with token holder verification)
+   */
+  async hasBetaAccessAsync(walletAddress: string): Promise<{
+    hasAccess: boolean;
+    reason: string;
+    accessType: 'admin' | 'whitelist' | 'token_holder' | 'public' | 'none';
+    tokenHolderInfo?: any;
+  }> {
+    try {
+      // Check if user is an admin - admins always have access
+      if (isAuthorizedAdmin(walletAddress)) {
+        console.log('🔒 Admin detected, granting beta access:', walletAddress);
+        return {
+          hasAccess: true,
+          reason: 'Admin access granted',
+          accessType: 'admin'
+        };
+      }
+
+      // Check if public access is enabled
+      const config = this.getBetaAccessConfig();
+      if (config.isPublicAccessEnabled) {
+        return {
+          hasAccess: true,
+          reason: 'Public access enabled',
+          accessType: 'public'
+        };
+      }
+
+      // Check whitelist
+      const storage = this.safeLocalStorage();
+      if (storage) {
+        const whitelist = JSON.parse(storage.getItem(this.BETA_WHITELIST_KEY) || '[]');
+        if (whitelist.includes(walletAddress.toLowerCase())) {
+          console.log('✅ Wallet found in beta whitelist:', walletAddress);
+          return {
+            hasAccess: true,
+            reason: 'Beta whitelist access',
+            accessType: 'whitelist'
+          };
+        }
+      }
+
+      // Check token holder access
+      const tokenHolderResult = await tokenHolderService.hasTokenHolderAccess(walletAddress, 'beta');
+      if (tokenHolderResult.hasAccess) {
+        console.log('🎯 Token holder access granted:', walletAddress, tokenHolderResult.highestLevel);
+        return {
+          hasAccess: true,
+          reason: `Token holder access (${tokenHolderResult.highestLevel})`,
+          accessType: 'token_holder',
+          tokenHolderInfo: tokenHolderResult
+        };
+      }
+
+      return {
+        hasAccess: false,
+        reason: 'No access granted',
+        accessType: 'none'
+      };
+    } catch (error) {
+      console.error('Error checking beta access:', error);
+      return {
+        hasAccess: false,
+        reason: 'Error checking access',
+        accessType: 'none'
+      };
     }
   }
 
