@@ -729,7 +729,9 @@ export default function UnifiedAdminDashboard() {
                           <button
                             onClick={() => {
                               pageAccessControlService.togglePageVisibility(config.pageId, publicKey?.toString() || 'admin');
-                              alert(`${config.pageName} visibility toggled.`);
+                              alert(`${config.pageName} visibility toggled. The page will reload to apply changes.`);
+                              // Reload the page to apply changes
+                              setTimeout(() => window.location.reload(), 1000);
                             }}
                             className={`px-2 py-1 rounded text-xs transition-colors ${
                               config.isPublic ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'

@@ -27,15 +27,15 @@ export class PageAccessControlService {
   private pageConfigs: Map<string, PageAccessConfig> = new Map();
   private readonly STORAGE_KEY = 'page_access_control';
 
-  // Default page configurations
+  // Default page configurations - START WITH MARKETPLACE PUBLIC FOR TESTING
   private readonly DEFAULT_CONFIGS: Omit<PageAccessConfig, 'lastModified' | 'modifiedBy'>[] = [
     { pageId: 'home', pageName: 'Home Page', path: '/', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'launch-collection', pageName: 'Launch Collection', path: '/launch-collection', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
-    { pageId: 'marketplace', pageName: 'Marketplace', path: '/marketplace', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['basic', 'premium', 'enterprise'], customPermissions: ['view_collections'] },
-    { pageId: 'explorer', pageName: 'NFT Explorer', path: '/explorer', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['basic', 'premium', 'enterprise'], customPermissions: ['view_collections'] },
-    { pageId: 'mint-losbros', pageName: 'Mint Los Bros', path: '/mint-losbros', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['basic', 'premium', 'enterprise'], customPermissions: ['mint_nfts'] },
-    { pageId: 'collections', pageName: 'Collections', path: '/collections', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['premium', 'enterprise'], customPermissions: ['view_collections'] },
-    { pageId: 'profile', pageName: 'User Profile', path: '/profile', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['basic', 'premium', 'enterprise'], customPermissions: [] },
+    { pageId: 'marketplace', pageName: 'Marketplace', path: '/marketplace', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
+    { pageId: 'explorer', pageName: 'NFT Explorer', path: '/explorer', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
+    { pageId: 'mint-losbros', pageName: 'Mint Los Bros', path: '/mint-losbros', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
+    { pageId: 'collections', pageName: 'Collections', path: '/collections', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
+    { pageId: 'profile', pageName: 'User Profile', path: '/profile', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'admin', pageName: 'Admin Dashboard', path: '/admin', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['enterprise'], customPermissions: ['admin_access'] },
   ];
 

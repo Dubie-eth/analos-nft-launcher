@@ -77,17 +77,30 @@ export default function AdminOnlyWrapper({ children }: AdminOnlyWrapperProps) {
   const pageConfig = pageAccessControlService.getPageConfig(pageId);
   const isPublicPage = pageConfig?.isPublic || false;
 
+  // Check if user is admin or has partner access to determine if we should show badges
+  const showAccessBadge = mounted && connected && publicKey && 
+    (isAuthorizedAdmin(publicKey.toString()) || partnerAccess);
+
   // If this is a public page, allow access without admin check
   if (isPublicPage) {
     return (
       <>
-        {/* Public access indicator */}
-        <div className="fixed top-4 right-4 z-50">
-          <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
-            <span>🌐</span>
-            <span>PUBLIC ACCESS</span>
+        {/* Only show access badge if user is admin or partner - don't show public badge for regular users */}
+        {showAccessBadge && (
+          <div className="fixed top-4 right-4 z-50">
+            {isAuthorizedAdmin(publicKey?.toString() || '') ? (
+              <div className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                <span>🔒</span>
+                <span>ADMIN MODE</span>
+              </div>
+            ) : partnerAccess ? (
+              <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                <span>🤝</span>
+                <span>{partnerAccess.accessLevel.toUpperCase()}</span>
+              </div>
+            ) : null}
           </div>
-        </div>
+        )}
         
         {children}
       </>
