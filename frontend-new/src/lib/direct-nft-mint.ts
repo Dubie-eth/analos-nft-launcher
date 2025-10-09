@@ -190,7 +190,7 @@ export class DirectNFTMintService {
         const mintAddress = mintKeypair.publicKey;
         mintKeypairs.push(mintKeypair);
 
-        // 1. Create mint account
+        // 1. Create mint account - payer creates the account for the mint
         const createMintAccountIx = SystemProgram.createAccount({
           fromPubkey: payer,
           newAccountPubkey: mintAddress,
@@ -199,7 +199,7 @@ export class DirectNFTMintService {
           programId: TOKEN_PROGRAM_ID,
         });
 
-        // 2. Initialize mint
+        // 2. Initialize mint - payer is the mint authority
         const initializeMintIx = createInitializeMintInstruction(
           mintAddress,
           0, // decimals (0 for NFTs)
@@ -207,7 +207,7 @@ export class DirectNFTMintService {
           payer  // freeze authority
         );
 
-        // 3. Create associated token account
+        // 3. Create associated token account for the user
         const associatedTokenAddress = await getAssociatedTokenAddress(
           mintAddress,
           payer
@@ -220,11 +220,11 @@ export class DirectNFTMintService {
           mintAddress // mint
         );
 
-        // 4. Mint token to associated token account
+        // 4. Mint token to user's associated token account
         const mintToIx = createMintToInstruction(
           mintAddress, // mint
           associatedTokenAddress, // destination
-          payer, // authority
+          payer, // authority (user is the mint authority)
           1 // amount (1 for NFT)
         );
 
@@ -341,6 +341,52 @@ export class DirectNFTMintService {
     } catch (error) {
       console.error('❌ Error submitting transaction:', error);
       throw new Error(`Failed to submit transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Sign mint keypairs and submit complete transaction
+   */
+  async signAndSubmitTransaction(
+    transaction: Transaction, 
+    mintKeypairs: Keypair[], 
+    signedTransaction: Transaction
+  ): Promise<string> {
+    try {
+      console.log('🔐 Signing mint keypairs and submitting transaction...');
+      
+      // Sign the transaction with all mint keypairs
+      for (const mintKeypair of mintKeypairs) {
+        transaction.sign(mintKeypair);
+      }
+      
+      // The wallet has already signed for the user's public key
+      // Now we have all the required signatures
+      
+      // Send the fully signed transaction
+      const signature = await this.connection.sendRawTransaction(
+        transaction.serialize(),
+        {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+        }
+      );
+      
+      console.log(`📝 Transaction submitted with signature: ${signature}`);
+      
+      // Wait for confirmation
+      const confirmation = await this.connection.confirmTransaction(signature, 'confirmed');
+      
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${confirmation.value.err}`);
+      }
+      
+      console.log(`✅ Transaction confirmed: ${signature}`);
+      return signature;
+      
+    } catch (error) {
+      console.error('❌ Error signing and submitting transaction:', error);
+      throw new Error(`Failed to sign and submit transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

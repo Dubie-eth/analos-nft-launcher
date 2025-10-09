@@ -274,10 +274,16 @@ export default function MarketplacePage() {
         if (signTransaction) {
           console.log('🔐 Signing transaction with wallet adapter...');
           const signedTransaction = await signTransaction(transaction);
-          signature = await directMintService.submitTransaction(signedTransaction);
+          // Use the new method that handles mint keypair signing
+          signature = await directMintService.signAndSubmitTransaction(transaction, mintKeypairs, signedTransaction);
         } else {
           // Fallback: use wallet's sendTransaction method (common on mobile)
           console.log('📱 Using mobile wallet sendTransaction method...');
+          // For mobile wallets, we need to handle this differently
+          // First sign with mint keypairs, then let the wallet handle it
+          for (const mintKeypair of mintKeypairs) {
+            transaction.sign(mintKeypair);
+          }
           signature = await sendTransaction!(transaction, connection!);
         }
       } catch (walletError) {
@@ -286,6 +292,12 @@ export default function MarketplacePage() {
         // Try alternative mobile wallet methods
         try {
           console.log('🔄 Trying alternative mobile wallet method...');
+          
+          // Sign mint keypairs first
+          for (const mintKeypair of mintKeypairs) {
+            transaction.sign(mintKeypair);
+          }
+          
           if (wallet && 'signAndSendTransaction' in wallet) {
             // Some mobile wallets use this method
             signature = await (wallet as any).signAndSendTransaction(transaction);
