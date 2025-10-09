@@ -57,9 +57,9 @@ class AnalosLaunchpadService {
       
       const authority = new PublicKey(params.authority);
       
-      // Generate a collection config PDA
+      // Generate a collection config PDA using the correct seed from IDL
       const [collectionConfig] = PublicKey.findProgramAddressSync(
-        [Buffer.from('collection_config'), authority.toBuffer()],
+        [Buffer.from('collection'), authority.toBuffer()],
         this.programId
       );
 
@@ -208,56 +208,64 @@ class AnalosLaunchpadService {
     authority: PublicKey,
     params: InitializeCollectionParams
   ) {
-    // Create proper instruction data for initializeCollection
-    // Based on your program's expected format
+    // Create proper instruction data for initializeCollection based on the exact IDL
+    // IDL args: maxSupply (u64), priceLamports (u64), revealThreshold (u64), 
+    //           collectionName (string), collectionSymbol (string), placeholderUri (string)
     
-    // Instruction discriminator (first 8 bytes) - let's try a simpler approach
-    // For now, let's use a minimal instruction that might work with your program
-    // We'll start with just the discriminator and see what happens
-    const discriminator = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]); // Minimal discriminator
+    // Calculate the Anchor discriminator for "initialize_collection"
+    // This is the first 8 bytes of SHA256("global:initialize_collection")
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256');
+    hash.update('global:initialize_collection');
+    const discriminator = hash.digest().slice(0, 8);
     
-    // Serialize the parameters
-    const nameBuffer = Buffer.from(params.name, 'utf8');
-    const symbolBuffer = Buffer.from(params.symbol, 'utf8');
-    const descriptionBuffer = Buffer.from(params.description, 'utf8');
-    const imageBuffer = Buffer.from(params.image, 'utf8');
+    // Prepare string data
+    const collectionName = params.name || 'My Collection';
+    const collectionSymbol = params.symbol || 'MC';
+    const placeholderUri = params.image || 'https://placeholder.com/image.png';
+    const maxSupply = BigInt(params.maxSupply || 2222);
+    const priceLamports = BigInt(Math.floor((params.mintPrice || 4200.69) * 1e9)); // Convert to lamports
+    const revealThreshold = BigInt(Math.floor((params.maxSupply || 2222) * 0.5)); // 50% threshold
     
-    // Create the instruction data buffer
+    // Serialize according to Anchor's Borsh serialization
+    // For strings, Anchor uses: 4 bytes length (u32) + string bytes
+    const nameBuffer = Buffer.from(collectionName, 'utf8');
+    const symbolBuffer = Buffer.from(collectionSymbol, 'utf8');
+    const uriBuffer = Buffer.from(placeholderUri, 'utf8');
+    
+    // Create instruction data buffer
     const instructionData = Buffer.concat([
-      discriminator,
-      Buffer.alloc(4), // u32: max_supply
-      Buffer.alloc(8), // u64: mint_price (in lamports)
-      Buffer.alloc(4), // u32: name length
-      nameBuffer,
-      Buffer.alloc(4), // u32: symbol length  
-      symbolBuffer,
-      Buffer.alloc(4), // u32: description length
-      descriptionBuffer,
-      Buffer.alloc(4), // u32: image length
-      imageBuffer
+      discriminator,                    // 8 bytes: discriminator
+      Buffer.alloc(8),                 // 8 bytes: maxSupply (u64)
+      Buffer.alloc(8),                 // 8 bytes: priceLamports (u64)
+      Buffer.alloc(8),                 // 8 bytes: revealThreshold (u64)
+      Buffer.alloc(4),                 // 4 bytes: collectionName length
+      nameBuffer,                      // variable: collectionName
+      Buffer.alloc(4),                 // 4 bytes: collectionSymbol length
+      symbolBuffer,                    // variable: collectionSymbol
+      Buffer.alloc(4),                 // 4 bytes: placeholderUri length
+      uriBuffer                        // variable: placeholderUri
     ]);
     
-    // Write the actual values
+    // Write the values in little-endian format
     let offset = 8; // Skip discriminator
-    instructionData.writeUInt32LE(params.maxSupply || 2222, offset); // max_supply
-    offset += 4;
-    instructionData.writeBigUInt64LE(BigInt(Math.floor((params.mintPrice || 4200.69) * 1e9)), offset); // mint_price in lamports
+    instructionData.writeBigUInt64LE(maxSupply, offset);
     offset += 8;
-    instructionData.writeUInt32LE(nameBuffer.length, offset); // name length
+    instructionData.writeBigUInt64LE(priceLamports, offset);
+    offset += 8;
+    instructionData.writeBigUInt64LE(revealThreshold, offset);
+    offset += 8;
+    instructionData.writeUInt32LE(nameBuffer.length, offset);
     offset += 4;
     nameBuffer.copy(instructionData, offset);
     offset += nameBuffer.length;
-    instructionData.writeUInt32LE(symbolBuffer.length, offset); // symbol length
+    instructionData.writeUInt32LE(symbolBuffer.length, offset);
     offset += 4;
     symbolBuffer.copy(instructionData, offset);
     offset += symbolBuffer.length;
-    instructionData.writeUInt32LE(descriptionBuffer.length, offset); // description length
+    instructionData.writeUInt32LE(uriBuffer.length, offset);
     offset += 4;
-    descriptionBuffer.copy(instructionData, offset);
-    offset += descriptionBuffer.length;
-    instructionData.writeUInt32LE(imageBuffer.length, offset); // image length
-    offset += 4;
-    imageBuffer.copy(instructionData, offset);
+    uriBuffer.copy(instructionData, offset);
     
     const instruction = {
       programId: this.programId,
@@ -269,12 +277,18 @@ class AnalosLaunchpadService {
       data: instructionData
     };
 
-    console.log('🔧 Created initializeCollection instruction with proper data');
+    console.log('🔧 Created initializeCollection instruction with exact IDL format');
     console.log('   Program ID:', this.programId.toString());
     console.log('   Collection Config:', collectionConfig.toString());
     console.log('   Authority:', authority.toString());
+    console.log('   Max Supply:', maxSupply.toString());
+    console.log('   Price (lamports):', priceLamports.toString());
+    console.log('   Reveal Threshold:', revealThreshold.toString());
+    console.log('   Collection Name:', collectionName);
+    console.log('   Collection Symbol:', collectionSymbol);
+    console.log('   Placeholder URI:', placeholderUri);
     console.log('   Instruction data length:', instructionData.length);
-    console.log('   Instruction data (hex):', instructionData.toString('hex'));
+    console.log('   Discriminator (hex):', discriminator.toString('hex'));
     
     return instruction;
   }
