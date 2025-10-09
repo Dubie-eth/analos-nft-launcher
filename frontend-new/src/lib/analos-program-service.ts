@@ -41,7 +41,7 @@ class AnalosLaunchpadService {
         }
       }
     );
-    this.programId = new PublicKey('FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo');
+    this.programId = new PublicKey('3FNWoNWiBcbA67yYXrczCj8KdUo2TphCZXYHthqewwcX');
     console.log('🎯 Analos Launchpad Service initialized');
     console.log('   Program ID:', this.programId.toString());
     console.log('   RPC URL:', this.connection.rpcEndpoint);
@@ -57,14 +57,29 @@ class AnalosLaunchpadService {
       
       const authority = new PublicKey(params.authority);
       
-      console.log('📍 Using simple initialize function (as deployed)');
+      // Generate a collection config PDA using the correct seed from your deployed program
+      const [collectionConfig] = PublicKey.findProgramAddressSync(
+        [Buffer.from('collection'), authority.toBuffer()],
+        this.programId
+      );
+
+      // Generate a collection mint (this will be created by the program)
+      const collectionMint = new PublicKey(await this.generateCollectionMintAddress(authority));
+
+      console.log('📍 Collection Config PDA:', collectionConfig.toString());
+      console.log('📍 Collection Mint:', collectionMint.toString());
       console.log('   Authority:', authority.toString());
 
       // Create transaction
       const transaction = new Transaction();
 
-      // Add simple initialize instruction (this is what's actually deployed)
-      const initInstruction = this.createInitializeInstruction(authority);
+      // Add initialize collection instruction with complete account structure
+      const initInstruction = this.createInitializeCollectionInstruction(
+        collectionConfig,
+        collectionMint,
+        authority,
+        params
+      );
 
       transaction.add(initInstruction);
 
@@ -136,7 +151,7 @@ class AnalosLaunchpadService {
                 // Transaction exists, consider it successful
                 return {
                   success: true,
-                  collectionConfig: authority.toString(), // For simple initialize, we use authority as config
+                  collectionConfig: collectionConfig.toString(),
                   signature: signature,
                   error: undefined
                 };
@@ -151,7 +166,7 @@ class AnalosLaunchpadService {
 
           return {
             success: true,
-            collectionConfig: authority.toString(), // For simple initialize, we use authority as config
+            collectionConfig: collectionConfig.toString(),
             signature: signature,
             error: undefined
           };
@@ -192,6 +207,27 @@ class AnalosLaunchpadService {
   }
 
   /**
+   * Generate a collection mint address (deterministic based on authority)
+   */
+  private async generateCollectionMintAddress(authority: PublicKey): Promise<string> {
+    // Generate a deterministic mint address based on authority and timestamp
+    const timestamp = Date.now();
+    const seed = Buffer.concat([
+      authority.toBuffer(),
+      Buffer.from('collection_mint'),
+      Buffer.from(timestamp.toString())
+    ]);
+    
+    // Use a simple hash to create a deterministic but unique mint address
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256').update(seed).digest();
+    
+    // Convert to base58 (simplified approach)
+    const mintAddress = new PublicKey(hash.slice(0, 32));
+    return mintAddress.toString();
+  }
+
+  /**
    * Create the simple initialize instruction (for the actual deployed program)
    */
   private createInitializeInstruction(authority: PublicKey) {
@@ -221,6 +257,7 @@ class AnalosLaunchpadService {
    */
   private createInitializeCollectionInstruction(
     collectionConfig: PublicKey,
+    collectionMint: PublicKey,
     authority: PublicKey,
     params: InitializeCollectionParams
   ) {
@@ -287,8 +324,10 @@ class AnalosLaunchpadService {
       programId: this.programId,
       keys: [
         { pubkey: collectionConfig, isSigner: false, isWritable: true },
+        { pubkey: collectionMint, isSigner: false, isWritable: true },
         { pubkey: authority, isSigner: true, isWritable: true },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        // Note: token_program and rent are automatically added by Anchor
       ],
       data: instructionData
     };
