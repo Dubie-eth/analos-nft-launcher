@@ -1343,18 +1343,49 @@ const LaunchCollectionPage: React.FC = () => {
             throw new Error(`Backend HTTP ${response.status}: ${response.statusText}`);
           }
         } catch (backendError) {
-          console.warn('⚠️ Backend deployment failed, using local deployment:', backendError);
-          setDeploymentStatus('⚠️ Backend unavailable, using local deployment...');
+          console.warn('⚠️ Backend deployment failed, using Analos program directly:', backendError);
+          setDeploymentStatus('🚀 Deploying directly to Analos blockchain...');
           
-          // Create a local deployment result
-          nftResult = {
-            success: true,
-            mint: `local_mint_${Date.now()}`,
-            tokenAccount: `local_token_${Date.now()}`,
-            signature: `local_sig_${Date.now()}`,
-            explorerUrl: `https://explorer.analos.io/address/local_mint_${Date.now()}`,
-            message: 'Local deployment (backend unavailable)'
-          };
+          // Use your Analos program directly
+          try {
+            // Import the Analos program service
+            const { analosLaunchpadService } = await import('@/lib/analos-program-service');
+            
+            // Initialize collection with your Analos program
+            const initResult = await analosLaunchpadService.initializeCollection({
+              name: collectionData.name,
+              symbol: collectionData.symbol,
+              description: collectionData.description,
+              image: collectionData.image,
+              maxSupply: collectionData.maxSupply || 2222,
+              mintPrice: collectionData.mintPrice || 4200.69,
+              creator: publicKey.toBase58(),
+              authority: publicKey.toBase58()
+            });
+
+            if (initResult.success) {
+              nftResult = {
+                success: true,
+                mint: initResult.collectionConfig,
+                tokenAccount: initResult.collectionConfig,
+                signature: initResult.signature,
+                explorerUrl: `https://explorer.analos.io/address/${initResult.collectionConfig}`,
+                message: 'Deployed to Analos blockchain using your program!'
+              };
+              console.log('✅ Collection initialized with Analos program:', initResult);
+            } else {
+              throw new Error(initResult.error || 'Failed to initialize collection');
+            }
+          } catch (analosError) {
+            console.error('❌ Analos program deployment failed:', analosError);
+            setDeploymentStatus('❌ Deployment failed - please try again');
+            
+            // Fallback to error state
+            nftResult = {
+              success: false,
+              error: `Deployment failed: ${analosError instanceof Error ? analosError.message : 'Unknown error'}`
+            };
+          }
         }
 
         clearTimeout(timeoutId);
