@@ -77,12 +77,23 @@ class AnalosLaunchpadService {
 
       transaction.add(initInstruction);
 
-      // Set recent blockhash
+      // Set recent blockhash and fee payer
       const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = authority;
 
-      console.log('📝 Transaction created, ready for signing');
+      // Ensure the transaction requires signing by adding a system program instruction
+      // This forces the wallet to actually sign the transaction
+      console.log('🔧 Adding system program instruction to ensure signature requirement');
+      const transferInstruction = SystemProgram.transfer({
+        fromPubkey: authority,
+        toPubkey: authority, // Transfer to self (0 SOL) - this is just to require signing
+        lamports: 0
+      });
+      transaction.add(transferInstruction);
+
+      console.log('📝 Transaction created with', transaction.instructions.length, 'instructions, ready for signing');
+      console.log('   Instructions:', transaction.instructions.map((ix, i) => `${i}: ${ix.programId.toString()}`));
 
       // If signTransaction function is provided, sign and submit the transaction
       if (signTransaction) {
@@ -91,7 +102,15 @@ class AnalosLaunchpadService {
         
         try {
           // Sign the transaction directly (no simulation for custom RPCs)
+          console.log('🔐 About to call signTransaction...');
+          console.log('   Transaction details:', {
+            instructions: transaction.instructions.length,
+            feePayer: transaction.feePayer?.toString(),
+            recentBlockhash: transaction.recentBlockhash
+          });
+          
           const signedTransaction = await signTransaction(transaction);
+          console.log('✅ Transaction signed successfully');
           
           // Submit the transaction with skipPreflight to avoid simulation issues
           const signature = await this.connection.sendRawTransaction(
