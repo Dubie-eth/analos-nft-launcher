@@ -1321,7 +1321,7 @@ const LaunchCollectionPage: React.FC = () => {
           ownerAddress: publicKey.toBase58()
         };
 
-        const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-spl-nft', {
+        const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/mint-spl-nft', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

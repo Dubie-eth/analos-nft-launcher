@@ -59,6 +59,13 @@ export class DirectNFTMintService {
 
       const payer = new PublicKey(payerAddress);
       const transaction = new Transaction();
+      
+      // Set the fee payer to the user's wallet (not the NFT mint address)
+      transaction.feePayer = payer;
+      
+      // Get recent blockhash for transaction
+      const { blockhash } = await this.connection.getLatestBlockhash('confirmed');
+      transaction.recentBlockhash = blockhash;
 
       // Get rent exemption amounts
       const mintRent = await getMinimumBalanceForRentExemptMint(this.connection);

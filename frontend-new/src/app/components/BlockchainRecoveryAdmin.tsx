@@ -30,7 +30,7 @@ export default function BlockchainRecoveryAdmin() {
   const [mintAddress, setMintAddress] = useState('3Dev3fBL3irYTLMSefeiVJpguaJzUe2YPRWn4p6mdzBB');
   const [collectionName, setCollectionName] = useState('Los Bros');
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
 
   const handleFullRecovery = async () => {
     setIsRecovering(true);

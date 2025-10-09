@@ -9,7 +9,7 @@ export default function BlockchainRecovery() {
   const [recoveryResults, setRecoveryResults] = useState<any>(null);
   const [recoveryReport, setRecoveryReport] = useState<any>(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
 
   const addMint = () => {
     if (newMint.trim() && !knownMints.includes(newMint.trim())) {

@@ -16,7 +16,19 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:3002',
+    'https://analos-nft-launcher-9cxc.vercel.app',
+    'https://analos-nft-launcher.vercel.app',
+    'https://*.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin']
+}));
 app.use(express.json());
 
 // Environment variables
