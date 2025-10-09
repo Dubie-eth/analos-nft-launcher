@@ -1215,10 +1215,17 @@ function CollectionMintContent() {
                   {/* Payment Token Selector */}
                   {tokenTrackerCollection && tokenTrackerCollection.paymentTokens.length > 0 && (
                     <PaymentSelector
-                      collection={tokenTrackerCollection}
-                      onSelectPaymentToken={setSelectedPaymentMint}
-                      selectedPaymentMint={selectedPaymentMint}
+                      collectionSettings={{
+                        acceptedTokens: tokenTrackerCollection.paymentTokens,
+                        nftPrice: tokenTrackerCollection.mintPrice || 4200.69
+                      }}
                       quantity={mintQuantity}
+                      onPaymentOptionSelect={(option) => {
+                        setSelectedPaymentMint(option.tokenMint);
+                      }}
+                      onPaymentEligibilityCheck={(canPay, reason) => {
+                        console.log('Payment eligibility:', canPay, reason);
+                      }}
                     />
                   )}
 

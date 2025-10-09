@@ -222,7 +222,15 @@ export default function MintPagePreview({ collectionData, onClose }: MintPagePre
 
                     {/* Payment Selector */}
                     <div className="mb-6">
-                      <PaymentSelector />
+                      <PaymentSelector
+                        collectionSettings={{
+                          acceptedTokens: [],
+                          nftPrice: 4200.69
+                        }}
+                        quantity={1}
+                        onPaymentOptionSelect={() => {}}
+                        onPaymentEligibilityCheck={() => {}}
+                      />
                     </div>
 
                     {/* Preview Mint Button */}

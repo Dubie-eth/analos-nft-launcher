@@ -32,6 +32,12 @@ export default function AdminOnlyWrapper({ children }: AdminOnlyWrapperProps) {
       '/profile': 'profile',
       '/admin': 'admin',
     };
+    
+    // Handle dynamic mint paths like /mint/[collectionName]
+    if (path.startsWith('/mint/')) {
+      return 'mint-dynamic';
+    }
+    
     return pathMap[path] || path.replace('/', '');
   };
 

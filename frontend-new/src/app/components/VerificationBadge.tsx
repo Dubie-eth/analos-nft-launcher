@@ -65,7 +65,7 @@ export default function VerificationBadge({
         }
 
         // If no valid localStorage data, try backend
-        const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/verification/status/${collectionId}`);
+        const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/verification/status/${collectionId}`);
         
         if (response.ok) {
           const data = await response.json();
@@ -204,7 +204,7 @@ export function useVerificationStatus(collectionId: string) {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/verification/status/${collectionId}`);
+        const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/verification/status/${collectionId}`);
         
         if (response.ok) {
           const data = await response.json();

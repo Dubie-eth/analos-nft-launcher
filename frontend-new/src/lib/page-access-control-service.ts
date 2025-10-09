@@ -34,6 +34,7 @@ export class PageAccessControlService {
     { pageId: 'marketplace', pageName: 'Marketplace', path: '/marketplace', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'explorer', pageName: 'NFT Explorer', path: '/explorer', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'mint-losbros', pageName: 'Mint Los Bros', path: '/mint-losbros', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
+    { pageId: 'mint-dynamic', pageName: 'Dynamic Mint Pages', path: '/mint/*', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'collections', pageName: 'Collections', path: '/collections', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'profile', pageName: 'User Profile', path: '/profile', isPublic: true, requiresPartnerAccess: false, allowedAccessLevels: [], customPermissions: [] },
     { pageId: 'admin', pageName: 'Admin Dashboard', path: '/admin', isPublic: false, requiresPartnerAccess: true, allowedAccessLevels: ['enterprise'], customPermissions: ['admin_access'] },
