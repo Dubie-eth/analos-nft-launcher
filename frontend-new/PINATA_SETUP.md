@@ -21,7 +21,7 @@ GITHUB_TOKEN=your_github_token_here
 GITHUB_REPO=your_github_username/your_repo_name
 
 # Backend Configuration
-NEXT_PUBLIC_BACKEND_URL=https://analos-nft-launcher-production-f3da.up.railway.app
+NEXT_PUBLIC_BACKEND_URL=https://analos-nft-launcher-backend-production.up.railway.app
 ```
 
 ### ⚠️ IMPORTANT: Security Update
