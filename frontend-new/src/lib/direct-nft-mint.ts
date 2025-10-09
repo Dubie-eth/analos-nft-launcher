@@ -264,10 +264,7 @@ export class DirectNFTMintService {
         console.log(`   Blockchain Reference: ${lockedMetadata.attributes.blockchain_reference}`);
       }
 
-      // Set recent blockhash and fee payer
-      const { blockhash } = await this.connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = payer;
+      // Transaction already has blockhash and feePayer set at the beginning
 
       console.log(`🎯 Created REAL NFT mint transaction with ${transaction.instructions.length} Token Program instructions`);
       console.log(`📊 Total instructions: ${transaction.instructions.length} (${quantity} NFTs × 4 instructions each)`);
