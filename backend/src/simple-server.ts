@@ -9,6 +9,7 @@ import { nftTrackingService } from './nft-tracking-service.js';
 import type { MintedNFT } from './nft-tracking-service.js';
 import { blockchainRecoveryService } from './blockchain-recovery-service.js';
 import { blockchainFirstNFTService } from './blockchain-first-nft-service.js';
+import { analosLaunchpadService } from './analos-program-service.js';
 import './initialize-recovery.js'; // Initialize recovery system on startup
 import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
 
@@ -742,6 +743,276 @@ app.get('/api/blockchain-first/scan-collection/:mintAddress', async (req, res) =
   }
 });
 
+// =============================================================================
+// ANALOS LAUNCHPAD PROGRAM API ENDPOINTS
+// =============================================================================
+
+// Get program information
+app.get('/api/launchpad/info', (req, res) => {
+  try {
+    const info = analosLaunchpadService.getProgramInfo();
+    res.json({
+      success: true,
+      ...info
+    });
+  } catch (error) {
+    console.error('❌ Error getting program info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get program info'
+    });
+  }
+});
+
+// Initialize a new collection (Admin only)
+app.post('/api/launchpad/initialize', async (req, res) => {
+  try {
+    const {
+      maxSupply,
+      priceLamports,
+      revealThreshold,
+      collectionName,
+      collectionSymbol,
+      placeholderUri
+    } = req.body;
+
+    if (!maxSupply || !priceLamports || !revealThreshold || !collectionName || !collectionSymbol || !placeholderUri) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters'
+      });
+    }
+
+    const result = await analosLaunchpadService.initializeCollection({
+      maxSupply,
+      priceLamports,
+      revealThreshold,
+      collectionName,
+      collectionSymbol,
+      placeholderUri
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error initializing collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to initialize collection'
+    });
+  }
+});
+
+// Get collection configuration
+app.get('/api/launchpad/collection/:authority', async (req, res) => {
+  try {
+    const { authority } = req.params;
+
+    if (!authority) {
+      return res.status(400).json({
+        success: false,
+        error: 'Authority address is required'
+      });
+    }
+
+    const config = await analosLaunchpadService.getCollectionConfig(authority);
+
+    if (!config) {
+      return res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      config
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting collection config:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get collection config'
+    });
+  }
+});
+
+// Build mint instruction data
+app.post('/api/launchpad/build-mint', async (req, res) => {
+  try {
+    const { payer, authority } = req.body;
+
+    if (!payer || !authority) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payer and authority addresses are required'
+      });
+    }
+
+    const result = await analosLaunchpadService.buildMintPlaceholderInstruction({
+      payer,
+      authority
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error building mint instruction:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to build mint instruction'
+    });
+  }
+});
+
+// Reveal collection (Admin only)
+app.post('/api/launchpad/reveal', async (req, res) => {
+  try {
+    const { authority, revealedBaseUri } = req.body;
+
+    if (!authority || !revealedBaseUri) {
+      return res.status(400).json({
+        success: false,
+        error: 'Authority and revealed base URI are required'
+      });
+    }
+
+    const result = await analosLaunchpadService.revealCollection({
+      authority,
+      revealedBaseUri
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error revealing collection:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to reveal collection'
+    });
+  }
+});
+
+// Pause/unpause collection (Admin only)
+app.post('/api/launchpad/pause', async (req, res) => {
+  try {
+    const { authority, paused } = req.body;
+
+    if (!authority || typeof paused !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'Authority and paused state are required'
+      });
+    }
+
+    const result = await analosLaunchpadService.setPause({
+      authority,
+      paused
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error setting pause state:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to set pause state'
+    });
+  }
+});
+
+// Update collection config (Admin only)
+app.post('/api/launchpad/update-config', async (req, res) => {
+  try {
+    const { authority, newPrice, newRevealThreshold } = req.body;
+
+    if (!authority) {
+      return res.status(400).json({
+        success: false,
+        error: 'Authority address is required'
+      });
+    }
+
+    const result = await analosLaunchpadService.updateConfig({
+      authority,
+      newPrice,
+      newRevealThreshold
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error updating config:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update config'
+    });
+  }
+});
+
+// Withdraw funds (Admin only)
+app.post('/api/launchpad/withdraw', async (req, res) => {
+  try {
+    const { authority, amount } = req.body;
+
+    if (!authority || !amount) {
+      return res.status(400).json({
+        success: false,
+        error: 'Authority and amount are required'
+      });
+    }
+
+    const result = await analosLaunchpadService.withdrawFunds({
+      authority,
+      amount
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error withdrawing funds:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to withdraw funds'
+    });
+  }
+});
+
+// Get mint record
+app.get('/api/launchpad/mint/:collectionConfig/:mintIndex', async (req, res) => {
+  try {
+    const { collectionConfig, mintIndex } = req.params;
+
+    if (!collectionConfig || !mintIndex) {
+      return res.status(400).json({
+        success: false,
+        error: 'Collection config and mint index are required'
+      });
+    }
+
+    const mintRecord = await analosLaunchpadService.getMintRecord(
+      collectionConfig,
+      parseInt(mintIndex)
+    );
+
+    if (!mintRecord) {
+      return res.status(404).json({
+        success: false,
+        error: 'Mint record not found'
+      });
+    }
+
+    // Get rarity tier
+    const rarityTier = analosLaunchpadService.getRarityTier(mintRecord.rarityScore);
+
+    res.json({
+      success: true,
+      mintRecord,
+      rarityTier
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting mint record:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get mint record'
+    });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Analos NFT Launcher Backend Server running on port ${PORT}`);
@@ -749,6 +1020,7 @@ app.listen(PORT, () => {
   console.log(`📊 NFT Tracking API: http://localhost:${PORT}/api/nft/`);
   console.log(`🔍 Recovery API: http://localhost:${PORT}/api/recovery/`);
   console.log(`🔗 Blockchain-First API: http://localhost:${PORT}/api/blockchain-first/`);
+  console.log(`🎯 Analos Launchpad API: http://localhost:${PORT}/api/launchpad/`);
 });
 
 // Error handling
