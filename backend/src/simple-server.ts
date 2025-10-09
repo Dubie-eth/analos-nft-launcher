@@ -14,9 +14,9 @@ import './initialize-recovery.js'; // Initialize recovery system on startup
 import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
-// Middleware
+// CORS configuration - use environment variable if available
 const corsOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : [
@@ -28,6 +28,7 @@ const corsOrigins = process.env.CORS_ORIGIN
       'https://*.vercel.app'
     ];
 
+// Middleware
 app.use(cors({
   origin: corsOrigins,
   credentials: true,
