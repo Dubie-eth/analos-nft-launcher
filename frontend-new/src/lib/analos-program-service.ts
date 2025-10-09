@@ -42,7 +42,7 @@ class AnalosLaunchpadService {
   /**
    * Initialize a new collection using your Analos program
    */
-  async initializeCollection(params: InitializeCollectionParams): Promise<InitializeCollectionResult> {
+  async initializeCollection(params: InitializeCollectionParams, signTransaction?: any): Promise<InitializeCollectionResult> {
     try {
       console.log('🚀 Initializing collection with Analos program:', params);
       
@@ -75,12 +75,57 @@ class AnalosLaunchpadService {
 
       console.log('📝 Transaction created, ready for signing');
 
-      return {
-        success: true,
-        collectionConfig: collectionConfig.toString(),
-        signature: 'pending_user_signature',
-        error: undefined
-      };
+      // If signTransaction function is provided, sign and submit the transaction
+      if (signTransaction) {
+        console.log('🔐 Signing and submitting transaction...');
+        
+        try {
+          // Sign the transaction
+          const signedTransaction = await signTransaction(transaction);
+          
+          // Submit the transaction
+          const signature = await this.connection.sendRawTransaction(
+            signedTransaction.serialize(),
+            {
+              skipPreflight: false,
+              preflightCommitment: 'confirmed',
+            }
+          );
+
+          console.log(`📝 Transaction submitted with signature: ${signature}`);
+
+          // Wait for confirmation
+          const confirmation = await this.connection.confirmTransaction(signature, 'confirmed');
+          
+          if (confirmation.value.err) {
+            throw new Error(`Transaction failed: ${confirmation.value.err}`);
+          }
+
+          console.log(`✅ Transaction confirmed: ${signature}`);
+
+          return {
+            success: true,
+            collectionConfig: collectionConfig.toString(),
+            signature: signature,
+            error: undefined
+          };
+
+        } catch (txError) {
+          console.error('❌ Transaction failed:', txError);
+          return {
+            success: false,
+            error: `Transaction failed: ${txError instanceof Error ? txError.message : 'Unknown error'}`
+          };
+        }
+      } else {
+        // No signTransaction function provided, return the PDA for manual signing
+        return {
+          success: true,
+          collectionConfig: collectionConfig.toString(),
+          signature: 'pending_user_signature',
+          error: undefined
+        };
+      }
 
     } catch (error) {
       console.error('❌ Error initializing collection:', error);
@@ -99,9 +144,19 @@ class AnalosLaunchpadService {
     authority: PublicKey,
     params: InitializeCollectionParams
   ) {
-    // This is a simplified instruction creation
-    // In a real implementation, you'd use the program's IDL to create the proper instruction data
+    // Create instruction data for initializeCollection
+    // Based on your program's IDL structure
     
+    // Instruction discriminator (first 8 bytes) for initializeCollection
+    const discriminator = Buffer.from([42, 230, 133, 164, 1, 127, 131, 173]);
+    
+    // Serialize instruction data
+    const instructionData = Buffer.concat([
+      discriminator,
+      // Add other instruction parameters as needed
+      // For now, we'll create a basic instruction
+    ]);
+
     const instruction = {
       programId: this.programId,
       keys: [
@@ -109,10 +164,10 @@ class AnalosLaunchpadService {
         { pubkey: authority, isSigner: true, isWritable: true },
         { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       ],
-      data: Buffer.from([]) // This would contain the actual instruction data from your IDL
+      data: instructionData
     };
 
-    console.log('🔧 Created initialize collection instruction');
+    console.log('🔧 Created initialize collection instruction with discriminator');
     return instruction;
   }
 

@@ -1361,7 +1361,7 @@ const LaunchCollectionPage: React.FC = () => {
               mintPrice: collectionData.mintPrice || 4200.69,
               creator: publicKey.toBase58(),
               authority: publicKey.toBase58()
-            });
+            }, signTransaction);
 
             if (initResult.success) {
               nftResult = {
