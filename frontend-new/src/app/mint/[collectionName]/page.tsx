@@ -20,7 +20,6 @@ import { nftSupplyTracker } from '@/lib/nft-supply-tracker';
 import SupplyDisplay from '../../components/SupplyDisplay';
 import WhitelistStatus from '../../components/WhitelistStatus';
 import StandardLayout from '../../components/StandardLayout';
-import MobileOptimizedLayout from '../../components/MobileOptimizedLayout';
 import TokenIDTracker from '../../components/TokenIDTracker';
 import WalletDownloadSection from '../../components/WalletDownloadSection';
 import DeploymentStatus from '../../components/DeploymentStatus';
@@ -927,8 +926,7 @@ function CollectionMintContent() {
   const baseCost = feeBreakdown.basePrice * mintQuantity;
 
   return (
-    <MobileOptimizedLayout>
-      <StandardLayout>
+    <StandardLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -1462,8 +1460,7 @@ function CollectionMintContent() {
           </div>
         </div>
       </div>
-      </StandardLayout>
-    </MobileOptimizedLayout>
+    </StandardLayout>
   );
 }
 
