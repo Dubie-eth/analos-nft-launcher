@@ -298,7 +298,7 @@ export class ImageGenerationService {
       formData.append('file', blob, filename);
       
       // Upload to backend endpoint
-      const uploadResponse = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/upload-image', {
+      const uploadResponse = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/upload-image', {
         method: 'POST',
         body: formData
       });

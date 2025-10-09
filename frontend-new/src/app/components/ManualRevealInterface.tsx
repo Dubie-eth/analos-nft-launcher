@@ -99,7 +99,7 @@ export default function ManualRevealInterface() {
       setLoading(true);
       
       // Fetch NFTs from blockchain or backend
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/collections/${collectionId}/nfts`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/collections/${collectionId}/nfts`, {
         headers: {
           'x-admin-wallet': publicKey?.toBase58() || ''
         }
@@ -153,7 +153,7 @@ export default function ManualRevealInterface() {
       if (!nft) return;
       
       // Update metadata in backend/database
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/nfts/${nftId}/metadata`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/nfts/${nftId}/metadata`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ export default function ManualRevealInterface() {
       if (!nft) return;
       
       // Call reveal endpoint
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/nfts/${nftId}/reveal`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/nfts/${nftId}/reveal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ export default function ManualRevealInterface() {
       setLoading(true);
       setRevealStatus(`Revealing ${selectedNFTs.length} NFTs...`);
       
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/collections/${selectedCollection?.collectionId}/bulk-reveal`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/collections/${selectedCollection?.collectionId}/bulk-reveal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

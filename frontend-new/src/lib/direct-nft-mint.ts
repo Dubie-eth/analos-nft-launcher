@@ -355,17 +355,19 @@ export class DirectNFTMintService {
     try {
       console.log('🔐 Signing mint keypairs and submitting transaction...');
       
+      // Use the wallet-signed transaction as the base
+      const finalTransaction = signedTransaction;
+      
       // Sign the transaction with all mint keypairs
       for (const mintKeypair of mintKeypairs) {
-        transaction.sign(mintKeypair);
+        finalTransaction.sign(mintKeypair);
       }
       
-      // The wallet has already signed for the user's public key
-      // Now we have all the required signatures
+      // Now we have both wallet signature and mint keypair signatures
       
       // Send the fully signed transaction
       const signature = await this.connection.sendRawTransaction(
-        transaction.serialize(),
+        finalTransaction.serialize(),
         {
           skipPreflight: false,
           preflightCommitment: 'confirmed',
