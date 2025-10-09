@@ -5,6 +5,8 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { usePathname } from 'next/navigation';
 import { isAuthorizedAdmin, getAdminWalletInfo } from '@/lib/admin-config';
+import { pageAccessControlService } from '@/lib/page-access-control-service';
+import { partnerAccessService } from '@/lib/partner-access-service';
 import StandardLayout from './StandardLayout';
 
 interface AdminOnlyWrapperProps {
@@ -18,14 +20,23 @@ export default function AdminOnlyWrapper({ children }: AdminOnlyWrapperProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
 
-  // Pages that are publicly accessible (no admin check required)
-  const publicPages = [
-    '/',                    // Home page
-    '/launch-collection',   // Launch collection page
-  ];
+  // Get page ID from pathname
+  const getPageIdFromPath = (path: string): string => {
+    const pathMap: { [key: string]: string } = {
+      '/': 'home',
+      '/launch-collection': 'launch-collection',
+      '/marketplace': 'marketplace',
+      '/explorer': 'explorer',
+      '/mint-losbros': 'mint-losbros',
+      '/collections': 'collections',
+      '/profile': 'profile',
+      '/admin': 'admin',
+    };
+    return pathMap[path] || path.replace('/', '');
+  };
 
-  // Check if current page is publicly accessible
-  const isPublicPage = publicPages.includes(pathname);
+  const pageId = getPageIdFromPath(pathname);
+  const [partnerAccess, setPartnerAccess] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -34,21 +45,37 @@ export default function AdminOnlyWrapper({ children }: AdminOnlyWrapperProps) {
   useEffect(() => {
     if (mounted && connected && publicKey) {
       setIsChecking(true);
-      const authorized = isAuthorizedAdmin(publicKey.toString());
-      setIsAuthorized(authorized);
+      
+      // Check admin access
+      const adminAuthorized = isAuthorizedAdmin(publicKey.toString());
+      
+      // Check partner access
+      const partner = partnerAccessService.hasPartnerAccess(publicKey.toString());
+      setPartnerAccess(partner);
+      
+      // Check page access using the new access control system
+      const canAccess = pageAccessControlService.canAccessPage(pageId, publicKey.toString(), partner);
+      
+      setIsAuthorized(adminAuthorized || canAccess);
       setIsChecking(false);
       
-      if (authorized) {
+      if (adminAuthorized) {
         const adminInfo = getAdminWalletInfo(publicKey.toString());
         console.log(`🔒 Admin access granted to: ${adminInfo?.name || 'Unknown'} (${publicKey.toString()})`);
+      } else if (partner) {
+        console.log(`🤝 Partner access granted to: ${partner.partnerName} (${partner.accessLevel})`);
       } else {
-        console.log(`🔒 Admin access denied for wallet: ${publicKey.toString()}`);
+        console.log(`🚫 Access denied for wallet: ${publicKey.toString()} to page: ${pageId}`);
       }
     } else {
       setIsAuthorized(false);
       setIsChecking(false);
     }
-  }, [mounted, connected, publicKey]);
+  }, [mounted, connected, publicKey, pageId]);
+
+  // Check if page is public
+  const pageConfig = pageAccessControlService.getPageConfig(pageId);
+  const isPublicPage = pageConfig?.isPublic || false;
 
   // If this is a public page, allow access without admin check
   if (isPublicPage) {
@@ -149,15 +176,27 @@ export default function AdminOnlyWrapper({ children }: AdminOnlyWrapperProps) {
     );
   }
 
-  // Authorized admin - show the application
+  // Authorized user - show the application
   return (
     <>
-      {/* Admin indicator */}
+      {/* Access indicator */}
       <div className="fixed top-4 right-4 z-50">
-        <div className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
-          <span>🔒</span>
-          <span>ADMIN MODE</span>
-        </div>
+        {isAuthorizedAdmin(publicKey?.toString() || '') ? (
+          <div className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+            <span>🔒</span>
+            <span>ADMIN MODE</span>
+          </div>
+        ) : partnerAccess ? (
+          <div className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+            <span>🤝</span>
+            <span>{partnerAccess.accessLevel.toUpperCase()}</span>
+          </div>
+        ) : (
+          <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+            <span>👤</span>
+            <span>ACCESS GRANTED</span>
+          </div>
+        )}
       </div>
       
       {children}

@@ -6,6 +6,9 @@ import { adminControlService } from '@/lib/admin-control-service';
 import { feeManagementService } from '@/lib/fee-management-service';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
 import { isAuthorizedAdmin } from '@/lib/admin-config';
+import { pageAnalyticsService } from '@/lib/page-analytics-service';
+import { partnerAccessService } from '@/lib/partner-access-service';
+import { pageAccessControlService } from '@/lib/page-access-control-service';
 import ManualRevealInterface from './ManualRevealInterface';
 import MetadataManagementDashboard from './MetadataManagementDashboard';
 import DataBackupPanel from './DataBackupPanel';
@@ -33,7 +36,7 @@ interface AdminStats {
 
 export default function UnifiedAdminDashboard() {
   const { publicKey, connected } = useWallet();
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'reveal' | 'metadata' | 'backup' | 'recovery' | 'blockchain-first'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'reveal' | 'metadata' | 'backup' | 'recovery' | 'blockchain-first' | 'analytics' | 'partners' | 'access-control' | 'settings'>('overview');
   const [collections, setCollections] = useState<any[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -245,6 +248,9 @@ export default function UnifiedAdminDashboard() {
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'collections', label: 'Collections', icon: '🎨' },
+              { id: 'analytics', label: 'Analytics', icon: '📈' },
+              { id: 'partners', label: 'Partners', icon: '🤝' },
+              { id: 'access-control', label: 'Access Control', icon: '🔐' },
               { id: 'reveal', label: 'Manual Reveal', icon: '🎭' },
               { id: 'metadata', label: 'Metadata', icon: '📝' },
               { id: 'backup', label: 'Data Backup', icon: '💾' },
@@ -406,6 +412,326 @@ export default function UnifiedAdminDashboard() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+            <h2 className="text-xl font-semibold text-white mb-6">📈 Page Analytics & Traffic</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Platform Overview */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Platform Overview</h3>
+                <div className="space-y-3">
+                  {(() => {
+                    const platformStats = pageAnalyticsService.getPlatformAnalytics();
+                    return Object.entries(platformStats).map(([key, value]) => (
+                      <div key={key} className="flex justify-between items-center">
+                        <span className="text-gray-300 capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
+                        <span className="text-white font-semibold">
+                          {typeof value === 'number' ? value.toFixed(1) : value}
+                          {key.includes('Rate') || key.includes('Score') ? '%' : ''}
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Page Performance */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Page Performance</h3>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {pageAnalyticsService.getAllPageAnalytics().map((page) => (
+                    <div key={page.pageId} className="bg-white/5 rounded p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-white font-medium">{page.pageName}</span>
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          page.isPublic ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                        }`}>
+                          {page.isPublic ? 'Public' : 'Private'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-400">Views:</span>
+                          <span className="text-white ml-1">{page.totalViews}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Visitors:</span>
+                          <span className="text-white ml-1">{page.uniqueVisitors}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Bounce:</span>
+                          <span className="text-white ml-1">{page.bounceRate.toFixed(1)}%</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Score:</span>
+                          <span className="text-white ml-1">{page.sustainabilityScore}/100</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-4">
+              <button
+                onClick={() => {
+                  const data = pageAnalyticsService.exportAnalytics();
+                  const blob = new Blob([data], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `analytics_${new Date().toISOString().split('T')[0]}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                📊 Export Analytics
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to reset all analytics data?')) {
+                    pageAnalyticsService.resetAnalytics();
+                    alert('Analytics data has been reset.');
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                🗑️ Reset Analytics
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'partners' && (
+          <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+            <h2 className="text-xl font-semibold text-white mb-6">🤝 Partner Access Management</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Partner Stats */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Partner Statistics</h3>
+                <div className="space-y-3">
+                  {(() => {
+                    const stats = partnerAccessService.getPartnerStats();
+                    return Object.entries(stats).map(([key, value]) => (
+                      <div key={key} className="flex justify-between items-center">
+                        <span className="text-gray-300 capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
+                        <span className="text-white font-semibold">
+                          {typeof value === 'object' ? Object.values(value).reduce((a: number, b: number) => a + b, 0) : value}
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Add New Partner */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Add New Partner</h3>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const walletAddress = formData.get('walletAddress') as string;
+                  const partnerName = formData.get('partnerName') as string;
+                  const accessLevel = formData.get('accessLevel') as any;
+                  
+                  const partner = partnerAccessService.addPartner(
+                    walletAddress,
+                    partnerName,
+                    { twitter: { username: '', verified: false } },
+                    accessLevel,
+                    partnerAccessService.getDefaultPermissions(accessLevel),
+                    publicKey?.toString() || 'admin',
+                    formData.get('notes') as string
+                  );
+                  
+                  alert(`Partner ${partner.partnerName} added successfully!`);
+                  e.currentTarget.reset();
+                }}>
+                  <div className="space-y-3">
+                    <input
+                      name="walletAddress"
+                      type="text"
+                      placeholder="Wallet Address"
+                      className="w-full p-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                      required
+                    />
+                    <input
+                      name="partnerName"
+                      type="text"
+                      placeholder="Partner Name"
+                      className="w-full p-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                      required
+                    />
+                    <select
+                      name="accessLevel"
+                      className="w-full p-2 rounded bg-white/10 border border-white/20 text-white"
+                      required
+                    >
+                      <option value="basic">Basic</option>
+                      <option value="premium">Premium</option>
+                      <option value="enterprise">Enterprise</option>
+                    </select>
+                    <textarea
+                      name="notes"
+                      placeholder="Notes (optional)"
+                      className="w-full p-2 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                      rows={2}
+                    />
+                    <button
+                      type="submit"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded transition-colors"
+                    >
+                      Add Partner
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Partner List */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Active Partners</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {partnerAccessService.getAllPartners().map((partner) => (
+                    <div key={partner.id} className="bg-white/5 rounded p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-white font-medium">{partner.partnerName}</span>
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          partner.isActive ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                        }`}>
+                          {partner.accessLevel}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-400 mb-2">
+                        {partner.walletAddress.slice(0, 8)}...{partner.walletAddress.slice(-8)}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            partnerAccessService.togglePartnerStatus(partner.id);
+                            alert(`Partner ${partner.partnerName} status toggled.`);
+                          }}
+                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
+                        >
+                          {partner.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Remove ${partner.partnerName}?`)) {
+                              partnerAccessService.removePartner(partner.id);
+                              alert('Partner removed.');
+                            }
+                          }}
+                          className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'access-control' && (
+          <div className="bg-white/10 rounded-xl p-6 border border-white/20">
+            <h2 className="text-xl font-semibold text-white mb-6">🔐 Page Access Control</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Access Control Stats */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Access Statistics</h3>
+                <div className="space-y-3">
+                  {(() => {
+                    const stats = pageAccessControlService.getAccessControlStats();
+                    return Object.entries(stats).map(([key, value]) => (
+                      <div key={key} className="flex justify-between items-center">
+                        <span className="text-gray-300 capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
+                        <span className="text-white font-semibold">{value}</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Page Controls */}
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Page Access Settings</h3>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {pageAccessControlService.getAllPageConfigs().map((config) => (
+                    <div key={config.pageId} className="bg-white/5 rounded p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-white font-medium">{config.pageName}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              pageAccessControlService.togglePageVisibility(config.pageId, publicKey?.toString() || 'admin');
+                              alert(`${config.pageName} visibility toggled.`);
+                            }}
+                            className={`px-2 py-1 rounded text-xs transition-colors ${
+                              config.isPublic ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+                            }`}
+                          >
+                            {config.isPublic ? 'Public' : 'Private'}
+                          </button>
+                          {config.requiresPartnerAccess && (
+                            <span className="px-2 py-1 rounded text-xs bg-purple-500/20 text-purple-300">
+                              Partner
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {config.path} • Levels: {config.allowedAccessLevels.join(', ') || 'All'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-4">
+              <button
+                onClick={() => {
+                  const data = pageAccessControlService.exportAccessControl();
+                  const blob = new Blob([data], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `access_control_${new Date().toISOString().split('T')[0]}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                📊 Export Config
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Reset all access control settings to defaults?')) {
+                    pageAccessControlService.resetToDefaults(publicKey?.toString() || 'admin');
+                    alert('Access control settings reset to defaults.');
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                🔄 Reset to Defaults
+              </button>
+            </div>
           </div>
         )}
 
