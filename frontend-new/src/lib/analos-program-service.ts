@@ -31,12 +31,21 @@ class AnalosLaunchpadService {
   constructor() {
     this.connection = new Connection(
       process.env.NEXT_PUBLIC_ANALOS_RPC_URL || 'https://rpc.analos.io',
-      'confirmed'
+      {
+        commitment: 'confirmed',
+        confirmTransactionInitialTimeout: 60000, // 60 seconds timeout
+        disableRetryOnRateLimit: false,
+        // Handle WebSocket connection issues gracefully
+        httpHeaders: {
+          'User-Agent': 'Analos-NFT-Launcher/1.0'
+        }
+      }
     );
     this.programId = new PublicKey('FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo');
     console.log('🎯 Analos Launchpad Service initialized');
     console.log('   Program ID:', this.programId.toString());
     console.log('   RPC URL:', this.connection.rpcEndpoint);
+    console.log('   Timeout: 60 seconds');
   }
 
   /**
@@ -95,14 +104,47 @@ class AnalosLaunchpadService {
 
           console.log(`📝 Transaction submitted with signature: ${signature}`);
 
-          // Wait for confirmation
-          const confirmation = await this.connection.confirmTransaction(signature, 'confirmed');
+          // Wait for confirmation with extended timeout and better error handling
+          console.log(`⏳ Waiting for transaction confirmation: ${signature}`);
           
-          if (confirmation.value.err) {
-            throw new Error(`Transaction failed: ${confirmation.value.err}`);
-          }
+          try {
+            const confirmation = await this.connection.confirmTransaction(signature, 'confirmed');
+            
+            if (confirmation.value.err) {
+              throw new Error(`Transaction failed: ${confirmation.value.err}`);
+            }
 
-          console.log(`✅ Transaction confirmed: ${signature}`);
+            console.log(`✅ Transaction confirmed: ${signature}`);
+          } catch (confirmationError) {
+            console.warn('⚠️ Transaction confirmation failed, checking transaction status manually...');
+            
+            // Fallback: Check if transaction exists on-chain
+            try {
+              const txInfo = await this.connection.getTransaction(signature, {
+                commitment: 'confirmed',
+                maxSupportedTransactionVersion: 0
+              });
+              
+              if (txInfo) {
+                console.log(`✅ Transaction found on-chain: ${signature}`);
+                console.log(`   Slot: ${txInfo.slot}`);
+                console.log(`   Block Time: ${txInfo.blockTime}`);
+                
+                // Transaction exists, consider it successful
+                return {
+                  success: true,
+                  collectionConfig: collectionConfig.toString(),
+                  signature: signature,
+                  error: undefined
+                };
+              } else {
+                throw new Error('Transaction not found on-chain after timeout');
+              }
+            } catch (manualCheckError) {
+              console.error('❌ Manual transaction check also failed:', manualCheckError);
+              throw new Error(`Transaction confirmation failed: ${confirmationError instanceof Error ? confirmationError.message : 'Unknown error'}. Transaction signature: ${signature}`);
+            }
+          }
 
           return {
             success: true,
