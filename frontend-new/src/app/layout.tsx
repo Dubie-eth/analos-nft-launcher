@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WalletContextProvider } from "./components/WalletProvider";
 import ClientNavigation from "./components/ClientNavigation";
+import AdminOnlyWrapper from "./components/AdminOnlyWrapper";
 import "../lib/restore-losbros"; // Auto-restore LosBros collection
 import "../lib/initialize-beta-access"; // Initialize beta access system
 
@@ -44,7 +45,9 @@ export default function RootLayout({
       >
         <WalletContextProvider>
           <ClientNavigation />
-          {children}
+          <AdminOnlyWrapper>
+            {children}
+          </AdminOnlyWrapper>
         </WalletContextProvider>
       </body>
     </html>
