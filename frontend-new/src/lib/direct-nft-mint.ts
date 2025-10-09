@@ -307,6 +307,40 @@ export class DirectNFTMintService {
   }
 
   /**
+   * Submit a signed transaction to the blockchain
+   */
+  async submitTransaction(signedTransaction: Transaction): Promise<string> {
+    try {
+      console.log('🚀 Submitting transaction to blockchain...');
+      
+      // Send the signed transaction
+      const signature = await this.connection.sendRawTransaction(
+        signedTransaction.serialize(),
+        {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+        }
+      );
+      
+      console.log(`📝 Transaction submitted with signature: ${signature}`);
+      
+      // Wait for confirmation
+      const confirmation = await this.connection.confirmTransaction(signature, 'confirmed');
+      
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${confirmation.value.err}`);
+      }
+      
+      console.log(`✅ Transaction confirmed: ${signature}`);
+      return signature;
+      
+    } catch (error) {
+      console.error('❌ Error submitting transaction:', error);
+      throw new Error(`Failed to submit transaction: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Get the transaction signature for verification
    */
   getExplorerUrl(signature: string): string {

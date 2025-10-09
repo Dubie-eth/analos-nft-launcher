@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
 import VerificationBadge from '@/app/components/VerificationBadge';
@@ -30,7 +30,8 @@ interface Collection {
 }
 
 export default function MarketplacePage() {
-  const { connected, publicKey, signTransaction } = useWallet();
+  const { connected, publicKey, signTransaction, sendTransaction, wallet } = useWallet();
+  const { connection } = useConnection();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -265,11 +266,40 @@ export default function MarketplacePage() {
         collectionData
       );
       
-      // Sign transaction with wallet
-      const signedTransaction = await signTransaction!(transaction);
+      // Sign and submit transaction with wallet
+      let signature: string;
       
-      // Submit transaction
-      const signature = await directMintService.submitTransaction(signedTransaction);
+      try {
+        // Try the standard wallet adapter method first
+        if (signTransaction) {
+          console.log('🔐 Signing transaction with wallet adapter...');
+          const signedTransaction = await signTransaction(transaction);
+          signature = await directMintService.submitTransaction(signedTransaction);
+        } else {
+          // Fallback: use wallet's sendTransaction method (common on mobile)
+          console.log('📱 Using mobile wallet sendTransaction method...');
+          signature = await sendTransaction!(transaction, connection!);
+        }
+      } catch (walletError) {
+        console.error('❌ Wallet transaction failed:', walletError);
+        
+        // Try alternative mobile wallet methods
+        try {
+          console.log('🔄 Trying alternative mobile wallet method...');
+          if (wallet && 'signAndSendTransaction' in wallet) {
+            // Some mobile wallets use this method
+            signature = await (wallet as any).signAndSendTransaction(transaction);
+          } else if (wallet && 'signAndSubmitTransaction' in wallet) {
+            // Other mobile wallets use this method
+            signature = await (wallet as any).signAndSubmitTransaction(transaction);
+          } else {
+            throw new Error('No compatible transaction method found for this wallet');
+          }
+        } catch (altError) {
+          console.error('❌ Alternative wallet methods failed:', altError);
+          throw new Error(`Mobile wallet transaction failed: ${walletError instanceof Error ? walletError.message : 'Unknown error'}`);
+        }
+      }
       
       console.log(`✅ NFT minted successfully: ${signature}`);
       
