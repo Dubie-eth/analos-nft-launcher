@@ -3,9 +3,9 @@
   "version": "2.0.4",
   "description": "Backend for Analos NFT Launcher",
   "type": "module",
-  "main": "dist/simple-server.js",
+  "main": "dist/minimal-working-server.js",
   "scripts": {
-    "start": "node dist/simple-server.js",
+    "start": "node dist/minimal-working-server.js",
     "build": "tsc && node -e \"require('fs').copyFileSync('src/analos-sdk-bridge.js', 'dist/analos-sdk-bridge.js')\" && node -e \"require('fs').copyFileSync('src/analos-sdk-runner.mjs', 'dist/analos-sdk-runner.mjs')\"",
     "dev": "ts-node src/simple-server.ts"
   },
