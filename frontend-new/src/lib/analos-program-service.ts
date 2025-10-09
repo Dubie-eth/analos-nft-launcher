@@ -57,23 +57,14 @@ class AnalosLaunchpadService {
       
       const authority = new PublicKey(params.authority);
       
-      // Generate a collection config PDA using the correct seed from IDL
-      const [collectionConfig] = PublicKey.findProgramAddressSync(
-        [Buffer.from('collection'), authority.toBuffer()],
-        this.programId
-      );
-
-      console.log('📍 Collection Config PDA:', collectionConfig.toString());
+      console.log('📍 Using simple initialize function (as deployed)');
+      console.log('   Authority:', authority.toString());
 
       // Create transaction
       const transaction = new Transaction();
 
-      // Add initialize collection instruction
-      const initInstruction = this.createInitializeCollectionInstruction(
-        collectionConfig,
-        authority,
-        params
-      );
+      // Add simple initialize instruction (this is what's actually deployed)
+      const initInstruction = this.createInitializeInstruction(authority);
 
       transaction.add(initInstruction);
 
@@ -145,7 +136,7 @@ class AnalosLaunchpadService {
                 // Transaction exists, consider it successful
                 return {
                   success: true,
-                  collectionConfig: collectionConfig.toString(),
+                  collectionConfig: authority.toString(), // For simple initialize, we use authority as config
                   signature: signature,
                   error: undefined
                 };
@@ -160,7 +151,7 @@ class AnalosLaunchpadService {
 
           return {
             success: true,
-            collectionConfig: collectionConfig.toString(),
+            collectionConfig: authority.toString(), // For simple initialize, we use authority as config
             signature: signature,
             error: undefined
           };
@@ -198,6 +189,31 @@ class AnalosLaunchpadService {
         error: error instanceof Error ? error.message : 'Unknown error occurred'
       };
     }
+  }
+
+  /**
+   * Create the simple initialize instruction (for the actual deployed program)
+   */
+  private createInitializeInstruction(authority: PublicKey) {
+    // Create instruction data for simple initialize function
+    // This is the discriminator for "initialize" function
+    const discriminator = Buffer.from([175, 175, 109, 31, 13, 152, 155, 237]); // afaf6d1f0d989bed
+    
+    const instruction = {
+      programId: this.programId,
+      keys: [
+        { pubkey: authority, isSigner: true, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data: discriminator
+    };
+
+    console.log('🔧 Created simple initialize instruction');
+    console.log('   Program ID:', this.programId.toString());
+    console.log('   Authority:', authority.toString());
+    console.log('   Discriminator (hex):', discriminator.toString('hex'));
+    
+    return instruction;
   }
 
   /**
