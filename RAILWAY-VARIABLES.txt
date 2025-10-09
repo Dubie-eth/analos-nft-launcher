@@ -1,0 +1,65 @@
+# 🚂 Railway Environment Variables
+
+Copy and paste these into Railway → Variables tab:
+
+## Required Variables:
+
+NODE_ENV=production
+PORT=3001
+ANALOS_RPC_URL=https://rpc.analos.io
+NFT_LAUNCHPAD_PROGRAM_ID=FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo
+CORS_ORIGIN=https://analos-nft-launcher-9cxc.vercel.app
+
+## Admin Wallet:
+
+# Copy the ENTIRE content from: analos-nft-launcher-main/payer-wallet.json
+# It should look like: [82,204,132,209,87,176,71,21,...]
+
+ADMIN_PRIVATE_KEY=[PASTE_KEYPAIR_ARRAY_HERE]
+ADMIN_PUBLIC_KEY=BpPn6H75SaYmHYtxTpLnpkddYviRj5ESaGNwv7iNWZze
+
+## Optional - IPFS/Pinata (if you have them):
+
+PINATA_API_KEY=your_pinata_api_key_here
+PINATA_SECRET_API_KEY=your_pinata_secret_here
+
+## Optional - Platform Fees:
+
+PLATFORM_FEE_PERCENTAGE=2.5
+PLATFORM_FEE_RECIPIENT=BpPn6H75SaYmHYtxTpLnpkddYviRj5ESaGNwv7iNWZze
+
+---
+
+## ⚠️ SECURITY NOTES:
+
+1. NEVER commit this file to GitHub
+2. Only use in Railway's secure Variables tab
+3. The keypair controls your wallet - keep it secret!
+4. After deployment, delete this file or keep it secure
+
+---
+
+## 📋 How to Add to Railway:
+
+1. Go to: https://railway.com/project/b00441bd-d76f-4ccb-84da-3e320d70306b
+2. Click **Variables** tab
+3. For each variable above:
+   - Click **+ New Variable**
+   - Copy the name (e.g., NODE_ENV)
+   - Copy the value (e.g., production)
+   - Click **Add**
+4. For ADMIN_PRIVATE_KEY:
+   - Open: analos-nft-launcher-main/payer-wallet.json
+   - Copy the ENTIRE array: [82,204,132,...]
+   - Paste as the value
+5. Click **Save** or let it auto-save
+6. Railway will auto-deploy
+
+---
+
+## ✅ After Adding Variables:
+
+Railway should automatically deploy your backend.
+
+Check the deployment logs to make sure it starts successfully!
+
