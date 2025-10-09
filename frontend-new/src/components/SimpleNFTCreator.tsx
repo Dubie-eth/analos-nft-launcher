@@ -44,7 +44,7 @@ export default function SimpleNFTCreator() {
 
   const loadCollections = async () => {
     try {
-      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/collections');
+      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/collections');
       const data = await response.json();
       if (data.success) {
         setCollections(data.collections);
@@ -71,8 +71,8 @@ export default function SimpleNFTCreator() {
     try {
       // Choose endpoint based on whether a collection is selected
       const endpoint = selectedCollectionId 
-        ? 'https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-from-collection'
-        : 'https://analos-nft-launcher-production-f3da.up.railway.app/api/mint-spl-nft';
+        ? 'https://analos-nft-launcher-backend-production.up.railway.app/api/mint-from-collection'
+        : 'https://analos-nft-launcher-backend-production.up.railway.app/api/mint-spl-nft';
 
       const requestBody = selectedCollectionId 
         ? {

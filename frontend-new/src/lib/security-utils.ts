@@ -287,7 +287,7 @@ export const CSP_HEADERS = {
     "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://rpc.analos.io https://api.coingecko.com https://price.jup.ag",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://rpc.analos.io https://api.coingecko.com https://price.jup.ag https://analos-nft-launcher-production-f3da.up.railway.app",
+    "connect-src 'self' https://rpc.analos.io https://api.coingecko.com https://price.jup.ag https://analos-nft-launcher-backend-production.up.railway.app",
     "font-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",

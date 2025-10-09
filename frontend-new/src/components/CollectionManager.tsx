@@ -65,7 +65,7 @@ export default function CollectionManager() {
 
   const loadCollections = async () => {
     try {
-      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/collections');
+      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/collections');
       const data = await response.json();
       if (data.success) {
         setCollections(data.collections);
@@ -85,7 +85,7 @@ export default function CollectionManager() {
     setResult(null);
 
     try {
-      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/create-collection', {
+      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/create-collection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

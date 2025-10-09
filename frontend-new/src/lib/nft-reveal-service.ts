@@ -40,7 +40,7 @@ export class NFTRevealService {
     // SECURITY: No client-side API keys - all uploads go through secure server endpoint
     this.pinataApiKey = '';
     this.pinataSecretKey = '';
-    this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+    this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
   }
 
   /**

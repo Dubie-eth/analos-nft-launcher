@@ -91,7 +91,7 @@ export default function CollectionAdminDashboard() {
 
   const loadCollections = async () => {
     try {
-      const response = await fetch('https://analos-nft-launcher-production-f3da.up.railway.app/api/collections');
+      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/collections');
       const data = await response.json();
       if (data.success) {
         setCollections(data.collections);
@@ -103,7 +103,7 @@ export default function CollectionAdminDashboard() {
 
   const loadCollectionAdminData = async (collectionId: string) => {
     try {
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/admin/collections/${collectionId}`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/admin/collections/${collectionId}`, {
         headers: {
           'x-admin-wallet': adminWallet
         }
@@ -122,7 +122,7 @@ export default function CollectionAdminDashboard() {
     
     setLoading(true);
     try {
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/admin/collections/${selectedCollection.id}/whitelist`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/admin/collections/${selectedCollection.id}/whitelist`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +156,7 @@ export default function CollectionAdminDashboard() {
     
     setLoading(true);
     try {
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/admin/collections/${selectedCollection.id}/minting`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/admin/collections/${selectedCollection.id}/minting`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export default function CollectionAdminDashboard() {
     if (!selectedCollection) return;
     
     try {
-      const response = await fetch(`https://analos-nft-launcher-production-f3da.up.railway.app/api/admin/collections/${selectedCollection.id}/whitelist-check/${wallet}`, {
+      const response = await fetch(`https://analos-nft-launcher-backend-production.up.railway.app/api/admin/collections/${selectedCollection.id}/whitelist-check/${wallet}`, {
         headers: {
           'x-admin-wallet': adminWallet
         }

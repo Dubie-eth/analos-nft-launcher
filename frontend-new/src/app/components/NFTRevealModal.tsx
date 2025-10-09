@@ -80,7 +80,7 @@ export default function NFTRevealModal({
         return;
       }
 
-      const backendUrl = 'https://analos-nft-launcher-production-f3da.up.railway.app';
+      const backendUrl = 'https://analos-nft-launcher-backend-production.up.railway.app';
       
       const response = await fetch(`${backendUrl}/api/collections/${collectionId}/reveal`, {
         method: 'PUT',
