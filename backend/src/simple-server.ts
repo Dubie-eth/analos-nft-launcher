@@ -9,8 +9,14 @@ import { nftTrackingService } from './nft-tracking-service.js';
 import type { MintedNFT } from './nft-tracking-service.js';
 import { blockchainRecoveryService } from './blockchain-recovery-service.js';
 import { blockchainFirstNFTService } from './blockchain-first-nft-service.js';
-import './initialize-recovery.js'; // Initialize recovery system on startup
-import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
+// Initialize recovery system on startup
+import('./initialize-recovery.js').catch(error => {
+  console.warn('⚠️ Could not initialize recovery system:', error);
+});
+// Initialize Los Bros collection
+import('./initialize-los-bros-collection.js').catch(error => {
+  console.warn('⚠️ Could not initialize Los Bros collection:', error);
+});
 
 const app = express();
 const PORT = process.env.PORT || 3001;
