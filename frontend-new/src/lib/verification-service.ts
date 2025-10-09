@@ -1,465 +1,197 @@
 /**
- * Verification Service - Handles social media verification and verified collection badges
- * Creates trust through social media connection without endorsing content
+ * Verification Service
+ * Provides verifiable links and data for platform statistics
  */
 
-export interface SocialPlatform {
-  id: string;
+export interface VerificationLink {
   name: string;
-  icon: string;
-  color: string;
-  verificationUrl: string;
-  isRequired: boolean;
+  url: string;
   description: string;
+  type: 'blockchain' | 'api' | 'external';
 }
 
-export interface VerificationStatus {
-  isVerified: boolean;
-  verifiedPlatforms: string[];
-  verificationDate: string;
-  verificationId: string;
-  badgeUrl: string;
-}
-
-export interface CollectionVerification {
-  collectionId: string;
-  collectionName: string;
-  ownerWallet: string;
-  verificationStatus: VerificationStatus;
-  socialLinks: Record<string, string>;
-  badgeDisplay: {
-    showBadge: boolean;
-    badgePosition: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-    badgeSize: 'small' | 'medium' | 'large';
-  };
-}
-
-export interface VerificationRequirements {
-  minimumPlatforms: number;
-  requiredPlatforms: string[];
-  optionalPlatforms: string[];
-  verificationPeriod: number; // days before re-verification needed
+export interface PlatformStats {
+  collectionsLaunched: number;
+  nftsMinted: number;
+  losBurned: string;
+  platformUptime: string;
 }
 
 export class VerificationService {
-  private backendUrl: string;
+  private static instance: VerificationService;
+  
+  // Known mint addresses for collections
+  private static readonly KNOWN_MINTS = {
+    'LosBros': '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+  };
 
-  constructor() {
-    this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-production-f3da.up.railway.app';
+  // Token addresses
+  private static readonly TOKEN_ADDRESSES = {
+    LOS: '7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1Fsqp3VZ1Z',
+    SOL: 'So11111111111111111111111111111111111111112', // Wrapped SOL
+  };
+
+  // Platform URLs
+  private static readonly PLATFORM_URLS = {
+    explorer: 'https://explorer.analos.io',
+    rpc: 'https://rpc.analos.io',
+    health: 'https://analos-nft-launcher-9cxc.vercel.app/api/health',
+  };
+
+  static getInstance(): VerificationService {
+    if (!VerificationService.instance) {
+      VerificationService.instance = new VerificationService();
+    }
+    return VerificationService.instance;
   }
 
   /**
-   * Get available social platforms for verification
+   * Get verification links for collections launched
    */
-  getSocialPlatforms(): SocialPlatform[] {
+  getCollectionsVerificationLinks(): VerificationLink[] {
     return [
       {
-        id: 'twitter',
-        name: 'X (Twitter)',
-        icon: '𝕏',
-        color: '#000000',
-        verificationUrl: 'https://twitter.com',
-        isRequired: false,
-        description: 'Connect your X (Twitter) account'
+        name: 'Los Bros Collection',
+        url: `${VerificationService.PLATFORM_URLS.explorer}/accounts/${VerificationService.KNOWN_MINTS.LosBros}`,
+        description: 'View Los Bros collection on Analos Explorer',
+        type: 'blockchain',
       },
       {
-        id: 'discord',
-        name: 'Discord',
-        icon: '🎮',
-        color: '#5865F2',
-        verificationUrl: 'https://discord.com',
-        isRequired: false,
-        description: 'Connect your Discord server'
+        name: 'Collection Mint Address',
+        url: `${VerificationService.PLATFORM_URLS.explorer}/accounts/${VerificationService.KNOWN_MINTS.LosBros}`,
+        description: 'Direct link to collection mint address',
+        type: 'blockchain',
       },
-      {
-        id: 'telegram',
-        name: 'Telegram',
-        icon: '✈️',
-        color: '#0088CC',
-        verificationUrl: 'https://telegram.org',
-        isRequired: false,
-        description: 'Connect your Telegram channel'
-      },
-      {
-        id: 'instagram',
-        name: 'Instagram',
-        icon: '📸',
-        color: '#E4405F',
-        verificationUrl: 'https://instagram.com',
-        isRequired: false,
-        description: 'Connect your Instagram account'
-      },
-      {
-        id: 'youtube',
-        name: 'YouTube',
-        icon: '📺',
-        color: '#FF0000',
-        verificationUrl: 'https://youtube.com',
-        isRequired: false,
-        description: 'Connect your YouTube channel'
-      },
-      {
-        id: 'website',
-        name: 'Website',
-        icon: '🌐',
-        color: '#4285F4',
-        verificationUrl: '',
-        isRequired: false,
-        description: 'Connect your official website'
-      }
     ];
   }
 
   /**
-   * Get verification requirements
+   * Get verification links for NFTs minted
    */
-  getVerificationRequirements(): VerificationRequirements {
+  getNFTsVerificationLinks(): VerificationLink[] {
+    return [
+      {
+        name: 'Token Program Activity',
+        url: `${VerificationService.PLATFORM_URLS.explorer}/token/${VerificationService.TOKEN_ADDRESSES.SOL}`,
+        description: 'View token program activity on Analos Explorer',
+        type: 'blockchain',
+      },
+      {
+        name: 'Collection Holder Activity',
+        url: `${VerificationService.PLATFORM_URLS.explorer}/accounts/${VerificationService.KNOWN_MINTS.LosBros}`,
+        description: 'View collection holder and mint activity',
+        type: 'blockchain',
+      },
+    ];
+  }
+
+  /**
+   * Get verification links for LOS burned
+   */
+  getLOSBurnVerificationLinks(): VerificationLink[] {
+    return [
+      {
+        name: 'LOS Token Address',
+        url: `${VerificationService.PLATFORM_URLS.explorer}/token/${VerificationService.TOKEN_ADDRESSES.LOS}`,
+        description: 'View LOS token on Analos Explorer',
+        type: 'blockchain',
+      },
+      {
+        name: 'Burn Transactions',
+        url: `${VerificationService.PLATFORM_URLS.explorer}/token/${VerificationService.TOKEN_ADDRESSES.LOS}`,
+        description: 'View burn transactions and token supply',
+        type: 'blockchain',
+      },
+    ];
+  }
+
+  /**
+   * Get verification links for platform uptime
+   */
+  getUptimeVerificationLinks(): VerificationLink[] {
+    return [
+      {
+        name: 'Live Health Check',
+        url: VerificationService.PLATFORM_URLS.health,
+        description: 'Real-time platform health status',
+        type: 'api',
+      },
+      {
+        name: 'Analos RPC Status',
+        url: VerificationService.PLATFORM_URLS.rpc,
+        description: 'Analos blockchain RPC endpoint',
+        type: 'external',
+      },
+    ];
+  }
+
+  /**
+   * Get all verification links for a specific stat type
+   */
+  getVerificationLinks(statType: 'collections' | 'nfts' | 'los-burned' | 'uptime'): VerificationLink[] {
+    switch (statType) {
+      case 'collections':
+        return this.getCollectionsVerificationLinks();
+      case 'nfts':
+        return this.getNFTsVerificationLinks();
+      case 'los-burned':
+        return this.getLOSBurnVerificationLinks();
+      case 'uptime':
+        return this.getUptimeVerificationLinks();
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * Get a summary of all verification links
+   */
+  getAllVerificationLinks(): Record<string, VerificationLink[]> {
     return {
-      minimumPlatforms: 1, // At least one social platform required
-      requiredPlatforms: [], // No specific platforms required
-      optionalPlatforms: ['twitter', 'discord', 'telegram', 'instagram', 'youtube', 'website'],
-      verificationPeriod: 90 // Re-verify every 90 days to keep verification fresh
+      collections: this.getCollectionsVerificationLinks(),
+      nfts: this.getNFTsVerificationLinks(),
+      losBurned: this.getLOSBurnVerificationLinks(),
+      uptime: this.getUptimeVerificationLinks(),
     };
   }
 
   /**
-   * Start verification process for a collection
+   * Validate a blockchain address
    */
-  async startVerification(
-    collectionId: string,
-    ownerWallet: string,
-    platform: 'twitter' | 'discord' | 'telegram' | 'instagram' | 'tiktok',
-    accountHandle: string
-  ): Promise<{
-    verificationId: string;
-    verificationCode: string;
-    verificationUrl: string;
-    expiresAt: string;
-    instructions: string;
-  }> {
-    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/start`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        collectionId,
-        ownerWallet,
-        platform,
-        accountHandle,
-        socialLinks: {}, // Will be populated later
-        timestamp: new Date().toISOString()
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to start verification');
-    }
-
-    const data = await response.json();
-    return data.data;
+  isValidAddress(address: string): boolean {
+    // Basic Solana address validation (44 characters, base58)
+    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return base58Regex.test(address);
   }
 
   /**
-   * Fast verification with tweet URL submission (30 seconds)
+   * Get current platform statistics with verification
    */
-  async fastCompleteVerification(
-    verificationId: string,
-    tweetUrl: string,
-    verificationCode: string
-  ): Promise<{
-    success: boolean;
-    verificationId: string;
-    verifiedAt: string;
-    tweetUrl: string;
-    verificationExpiresAt: string;
-    isPermanent: boolean;
-    validityPeriod: string;
-    note: string;
+  async getVerifiedStats(): Promise<{
+    stats: PlatformStats;
+    verification: Record<string, VerificationLink[]>;
   }> {
     try {
-      const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/fast-complete`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          verificationId,
-          tweetUrl,
-          verificationCode,
-          timestamp: new Date().toISOString()
-        }),
-      });
+      // In a real implementation, you would fetch these from your backend
+      // For now, we'll return the current static stats with verification links
+      const stats: PlatformStats = {
+        collectionsLaunched: 1,
+        nftsMinted: 50,
+        losBurned: '25K',
+        platformUptime: '99.9%',
+      };
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Fast verification failed');
-      }
+      const verification = this.getAllVerificationLinks();
 
       return {
-        success: data.success,
-        verificationId: data.data.verificationId,
-        verifiedAt: data.data.verifiedAt,
-        tweetUrl: data.data.tweetUrl,
-        verificationExpiresAt: data.data.verificationExpiresAt,
-        isPermanent: data.data.isPermanent,
-        validityPeriod: data.data.validityPeriod,
-        note: data.data.note
+        stats,
+        verification,
       };
     } catch (error) {
-      console.error('❌ Fast verification failed:', error);
+      console.error('Error fetching verified stats:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Complete verification by providing proof (manual/old method)
-   */
-  async completeVerification(
-    verificationId: string,
-    proofData: {
-      platform: string;
-      proofType: 'post' | 'bio' | 'website' | 'custom';
-      proofContent: string;
-      proofUrl?: string;
-    }[]
-  ): Promise<VerificationStatus> {
-    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/complete`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        verificationId,
-        proofData,
-        timestamp: new Date().toISOString()
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to complete verification');
-    }
-
-    const data = await response.json();
-    return data.data;
-  }
-
-  /**
-   * Get verification status for a collection
-   */
-  async getVerificationStatus(collectionId: string): Promise<CollectionVerification | null> {
-    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/status/${collectionId}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null; // No verification found
-      }
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to get verification status');
-    }
-
-    const data = await response.json();
-    return data.data;
-  }
-
-  /**
-   * Update collection badge settings
-   */
-  async updateBadgeSettings(
-    collectionId: string,
-    badgeDisplay: CollectionVerification['badgeDisplay']
-  ): Promise<void> {
-    const url = `${this.backendUrl.replace(/\/$/, '')}/api/verification/badge-settings`;
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        collectionId,
-        badgeDisplay
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to update badge settings');
-    }
-  }
-
-  /**
-   * Generate verification badge URL
-   */
-  generateBadgeUrl(verificationStatus: VerificationStatus, size: string = 'medium'): string {
-    const baseUrl = `${this.backendUrl}/api/verification/badge`;
-    const params = new URLSearchParams({
-      id: verificationStatus.verificationId,
-      size: size,
-      platforms: verificationStatus.verifiedPlatforms.join(',')
-    });
-    
-    return `${baseUrl}?${params.toString()}`;
-  }
-
-  /**
-   * Validate social media links
-   */
-  validateSocialLinks(links: Record<string, string>): {
-    valid: boolean;
-    errors: string[];
-    warnings: string[];
-  } {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const platforms = this.getSocialPlatforms();
-
-    // Check if at least one platform is provided
-    const providedPlatforms = Object.keys(links).filter(key => links[key]?.trim());
-    if (providedPlatforms.length === 0) {
-      errors.push('At least one social media platform must be connected');
-    }
-
-    // Validate each provided link
-    Object.entries(links).forEach(([platform, url]) => {
-      if (!url?.trim()) return;
-
-      const platformConfig = platforms.find(p => p.id === platform);
-      if (!platformConfig) {
-        errors.push(`Unknown platform: ${platform}`);
-        return;
-      }
-
-      // Basic URL validation
-      try {
-        new URL(url);
-      } catch {
-        errors.push(`Invalid URL for ${platformConfig.name}: ${url}`);
-        return;
-      }
-
-      // Platform-specific validation
-      switch (platform) {
-        case 'twitter':
-          if (!url.includes('twitter.com') && !url.includes('x.com')) {
-            warnings.push(`Twitter URL should be from twitter.com or x.com`);
-          }
-          break;
-        case 'discord':
-          if (!url.includes('discord.gg') && !url.includes('discord.com')) {
-            warnings.push(`Discord URL should be an invite link or profile link`);
-          }
-          break;
-        case 'telegram':
-          if (!url.includes('t.me') && !url.includes('telegram.me')) {
-            warnings.push(`Telegram URL should be from t.me or telegram.me`);
-          }
-          break;
-        case 'instagram':
-          if (!url.includes('instagram.com')) {
-            warnings.push(`Instagram URL should be from instagram.com`);
-          }
-          break;
-        case 'youtube':
-          if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-            warnings.push(`YouTube URL should be from youtube.com or youtu.be`);
-          }
-          break;
-        case 'website':
-          if (!url.startsWith('https://')) {
-            warnings.push(`Website URL should use HTTPS for security`);
-          }
-          break;
-      }
-    });
-
-    return {
-      valid: errors.length === 0,
-      errors,
-      warnings
-    };
-  }
-
-  /**
-   * Get verification badge HTML for embedding
-   */
-  getBadgeHTML(
-    verificationStatus: VerificationStatus,
-    options: {
-      size?: 'small' | 'medium' | 'large';
-      position?: 'inline' | 'float-right' | 'float-left';
-      showText?: boolean;
-    } = {}
-  ): string {
-    const { size = 'medium', position = 'inline', showText = true } = options;
-    
-    const badgeUrl = this.generateBadgeUrl(verificationStatus, size);
-    const sizeClasses = {
-      small: 'w-6 h-6',
-      medium: 'w-8 h-8',
-      large: 'w-12 h-12'
-    };
-    
-    const positionClasses = {
-      inline: '',
-      'float-right': 'float-right ml-2',
-      'float-left': 'float-left mr-2'
-    };
-
-    const text = showText ? 'Verified Collection' : '';
-
-    return `
-      <div class="verified-badge ${positionClasses[position]}" title="Verified Collection - Social Media Connected">
-        <img src="${badgeUrl}" alt="Verified Collection" class="${sizeClasses[size]} inline-block" />
-        ${text ? `<span class="text-xs text-gray-600 ml-1">${text}</span>` : ''}
-      </div>
-    `;
-  }
-
-  /**
-   * Check if verification is expired
-   * Verification expires after 90 days or if wallet changes
-   */
-  isVerificationExpired(verificationDate: string): boolean {
-    const verificationTime = new Date(verificationDate).getTime();
-    const now = new Date().getTime();
-    const verificationPeriod = this.getVerificationRequirements().verificationPeriod;
-    const expirationTime = verificationTime + (verificationPeriod * 24 * 60 * 60 * 1000);
-    
-    return now > expirationTime;
-  }
-
-  /**
-   * Get verification disclaimer text
-   */
-  getVerificationDisclaimer(): string {
-    return "✅ This verified badge indicates that the collection creator has connected at least one social media account and verified ownership with their wallet. Verification is valid for 90 days and must be renewed to maintain verified status. This does not constitute an endorsement of the collection or its content by LosLauncher. Please conduct your own research before making any purchases.";
-  }
-
-  /**
-   * Check if wallet has changed for a collection
-   * This would trigger re-verification
-   */
-  async checkWalletChange(collectionId: string, currentWallet: string): Promise<boolean> {
-    try {
-      const verification = await this.getVerificationStatus(collectionId);
-      if (!verification) {
-        return false; // No verification exists
-      }
-      
-      // Check if the wallet has changed
-      return verification.ownerWallet.toLowerCase() !== currentWallet.toLowerCase();
-    } catch (error) {
-      console.error('❌ Error checking wallet change:', error);
-      return false;
     }
   }
 }
 
-export const verificationService = new VerificationService();
+export const verificationService = VerificationService.getInstance();

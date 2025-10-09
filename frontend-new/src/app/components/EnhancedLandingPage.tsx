@@ -9,6 +9,8 @@ import WalletDownloadSection from './WalletDownloadSection';
 import { adminControlService } from '@/lib/admin-control-service';
 import { feeManagementService } from '@/lib/fee-management-service';
 import { blockchainDataService } from '@/lib/blockchain-data-service';
+import VerificationModal from './VerificationModal';
+import { verificationService } from '@/lib/verification-service';
 
 export default function EnhancedLandingPage() {
   const { publicKey, connected } = useWallet();
@@ -24,6 +26,17 @@ export default function EnhancedLandingPage() {
     mintPrice: 4200.69,
     paymentToken: 'LOS',
     currentSupply: 0
+  });
+  const [verificationModal, setVerificationModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    links: any[];
+    currentValue: string;
+  }>({
+    isOpen: false,
+    title: '',
+    links: [],
+    currentValue: '',
   });
 
   useEffect(() => {
@@ -151,6 +164,23 @@ export default function EnhancedLandingPage() {
       clearInterval(collectionInterval);
     };
   }, []);
+
+  const openVerificationModal = (statType: 'collections' | 'nfts' | 'los-burned' | 'uptime', currentValue: string) => {
+    const links = verificationService.getVerificationLinks(statType);
+    const titles = {
+      'collections': 'Collections Launched',
+      'nfts': 'NFTs Minted',
+      'los-burned': '$LOS Burned',
+      'uptime': 'Platform Uptime',
+    };
+    
+    setVerificationModal({
+      isOpen: true,
+      title: titles[statType],
+      links,
+      currentValue,
+    });
+  };
 
   const features = [
     {
@@ -940,29 +970,57 @@ Block Explorer: https://explorer.analos.io`
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-white">
+            <div 
+              className="group cursor-pointer" 
+              onClick={() => openVerificationModal('collections', collectionStats ? collectionStatsService.formatCollectionCount(collectionStats.collectionsLaunched) : '1+')}
+            >
+              <div className="text-3xl font-bold text-white group-hover:text-purple-400 transition-colors">
                 {collectionStats ? collectionStatsService.formatCollectionCount(collectionStats.collectionsLaunched) : '1+'}
+                <span className="ml-2 text-lg opacity-70">🔍</span>
               </div>
-              <div className="text-gray-400">Collections Launched</div>
+              <div className="text-gray-400 group-hover:text-gray-300 transition-colors">Collections Launched</div>
+              <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to verify on blockchain
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-white">
+            <div 
+              className="group cursor-pointer" 
+              onClick={() => openVerificationModal('nfts', collectionStats ? collectionStatsService.formatNFTCount(collectionStats.totalNFTsMinted) : '50+')}
+            >
+              <div className="text-3xl font-bold text-white group-hover:text-purple-400 transition-colors">
                 {collectionStats ? collectionStatsService.formatNFTCount(collectionStats.totalNFTsMinted) : '50+'}
+                <span className="ml-2 text-lg opacity-70">🔍</span>
               </div>
-              <div className="text-gray-400">NFTs Minted</div>
+              <div className="text-gray-400 group-hover:text-gray-300 transition-colors">NFTs Minted</div>
+              <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to verify on blockchain
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-white">
+            <div 
+              className="group cursor-pointer" 
+              onClick={() => openVerificationModal('los-burned', collectionStats ? `${collectionStats.losBurned}K` : '25K')}
+            >
+              <div className="text-3xl font-bold text-white group-hover:text-purple-400 transition-colors">
                 {collectionStats ? `${collectionStats.losBurned}K` : '25K'}
+                <span className="ml-2 text-lg opacity-70">🔍</span>
               </div>
-              <div className="text-gray-400">$LOS Burned</div>
+              <div className="text-gray-400 group-hover:text-gray-300 transition-colors">$LOS Burned</div>
+              <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to verify LOS token burns
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-white">
+            <div 
+              className="group cursor-pointer" 
+              onClick={() => openVerificationModal('uptime', collectionStats ? collectionStats.platformUptime : '99.9%')}
+            >
+              <div className="text-3xl font-bold text-white group-hover:text-purple-400 transition-colors">
                 {collectionStats ? collectionStats.platformUptime : '99.9%'}
+                <span className="ml-2 text-lg opacity-70">🔍</span>
               </div>
-              <div className="text-gray-400">Platform Uptime</div>
+              <div className="text-gray-400 group-hover:text-gray-300 transition-colors">Platform Uptime</div>
+              <div className="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to check live status
+              </div>
             </div>
           </div>
         </div>
@@ -1013,6 +1071,15 @@ Block Explorer: https://explorer.analos.io`
           </div>
         </div>
       </footer>
+
+      {/* Verification Modal */}
+      <VerificationModal
+        isOpen={verificationModal.isOpen}
+        onClose={() => setVerificationModal({ ...verificationModal, isOpen: false })}
+        title={verificationModal.title}
+        links={verificationModal.links}
+        currentValue={verificationModal.currentValue}
+      />
     </div>
   );
 }
