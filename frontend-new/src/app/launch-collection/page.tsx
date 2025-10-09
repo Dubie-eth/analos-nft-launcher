@@ -234,7 +234,7 @@ const cleanupLocalStorage = () => {
 };
 
 const LaunchCollectionPage: React.FC = () => {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signTransaction } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
   const [hasBetaAccess, setHasBetaAccess] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
@@ -1350,6 +1350,11 @@ const LaunchCollectionPage: React.FC = () => {
           try {
             // Import the Analos program service
             const { analosLaunchpadService } = await import('@/lib/analos-program-service');
+            
+            // Check if signTransaction is available
+            if (!signTransaction) {
+              throw new Error('Wallet signTransaction function not available. Please make sure your wallet is properly connected.');
+            }
             
             // Initialize collection with your Analos program
             const initResult = await analosLaunchpadService.initializeCollection({
