@@ -44,11 +44,9 @@ export default function SimpleNFTCreator() {
 
   const loadCollections = async () => {
     try {
-      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/collections');
-      const data = await response.json();
-      if (data.success) {
-        setCollections(data.collections);
-      }
+      // Note: Collections endpoint not available in minimal backend yet
+      console.log('Collection loading not yet implemented in minimal backend');
+      setCollections([]);
     } catch (error) {
       console.error('Error loading collections:', error);
     }
@@ -69,38 +67,12 @@ export default function SimpleNFTCreator() {
     setResult(null);
 
     try {
-      // Choose endpoint based on whether a collection is selected
-      const endpoint = selectedCollectionId 
-        ? 'https://analos-nft-launcher-backend-production.up.railway.app/api/mint-from-collection'
-        : 'https://analos-nft-launcher-backend-production.up.railway.app/api/mint-spl-nft';
-
-      const requestBody = selectedCollectionId 
-        ? {
-            collectionId: selectedCollectionId,
-            ...metadata,
-            ownerAddress: walletAddress,
-          }
-        : {
-            ...metadata,
-            ownerAddress: walletAddress,
-          };
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
+      // Note: Minting endpoints not available in minimal backend yet
+      console.log('NFT minting not yet implemented in minimal backend');
+      setResult({
+        success: false,
+        error: 'NFT minting not yet available in minimal backend'
       });
-
-      const data = await response.json();
-      setResult(data);
-
-      if (data.success) {
-        console.log('✅ NFT Minted Successfully!', data);
-      } else {
-        console.error('❌ Minting failed:', data.error);
-      }
     } catch (error) {
       console.error('❌ Error:', error);
       setResult({

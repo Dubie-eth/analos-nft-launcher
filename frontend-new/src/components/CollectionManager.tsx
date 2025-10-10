@@ -65,11 +65,10 @@ export default function CollectionManager() {
 
   const loadCollections = async () => {
     try {
-      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/collections');
-      const data = await response.json();
-      if (data.success) {
-        setCollections(data.collections);
-      }
+      // Note: Collections endpoint not available in minimal backend yet
+      // This will be implemented when we add collection management
+      console.log('Collection loading not yet implemented in minimal backend');
+      setCollections([]);
     } catch (error) {
       console.error('Error loading collections:', error);
     }
@@ -85,45 +84,13 @@ export default function CollectionManager() {
     setResult(null);
 
     try {
-      const response = await fetch('https://analos-nft-launcher-backend-production.up.railway.app/api/create-collection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(collectionForm),
+      // Note: Create collection endpoint not available in minimal backend yet
+      // This will be implemented when we add collection management
+      console.log('Collection creation not yet implemented in minimal backend');
+      setResult({
+        success: false,
+        error: 'Collection creation not yet available in minimal backend'
       });
-
-      const data = await response.json();
-      setResult(data);
-
-      if (data.success) {
-        console.log('✅ Collection Created Successfully!', data);
-        // Reload collections
-        loadCollections();
-        // Reset form
-        setCollectionForm({
-          name: '',
-          symbol: '',
-          description: '',
-          image: '',
-          externalUrl: '',
-          creatorAddress: '',
-          totalSupply: 1000,
-          attributes: [
-            { trait_type: 'Background', value: '' },
-            { trait_type: 'Rarity', value: '' }
-          ],
-          // Admin features
-          mintPrice: 0,
-          paymentToken: 'SOL',
-          maxMintsPerWallet: 0,
-          isTestMode: false,
-          whitelistEnabled: false,
-          bondingCurveEnabled: false
-        });
-      } else {
-        console.error('❌ Collection creation failed:', data.error);
-      }
     } catch (error) {
       console.error('❌ Error:', error);
       setResult({

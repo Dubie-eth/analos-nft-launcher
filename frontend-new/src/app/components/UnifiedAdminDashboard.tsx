@@ -15,6 +15,7 @@ import DataBackupPanel from './DataBackupPanel';
 import BlockchainRecovery from './BlockchainRecovery';
 import BlockchainFirstAdmin from './BlockchainFirstAdmin';
 import TokenHolderAdmin from './TokenHolderAdmin';
+import BackendTester from '@/components/BackendTester';
 
 interface CollectionStats {
   name: string;
@@ -37,7 +38,7 @@ interface AdminStats {
 
 export default function UnifiedAdminDashboard() {
   const { publicKey, connected } = useWallet();
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'reveal' | 'metadata' | 'backup' | 'recovery' | 'blockchain-first' | 'analytics' | 'partners' | 'access-control' | 'token-holders' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'reveal' | 'metadata' | 'backup' | 'recovery' | 'blockchain-first' | 'analytics' | 'partners' | 'access-control' | 'token-holders' | 'backend-test' | 'settings'>('overview');
   const [collections, setCollections] = useState<any[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -279,6 +280,7 @@ export default function UnifiedAdminDashboard() {
               { id: 'partners', label: 'Partners', icon: '🤝' },
               { id: 'access-control', label: 'Access Control', icon: '🔐' },
               { id: 'token-holders', label: 'Token Holders', icon: '🎯' },
+              { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
               { id: 'reveal', label: 'Manual Reveal', icon: '🎭' },
               { id: 'metadata', label: 'Metadata', icon: '📝' },
               { id: 'backup', label: 'Data Backup', icon: '💾' },
@@ -819,6 +821,12 @@ export default function UnifiedAdminDashboard() {
         {activeTab === 'blockchain-first' && (
           <div>
             <BlockchainFirstAdmin />
+          </div>
+        )}
+
+        {activeTab === 'backend-test' && (
+          <div>
+            <BackendTester />
           </div>
         )}
 
