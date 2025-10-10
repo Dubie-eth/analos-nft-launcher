@@ -350,6 +350,104 @@ export class BlockchainFirstNFTService {
   }
 
   /**
+   * Fetch fresh collection data from blockchain
+   */
+  async fetchCollectionDataFromBlockchain(collectionConfigAddress: string): Promise<CollectionOnChainData | null> {
+    try {
+      console.log(`🔍 Fetching collection data from blockchain: ${collectionConfigAddress}`);
+      
+      // Fetch the account data from Analos RPC
+      const response = await fetch(this.ANALOS_RPC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'getAccountInfo',
+          params: [
+            collectionConfigAddress,
+            { encoding: 'base64' }
+          ]
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!result.result || !result.result.value) {
+        console.log(`⚠️ Collection config account not found: ${collectionConfigAddress}`);
+        return null;
+      }
+
+      const accountData = Buffer.from(result.result.value.data[0], 'base64');
+      
+      // Parse the collection config account data
+      // Format: [authority: 32 bytes][max_supply: 8 bytes][current_supply: 8 bytes][price: 8 bytes][reveal_threshold: 8 bytes]
+      // [name_len: 4 bytes][name: N bytes][symbol_len: 4 bytes][symbol: N bytes][uri_len: 4 bytes][uri: N bytes]
+      
+      let offset = 0;
+      
+      // Skip authority (32 bytes)
+      offset += 32;
+      
+      // Read max_supply (u64, 8 bytes, little-endian)
+      const maxSupply = accountData.readBigUInt64LE(offset);
+      offset += 8;
+      
+      // Read current_supply (u64, 8 bytes, little-endian)
+      const currentSupply = accountData.readBigUInt64LE(offset);
+      offset += 8;
+      
+      // Read price_lamports (u64, 8 bytes, little-endian)
+      const priceLamports = accountData.readBigUInt64LE(offset);
+      offset += 8;
+      
+      // Read reveal_threshold (u64, 8 bytes, little-endian)
+      const revealThreshold = accountData.readBigUInt64LE(offset);
+      offset += 8;
+      
+      // Read collection_name (u32 length prefix + string)
+      const nameLen = accountData.readUInt32LE(offset);
+      offset += 4;
+      const collectionName = accountData.slice(offset, offset + nameLen).toString('utf8');
+      offset += nameLen;
+      
+      // Read collection_symbol (u32 length prefix + string)
+      const symbolLen = accountData.readUInt32LE(offset);
+      offset += 4;
+      const collectionSymbol = accountData.slice(offset, offset + symbolLen).toString('utf8');
+      offset += symbolLen;
+      
+      console.log(`✅ Parsed collection data from blockchain:`, {
+        collectionName,
+        maxSupply: Number(maxSupply),
+        currentSupply: Number(currentSupply),
+        priceLamports: Number(priceLamports),
+        revealThreshold: Number(revealThreshold),
+        symbol: collectionSymbol
+      });
+      
+      // Convert lamports to LOS (assuming 9 decimals for LOS token)
+      const priceInLOS = Number(priceLamports) / 1_000_000_000;
+      
+      return {
+        collectionName,
+        totalSupply: Number(maxSupply),
+        currentSupply: Number(currentSupply),
+        mintPrice: priceInLOS,
+        paymentToken: 'LOS',
+        creatorWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Default creator
+        isActive: true,
+        mintingEnabled: Number(currentSupply) < Number(maxSupply),
+        phases: [],
+        deployedAt: Date.now()
+      };
+    } catch (error) {
+      console.error('❌ Error fetching collection data from blockchain:', error);
+      return null;
+    }
+  }
+
+  /**
    * Update collection data
    */
   updateCollectionData(collectionName: string, updates: Partial<CollectionOnChainData>): void {

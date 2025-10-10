@@ -682,9 +682,40 @@ app.get('/api/blockchain-first/collections', (req, res) => {
 });
 
 // Get collection data
-app.get('/api/blockchain-first/collection/:collectionName', (req, res) => {
+app.get('/api/blockchain-first/collection/:collectionName', async (req, res) => {
   try {
     const { collectionName } = req.params;
+    
+    // For "Los Bros" collection, fetch fresh data from blockchain
+    if (collectionName === 'Los Bros' || collectionName === 'los-bros' || collectionName === 'The LosBros') {
+      console.log(`🔍 Fetching fresh blockchain data for: ${collectionName}`);
+      const collectionConfigAddress = 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21';
+      const blockchainData = await blockchainFirstNFTService.fetchCollectionDataFromBlockchain(collectionConfigAddress);
+      
+      if (blockchainData) {
+        // Update cached data with fresh blockchain data
+        blockchainFirstNFTService.registerCollection(
+          blockchainData.collectionName,
+          blockchainData.totalSupply,
+          blockchainData.mintPrice,
+          blockchainData.paymentToken,
+          blockchainData.creatorWallet
+        );
+        
+        // Update current supply
+        blockchainFirstNFTService.updateCollectionData(blockchainData.collectionName, {
+          currentSupply: blockchainData.currentSupply
+        });
+        
+        console.log(`✅ Fresh blockchain data fetched and cached for ${collectionName}`);
+        return res.json({
+          success: true,
+          collection: blockchainData
+        });
+      }
+    }
+    
+    // Fallback to cached data if blockchain fetch fails or for other collections
     const collectionData = blockchainFirstNFTService.getCollectionData(collectionName);
     
     if (!collectionData) {
