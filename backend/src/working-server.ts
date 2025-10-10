@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
+import enhancedGeneratorRoutes from './nft-generator-enhanced-routes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -218,6 +219,9 @@ app.post('/api/mint', async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to mint NFT' });
   }
 });
+
+// Enhanced NFT Generator Routes
+app.use('/api/nft-generator', enhancedGeneratorRoutes);
 
 // Start server
 console.log('🚀 Starting Working Analos NFT Launcher Backend...');
