@@ -75,43 +75,49 @@ export default function MarketplacePage() {
         // 4. Get rarity data from Rarity Oracle
         // 5. Get bonding curve data from Token Launch program
         
-        // For now, simulate with demo data
-        const demoCollections: Collection[] = [
-          {
-            id: 'demo-1',
-            name: 'Los Bros Collection',
-            symbol: 'LOSBROS',
-            description: 'The legendary Los Bros NFT collection on Analos',
-            imageUrl: '/api/placeholder/400/400',
-            maxSupply: 2222,
-            totalMinted: 0,
-            mintPriceUSD: 42.00,
-            mintPriceLOS: 4200000000, // Will be calculated from Price Oracle
-            isActive: true,
-            mintingEnabled: true,
-            deployedAt: new Date().toISOString(),
-            creator: '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q',
-            category: 'PFP',
-            programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
-            collectionConfig: 'DemoCollectionConfigPDA',
-            isWhitelistOnly: false,
-            revealType: 'delayed',
-            revealDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            bondingCurveEnabled: true,
-            currentTier: 1,
-            tierPrices: [42.00, 44.00, 46.00, 48.00, 50.00]
-          }
-        ];
+        // Load REAL collections from blockchain
+        const { blockchainService } = await import('@/lib/blockchain-service');
+        const blockchainCollections = await blockchainService.getAllCollections();
+        
+        // Transform to UI format
+        const uiCollections: Collection[] = blockchainCollections.map((col) => ({
+          id: col.address,
+          name: col.collectionName,
+          symbol: col.collectionSymbol,
+          description: `${col.collectionName} - ${col.bondingCurveEnabled ? 'Bonding Curve Enabled' : 'Fixed Price'} Collection on Analos`,
+          imageUrl: col.placeholderUri || '/api/placeholder/400/400',
+          maxSupply: col.totalSupply,
+          totalMinted: col.mintedCount,
+          mintPriceUSD: col.mintPriceUSD,
+          mintPriceLOS: col.mintPriceLamports,
+          isActive: !col.isPaused,
+          mintingEnabled: !col.isPaused && col.mintedCount < col.totalSupply,
+          deployedAt: new Date().toISOString(),
+          creator: col.authority,
+          category: 'NFT Collection',
+          programId: col.programId,
+          collectionConfig: col.address,
+          isWhitelistOnly: col.isWhitelistOnly,
+          revealType: col.isRevealed ? 'instant' : 'delayed',
+          revealDate: col.isRevealed ? undefined : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          bondingCurveEnabled: col.bondingCurveEnabled,
+          currentTier: 1,
+          tierPrices: [col.mintPriceUSD]
+        }));
 
-        setCollections(demoCollections);
+        console.log(`✅ Loaded ${uiCollections.length} REAL collections from blockchain!`);
+        
+        setCollections(uiCollections);
         setCollectionStats({
-          totalCollections: demoCollections.length,
-          totalNFTs: demoCollections.reduce((sum, col) => sum + col.totalMinted, 0),
-          totalVolume: demoCollections.reduce((sum, col) => sum + (col.totalMinted * col.mintPriceUSD), 0),
-          activeCollections: demoCollections.filter(col => col.isActive).length
+          totalCollections: uiCollections.length,
+          totalNFTs: uiCollections.reduce((sum, col) => sum + col.totalMinted, 0),
+          totalVolume: uiCollections.reduce((sum, col) => sum + (col.totalMinted * col.mintPriceUSD), 0),
+          activeCollections: uiCollections.filter(col => col.isActive).length
         });
 
-        console.log('✅ Loaded collections:', demoCollections.length);
+        if (uiCollections.length === 0) {
+          console.log('ℹ️ No collections found on blockchain yet. Deploy your first collection to see it here!');
+        }
       } catch (error) {
         console.error('❌ Error loading collections:', error);
       } finally {
@@ -129,14 +135,15 @@ export default function MarketplacePage() {
         console.log('💰 Loading LOS price from Price Oracle...');
         console.log('🔗 Price Oracle Program:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
         
-        // TODO: Implement actual Price Oracle integration
-        // This would call the Price Oracle program to get current LOS price
+        // Load REAL LOS price from Price Oracle
+        const { blockchainService } = await import('@/lib/blockchain-service');
+        const currentPrice = await blockchainService.getCurrentLOSPrice();
         
-        // For now, simulate
-        setLosPrice(0.10); // $0.10 per LOS
-        console.log('✅ LOS price loaded:', 0.10);
+        setLosPrice(currentPrice);
+        console.log('✅ LOS price loaded from blockchain:', currentPrice);
       } catch (error) {
         console.error('❌ Error loading LOS price:', error);
+        setLosPrice(0.10); // Fallback
       }
     };
 
@@ -182,33 +189,42 @@ export default function MarketplacePage() {
     setMinting(prev => ({ ...prev, [collection.id]: true }));
 
     try {
-      console.log('🎯 Minting from collection:', collection.name);
+      console.log('🎯 Minting from REAL collection:', collection.name);
+      console.log('📍 Collection Address:', collection.id);
       console.log('💰 Price (USD):', collection.mintPriceUSD);
-      console.log('💰 Price (LOS):', collection.mintPriceLOS);
+      console.log('💰 Price (LOS lamports):', collection.mintPriceLOS);
+      console.log('🔄 Bonding Curve:', collection.bondingCurveEnabled ? 'Enabled' : 'Disabled');
       
-      // TODO: Implement actual minting with smart contract
-      // This would:
-      // 1. Calculate exact LOS amount needed using Price Oracle
-      // 2. Call NFT_LAUNCHPAD.mint_placeholder()
-      // 3. Handle bonding curve logic if enabled
-      // 4. Handle whitelist checks if whitelist only
-      // 5. Sign and send transaction
+      // Load blockchain service
+      const { blockchainService } = await import('@/lib/blockchain-service');
       
-      // Simulate transaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get fresh collection data for accurate pricing
+      const freshCollection = await blockchainService.getCollectionByAddress(collection.id);
+      if (!freshCollection) {
+        throw new Error('Collection not found on blockchain');
+      }
       
-      alert(`Successfully minted from ${collection.name}! (Demo mode)`);
+      console.log('✅ Fresh collection data loaded');
+      console.log('📊 Current supply:', freshCollection.mintedCount, '/', freshCollection.totalSupply);
+      console.log('💵 Current mint price (SOL):', freshCollection.mintPriceSOL);
+      console.log('💵 Current mint price (USD):', freshCollection.mintPriceUSD);
       
-      // Refresh collection data
-      setCollections(prev => prev.map(col => 
-        col.id === collection.id 
-          ? { ...col, totalMinted: col.totalMinted + 1 }
-          : col
-      ));
+      // TODO: Implement actual transaction
+      // For now, show what would happen
+      alert(
+        `READY TO MINT!\n\n` +
+        `Collection: ${freshCollection.collectionName}\n` +
+        `Price: ${freshCollection.mintPriceSOL.toFixed(4)} SOL ($${freshCollection.mintPriceUSD.toFixed(2)})\n` +
+        `Supply: ${freshCollection.mintedCount}/${freshCollection.totalSupply}\n\n` +
+        `Transaction signing coming in Step 6!`
+      );
+      
+      // Simulate transaction delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
     } catch (error: any) {
-      console.error('❌ Error minting:', error);
-      alert(`Failed to mint: ${error.message}`);
+      console.error('❌ Error preparing mint:', error);
+      alert(`Failed to prepare mint: ${error.message}`);
     } finally {
       setMinting(prev => ({ ...prev, [collection.id]: false }));
     }
