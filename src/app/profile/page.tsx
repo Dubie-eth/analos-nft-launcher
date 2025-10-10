@@ -69,52 +69,48 @@ export default function ProfilePage() {
         const solBalance = await connection.getBalance(publicKey);
         setBalance(solBalance / LAMPORTS_PER_SOL);
 
-        // TODO: Implement actual NFT and collection data loading
-        // This would:
-        // 1. Query all NFT accounts owned by the user
-        // 2. Get collection data for collections created by the user
-        // 3. Calculate user statistics
-        // 4. Load transaction history
+        // Load REAL user data from blockchain
+        const { blockchainService } = await import('@/lib/blockchain-service');
         
-        // For now, simulate with demo data
-        const demoNFTs: UserNFT[] = [
-          {
-            mint: 'DemoMintAddress1234567890abcdef',
-            collection: 'Los Bros Collection',
-            name: 'Los Bros #1',
-            image: '/api/placeholder/300/300',
-            traits: [
-              { trait_type: 'Background', value: 'Purple' },
-              { trait_type: 'Eyes', value: 'Laser' },
-              { trait_type: 'Hat', value: 'Crown' }
-            ],
-            rarityScore: 95,
-            tier: 'Legendary'
-          }
-        ];
+        // Load user's NFTs
+        const nfts = await blockchainService.getUserNFTs(publicKey.toString());
+        const uiNFTs: UserNFT[] = nfts.map(nft => ({
+          mint: nft.mint,
+          collection: 'Collection', // Would need to lookup collection name
+          name: `NFT #${nft.mintNumber}`,
+          image: '/api/placeholder/300/300',
+          traits: [], // Would need to load metadata
+          rarityScore: nft.rarityScore,
+          tier: nft.tier === 0 ? 'Common' : `Tier ${nft.tier}`
+        }));
 
-        const demoCollections: UserCollection[] = [
-          {
-            name: 'My Test Collection',
-            symbol: 'TEST',
-            totalSupply: 100,
-            minted: 0,
-            deployedAt: new Date().toISOString(),
-            status: 'active'
-          }
-        ];
+        // Load collections created by user
+        const allCollections = await blockchainService.getAllCollections();
+        const userCreatedCollections = allCollections.filter(
+          col => col.authority === publicKey.toString()
+        );
+        
+        const uiCollections: UserCollection[] = userCreatedCollections.map(col => ({
+          name: col.collectionName,
+          symbol: col.collectionSymbol,
+          totalSupply: col.totalSupply,
+          minted: col.mintedCount,
+          deployedAt: new Date().toISOString(),
+          status: col.isPaused ? 'paused' : (col.mintedCount >= col.totalSupply ? 'completed' : 'active')
+        }));
 
-        setUserNFTs(demoNFTs);
-        setUserCollections(demoCollections);
+        setUserNFTs(uiNFTs);
+        setUserCollections(uiCollections);
         setUserStats({
-          totalNFTs: demoNFTs.length,
-          collectionsCreated: demoCollections.length,
-          totalSpent: 42.00,
-          favoriteCollection: 'Los Bros Collection',
+          totalNFTs: uiNFTs.length,
+          collectionsCreated: uiCollections.length,
+          totalSpent: 0, // Would need to calculate from transaction history
+          favoriteCollection: uiCollections.length > 0 ? uiCollections[0].name : '',
           joinDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
         });
 
-        console.log('✅ User profile data loaded');
+        console.log('✅ REAL user profile data loaded from blockchain');
+        console.log(`📊 User has ${uiNFTs.length} NFTs and created ${uiCollections.length} collections`);
       } catch (error) {
         console.error('❌ Error loading user data:', error);
       } finally {

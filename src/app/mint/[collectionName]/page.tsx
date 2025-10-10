@@ -58,50 +58,66 @@ export default function MintPage() {
     const loadCollectionData = async () => {
       try {
         setLoading(true);
-        console.log('🎯 Loading collection data for:', collectionName);
+        console.log('🎯 Loading REAL collection data for:', collectionName);
         
-        // TODO: Implement actual collection data loading
-        // This would:
-        // 1. Query the NFT_LAUNCHPAD program for the specific collection
-        // 2. Get current LOS price from PRICE_ORACLE
-        // 3. Calculate exact mint price in LOS
-        // 4. Get bonding curve data if enabled
-        // 5. Check whitelist status if whitelist only
-        // 6. Get reveal status and timing
+        // Load blockchain service
+        const { blockchainService } = await import('@/lib/blockchain-service');
         
-        // For now, simulate with demo data
-        const demoCollection: CollectionData = {
-          name: 'Los Bros Collection',
-          symbol: 'LOSBROS',
-          description: 'The legendary Los Bros NFT collection on Analos blockchain. Each NFT is uniquely generated with rare traits and backed by the power of the Analos ecosystem.',
-          imageUrl: '/api/placeholder/600/600',
-          maxSupply: 2222,
-          currentSupply: 0,
-          mintPriceUSD: 42.00,
-          mintPriceLOS: 420000000000, // Will be calculated from Price Oracle
-          isActive: true,
-          mintingEnabled: true,
-          isWhitelistOnly: false,
-          revealType: 'delayed',
-          revealDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          bondingCurveEnabled: true,
+        // Get all collections and find the one matching the name
+        const allCollections = await blockchainService.getAllCollections();
+        const matchingCollection = allCollections.find(
+          col => col.collectionName.toLowerCase().replace(/\s+/g, '-') === (collectionName as string).toLowerCase()
+        );
+
+        if (!matchingCollection) {
+          console.warn('⚠️ Collection not found on blockchain');
+          setCollection(null);
+          setLoading(false);
+          return;
+        }
+
+        // Transform to UI format
+        const uiCollection: CollectionData = {
+          name: matchingCollection.collectionName,
+          symbol: matchingCollection.collectionSymbol,
+          description: `${matchingCollection.collectionName} - ${matchingCollection.bondingCurveEnabled ? 'Bonding Curve Enabled' : 'Fixed Price'} Collection on Analos`,
+          imageUrl: matchingCollection.placeholderUri || '/api/placeholder/600/600',
+          maxSupply: matchingCollection.totalSupply,
+          currentSupply: matchingCollection.mintedCount,
+          mintPriceUSD: matchingCollection.mintPriceUSD,
+          mintPriceLOS: matchingCollection.mintPriceLamports,
+          isActive: !matchingCollection.isPaused,
+          mintingEnabled: !matchingCollection.isPaused && matchingCollection.mintedCount < matchingCollection.totalSupply,
+          isWhitelistOnly: matchingCollection.isWhitelistOnly,
+          revealType: matchingCollection.isRevealed ? 'instant' : 'delayed',
+          revealDate: matchingCollection.isRevealed ? undefined : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          bondingCurveEnabled: matchingCollection.bondingCurveEnabled,
           currentTier: 1,
-          tierPrices: [42.00, 44.00, 46.00, 48.00, 50.00],
-          creator: '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q',
-          programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
-          collectionConfig: 'DemoCollectionConfigPDA'
+          tierPrices: [matchingCollection.mintPriceUSD],
+          creator: matchingCollection.authority,
+          programId: matchingCollection.programId,
+          collectionConfig: matchingCollection.address
         };
 
-        const demoMintStats: MintStats = {
-          totalMints: 0,
-          recentMints: []
-        };
+        setCollection(uiCollection);
+        setLosPrice(await blockchainService.getCurrentLOSPrice());
+        
+        // Load recent transactions
+        const recentTxs = await blockchainService.getRecentProgramTransactions(
+          ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
+          10
+        );
+        
+        setMintStats({
+          totalMints: matchingCollection.mintedCount,
+          recentMints: recentTxs.map(tx => ({
+            user: 'Recent Minter',
+            timestamp: new Date(tx.blockTime * 1000).toISOString(),
+            signature: tx.signature
+          }))
+        });
 
-        setCollection(demoCollection);
-        setMintStats(demoMintStats);
-        setLosPrice(0.10); // $0.10 per LOS
-
-        console.log('✅ Collection data loaded');
+        console.log('✅ REAL collection data loaded from blockchain');
       } catch (error) {
         console.error('❌ Error loading collection data:', error);
       } finally {
