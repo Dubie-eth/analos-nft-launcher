@@ -3,6 +3,7 @@
  * Tests all connections, endpoints, and security measures
  */
 
+import { PublicKey } from '@solana/web3.js';
 import { backendAPI } from './backend-api';
 import { blockchainService } from './blockchain-service';
 import { ANALOS_PROGRAMS } from '@/config/analos-programs';
@@ -79,7 +80,7 @@ export class HealthChecker {
     });
 
     // 2. Check API Key is set
-    const apiKeySet = backendAPI['apiKey'] && backendAPI['apiKey'].length > 20;
+    const apiKeySet = Boolean(backendAPI['apiKey'] && backendAPI['apiKey'].length > 20);
     securityResults.push({
       check: 'API Key Authentication',
       passed: apiKeySet,

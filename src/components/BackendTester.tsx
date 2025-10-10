@@ -107,13 +107,8 @@ export default function BackendTester() {
     // Test 5: Webhook Status
     addResult({ name: 'Webhook Status', status: 'pending', message: 'Checking webhook status...' });
     try {
-      const response = await authenticatedFetch('/api/webhook/status');
-      const data = await response.json();
-      if (response.ok) {
-        addResult({ name: 'Webhook Status', status: 'success', message: 'Webhook status retrieved!', data: data });
-      } else {
-        addResult({ name: 'Webhook Status', status: 'error', message: `Webhook status failed: ${data.message || 'Unknown error'}` });
-      }
+      // Webhook status not implemented in backend yet
+      throw new Error('Webhook status endpoint not implemented');
     } catch (error) {
       addResult({ name: 'Webhook Status', status: 'error', message: `Error: ${error}` });
     }

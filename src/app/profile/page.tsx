@@ -63,7 +63,7 @@ export default function ProfilePage() {
 
       try {
         console.log('👤 Loading user profile data...');
-        console.log('🔗 User wallet:', publicKey.toString());
+        console.log('🔗 User wallet:', publicKey?.toString() || 'Not connected');
         
         // Load SOL balance
         const solBalance = await connection.getBalance(publicKey);
@@ -73,7 +73,7 @@ export default function ProfilePage() {
         const { blockchainService } = await import('@/lib/blockchain-service');
         
         // Load user's NFTs
-        const nfts = await blockchainService.getUserNFTs(publicKey.toString());
+        const nfts = await blockchainService.getUserNFTs(publicKey?.toString() || '');
         const uiNFTs: UserNFT[] = nfts.map(nft => ({
           mint: nft.mint,
           collection: 'Collection', // Would need to lookup collection name
@@ -87,7 +87,7 @@ export default function ProfilePage() {
         // Load collections created by user
         const allCollections = await blockchainService.getAllCollections();
         const userCreatedCollections = allCollections.filter(
-          col => col.authority === publicKey.toString()
+          col => col.authority === (publicKey?.toString() || '')
         );
         
         const uiCollections: UserCollection[] = userCreatedCollections.map(col => ({
@@ -277,7 +277,7 @@ export default function ProfilePage() {
                     <div className="flex justify-between">
                       <span className="text-gray-300">Address:</span>
                       <code className="text-white font-mono text-sm">
-                        {publicKey.toString()}
+                        {publicKey ? publicKey.toString() : 'Not connected'}
                       </code>
                     </div>
                     <div className="flex justify-between">

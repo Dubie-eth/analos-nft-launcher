@@ -22,9 +22,9 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
       if (typeof window === 'undefined') return [];
       
       // Only log once in development to reduce console spam
-      if (process.env.NODE_ENV === 'development' && !window.walletAPILogged) {
+      if (process.env.NODE_ENV === 'development' && !(window as any).walletAPILogged) {
         console.log('🔧 Using Standard Wallet API (supports Backpack automatically)');
-        window.walletAPILogged = true;
+        (window as any).walletAPILogged = true;
       }
       
       // Return empty array to use Standard Wallet API
@@ -60,12 +60,6 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
         autoConnect={false}
         onError={(error) => {
           console.error('❌ Wallet error:', error);
-        }}
-        onConnect={(publicKey) => {
-          console.log('✅ Wallet connected successfully:', publicKey?.toString());
-        }}
-        onDisconnect={() => {
-          console.log('🔌 Wallet disconnected');
         }}
       >
         <WalletModalProvider>

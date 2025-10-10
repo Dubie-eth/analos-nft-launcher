@@ -48,7 +48,7 @@ export interface CollectionConfig {
   // Additional features
   tradingFeeBps: number;
   mintFeeBps: number;
-  feeC apsDisabled: boolean;
+  feeCapsDisabled: boolean;
 }
 
 /**
