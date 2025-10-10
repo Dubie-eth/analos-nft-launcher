@@ -371,7 +371,7 @@ export class BlockchainFirstNFTService {
         })
       });
 
-      const result = await response.json();
+      const result: any = await response.json();
       
       if (!result.result || !result.result.value) {
         console.log(`⚠️ Collection config account not found: ${collectionConfigAddress}`);
