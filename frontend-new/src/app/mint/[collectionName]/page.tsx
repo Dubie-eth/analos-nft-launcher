@@ -83,6 +83,25 @@ function CollectionMintContent() {
   const [whitelistRemainingMints, setWhitelistRemainingMints] = useState(999);
   const [isWhitelisted, setIsWhitelisted] = useState(false);
 
+  // New function to fetch real-time mint statistics
+  const fetchMintStats = useCallback(async () => {
+    try {
+      console.log('📊 Fetching real-time mint statistics...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-backend-production.up.railway.app'}/api/mint-stats/Los%20Bros`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.stats) {
+          console.log('✅ Real-time mint stats:', data.stats);
+          return data.stats;
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Error fetching mint stats:', error);
+    }
+    return null;
+  }, []);
+
   const fetchCollectionInfo = useCallback(async (forceRefresh = false) => {
     try {
       // Add simple caching to prevent redundant calls
@@ -115,7 +134,40 @@ function CollectionMintContent() {
 
       // Create the main fetch promise
       const fetchPromise = (async () => {
-        // Try blockchain-first service first
+        // Try to get real-time mint stats first
+        const mintStats = await fetchMintStats();
+        
+        if (mintStats) {
+          console.log('✅ Using real-time mint statistics:', mintStats);
+          
+          // Create collection data with real-time mint stats
+          const realTimeCollection: CollectionInfo = {
+            id: actualCollectionName,
+            name: 'Los Bros',
+            description: `Los Bros launching On LOS setting the standard for NFT minting on #ANALOS with $LOS.`,
+            imageUrl: '/api/placeholder/400/400',
+            symbol: 'LBs',
+            totalSupply: mintStats.totalSupply,
+            currentSupply: mintStats.totalMinted,
+            basePrice: 4200.69, // Your mint price in LOS
+            currency: 'LOS',
+            creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+            contractAddresses: {
+              collection: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              mint: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              metadata: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21'
+            },
+            deployed: true,
+            lastFetched: now,
+            mintingProgress: parseFloat(mintStats.mintingProgress),
+            recentMints: mintStats.recentMints
+          };
+
+          setCollection(realTimeCollection);
+          return;
+        }
+
+        // Fallback to blockchain-first service
         try {
           console.log('🔄 Attempting to load collection from blockchain-first service...');
           const blockchainFirstCollection = await blockchainFirstFrontendService.getCollection(actualCollectionName);

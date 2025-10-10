@@ -10,8 +10,12 @@ import type { MintedNFT } from './nft-tracking-service.js';
 import { blockchainRecoveryService } from './blockchain-recovery-service.js';
 import { blockchainFirstNFTService } from './blockchain-first-nft-service.js';
 import { analosLaunchpadService } from './analos-program-service.js';
+import { MintTrackingService } from './mint-tracking-service.js';
 import './initialize-recovery.js'; // Initialize recovery system on startup
 import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
+
+// Initialize mint tracking service
+const mintTrackingService = new MintTrackingService();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -681,38 +685,76 @@ app.get('/api/blockchain-first/collections', (req, res) => {
   }
 });
 
+// Get real-time mint statistics
+app.get('/api/mint-stats/:collectionName', async (req, res) => {
+  try {
+    const { collectionName } = req.params;
+    
+    if (collectionName === 'Los Bros' || collectionName === 'los-bros' || collectionName === 'The LosBros') {
+      console.log(`📊 Getting mint statistics for: ${collectionName}`);
+      
+      // Force refresh and get latest stats
+      const stats = await mintTrackingService.forceRefresh();
+      
+      res.json({
+        success: true,
+        stats: {
+          totalMinted: stats.totalMinted,
+          totalSupply: stats.totalSupply,
+          mintingProgress: (stats.totalMinted / stats.totalSupply * 100).toFixed(2),
+          lastUpdated: stats.lastUpdated,
+          recentMints: stats.mintedTokens.slice(0, 5) // Last 5 mints
+        }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Collection not found'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error getting mint statistics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get mint statistics'
+    });
+  }
+});
+
 // Get collection data
 app.get('/api/blockchain-first/collection/:collectionName', async (req, res) => {
   try {
     const { collectionName } = req.params;
     
-    // For "Los Bros" collection, fetch fresh data from blockchain
+    // For "Los Bros" collection, use mint tracking service for real-time data
     if (collectionName === 'Los Bros' || collectionName === 'los-bros' || collectionName === 'The LosBros') {
-      console.log(`🔍 Fetching fresh blockchain data for: ${collectionName}`);
-      const collectionConfigAddress = 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21';
-      const blockchainData = await blockchainFirstNFTService.fetchCollectionDataFromBlockchain(collectionConfigAddress);
+      console.log(`🔍 Fetching real-time mint data for: ${collectionName}`);
       
-      if (blockchainData) {
-        // Update cached data with fresh blockchain data
-        blockchainFirstNFTService.registerCollection(
-          blockchainData.collectionName,
-          blockchainData.totalSupply,
-          blockchainData.mintPrice,
-          blockchainData.paymentToken,
-          blockchainData.creatorWallet
-        );
-        
-        // Update current supply
-        blockchainFirstNFTService.updateCollectionData(blockchainData.collectionName, {
-          currentSupply: blockchainData.currentSupply
-        });
-        
-        console.log(`✅ Fresh blockchain data fetched and cached for ${collectionName}`);
-        return res.json({
-          success: true,
-          collection: blockchainData
-        });
-      }
+      // Scan for new mints and get current stats
+      await mintTrackingService.scanForNewMints();
+      const mintStats = mintTrackingService.getCollectionStats();
+      
+      // Create collection data with real-time mint count
+      const realTimeCollectionData = {
+        collectionName: 'Los Bros',
+        totalSupply: mintStats.totalSupply,
+        currentSupply: mintStats.totalMinted,
+        mintPrice: 4200.69, // Your mint price in LOS
+        paymentToken: 'LOS',
+        creatorWallet: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+        isActive: true,
+        mintingEnabled: mintStats.totalMinted < mintStats.totalSupply,
+        phases: [],
+        deployedAt: Date.now(),
+        lastUpdated: mintStats.lastUpdated,
+        mintedTokens: mintStats.mintedTokens.slice(0, 10) // Show last 10 mints
+      };
+      
+      console.log(`✅ Real-time mint data: ${mintStats.totalMinted}/${mintStats.totalSupply} minted`);
+      return res.json({
+        success: true,
+        collection: realTimeCollectionData
+      });
     }
     
     // Fallback to cached data if blockchain fetch fails or for other collections
@@ -1059,6 +1101,11 @@ app.listen(PORT, () => {
   console.log(`🔍 Recovery API: http://localhost:${PORT}/api/recovery/`);
   console.log(`🔗 Blockchain-First API: http://localhost:${PORT}/api/blockchain-first/`);
   console.log(`🎯 Analos Launchpad API: http://localhost:${PORT}/api/launchpad/`);
+  console.log(`📈 Mint Stats API: http://localhost:${PORT}/api/mint-stats/`);
+  
+  // Start mint monitoring service
+  console.log(`🔍 Starting mint monitoring service...`);
+  mintTrackingService.startMonitoring(30000); // Check every 30 seconds
 });
 
 // Error handling
