@@ -49,27 +49,71 @@ export default function BackendTester() {
       addResult({ name: 'IPFS Connection', status: 'error', message: `Error: ${error}` });
     }
 
-    // Test 3: RPC Proxy Test
-    addResult({ name: 'RPC Proxy', status: 'pending', message: 'Testing RPC proxy...' });
+    // Test 3: RPC Proxy Test - Get Latest Blockhash
+    addResult({ name: 'RPC Proxy', status: 'pending', message: 'Testing RPC proxy with blockchain call...' });
     try {
       const response = await authenticatedFetch('/api/rpc/proxy', {
         method: 'POST',
         body: JSON.stringify({
-          method: 'getHealth',
-          params: []
+          method: 'getLatestBlockhash',
+          params: [{ commitment: 'confirmed' }]
         })
       });
       const data = await response.json();
-      if (response.ok) {
-        addResult({ name: 'RPC Proxy', status: 'success', message: 'RPC proxy is working!', data: data });
+      if (response.ok && data.result) {
+        addResult({ 
+          name: 'RPC Proxy', 
+          status: 'success', 
+          message: `RPC proxy working! Got blockhash: ${data.result.value.blockhash.slice(0, 8)}...`, 
+          data: { 
+            blockhash: data.result.value.blockhash,
+            lastValidBlockHeight: data.result.value.lastValidBlockHeight
+          }
+        });
       } else {
-        addResult({ name: 'RPC Proxy', status: 'error', message: `RPC proxy failed: ${data.message || 'Unknown error'}` });
+        addResult({ name: 'RPC Proxy', status: 'error', message: `RPC proxy failed: ${data.error?.message || 'Unknown error'}` });
       }
     } catch (error) {
       addResult({ name: 'RPC Proxy', status: 'error', message: `Error: ${error}` });
     }
 
-    // Test 4: Webhook Status
+    // Test 4: IPFS File Upload Test
+    addResult({ name: 'IPFS File Upload', status: 'pending', message: 'Testing IPFS file upload...' });
+    try {
+      // Create a simple test JSON file
+      const testData = {
+        name: 'Test NFT',
+        description: 'This is a test NFT metadata',
+        image: 'https://example.com/test-image.png',
+        attributes: [
+          { trait_type: 'Test', value: 'Success' },
+          { trait_type: 'Upload Time', value: new Date().toISOString() }
+        ]
+      };
+
+      const response = await authenticatedFetch('/api/ipfs/upload-json', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'test-nft-metadata',
+          jsonContent: testData
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        addResult({ 
+          name: 'IPFS File Upload', 
+          status: 'success', 
+          message: `File uploaded to IPFS! CID: ${data.cid}`, 
+          data: { cid: data.cid, url: data.url }
+        });
+      } else {
+        addResult({ name: 'IPFS File Upload', status: 'error', message: `Upload failed: ${data.message || 'Unknown error'}` });
+      }
+    } catch (error) {
+      addResult({ name: 'IPFS File Upload', status: 'error', message: `Error: ${error}` });
+    }
+
+    // Test 5: Webhook Status
     addResult({ name: 'Webhook Status', status: 'pending', message: 'Checking webhook status...' });
     try {
       const response = await authenticatedFetch('/api/webhook/status');
