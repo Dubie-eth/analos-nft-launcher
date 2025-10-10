@@ -11,11 +11,13 @@ import { blockchainRecoveryService } from './blockchain-recovery-service.js';
 import { blockchainFirstNFTService } from './blockchain-first-nft-service.js';
 import { analosLaunchpadService } from './analos-program-service.js';
 import { MintTrackingService } from './mint-tracking-service.js';
+import { TickerRegistryService } from './ticker-registry-service.js';
 import './initialize-recovery.js'; // Initialize recovery system on startup
 import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
 
-// Initialize mint tracking service
+// Initialize services
 const mintTrackingService = new MintTrackingService();
+const tickerRegistryService = new TickerRegistryService();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -721,6 +723,179 @@ app.get('/api/mint-stats/:collectionName', async (req, res) => {
   }
 });
 
+// Ticker Registry API Endpoints
+
+// Check if a ticker is available
+app.get('/api/ticker/check/:symbol', (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const availability = tickerRegistryService.isTickerAvailable(symbol);
+    
+    res.json({
+      success: true,
+      symbol: symbol.toUpperCase(),
+      available: availability.available,
+      reason: availability.reason || null
+    });
+  } catch (error) {
+    console.error('❌ Error checking ticker availability:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check ticker availability'
+    });
+  }
+});
+
+// Register a new ticker
+app.post('/api/ticker/register', express.json(), (req, res) => {
+  try {
+    const { symbol, collectionName, collectionAddress, creatorWallet } = req.body;
+    
+    if (!symbol || !collectionName || !creatorWallet) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: symbol, collectionName, creatorWallet'
+      });
+    }
+    
+    const result = tickerRegistryService.registerTicker(
+      symbol,
+      collectionName,
+      collectionAddress || '',
+      creatorWallet
+    );
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: result.message,
+        symbol: symbol.toUpperCase()
+      });
+    } else {
+      res.status(409).json({
+        success: false,
+        error: result.message
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error registering ticker:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to register ticker'
+    });
+  }
+});
+
+// Reserve a ticker temporarily
+app.post('/api/ticker/reserve', express.json(), (req, res) => {
+  try {
+    const { symbol, creatorWallet } = req.body;
+    
+    if (!symbol || !creatorWallet) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: symbol, creatorWallet'
+      });
+    }
+    
+    const result = tickerRegistryService.reserveTicker(symbol, creatorWallet);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: result.message,
+        symbol: symbol.toUpperCase()
+      });
+    } else {
+      res.status(409).json({
+        success: false,
+        error: result.message
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error reserving ticker:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reserve ticker'
+    });
+  }
+});
+
+// Get ticker information
+app.get('/api/ticker/info/:symbol', (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const tickerInfo = tickerRegistryService.getTickerInfo(symbol);
+    
+    if (tickerInfo) {
+      res.json({
+        success: true,
+        ticker: tickerInfo
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Ticker not found'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error getting ticker info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get ticker information'
+    });
+  }
+});
+
+// Search tickers
+app.get('/api/ticker/search', (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || typeof q !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing search query parameter "q"'
+      });
+    }
+    
+    const results = tickerRegistryService.searchTickers(q);
+    
+    res.json({
+      success: true,
+      query: q,
+      results: results,
+      count: results.length
+    });
+  } catch (error) {
+    console.error('❌ Error searching tickers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search tickers'
+    });
+  }
+});
+
+// Get all registered tickers
+app.get('/api/ticker/all', (req, res) => {
+  try {
+    const allTickers = tickerRegistryService.getAllTickers();
+    const stats = tickerRegistryService.getStats();
+    
+    res.json({
+      success: true,
+      tickers: allTickers,
+      stats: stats
+    });
+  } catch (error) {
+    console.error('❌ Error getting all tickers:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get tickers'
+    });
+  }
+});
+
 // Get collection data
 app.get('/api/blockchain-first/collection/:collectionName', async (req, res) => {
   try {
@@ -1106,6 +1281,12 @@ app.listen(PORT, () => {
   // Start mint monitoring service
   console.log(`🔍 Starting mint monitoring service...`);
   mintTrackingService.startMonitoring(30000); // Check every 30 seconds
+  
+  // Start ticker registry cleanup (every 5 minutes)
+  console.log(`🏷️ Starting ticker registry cleanup...`);
+  setInterval(() => {
+    tickerRegistryService.cleanupExpiredReservations();
+  }, 5 * 60 * 1000); // 5 minutes
 });
 
 // Error handling

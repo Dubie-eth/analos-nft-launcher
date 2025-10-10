@@ -5,12 +5,14 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import StandardLayout from '../components/StandardLayout';
 import ComingSoonPage from '../components/ComingSoonPage';
+import TickerValidator from '../components/TickerValidator';
 import { betaAccessService } from '../../lib/beta-access-service';
 import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting-service';
 import { LayerProcessor } from '../../lib/layer-processor';
 import { Layer, Trait } from '../../lib/nft-generator';
 import { AnalosTokenService, AnalosTokenInfo } from '../../lib/analos-token-service';
 import { losPriceService, LOSPriceData } from '../../lib/los-price-service';
+import { tickerRegistryService } from '../../lib/ticker-registry-service';
 import JSZip from 'jszip';
 
 interface CollectionConfig {
@@ -281,6 +283,7 @@ const LaunchCollectionPage: React.FC = () => {
   const [traitFiles, setTraitFiles] = useState<TraitFile[]>([]);
   const [traitCategories, setTraitCategories] = useState<TraitCategory[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [tickerValid, setTickerValid] = useState(true);
   const [hostingConfig, setHostingConfig] = useState<HostingConfig>({
     method: 'ipfs'
   });
@@ -1436,6 +1439,26 @@ const LaunchCollectionPage: React.FC = () => {
             setDeployedCollection(deployedCollectionData);
             setDeploymentStatus('✅ Collection deployed successfully!');
 
+            // Register ticker in the registry
+            try {
+              console.log('🏷️ Registering ticker in registry...');
+              const tickerResult = await tickerRegistryService.registerTicker(
+                collectionConfig.symbol,
+                collectionConfig.name,
+                nftResult.mint,
+                publicKey.toBase58()
+              );
+              
+              if (tickerResult.success) {
+                console.log('✅ Ticker registered successfully:', tickerResult.message);
+              } else {
+                console.log('⚠️ Failed to register ticker:', tickerResult.message);
+              }
+            } catch (error) {
+              console.error('❌ Error registering ticker:', error);
+              // Don't fail the deployment for ticker registration issues
+            }
+
             // Add to admin control service (update existing or create new)
             const { adminControlService } = await import('../../lib/admin-control-service');
             
@@ -1594,6 +1617,14 @@ const LaunchCollectionPage: React.FC = () => {
                   className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="MAC"
                   maxLength={10}
+                />
+                <TickerValidator
+                  symbol={collectionConfig.symbol}
+                  onValidationChange={(isValid: boolean, reason?: string) => {
+                    setTickerValid(isValid);
+                    console.log('Ticker validation:', isValid, reason);
+                  }}
+                  className="mt-2"
                 />
               </div>
 
@@ -3787,11 +3818,17 @@ const LaunchCollectionPage: React.FC = () => {
 
                 <button
                   onClick={deployCollection}
-                  disabled={isDeploying}
+                  disabled={isDeploying || !tickerValid}
                   className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-bold py-4 px-8 rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
                 >
                   {isDeploying ? '🚀 Deploying...' : '🚀 Deploy Collection'}
                 </button>
+
+                {!tickerValid && collectionConfig.symbol && (
+                  <div className="mt-4 p-4 rounded-lg bg-red-500/20 text-red-300">
+                    ❌ Cannot deploy: Ticker symbol is not available or invalid
+                  </div>
+                )}
 
                 {deploymentStatus && (
                   <div className={`mt-4 p-4 rounded-lg ${deploymentStatus.includes('✅') ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>

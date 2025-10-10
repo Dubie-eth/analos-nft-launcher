@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   description: "Launch and mint NFTs on the Analos blockchain with real smart contracts",
   robots: "no-cache, no-store, must-revalidate",
         other: {
-          'cache-version': '4.1.8', // Force cache invalidation - Updated to new program ID
+          'cache-version': '4.1.9', // Force cache invalidation - Added ticker collision prevention
           'build-timestamp': Date.now().toString(), // Dynamic timestamp
           'force-refresh': 'deployment-trigger-v3', // Additional cache bust
         },
