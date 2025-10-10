@@ -8,8 +8,20 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enable CORS for all routes
-app.use(cors());
+// Enable CORS for all routes with specific origins
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:3002',
+    'https://analos-nft-launcher-9cxc.vercel.app',
+    'https://analos-nft-launcher.vercel.app',
+    'https://*.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin']
+}));
 
 // Parse JSON bodies
 app.use(express.json());
@@ -38,6 +50,61 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     port: PORT
+  });
+});
+
+// API endpoints for frontend
+app.get('/api/health', (req, res) => {
+  console.log('API health check requested');
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    service: 'Analos NFT Launcher Backend API',
+    version: '1.0.0',
+    port: PORT
+  });
+});
+
+// Collections backup endpoint (mock)
+app.get('/api/collections/backup', (req, res) => {
+  console.log('Collections backup requested');
+  res.json({
+    success: true,
+    collections: [],
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Mint stats endpoint (mock)
+app.get('/api/mint-stats/:collectionName', (req, res) => {
+  const { collectionName } = req.params;
+  console.log(`Mint stats requested for: ${collectionName}`);
+  res.json({
+    success: true,
+    collectionName: collectionName,
+    totalMinted: 0,
+    totalSupply: 1000,
+    mintPrice: 0.1,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Blockchain-first collection endpoint (mock)
+app.get('/api/blockchain-first/collection/:collectionName', (req, res) => {
+  const { collectionName } = req.params;
+  console.log(`Blockchain-first collection requested for: ${collectionName}`);
+  res.json({
+    success: true,
+    collectionName: collectionName,
+    data: {
+      name: collectionName,
+      totalSupply: 1000,
+      currentSupply: 0,
+      mintPrice: 0.1,
+      isActive: true,
+      mintingEnabled: true
+    },
+    timestamp: new Date().toISOString()
   });
 });
 
