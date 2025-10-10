@@ -7,8 +7,8 @@
 
 import { PublicKey } from '@solana/web3.js';
 
-// ✅ DEPLOYED PROGRAM ID - Updated from successful Analos deployment with fee system
-export const NFT_LAUNCHPAD_PROGRAM_ID = new PublicKey('28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p');
+// ✅ DEPLOYED PROGRAM ID - Updated with ticker collision prevention system
+export const NFT_LAUNCHPAD_PROGRAM_ID = new PublicKey('7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk');
 
 // Program Account Seeds (from the smart contract)
 export const SEEDS = {

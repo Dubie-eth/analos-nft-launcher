@@ -23,7 +23,7 @@ export interface TickerValidationResult {
 
 class OnChainTickerService {
   private readonly ANALOS_RPC_URL = 'https://rpc.analos.io';
-  private readonly PROGRAM_ID = '28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p'; // Your new program ID
+  private readonly PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk'; // New program ID with ticker collision prevention
   private connection: Connection;
 
   constructor() {

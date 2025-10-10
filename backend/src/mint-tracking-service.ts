@@ -17,7 +17,7 @@ export interface CollectionStats {
 
 export class MintTrackingService {
   private readonly ANALOS_RPC_URL = process.env.ANALOS_RPC_URL || 'https://rpc.analos.io';
-  private readonly ANALOS_PROGRAM_ID = '28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p';
+  private readonly ANALOS_PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk';
   private readonly COLLECTION_NAME = 'Los Bros';
   private readonly MAX_SUPPLY = 2222; // Your collection's max supply
   

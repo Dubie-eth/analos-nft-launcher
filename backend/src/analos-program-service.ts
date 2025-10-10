@@ -6,7 +6,7 @@
 
 import { ANALOS_LAUNCHPAD_IDL } from './analos-launchpad-idl.js';
 
-const PROGRAM_ID = 'FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo';
+const PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk';
 const ANALOS_RPC_URL = process.env.ANALOS_RPC_URL || 'https://rpc.analos.io';
 
 // Admin wallet from environment
