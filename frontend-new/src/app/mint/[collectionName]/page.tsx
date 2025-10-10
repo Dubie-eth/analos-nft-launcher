@@ -1038,6 +1038,76 @@ function CollectionMintContent() {
             </div>
           )}
 
+          {/* Program Information Section */}
+          <div className="bg-gradient-to-r from-purple-600/10 to-blue-600/10 border border-purple-400/20 rounded-2xl p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Program ID */}
+              <div className="text-center">
+                <div className="text-2xl mb-2">🔗</div>
+                <h3 className="text-lg font-bold text-white mb-2">Program ID</h3>
+                <div className="bg-gray-800/50 rounded-lg p-3 font-mono text-xs text-gray-300 break-all">
+                  7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk
+                </div>
+                <a 
+                  href="https://explorer.analos.io/address/7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 text-purple-400 hover:text-purple-300 text-sm"
+                >
+                  View on Explorer →
+                </a>
+              </div>
+
+              {/* Fee Structure */}
+              <div className="text-center">
+                <div className="text-2xl mb-2">💰</div>
+                <h3 className="text-lg font-bold text-white mb-2">Fee Structure</h3>
+                <div className="space-y-1 text-sm text-gray-300">
+                  <div className="flex justify-between">
+                    <span>Platform:</span>
+                    <span className="text-green-400 font-bold">2.5%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Buyback:</span>
+                    <span className="text-blue-400 font-bold">1.5%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Developer:</span>
+                    <span className="text-purple-400 font-bold">1.0%</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-600 pt-1">
+                    <span>Creator:</span>
+                    <span className="text-orange-400 font-bold">95.0%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div className="text-center">
+                <div className="text-2xl mb-2">✨</div>
+                <h3 className="text-lg font-bold text-white mb-2">Features</h3>
+                <div className="space-y-1 text-sm text-gray-300">
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-1">✓</span>
+                    <span>Ticker Collision Prevention</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-1">✓</span>
+                    <span>Automatic Fee Distribution</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-1">✓</span>
+                    <span>Real-Time Supply Tracking</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-1">✓</span>
+                    <span>Blind Mint & Reveal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
             {/* Collection Info */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 md:p-6 lg:p-8 shadow-2xl mobile-card">

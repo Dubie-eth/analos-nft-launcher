@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Analos NFT Launcher v4.2.0 - On-Chain Ticker Collision Prevention",
-  description: "Launch and mint NFTs on the Analos blockchain with on-chain ticker registry and automatic fee distribution",
+  title: "Analos NFT Launcher v4.2.1 - Enterprise-Grade Launchpad with On-Chain Ticker Collision Prevention",
+  description: "Professional NFT launchpad on Analos with ticker collision prevention, automatic fee distribution (2.5% platform, 1.5% buyback, 1.0% dev), real-time supply tracking, and blind mint & reveal system",
   robots: "no-cache, no-store, must-revalidate",
         other: {
-          'cache-version': '4.2.1', // Force cache invalidation - New program ID 7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk
+          'cache-version': '4.2.2', // Force cache invalidation - Frontend updates for new features showcase
           'build-timestamp': Date.now().toString(), // Dynamic timestamp
           'force-refresh': 'deployment-trigger-v4', // Additional cache bust
           'program-id': '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk', // New program ID

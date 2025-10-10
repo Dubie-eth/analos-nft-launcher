@@ -184,47 +184,51 @@ export default function EnhancedLandingPage() {
 
   const features = [
     {
-      title: "🎨 NFT Generator",
-      description: "Create unique NFT collections with custom traits and rarity",
+      title: "🏷️ On-Chain Ticker Collision Prevention",
+      description: "Blockchain-enforced ticker uniqueness with real-time validation",
       image: "/features/launch.png",
       details: [
-        "Upload trait folders for automatic processing",
-        "Set custom rarity percentages",
-        "Real-time preview generation",
-        "Batch processing for thousands of NFTs"
+        "Global ticker registry stored on-chain",
+        "Real-time availability checking via smart contract",
+        "Case-insensitive matching (MAC = mac = Mac)",
+        "Reserved ticker protection (SOL, BTC, ETH, LOS, etc.)",
+        "Automatic registration on collection deployment"
       ]
     },
     {
-      title: "🔍 NFT Explorer",
-      description: "Discover, explore, and analyze NFT collections on Analos",
+      title: "💰 Automatic Fee Distribution",
+      description: "Smart contract-powered fee system with multiple revenue streams",
       image: "/features/explorer.png",
       details: [
-        "Advanced collection browsing",
-        "Real-time metadata viewing",
-        "Holder analytics and insights",
-        "Collection performance tracking"
+        "2.5% Platform Fee → Automatic revenue collection",
+        "1.5% Buyback Fee → $LOL token purchases",
+        "1.0% Developer Fee → Development funding",
+        "95% Creator → Majority goes to collection owner",
+        "100% Automated → No manual intervention required"
       ]
     },
     {
-      title: "🏪 Marketplace",
-      description: "Trade NFTs with integrated marketplace features",
+      title: "📊 Real-Time Supply Tracking",
+      description: "Live blockchain monitoring with instant supply updates",
       image: "/features/marketplace.png",
       details: [
-        "Buy and sell NFTs directly",
-        "Auction and fixed-price listings",
-        "Collection-based trading",
-        "Integrated payment systems"
+        "30-second blockchain monitoring cycle",
+        "Automatic mint detection and parsing",
+        "Live supply counter updates",
+        "No caching delays or manual refreshes",
+        "Works across all collections simultaneously"
       ]
     },
     {
-      title: "🚀 Launchpad",
-      description: "Professional NFT launch platform with advanced features",
+      title: "🎲 Blind Mint & Reveal System",
+      description: "Mystery box NFTs with fair on-chain randomness",
       image: "/features/launchpad.png",
       details: [
-        "Versatile minting options",
-        "Whitelist management",
-        "Bonding curve launches",
-        "Collection editing tools"
+        "Placeholder metadata during mint phase",
+        "Reveal mechanism at collection threshold",
+        "On-chain randomness for fair rarity distribution",
+        "4-tier rarity system (Legendary 5%, Epic 15%, Rare 30%, Common 50%)",
+        "Event logging for full transparency"
       ]
     },
     {
@@ -497,6 +501,113 @@ Block Explorer: https://explorer.analos.io`
         </div>
       </div>
 
+      {/* Program Information Section */}
+      <section className="py-16 bg-gradient-to-r from-purple-600/5 to-blue-600/5 border-y border-purple-400/10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              🚀 Smart Contract v4.2.1
+            </h2>
+            <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+              Deployed on Analos Mainnet with enterprise-grade features
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Program ID */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <div className="text-center">
+                <div className="text-2xl mb-3">🔗</div>
+                <h3 className="text-lg font-bold text-white mb-2">Program ID</h3>
+                <div className="bg-gray-800/50 rounded-lg p-3 font-mono text-xs text-gray-300 break-all">
+                  7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk
+                </div>
+                <a 
+                  href="https://explorer.analos.io/address/7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-3 text-purple-400 hover:text-purple-300 text-sm"
+                >
+                  View on Explorer →
+                </a>
+              </div>
+            </div>
+
+            {/* Fee Structure */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <div className="text-center">
+                <div className="text-2xl mb-3">💰</div>
+                <h3 className="text-lg font-bold text-white mb-2">Fee Structure</h3>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div className="flex justify-between">
+                    <span>Platform:</span>
+                    <span className="text-green-400 font-bold">2.5%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Buyback:</span>
+                    <span className="text-blue-400 font-bold">1.5%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Developer:</span>
+                    <span className="text-purple-400 font-bold">1.0%</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-600 pt-2">
+                    <span>Creator:</span>
+                    <span className="text-orange-400 font-bold">95.0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <div className="text-center">
+                <div className="text-2xl mb-3">✨</div>
+                <h3 className="text-lg font-bold text-white mb-2">New Features</h3>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Ticker Collision Prevention</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Automatic Fee Distribution</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Real-Time Supply Tracking</span>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Blind Mint & Reveal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Network */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <div className="text-center">
+                <div className="text-2xl mb-3">🌐</div>
+                <h3 className="text-lg font-bold text-white mb-2">Network</h3>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div className="flex items-center justify-center">
+                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                    <span>Analos Mainnet</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-3">
+                    RPC: rpc.analos.io
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Explorer: explorer.analos.io
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Token Holder Incentives */}
       <section className="py-24 bg-gradient-to-b from-transparent to-gray-900/30">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -627,10 +738,10 @@ Block Explorer: https://explorer.analos.io`
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              🌟 Complete Platform Ecosystem
+              🚀 Enterprise-Grade NFT Launchpad v4.2.1
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Professional-grade tools for creating, deploying, exploring, and trading NFTs
+              On-chain ticker collision prevention • Automatic fee distribution • Real-time supply tracking • Blind mint & reveal
             </p>
           </div>
 
