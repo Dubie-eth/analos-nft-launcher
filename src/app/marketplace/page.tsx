@@ -181,7 +181,7 @@ export default function MarketplacePage() {
     });
 
   const handleMint = async (collection: Collection) => {
-    if (!connected || !publicKey || !signTransaction) {
+    if (!connected || !publicKey || !signTransaction || !sendTransaction) {
       alert('Please connect your wallet to mint');
       return;
     }
@@ -195,36 +195,64 @@ export default function MarketplacePage() {
       console.log('💰 Price (LOS lamports):', collection.mintPriceLOS);
       console.log('🔄 Bonding Curve:', collection.bondingCurveEnabled ? 'Enabled' : 'Disabled');
       
-      // Load blockchain service
-      const { blockchainService } = await import('@/lib/blockchain-service');
+      // Import minting service
+      const { mintingService } = await import('@/lib/minting-service');
       
-      // Get fresh collection data for accurate pricing
-      const freshCollection = await blockchainService.getCollectionByAddress(collection.id);
-      if (!freshCollection) {
-        throw new Error('Collection not found on blockchain');
+      // Check if user can mint
+      const eligibility = await mintingService.canUserMint(collection.id, publicKey);
+      if (!eligibility.canMint) {
+        alert(`Cannot mint: ${eligibility.reason}`);
+        setMinting(prev => ({ ...prev, [collection.id]: false }));
+        return;
       }
       
-      console.log('✅ Fresh collection data loaded');
-      console.log('📊 Current supply:', freshCollection.mintedCount, '/', freshCollection.totalSupply);
-      console.log('💵 Current mint price (SOL):', freshCollection.mintPriceSOL);
-      console.log('💵 Current mint price (USD):', freshCollection.mintPriceUSD);
+      // Estimate cost
+      const cost = await mintingService.estimateMintCost(collection.id);
+      if (cost) {
+        console.log(`💵 Estimated total cost: ${cost.total.toFixed(4)} SOL`);
+      }
       
-      // TODO: Implement actual transaction
-      // For now, show what would happen
-      alert(
-        `READY TO MINT!\n\n` +
-        `Collection: ${freshCollection.collectionName}\n` +
-        `Price: ${freshCollection.mintPriceSOL.toFixed(4)} SOL ($${freshCollection.mintPriceUSD.toFixed(2)})\n` +
-        `Supply: ${freshCollection.mintedCount}/${freshCollection.totalSupply}\n\n` +
-        `Transaction signing coming in Step 6!`
-      );
-      
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Execute mint transaction
+      console.log('🚀 Executing mint transaction...');
+      const result = await mintingService.mintPlaceholderNFT({
+        collectionAddress: collection.id,
+        userWallet: publicKey,
+        signTransaction,
+        sendTransaction,
+      });
+
+      if (result.success) {
+        alert(
+          `✅ ${result.message}\n\n` +
+          `Mint Address: ${result.mintAddress}\n` +
+          `Transaction: ${result.signature}\n\n` +
+          `View on Explorer: https://explorer.analos.io/tx/${result.signature}`
+        );
+        
+        // Refresh collection data
+        const { blockchainService } = await import('@/lib/blockchain-service');
+        const updatedCollection = await blockchainService.getCollectionByAddress(collection.id);
+        
+        if (updatedCollection) {
+          setCollections(prev => prev.map(col =>
+            col.id === collection.id
+              ? {
+                  ...col,
+                  totalMinted: updatedCollection.mintedCount,
+                  currentSupply: updatedCollection.mintedCount,
+                  mintPriceUSD: updatedCollection.mintPriceUSD,
+                  mintPriceSOL: updatedCollection.mintPriceSOL,
+                }
+              : col
+          ));
+        }
+      } else {
+        alert(`❌ Mint failed: ${result.message}`);
+      }
       
     } catch (error: any) {
-      console.error('❌ Error preparing mint:', error);
-      alert(`Failed to prepare mint: ${error.message}`);
+      console.error('❌ Error during mint:', error);
+      alert(`Failed to mint: ${error.message}`);
     } finally {
       setMinting(prev => ({ ...prev, [collection.id]: false }));
     }
