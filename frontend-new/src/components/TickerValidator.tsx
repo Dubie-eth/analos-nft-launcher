@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { tickerRegistryService, TickerAvailability } from '@/lib/ticker-registry-service';
+import { onChainTickerService, TickerValidationResult } from '@/lib/onchain-ticker-service';
 
 interface TickerValidatorProps {
   symbol: string;
@@ -13,10 +13,10 @@ interface TickerValidatorProps {
 interface ValidationState {
   status: 'idle' | 'checking' | 'valid' | 'invalid' | 'error';
   message: string;
-  availability?: TickerAvailability;
+  validationResult?: TickerValidationResult;
 }
 
-export default function TickerValidator({ 
+function TickerValidator({ 
   symbol, 
   onValidationChange, 
   disabled = false,
@@ -53,49 +53,37 @@ export default function TickerValidator({
   }, [debouncedSymbol, disabled, onValidationChange]);
 
   const validateTicker = useCallback(async (tickerSymbol: string) => {
-    // First check format validation
-    const formatValidation = tickerRegistryService.validateTickerFormat(tickerSymbol);
-    
-    if (!formatValidation.valid) {
-      setValidationState({
-        status: 'invalid',
-        message: formatValidation.message || 'Invalid ticker format'
-      });
-      onValidationChange(false, formatValidation.message);
-      return;
-    }
-
     // Set checking state
     setValidationState({
       status: 'checking',
-      message: 'Checking availability...'
+      message: 'Checking on-chain availability...'
     });
 
     try {
-      const availability = await tickerRegistryService.checkTickerAvailability(tickerSymbol);
+      const validationResult = await onChainTickerService.checkTickerAvailability(tickerSymbol);
       
-      if (availability.available) {
+      if (validationResult.available) {
         setValidationState({
           status: 'valid',
-          message: `✅ Ticker "${availability.symbol}" is available`,
-          availability
+          message: `✅ Ticker "${validationResult.reason}"`,
+          validationResult
         });
         onValidationChange(true);
       } else {
         setValidationState({
           status: 'invalid',
-          message: `❌ ${availability.reason || 'Ticker not available'}`,
-          availability
+          message: `❌ ${validationResult.reason || 'Ticker not available'}`,
+          validationResult
         });
-        onValidationChange(false, availability.reason);
+        onValidationChange(false, validationResult.reason);
       }
     } catch (error) {
       console.error('Error validating ticker:', error);
       setValidationState({
         status: 'error',
-        message: '⚠️ Unable to verify ticker availability'
+        message: '⚠️ Unable to verify ticker availability on-chain'
       });
-      onValidationChange(false, 'Unable to verify ticker availability');
+      onValidationChange(false, 'Unable to verify ticker availability on-chain');
     }
   }, [onValidationChange]);
 
@@ -160,11 +148,13 @@ export default function TickerValidator({
         )}
       </div>
       
-      {validationState.availability && (
+      {validationState.validationResult && (
         <div className="mt-1 text-xs text-gray-400">
-          Symbol: {validationState.availability.symbol}
+          Symbol: {validationState.validationResult.tickerInfo?.symbol || 'N/A'}
         </div>
       )}
     </div>
   );
 }
+
+export default TickerValidator;

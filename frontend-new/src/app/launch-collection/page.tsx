@@ -5,14 +5,14 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import StandardLayout from '../components/StandardLayout';
 import ComingSoonPage from '../components/ComingSoonPage';
-import TickerValidator from '../components/TickerValidator';
+import TickerValidator from '@/components/TickerValidator';
 import { betaAccessService } from '../../lib/beta-access-service';
 import { AnalosNFTMintingService } from '../../lib/blockchain/analos-nft-minting-service';
 import { LayerProcessor } from '../../lib/layer-processor';
 import { Layer, Trait } from '../../lib/nft-generator';
 import { AnalosTokenService, AnalosTokenInfo } from '../../lib/analos-token-service';
 import { losPriceService, LOSPriceData } from '../../lib/los-price-service';
-import { tickerRegistryService } from '../../lib/ticker-registry-service';
+import { onChainTickerService } from '../../lib/onchain-ticker-service';
 import JSZip from 'jszip';
 
 interface CollectionConfig {
@@ -1439,23 +1439,23 @@ const LaunchCollectionPage: React.FC = () => {
             setDeployedCollection(deployedCollectionData);
             setDeploymentStatus('✅ Collection deployed successfully!');
 
-            // Register ticker in the registry
+            // Register ticker on-chain
             try {
-              console.log('🏷️ Registering ticker in registry...');
-              const tickerResult = await tickerRegistryService.registerTicker(
+              console.log('🏷️ Registering ticker on-chain...');
+              const tickerResult = await onChainTickerService.registerTicker(
                 collectionConfig.symbol,
                 collectionConfig.name,
                 nftResult.mint,
-                publicKey.toBase58()
+                { publicKey, signTransaction }
               );
               
               if (tickerResult.success) {
-                console.log('✅ Ticker registered successfully:', tickerResult.message);
+                console.log('✅ Ticker registered on-chain successfully:', tickerResult.signature);
               } else {
-                console.log('⚠️ Failed to register ticker:', tickerResult.message);
+                console.log('⚠️ Failed to register ticker on-chain:', tickerResult.error);
               }
             } catch (error) {
-              console.error('❌ Error registering ticker:', error);
+              console.error('❌ Error registering ticker on-chain:', error);
               // Don't fail the deployment for ticker registration issues
             }
 
