@@ -18,7 +18,8 @@ export const ANALOS_CONFIG = {
   CONFIRM_TRANSACTION_TIMEOUT: 300000, // 5 minutes for Analos blockchain (increased for slower network)
   PROGRAM_IDS: {
     DAMM: new PublicKey('94jkbjHAz6oVCsbsDKpeBRZZYvhm2Hg2epNDihLmb4nN'),
-    BONDING_CURVE: new PublicKey('4nvcyXwTMAqM1ZoZbJWvcPXtg8dNXVbt2CFaXVwaPbT6')
+    BONDING_CURVE: new PublicKey('4nvcyXwTMAqM1ZoZbJWvcPXtg8dNXVbt2CFaXVwaPbT6'),
+    NFT_LAUNCHPAD: new PublicKey('FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo')
   }
 } as const;
 
