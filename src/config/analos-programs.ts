@@ -39,6 +39,16 @@ export const ANALOS_PROGRAMS = {
    * - Whitelist management
    */
   NFT_LAUNCHPAD: new PublicKey('5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
+
+  /**
+   * Metadata Program (SPL Token Metadata - Analos Compatible)
+   * Handles NFT metadata creation and management:
+   * - On-chain metadata storage
+   * - Name, symbol, URI storage
+   * - Update authority management
+   * - Marketplace compatibility
+   */
+  METADATA: new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'),
 } as const;
 
 /**
@@ -54,6 +64,7 @@ export const ANALOS_PROGRAM_IDS = {
   RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
   TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
+  METADATA: 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
 } as const;
 
 /**
@@ -64,6 +75,7 @@ export const ANALOS_EXPLORER_URLS = {
   RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
   TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
+  METADATA: 'https://explorer.analos.io/address/metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
 } as const;
 
 /**

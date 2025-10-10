@@ -11,11 +11,11 @@ import type { NFTMetadata, CreateMetadataParams } from '@/types/metadata-program
 
 /**
  * Metadata Program Configuration
- * Update this with your deployed metadata program ID
+ * SPL Token Metadata Program deployed on Analos
  */
 export const METADATA_PROGRAM_CONFIG = {
-  // This will be your deployed metadata program ID from Step 10
-  PROGRAM_ID: 'META11111111111111111111111111111111111111', // UPDATE AFTER DEPLOYMENT
+  // Metaplex Token Metadata Program (Analos-compatible)
+  PROGRAM_ID: 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s', // ✅ DEPLOYED ON ANALOS
   NETWORK: 'Analos Mainnet',
 };
 

@@ -249,6 +249,7 @@ export class HealthChecker {
         { name: 'Price Oracle', id: ANALOS_PROGRAMS.PRICE_ORACLE.toString() },
         { name: 'Rarity Oracle', id: ANALOS_PROGRAMS.RARITY_ORACLE.toString() },
         { name: 'Token Launch', id: ANALOS_PROGRAMS.TOKEN_LAUNCH.toString() },
+        { name: 'Metadata', id: ANALOS_PROGRAMS.METADATA.toString() },
       ];
 
       for (const program of programs) {
