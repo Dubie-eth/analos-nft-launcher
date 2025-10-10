@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { buildApiUrl, getApiHeaders, authenticatedFetch, checkBackendHealth } from '@/config/backend-config';
+import { 
+  backendAPI, 
+  healthCheck, 
+  testIPFS, 
+  uploadJSONToIPFS,
+  getLatestBlockhash 
+} from '@/lib/backend-api';
 
 interface TestResult {
   name: string;
@@ -25,11 +31,11 @@ export default function BackendTester() {
     // Test 1: Health Check
     addResult({ name: 'Health Check', status: 'pending', message: 'Testing backend health...' });
     try {
-      const isHealthy = await checkBackendHealth();
-      if (isHealthy) {
-        addResult({ name: 'Health Check', status: 'success', message: 'Backend is healthy!' });
+      const result = await healthCheck();
+      if (result.success) {
+        addResult({ name: 'Health Check', status: 'success', message: 'Backend is healthy!', data: result.data });
       } else {
-        addResult({ name: 'Health Check', status: 'error', message: 'Backend health check failed' });
+        addResult({ name: 'Health Check', status: 'error', message: result.error || 'Backend health check failed' });
       }
     } catch (error) {
       addResult({ name: 'Health Check', status: 'error', message: `Error: ${error}` });
@@ -38,12 +44,11 @@ export default function BackendTester() {
     // Test 2: IPFS Connection Test
     addResult({ name: 'IPFS Connection', status: 'pending', message: 'Testing IPFS/Pinata connection...' });
     try {
-      const response = await authenticatedFetch('/api/ipfs/test');
-      const data = await response.json();
-      if (response.ok && data.success) {
-        addResult({ name: 'IPFS Connection', status: 'success', message: 'IPFS/Pinata connection successful!' });
+      const result = await testIPFS();
+      if (result.success) {
+        addResult({ name: 'IPFS Connection', status: 'success', message: 'IPFS/Pinata connection successful!', data: result.data });
       } else {
-        addResult({ name: 'IPFS Connection', status: 'error', message: `IPFS test failed: ${data.message || 'Unknown error'}` });
+        addResult({ name: 'IPFS Connection', status: 'error', message: result.error || 'IPFS test failed' });
       }
     } catch (error) {
       addResult({ name: 'IPFS Connection', status: 'error', message: `Error: ${error}` });
@@ -52,26 +57,19 @@ export default function BackendTester() {
     // Test 3: RPC Proxy Test - Get Latest Blockhash
     addResult({ name: 'RPC Proxy', status: 'pending', message: 'Testing RPC proxy with blockchain call...' });
     try {
-      const response = await authenticatedFetch('/api/rpc/proxy', {
-        method: 'POST',
-        body: JSON.stringify({
-          method: 'getLatestBlockhash',
-          params: [{ commitment: 'confirmed' }]
-        })
-      });
-      const data = await response.json();
-      if (response.ok && data.result) {
+      const result = await getLatestBlockhash();
+      if (result.success && result.data) {
         addResult({ 
           name: 'RPC Proxy', 
           status: 'success', 
-          message: `RPC proxy working! Got blockhash: ${data.result.value.blockhash.slice(0, 8)}...`, 
+          message: `RPC proxy working! Got blockhash: ${result.data.value.blockhash.slice(0, 8)}...`, 
           data: { 
-            blockhash: data.result.value.blockhash,
-            lastValidBlockHeight: data.result.value.lastValidBlockHeight
+            blockhash: result.data.value.blockhash,
+            lastValidBlockHeight: result.data.value.lastValidBlockHeight
           }
         });
       } else {
-        addResult({ name: 'RPC Proxy', status: 'error', message: `RPC proxy failed: ${data.error?.message || 'Unknown error'}` });
+        addResult({ name: 'RPC Proxy', status: 'error', message: result.error || 'RPC proxy failed' });
       }
     } catch (error) {
       addResult({ name: 'RPC Proxy', status: 'error', message: `Error: ${error}` });
@@ -91,23 +89,16 @@ export default function BackendTester() {
         ]
       };
 
-      const response = await authenticatedFetch('/api/ipfs/upload-json', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: 'test-nft-metadata',
-          jsonContent: testData
-        })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
+      const result = await uploadJSONToIPFS(testData, 'test-nft-metadata');
+      if (result.success && result.cid) {
         addResult({ 
           name: 'IPFS File Upload', 
           status: 'success', 
-          message: `File uploaded to IPFS! CID: ${data.cid}`, 
-          data: { cid: data.cid, url: data.url }
+          message: `File uploaded to IPFS! CID: ${result.cid}`, 
+          data: { cid: result.cid, url: result.url }
         });
       } else {
-        addResult({ name: 'IPFS File Upload', status: 'error', message: `Upload failed: ${data.message || 'Unknown error'}` });
+        addResult({ name: 'IPFS File Upload', status: 'error', message: result.error || 'Upload failed' });
       }
     } catch (error) {
       addResult({ name: 'IPFS File Upload', status: 'error', message: `Error: ${error}` });
