@@ -1023,12 +1023,25 @@ function CollectionMintContent() {
                   <span>Supply: {collection.currentSupply}/{collection.totalSupply}</span>
                   <span>•</span>
                   <button
-                    onClick={() => fetchCollectionInfo(true)}
+                    onClick={async () => {
+                      console.log('🔄 Manual supply refresh triggered');
+                      // Clear all caches
+                      blockchainDataService.clearCacheManually();
+                      // Force refresh collection info
+                      await fetchCollectionInfo(true);
+                      // Also refresh blockchain-first service cache
+                      try {
+                        await blockchainFirstFrontendService.clearCache();
+                        console.log('✅ Cleared blockchain-first service cache');
+                      } catch (error) {
+                        console.log('⚠️ Error clearing blockchain-first cache:', error);
+                      }
+                    }}
                     disabled={loading}
                     className="text-blue-400 hover:text-blue-300 disabled:text-gray-400 text-xs underline"
-                    title="Refresh supply counter"
+                    title="Refresh supply counter from blockchain"
                   >
-                    {loading ? '🔄' : '↻'} Update
+                    {loading ? '🔄' : '↻'} Update Supply
                   </button>
                 </div>
               </div>
