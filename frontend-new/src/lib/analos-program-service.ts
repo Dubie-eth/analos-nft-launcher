@@ -41,7 +41,7 @@ class AnalosLaunchpadService {
         }
       }
     );
-    this.programId = new PublicKey('3FNWoNWiBcbA67yYXrczCj8KdUo2TphCZXYHthqewwcX');
+    this.programId = new PublicKey('28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p');
     console.log('🎯 Analos Launchpad Service initialized');
     console.log('   Program ID:', this.programId.toString());
     console.log('   RPC URL:', this.connection.rpcEndpoint);
