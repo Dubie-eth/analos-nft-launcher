@@ -1,13 +1,13 @@
 /**
  * Analos NFT Launchpad Program Client (Frontend)
  * Handles all frontend interactions with the Analos NFT Launchpad smart contract
- * Program ID: FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo
+ * Program ID: 28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p
  */
 
 import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import BN from 'bn.js';
 
-const PROGRAM_ID = new PublicKey('FS2aWrQnDcVioFnskRjnD1aXzb9DXEHd3SSMUyxHDgUo');
+const PROGRAM_ID = new PublicKey('28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p');
 const ANALOS_RPC_URL = process.env.NEXT_PUBLIC_ANALOS_RPC_URL || 'https://rpc.analos.io';
 
 export interface CollectionConfig {
