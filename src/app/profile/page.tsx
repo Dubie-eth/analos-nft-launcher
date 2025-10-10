@@ -178,7 +178,7 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
             <div className="flex items-center space-x-6">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {publicKey.toString().slice(0, 2).toUpperCase()}
+                {publicKey ? publicKey.toString().slice(0, 2).toUpperCase() : '??'}
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">Your Profile</h1>
@@ -186,7 +186,7 @@ export default function ProfilePage() {
                   <div className="text-gray-300">
                     <span className="font-medium">Wallet:</span>
                     <code className="ml-2 font-mono text-sm bg-gray-800/50 px-2 py-1 rounded">
-                      {publicKey.toString().slice(0, 8)}...{publicKey.toString().slice(-8)}
+                      {publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Not connected'}
                     </code>
                   </div>
                   <div className="text-gray-300">
