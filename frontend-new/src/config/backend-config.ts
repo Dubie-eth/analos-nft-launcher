@@ -3,7 +3,7 @@
 
 export const BACKEND_CONFIG = {
   // Production backend URL
-  BASE_URL: 'https://analos-nft-backend-minimal-production.up.railway.app',
+  BASE_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-backend-minimal-production.up.railway.app',
   
   // API endpoints
   ENDPOINTS: {
