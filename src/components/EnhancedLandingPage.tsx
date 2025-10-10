@@ -149,10 +149,10 @@ export default function EnhancedLandingPage() {
                     <div className="text-2xl mb-3">🔗</div>
                     <h3 className="text-lg font-bold text-white mb-2">Program ID</h3>
                     <div className="bg-gray-800/50 rounded-lg p-3 font-mono text-xs text-gray-300 break-all">
-                      7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk
+                      5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT
                     </div>
                     <a
-                      href="https://explorer.analos.io/address/7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk"
+                      href="https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block mt-3 text-purple-400 hover:text-purple-300 text-sm"
