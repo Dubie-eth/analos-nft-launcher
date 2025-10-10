@@ -135,9 +135,9 @@ function CollectionMintContent() {
             currency: blockchainFirstCollection.paymentToken,
             creator: blockchainFirstCollection.creatorWallet,
             contractAddresses: {
-              collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+              collection: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              mint: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              metadata: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21'
             },
             deployed: true,
             lastFetched: now
@@ -167,13 +167,13 @@ function CollectionMintContent() {
           await adminControlService.updateCollection('Los Bros', {
             deployed: true,
             contractAddresses: {
-              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+              mint: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              tokenAccount: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              signature: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              collection: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              metadata: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21'
             },
-            deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+            deploymentSignature: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
             deploymentDate: new Date().toISOString(),
             creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
             paymentToken: 'LOS', // Force update to LOS
@@ -257,13 +257,13 @@ function CollectionMintContent() {
           await adminControlService.updateCollection('Los Bros', {
             deployed: true,
             contractAddresses: {
-              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              collection: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              metadata: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+              mint: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              tokenAccount: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              signature: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              collection: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              metadata: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21'
             },
-            deploymentSignature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
+            deploymentSignature: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
             deploymentDate: new Date().toISOString()
           });
           console.log('✅ Force updated Los Bros deployment status');
@@ -326,9 +326,9 @@ function CollectionMintContent() {
             creator: '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
             deployed: true,
             contractAddresses: {
-              mint: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              tokenAccount: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP',
-              signature: '883FZHTYE4kqL2JwvsU1npMjKehovsjSZ8gaZN6pYWMP'
+              mint: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              tokenAccount: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21',
+              signature: 'FfyAJBtYfUVBDMstPVV8rRvjRe9N9edm4y8wA245ca21'
             },
             delayedReveal: {
               enabled: true,
