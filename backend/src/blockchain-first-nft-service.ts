@@ -280,7 +280,7 @@ export class BlockchainFirstNFTService {
 
       const data: any = await response.json();
       
-      if (!data.result) {
+      if (!data.result || !Array.isArray(data.result)) {
         console.log(`📊 No token accounts found for mint ${mintAddress}`);
         return [];
       }
@@ -601,7 +601,7 @@ export class BlockchainFirstNFTService {
 
       const data: any = await response.json();
       
-      if (!data.result || !data.result.value) {
+      if (!data.result || !data.result.value || !Array.isArray(data.result.value)) {
         return false;
       }
 
