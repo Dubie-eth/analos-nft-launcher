@@ -5,6 +5,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import BackendTester from '@/components/BackendTester';
+import SystemHealthDashboard from '@/components/SystemHealthDashboard';
 
 interface CollectionStats {
   name: string;
@@ -40,7 +41,7 @@ export default function AdminDashboard() {
   const { connection } = useConnection();
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'backend-test' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'backend-test' | 'health-check' | 'settings'>('overview');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -245,10 +246,11 @@ export default function AdminDashboard() {
           <div className="flex space-x-2 overflow-x-auto">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
+              { id: 'health-check', label: 'Health Check', icon: '🏥' },
+              { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
               { id: 'collections', label: 'Collections', icon: '📦' },
               { id: 'programs', label: 'Programs', icon: '⚙️' },
               { id: 'oracle', label: 'Oracle', icon: '💰' },
-              { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map((tab) => (
               <button
@@ -501,6 +503,12 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'health-check' && (
+          <div>
+            <SystemHealthDashboard />
           </div>
         )}
 
