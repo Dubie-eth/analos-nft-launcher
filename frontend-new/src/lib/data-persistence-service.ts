@@ -97,17 +97,19 @@ export class DataPersistenceService {
   }
 
   /**
-   * Load collection data from multiple sources
+   * Load collection data from multiple sources (filtered by new program ID)
    */
   async loadCollectionData(): Promise<CollectionData[]> {
     console.log('📥 Loading collection data from multiple sources...');
+
+    let allCollections: CollectionData[] = [];
 
     // Try backend first (most reliable)
     try {
       const backendData = await this.loadFromBackend();
       if (backendData && backendData.length > 0) {
         console.log('✅ Loaded collection data from backend:', backendData.length, 'collections');
-        return backendData;
+        allCollections = [...allCollections, ...backendData];
       }
     } catch (error) {
       console.warn('⚠️ Failed to load from backend:', error);
@@ -118,7 +120,7 @@ export class DataPersistenceService {
       const githubData = await this.loadFromGitHub();
       if (githubData && githubData.length > 0) {
         console.log('✅ Loaded collection data from GitHub:', githubData.length, 'collections');
-        return githubData;
+        allCollections = [...allCollections, ...githubData];
       }
     } catch (error) {
       console.warn('⚠️ Failed to load from GitHub:', error);
@@ -129,15 +131,52 @@ export class DataPersistenceService {
       const localData = this.loadFromLocalStorage();
       if (localData && localData.length > 0) {
         console.log('✅ Loaded collection data from localStorage:', localData.length, 'collections');
-        return localData;
+        allCollections = [...allCollections, ...localData];
       }
     } catch (error) {
       console.warn('⚠️ Failed to load from localStorage:', error);
     }
 
-    // Return default collections if nothing else works
-    console.log('📋 Using default collection data');
-    return this.getDefaultCollections();
+    // If no data found, use default collections
+    if (allCollections.length === 0) {
+      console.log('📋 Using default collection data');
+      allCollections = this.getDefaultCollections();
+    }
+
+    // Filter collections by program ID
+    const filteredCollections = this.filterCollectionsByProgramId(allCollections);
+    console.log(`🔍 Filtered collections: ${allCollections.length} → ${filteredCollections.length} (new program only)`);
+    
+    return filteredCollections;
+  }
+
+  /**
+   * Filter collections to only include those from the new program
+   */
+  private filterCollectionsByProgramId(collections: CollectionData[]): CollectionData[] {
+    const NEW_PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk';
+    const OLD_PROGRAM_IDS = [
+      '28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p',
+      '3FNWoNWiBcbA67yYXrczCj8KdUo2TphCZXYHthqewwcX'
+    ];
+
+    return collections.filter(collection => {
+      // If no programId is set, assume it's from the new program (for existing collections)
+      if (!collection.programId) {
+        return true;
+      }
+
+      // Only show collections from the new program
+      const isFromNewProgram = collection.programId === NEW_PROGRAM_ID;
+      const isFromOldProgram = OLD_PROGRAM_IDS.includes(collection.programId);
+
+      if (isFromOldProgram) {
+        console.log(`🗑️ Filtering out "${collection.name}" from data persistence - old program ID: ${collection.programId}`);
+        return false;
+      }
+
+      return isFromNewProgram;
+    });
   }
 
   /**

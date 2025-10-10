@@ -752,10 +752,69 @@ export class AdminControlService {
   }
 
   /**
-   * Get all collections as an array
+   * Get all collections as an array (filtered by new program ID)
    */
   getAllCollections(): CollectionConfig[] {
-    return Array.from(this.collections.values());
+    const NEW_PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk';
+    const OLD_PROGRAM_IDS = [
+      '28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p',
+      '3FNWoNWiBcbA67yYXrczCj8KdUo2TphCZXYHthqewwcX'
+    ];
+    
+    const allCollections = Array.from(this.collections.values());
+    
+    // Filter out collections from old programs
+    const filteredCollections = allCollections.filter(collection => {
+      // If no programId is set, assume it's from the new program (for existing collections)
+      if (!collection.programId) {
+        return true;
+      }
+      
+      // Only show collections from the new program
+      const isFromNewProgram = collection.programId === NEW_PROGRAM_ID;
+      const isFromOldProgram = OLD_PROGRAM_IDS.includes(collection.programId);
+      
+      if (isFromOldProgram) {
+        console.log(`🗑️ Filtering out "${collection.name}" from admin service - old program ID: ${collection.programId}`);
+        return false;
+      }
+      
+      return isFromNewProgram;
+    });
+    
+    return filteredCollections;
+  }
+
+  /**
+   * Clear all caches
+   */
+  clearCache(): void {
+    this.cache.clear();
+    console.log('✅ Admin control service cache cleared');
+  }
+
+  /**
+   * Remove collections from old programs
+   */
+  removeOldProgramCollections(): void {
+    const OLD_PROGRAM_IDS = [
+      '28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p',
+      '3FNWoNWiBcbA67yYXrczCj8KdUo2TphCZXYHthqewwcX'
+    ];
+    
+    let removedCount = 0;
+    for (const [key, collection] of this.collections.entries()) {
+      if (collection.programId && OLD_PROGRAM_IDS.includes(collection.programId)) {
+        this.collections.delete(key);
+        removedCount++;
+        console.log(`🗑️ Removed "${collection.name}" - old program ID: ${collection.programId}`);
+      }
+    }
+    
+    if (removedCount > 0) {
+      console.log(`✅ Removed ${removedCount} collections from old programs`);
+      this.saveToLocalStorage();
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import Link from 'next/link';
 import StandardLayout from '@/app/components/StandardLayout';
 import VerificationBadge from '@/app/components/VerificationBadge';
+import { cacheCleanupService } from '@/lib/cache-cleanup-service';
 
 interface Collection {
   id: string;
@@ -38,6 +39,21 @@ export default function MarketplacePage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'price-low' | 'price-high' | 'supply'>('newest');
   const [filterBy, setFilterBy] = useState<'all' | 'active' | 'minting'>('all');
   const [minting, setMinting] = useState<{ [key: string]: boolean }>({});
+  const [clearingCache, setClearingCache] = useState(false);
+
+  // Cache cleanup function
+  const handleClearCache = async () => {
+    setClearingCache(true);
+    try {
+      console.log('🧹 User requested cache cleanup...');
+      await cacheCleanupService.forceRefreshCollections();
+    } catch (error) {
+      console.error('❌ Error clearing cache:', error);
+      alert('Error clearing cache. Please try again.');
+    } finally {
+      setClearingCache(false);
+    }
+  };
 
   // Load collections from multiple sources
   useEffect(() => {
@@ -45,16 +61,31 @@ export default function MarketplacePage() {
       try {
         let allCollections: Collection[] = [];
         
-        // 1. Load from localStorage (deployed collections) - but filter out old/duplicate data
+        // Clear old collections from localStorage that were deployed with old program ID
+        console.log('🧹 Clearing old collections from localStorage...');
         const savedCollections = localStorage.getItem('launched_collections');
         if (savedCollections) {
           try {
             const parsedCollections = JSON.parse(savedCollections);
             console.log('📦 Found collections in localStorage:', parsedCollections.length);
             
-            // Filter to only show collections with actual deployment data
+            // Filter to only show collections from the NEW program ID
+            const NEW_PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk';
+            const OLD_PROGRAM_ID = '28YCSetmG6PSRdhQV6iBFuAE7NqWtLCryr3GYtR3qS6p';
+            const VERY_OLD_PROGRAM_ID = '3FNWoNWiBcbA67yYXrczCj8KdUo2TphCZXYHthqewwcX';
+            
             const filteredCollections = parsedCollections.filter((col: any) => {
-              // Only keep collections that have actual blockchain deployment data
+              // Check if collection has program ID info
+              const hasNewProgramId = col.programId === NEW_PROGRAM_ID;
+              const hasOldProgramId = col.programId === OLD_PROGRAM_ID || col.programId === VERY_OLD_PROGRAM_ID;
+              
+              // Filter out collections from old programs
+              if (hasOldProgramId) {
+                console.log(`🗑️ Filtering out "${col.name}" - deployed with old program ID: ${col.programId}`);
+                return false;
+              }
+              
+              // Only keep collections with actual deployment data
               const hasDeploymentData = col.signature && col.signature !== 'Unknown' && col.signature.length > 20;
               
               if (!hasDeploymentData) {
@@ -63,14 +94,18 @@ export default function MarketplacePage() {
               }
               
               // Also filter out old Los Bros collections that might conflict with admin service
-              const isLosBros = col.name === 'Los Bros' || col.name === 'The LosBros';
-              if (isLosBros) {
+              const isLosBros = col.name === 'Los Bros' || col.name === 'The LosBros' || col.name === 'LosBros';
+              if (isLosBros && !hasNewProgramId) {
                 console.log(`🗑️ Filtering out old cached "${col.name}" collection (will use admin service data instead)`);
                 return false;
               }
               
               return true;
             });
+            
+            // Update localStorage with filtered collections
+            localStorage.setItem('launched_collections', JSON.stringify(filteredCollections));
+            console.log(`✅ Cleaned localStorage: kept ${filteredCollections.length} collections from new program`);
             
             const localStorageCollections = filteredCollections.map((col: any) => ({ ...col, source: 'localStorage' }));
             allCollections = [...allCollections, ...localStorageCollections];
@@ -86,14 +121,25 @@ export default function MarketplacePage() {
           const allAdminCollections = await adminControlService.getAllCollections();
           console.log('🎛️ Found collections in admin service:', allAdminCollections.length);
           
-          // Filter to only show collections that are truly deployed to the blockchain
-          const adminCollections = allAdminCollections.filter(collection => 
-            collection.isActive && 
-            collection.mintingEnabled && 
-            collection.deployed && 
-            collection.contractAddresses?.mint && 
-            collection.creator
-          );
+          // Filter to only show collections that are truly deployed to the blockchain with NEW program ID
+          const NEW_PROGRAM_ID = '7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk';
+          const adminCollections = allAdminCollections.filter(collection => {
+            // Only show collections from the new program ID
+            const isFromNewProgram = collection.programId === NEW_PROGRAM_ID || 
+                                   !collection.programId; // Allow collections without programId (they'll be updated)
+            
+            const isProperlyDeployed = collection.isActive && 
+                                     collection.mintingEnabled && 
+                                     collection.deployed && 
+                                     collection.contractAddresses?.mint && 
+                                     collection.creator;
+            
+            if (!isFromNewProgram) {
+              console.log(`🗑️ Filtering out "${collection.name}" from admin service - not from new program (programId: ${collection.programId})`);
+            }
+            
+            return isFromNewProgram && isProperlyDeployed;
+          });
           console.log('🎛️ Deployed collections in admin service:', adminCollections.length);
           
           const adminCollectionsFormatted: Collection[] = adminCollections.map(collection => ({
@@ -380,6 +426,26 @@ export default function MarketplacePage() {
             <p className="text-xl text-gray-300 mb-6">
               Discover, mint, and trade NFTs on the Analos blockchain
             </p>
+            
+            {/* Program Info and Cache Cleanup */}
+            <div className="bg-gradient-to-r from-purple-600/10 to-blue-600/10 border border-purple-400/20 rounded-xl p-4 mb-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <div className="text-sm text-gray-300 mb-1">Current Program ID:</div>
+                  <div className="font-mono text-xs text-purple-400 break-all">
+                    7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk
+                  </div>
+                </div>
+                <button
+                  onClick={handleClearCache}
+                  disabled={clearingCache}
+                  className="bg-red-600/20 hover:bg-red-600/30 disabled:bg-gray-600/20 text-red-400 hover:text-red-300 disabled:text-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-red-500/30 disabled:border-gray-500/30"
+                  title="Clear cache and remove old program collections"
+                >
+                  {clearingCache ? '🧹 Clearing...' : '🧹 Clear Cache'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Search and Filters */}
