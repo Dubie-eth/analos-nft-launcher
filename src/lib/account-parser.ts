@@ -149,7 +149,7 @@ export function parseCollectionConfig(data: Buffer): CollectionConfig | null {
       totalReveals: Number(totalReveals),
       tradingFeeBps,
       mintFeeBps,
-      feeC apsDisabled: feeCapsDisabled,
+      feeCapsDisabled,
     };
   } catch (error) {
     console.error('Error parsing CollectionConfig:', error);
