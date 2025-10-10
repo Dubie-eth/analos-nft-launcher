@@ -436,7 +436,7 @@ export default function MarketplacePage() {
                     7kdBbyZetzrU8eCCA83FeA3o83ohwyvLkrD8W1nMcmDk
                   </div>
                 </div>
-                <button
+                <button 
                   onClick={handleClearCache}
                   disabled={clearingCache}
                   className="bg-red-600/20 hover:bg-red-600/30 disabled:bg-gray-600/20 text-red-400 hover:text-red-300 disabled:text-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-red-500/30 disabled:border-gray-500/30"
@@ -461,7 +461,7 @@ export default function MarketplacePage() {
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                 />
               </div>
-
+              
               {/* Sort */}
               <select
                 value={sortBy}
@@ -486,8 +486,8 @@ export default function MarketplacePage() {
                 <option value="minting">Minting Enabled</option>
               </select>
             </div>
-          </div>
-
+              </div>
+              
           {/* Collections Grid */}
           {loading ? (
             <div className="text-center py-12">
@@ -514,8 +514,8 @@ export default function MarketplacePage() {
                         (e.target as HTMLImageElement).src = '/api/placeholder/300/300';
                       }}
                     />
-                  </div>
-
+              </div>
+              
                   {/* Collection Info */}
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -548,9 +548,9 @@ export default function MarketplacePage() {
                         }`}>
                           {collection.mintingEnabled && collection.isActive ? 'Minting' : 'Inactive'}
                         </span>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+            </div>
+          </div>
 
                   {/* Action Buttons */}
                   <div className="space-y-3">
@@ -570,12 +570,12 @@ export default function MarketplacePage() {
                         )}
                       </button>
                     ) : (
-                      <button
-                        disabled
+            <button 
+              disabled
                         className="w-full bg-gray-600 text-gray-400 font-bold py-3 px-4 rounded-lg cursor-not-allowed"
-                      >
+            >
                         Minting Disabled
-                      </button>
+            </button>
                     )}
                     
                     <Link
@@ -616,7 +616,7 @@ export default function MarketplacePage() {
                     {collections.reduce((sum, c) => sum + c.maxSupply, 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-400">Total Supply</div>
-                </div>
+          </div>
               </div>
             </div>
           )}
