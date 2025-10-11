@@ -4,7 +4,7 @@
 // Microservices URLs
 export const MICROSERVICES = {
   CORE: process.env.NEXT_PUBLIC_CORE_API_URL || 'https://analos-core-service-production.up.railway.app',
-  ORACLE: process.env.NEXT_PUBLIC_ORACLE_API_URL || 'https://analos-nft-launcher-production-2c71.up.railway.app',
+  ORACLE: process.env.NEXT_PUBLIC_ORACLE_API_URL || 'https://analos-oracle-production.up.railway.app',
   SECURITY: process.env.NEXT_PUBLIC_SECURITY_API_URL || 'https://analos-security-service-production.up.railway.app',
 } as const;
 

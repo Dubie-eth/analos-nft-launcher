@@ -1,9 +1,9 @@
 # 🔄 Update CORS on All Railway Services
 
 ## 📋 Service URLs Summary
-- **Core Service**: `https://analos-core-service-production.up.railway.app`
-- **Oracle Service**: `https://analos-nft-launcher-production-2c71.up.railway.app`
-- **Security Service**: `https://analos-security-service-production.up.railway.app`
+- **Core Service**: `https://analos-core-production.up.railway.app`
+- **Oracle Service**: `https://analos-oracle-production.up.railway.app`
+- **Security Service**: `https://analos-security-production.up.railway.app`
 - **Frontend**: `https://loslauncher.vercel.app`
 
 ---
@@ -13,7 +13,7 @@
 Go to **Core Service** → Variables → Update `ALLOWED_ORIGINS`:
 
 ```
-ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-nft-launcher-production-2c71.up.railway.app,https://analos-security-service-production.up.railway.app
+ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-oracle-production.up.railway.app,https://analos-security-production.up.railway.app
 ```
 
 **Click "Deploy" or wait for auto-redeploy**
@@ -25,7 +25,7 @@ ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-nft-launcher-produ
 Go to **Oracle Service** → Variables → Update `ALLOWED_ORIGINS`:
 
 ```
-ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-core-service-production.up.railway.app,https://analos-security-service-production.up.railway.app
+ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-core-production.up.railway.app,https://analos-security-production.up.railway.app
 ```
 
 **Click "Deploy" or wait for auto-redeploy**
@@ -37,7 +37,7 @@ ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-core-service-produ
 Go to **Security Service** → Variables → Update `ALLOWED_ORIGINS`:
 
 ```
-ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-core-service-production.up.railway.app,https://analos-nft-launcher-production-2c71.up.railway.app
+ALLOWED_ORIGINS=https://loslauncher.vercel.app,https://analos-core-production.up.railway.app,https://analos-oracle-production.up.railway.app
 ```
 
 **Click "Deploy" or wait for auto-redeploy**
