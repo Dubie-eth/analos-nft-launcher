@@ -2,6 +2,7 @@
  * Analos Blockchain Program Configuration
  * All 4 programs deployed and verified on Analos mainnet
  * Deployment Date: October 10, 2025
+ * Updated: October 11, 2025 - Fixed program ID mismatch
  */
 
 import { PublicKey } from '@solana/web3.js';
