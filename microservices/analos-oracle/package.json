@@ -1,0 +1,25 @@
+{
+  "name": "analos-oracle-service",
+  "version": "1.0.0",
+  "description": "Price Oracle Automation Service - Microservice 2 of 3",
+  "type": "module",
+  "main": "dist/oracle-server.js",
+  "scripts": {
+    "start": "node dist/oracle-server.js",
+    "build": "tsc",
+    "dev": "tsx watch src/oracle-server.ts"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4",
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
