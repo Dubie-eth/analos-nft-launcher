@@ -22,6 +22,7 @@
     "src/services/blockchain-deployer.ts",
     "src/services/complete-generator-integration.ts", 
     "src/services/ipfs-integration.ts",
-    "src/services/payment-service.ts"
+    "src/services/payment-service.ts",
+    "src/nft-generator-enhanced-routes.ts"
   ]
 }
