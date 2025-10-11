@@ -10,6 +10,11 @@ analos_nft_launchpad = "5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"
 analos_token_launch = "CDJZZCSod3YS9crpWAvWSLWEpPyx9QZCRRAcv7xL1FZf"
 analos_rarity_oracle = "3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2"
 analos_price_oracle = "5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD"
+analos_otc_enhanced = "7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY"
+analos_airdrop_enhanced = "J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC"
+analos_vesting_enhanced = "Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY"
+analos_token_lock_enhanced = "3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH"
+analos_monitoring_system = "7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG"
 
 [registry]
 url = "https://api.apr.dev"

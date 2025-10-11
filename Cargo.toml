@@ -6,7 +6,14 @@ members = [
     "programs/analos-price-oracle",
     "programs/analos-metadata",
     "programs/analos-vesting",
-    "programs/analos-token-lock"
+    "programs/analos-token-lock",
+    "programs/analos-airdrop",
+    "programs/analos-otc-marketplace",
+    "programs/analos-otc-enhanced",
+    "programs/analos-airdrop-enhanced",
+    "programs/analos-vesting-enhanced",
+    "programs/analos-token-lock-enhanced",
+    "programs/analos-monitoring-system",
 ]
 resolver = "2"
 
