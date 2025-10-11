@@ -295,6 +295,135 @@ export default function EnhancedLandingPage() {
         </div>
       </section>
 
+      {/* Enhanced Programs Section */}
+      <section className="py-20 bg-gradient-to-r from-green-600/5 to-teal-600/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              🚀 Enhanced Programs
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Advanced blockchain programs for professional trading, airdrops, vesting, and token management
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* OTC Marketplace */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 group">
+              <div className="text-center">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">💱</div>
+                <h3 className="text-xl font-bold text-white mb-3">OTC Trading</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Peer-to-peer trading with enhanced security and multi-signature support
+                </p>
+                <ul className="text-xs text-gray-400 space-y-1 mb-4">
+                  <li>• Emergency pause functions</li>
+                  <li>• Rate limiting protection</li>
+                  <li>• Enhanced logging</li>
+                  <li>• Multi-signature support</li>
+                </ul>
+                <Link
+                  href="/otc-marketplace"
+                  className="inline-block bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105"
+                >
+                  Start Trading
+                </Link>
+              </div>
+            </div>
+
+            {/* Airdrops */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 group">
+              <div className="text-center">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">🎁</div>
+                <h3 className="text-xl font-bold text-white mb-3">Airdrops</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Claim tokens via Merkle tree verification with enhanced security
+                </p>
+                <ul className="text-xs text-gray-400 space-y-1 mb-4">
+                  <li>• Merkle tree verification</li>
+                  <li>• Gasless claiming</li>
+                  <li>• Batch processing</li>
+                  <li>• Anti-bot protection</li>
+                </ul>
+                <Link
+                  href="/airdrops"
+                  className="inline-block bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105"
+                >
+                  Claim Tokens
+                </Link>
+              </div>
+            </div>
+
+            {/* Vesting */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 group">
+              <div className="text-center">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">⏰</div>
+                <h3 className="text-xl font-bold text-white mb-3">Vesting</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Create and manage token vesting schedules with flexible parameters
+                </p>
+                <ul className="text-xs text-gray-400 space-y-1 mb-4">
+                  <li>• Linear & cliff vesting</li>
+                  <li>• Multi-recipient support</li>
+                  <li>• Pausable schedules</li>
+                  <li>• Emergency recovery</li>
+                </ul>
+                <Link
+                  href="/vesting"
+                  className="inline-block bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105"
+                >
+                  Manage Vesting
+                </Link>
+              </div>
+            </div>
+
+            {/* Token Lock */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300 group">
+              <div className="text-center">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">🔒</div>
+                <h3 className="text-xl font-bold text-white mb-3">Token Lock</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Lock and unlock tokens with time-based restrictions and monitoring
+                </p>
+                <ul className="text-xs text-gray-400 space-y-1 mb-4">
+                  <li>• Time-based locks</li>
+                  <li>• Multi-signature control</li>
+                  <li>• Lock extensions</li>
+                  <li>• Real-time monitoring</li>
+                </ul>
+                <Link
+                  href="/token-lock"
+                  className="inline-block bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 transform hover:scale-105"
+                >
+                  Lock Tokens
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Programs CTA */}
+          <div className="text-center mt-12">
+            <p className="text-gray-300 mb-6">
+              All enhanced programs include advanced security features, monitoring, and emergency controls
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/explorer"
+                className="bg-white text-green-900 hover:bg-gray-100 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105"
+              >
+                🔍 View All Programs
+              </Link>
+              <Link
+                href="/admin"
+                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border border-white/20"
+              >
+                🎛️ Admin Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Roadmap Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600/5 to-purple-600/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">

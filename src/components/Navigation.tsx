@@ -42,6 +42,10 @@ export default function Navigation() {
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
     { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
+    { href: '/otc-marketplace', label: 'OTC Trading', icon: '💱' },
+    { href: '/airdrops', label: 'Airdrops', icon: '🎁' },
+    { href: '/vesting', label: 'Vesting', icon: '⏰' },
+    { href: '/token-lock', label: 'Token Lock', icon: '🔒' },
     { href: '/explorer', label: 'Explorer', icon: '🔍' },
     { href: '/profile', label: 'Profile', icon: '👤' },
   ];

@@ -99,6 +99,7 @@ export default function AdminDashboard() {
       ];
 
       const demoProgramStatus: ProgramStatus[] = [
+        // Core Programs
         {
           name: 'NFT Launchpad',
           programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
@@ -123,6 +124,42 @@ export default function AdminDashboard() {
         {
           name: 'Token Launch',
           programId: ANALOS_PROGRAMS.TOKEN_LAUNCH.toString(),
+          isActive: true,
+          transactionCount: 0,
+          lastActivity: new Date().toISOString()
+        },
+        // Enhanced Programs
+        {
+          name: 'OTC Enhanced',
+          programId: ANALOS_PROGRAMS.OTC_ENHANCED.toString(),
+          isActive: true,
+          transactionCount: 0,
+          lastActivity: new Date().toISOString()
+        },
+        {
+          name: 'Airdrop Enhanced',
+          programId: ANALOS_PROGRAMS.AIRDROP_ENHANCED.toString(),
+          isActive: true,
+          transactionCount: 0,
+          lastActivity: new Date().toISOString()
+        },
+        {
+          name: 'Vesting Enhanced',
+          programId: ANALOS_PROGRAMS.VESTING_ENHANCED.toString(),
+          isActive: true,
+          transactionCount: 0,
+          lastActivity: new Date().toISOString()
+        },
+        {
+          name: 'Token Lock Enhanced',
+          programId: ANALOS_PROGRAMS.TOKEN_LOCK_ENHANCED.toString(),
+          isActive: true,
+          transactionCount: 0,
+          lastActivity: new Date().toISOString()
+        },
+        {
+          name: 'Monitoring System',
+          programId: ANALOS_PROGRAMS.MONITORING_SYSTEM.toString(),
           isActive: true,
           transactionCount: 0,
           lastActivity: new Date().toISOString()
