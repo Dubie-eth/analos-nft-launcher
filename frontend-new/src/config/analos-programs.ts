@@ -1,8 +1,8 @@
 /**
  * Analos Blockchain Program Configuration
- * All 4 programs deployed and verified on Analos mainnet
+ * All 9 programs deployed and verified on Analos mainnet
  * Deployment Date: October 10, 2025
- * Updated: October 11, 2025 - Fixed program ID mismatch
+ * Updated: October 11, 2025 - Added 5 Enhanced Programs
  */
 
 import { PublicKey } from '@solana/web3.js';
@@ -40,6 +40,63 @@ export const ANALOS_PROGRAMS = {
    * - Whitelist management
    */
   NFT_LAUNCHPAD: new PublicKey('5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
+
+  // ===== NEW ENHANCED PROGRAMS =====
+
+  /**
+   * OTC Enhanced Program
+   * P2P trading with escrow protection and multi-sig approval
+   * Features:
+   * - NFT ↔ Token swaps
+   * - Token ↔ Token swaps
+   * - Expiring offers
+   * - Multi-sig for large trades
+   */
+  OTC_ENHANCED: new PublicKey('7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY'),
+
+  /**
+   * Airdrop Enhanced Program
+   * Merkle tree-based airdrops with anti-bot protection
+   * Features:
+   * - Merkle proof verification
+   * - Rate limiting
+   * - Claim tracking
+   * - Multiple campaigns
+   */
+  AIRDROP_ENHANCED: new PublicKey('J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC'),
+
+  /**
+   * Vesting Enhanced Program
+   * Token vesting with time-based release schedules
+   * Features:
+   * - Linear vesting schedules
+   * - Cliff periods
+   * - Emergency pause/resume
+   * - Beneficiary updates
+   */
+  VESTING_ENHANCED: new PublicKey('Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY'),
+
+  /**
+   * Token Lock Enhanced Program
+   * Time-locked token escrow with multi-sig unlock
+   * Features:
+   * - Time-based locks
+   * - LP token locking
+   * - Multi-sig unlock
+   * - Lock extension
+   */
+  TOKEN_LOCK_ENHANCED: new PublicKey('3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH'),
+
+  /**
+   * Monitoring System Program
+   * Real-time monitoring and alerting system
+   * Features:
+   * - Event logging
+   * - Alert triggers
+   * - Performance metrics
+   * - Anomaly detection
+   */
+  MONITORING_SYSTEM: new PublicKey('7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG'),
 } as const;
 
 /**
@@ -55,6 +112,11 @@ export const ANALOS_PROGRAM_IDS = {
   RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
   TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
+  OTC_ENHANCED: '7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
+  AIRDROP_ENHANCED: 'J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
+  VESTING_ENHANCED: 'Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY',
+  TOKEN_LOCK_ENHANCED: '3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH',
+  MONITORING_SYSTEM: '7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG',
 } as const;
 
 /**
@@ -65,6 +127,11 @@ export const ANALOS_EXPLORER_URLS = {
   RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
   TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
+  OTC_ENHANCED: 'https://explorer.analos.io/address/7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
+  AIRDROP_ENHANCED: 'https://explorer.analos.io/address/J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
+  VESTING_ENHANCED: 'https://explorer.analos.io/address/Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY',
+  TOKEN_LOCK_ENHANCED: 'https://explorer.analos.io/address/3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH',
+  MONITORING_SYSTEM: 'https://explorer.analos.io/address/7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG',
 } as const;
 
 /**
