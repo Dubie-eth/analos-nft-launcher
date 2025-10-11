@@ -252,11 +252,11 @@ export class HealthChecker {
         { name: 'Rarity Oracle', id: ANALOS_PROGRAMS.RARITY_ORACLE.toString() },
         { name: 'Token Launch', id: ANALOS_PROGRAMS.TOKEN_LAUNCH.toString() },
         // Enhancement Programs
-        { name: 'Metadata', id: ANALOS_PROGRAMS.METADATA.toString() },
-        { name: 'Vesting', id: ANALOS_PROGRAMS.VESTING.toString() },
-        { name: 'Token Lock', id: ANALOS_PROGRAMS.TOKEN_LOCK.toString() },
-        { name: 'Airdrop', id: ANALOS_PROGRAMS.AIRDROP.toString() },
-        { name: 'OTC Marketplace', id: ANALOS_PROGRAMS.OTC_MARKETPLACE.toString() },
+        { name: 'OTC Enhanced', id: ANALOS_PROGRAMS.OTC_ENHANCED.toString() },
+        { name: 'Airdrop Enhanced', id: ANALOS_PROGRAMS.AIRDROP_ENHANCED.toString() },
+        { name: 'Vesting Enhanced', id: ANALOS_PROGRAMS.VESTING_ENHANCED.toString() },
+        { name: 'Token Lock Enhanced', id: ANALOS_PROGRAMS.TOKEN_LOCK_ENHANCED.toString() },
+        { name: 'Monitoring System', id: ANALOS_PROGRAMS.MONITORING_SYSTEM.toString() },
       ];
 
       for (const program of programs) {

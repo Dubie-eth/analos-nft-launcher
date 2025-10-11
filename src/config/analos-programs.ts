@@ -1,243 +1,162 @@
 /**
- * 🎉 ANALOS BLOCKCHAIN PROGRAM CONFIGURATION 🎉
- * 
- * ALL 9 PROGRAMS DEPLOYED AND VERIFIED ON ANALOS MAINNET!
- * 
- * Core Platform Programs: 4/4 ✅
- * Enhancement Programs: 5/5 ✅
- * Total Programs: 9/9 (100%) ✅
- * 
- * Deployment Date: October 11, 2025
- * Total Investment: ~31.5 SOL
- * Network: Analos Mainnet
- * Status: PRODUCTION READY! 🚀
+ * Analos Blockchain Program Configuration
+ * All 9 programs deployed and verified on Analos mainnet
+ * Deployment Date: October 10, 2025
+ * Updated: October 11, 2025 - Added 5 Enhanced Programs
  */
 
 import { PublicKey } from '@solana/web3.js';
 
 /**
- * ========================================
- * ANALOS PROGRAM PUBLIC KEYS
- * ========================================
+ * Analos Program Public Keys
  */
 export const ANALOS_PROGRAMS = {
-  // ========================================
-  // CORE PLATFORM PROGRAMS (4/4) ✅
-  // ========================================
-
-  /**
-   * NFT Launchpad Program (Main Integration)
-   * - Collection management with ticker collision prevention
-   * - Blind mint mechanics & reveal system
-   * - Bonding curve integration
-   * - Community takeover governance
-   * - Whitelist management
-   * - Automatic fee distribution
-   */
-  NFT_LAUNCHPAD: new PublicKey('5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
-
   /**
    * Price Oracle Program
-   * - Real-time $LOS price data
-   * - USD-pegged NFT pricing
-   * - Market data aggregation
+   * Provides real-time $LOS price data for USD-pegged NFT pricing
    */
-  PRICE_ORACLE: new PublicKey('ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn'),
+  PRICE_ORACLE: new PublicKey('9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym'),
 
   /**
    * Rarity Oracle Program
-   * - NFT rarity score calculation
-   * - Trait distribution analysis
-   * - Collection-wide rarity metrics
+   * Calculates and stores NFT rarity scores and trait distributions
    */
   RARITY_ORACLE: new PublicKey('H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6'),
 
   /**
    * Token Launch Program
-   * - Token launches with bonding curves
-   * - Creator prebuy allocation
-   * - Trading fee management
-   * - Liquidity pool integration
+   * Handles token launches with bonding curves, creator prebuy, and trading fees
    */
   TOKEN_LAUNCH: new PublicKey('HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx'),
 
-  // ========================================
-  // ENHANCEMENT PROGRAMS (5/5) ✅
-  // ========================================
+  /**
+   * NFT Launchpad Program (Main Integration)
+   * Main NFT launchpad that integrates all oracles and handles:
+   * - Collection management
+   * - Blind mint mechanics
+   * - Reveal system with commit-reveal scheme
+   * - Bonding curve integration
+   * - Community takeover governance
+   * - Whitelist management
+   */
+  NFT_LAUNCHPAD: new PublicKey('5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
+
+  // ===== NEW ENHANCED PROGRAMS =====
 
   /**
-   * Metadata Program (SPL Token Metadata - Analos Compatible)
-   * - On-chain metadata storage
-   * - Name, symbol, URI management
-   * - Update authority control
-   * - Marketplace compatibility
+   * OTC Enhanced Program
+   * P2P trading with escrow protection and multi-sig approval
+   * Features:
+   * - NFT ↔ Token swaps
+   * - Token ↔ Token swaps
+   * - Expiring offers
+   * - Multi-sig for large trades
    */
-  METADATA: new PublicKey('8ESkxgw28xsZgbeaTbVngduUk3zzWGMwccmUaSjSLYUL'),
+  OTC_ENHANCED: new PublicKey('7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY'),
 
   /**
-   * Vesting Program
-   * - Token vesting schedules
-   * - Linear and cliff vesting
-   * - Team and investor allocations
-   * - Time-locked releases
+   * Airdrop Enhanced Program
+   * Merkle tree-based airdrops with anti-bot protection
+   * Features:
+   * - Merkle proof verification
+   * - Rate limiting
+   * - Claim tracking
+   * - Multiple campaigns
    */
-  VESTING: new PublicKey('GbAkoxYYPx5tcn5BD7RHyAYxMZkBxCvY6sHW5x9gcmuL'),
+  AIRDROP_ENHANCED: new PublicKey('J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC'),
 
   /**
-   * Token Lock Program
-   * - Time-locked token holdings
-   * - Flexible unlock schedules
-   * - Multi-beneficiary support
-   * - Emergency unlock mechanisms
+   * Vesting Enhanced Program
+   * Token vesting with time-based release schedules
+   * Features:
+   * - Linear vesting schedules
+   * - Cliff periods
+   * - Emergency pause/resume
+   * - Beneficiary updates
    */
-  TOKEN_LOCK: new PublicKey('QsA8Y11Sq3hFhqpZtwG7fUap5S3nU4VBxv5V4jTS5gh'),
+  VESTING_ENHANCED: new PublicKey('Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY'),
 
   /**
-   * Airdrop Program
-   * - Batch token distribution
-   * - Merkle tree verification
-   * - Gas-efficient claims
-   * - Multi-token support
+   * Token Lock Enhanced Program
+   * Time-locked token escrow with multi-sig unlock
+   * Features:
+   * - Time-based locks
+   * - LP token locking
+   * - Multi-sig unlock
+   * - Lock extension
    */
-  AIRDROP: new PublicKey('6oQjb8eyGCN8ZZ7i43ffssYWXE8oQquBuANzccdKuDpM'),
+  TOKEN_LOCK_ENHANCED: new PublicKey('3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH'),
 
   /**
-   * OTC Marketplace Program
-   * - Peer-to-peer trading
-   * - Escrow management
-   * - Multi-asset swaps
-   * - Trust-minimized transactions
+   * Monitoring System Program
+   * Real-time monitoring and alerting system
+   * Features:
+   * - Event logging
+   * - Alert triggers
+   * - Performance metrics
+   * - Anomaly detection
    */
-  OTC_MARKETPLACE: new PublicKey('7FmyCTWgzvZw2q58NJXEXsvGum72yTbbVvn81GN3RDrQ'),
+  MONITORING_SYSTEM: new PublicKey('7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG'),
 } as const;
 
 /**
- * ========================================
- * PROGRAM IDS AS STRINGS
- * ========================================
- * (For display, logging, and configuration)
- */
-export const ANALOS_PROGRAM_IDS = {
-  // Core Platform
-  NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
-  PRICE_ORACLE: 'ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn',
-  RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
-  TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
-  
-  // Enhancement Programs
-  METADATA: '8ESkxgw28xsZgbeaTbVngduUk3zzWGMwccmUaSjSLYUL',
-  VESTING: 'GbAkoxYYPx5tcn5BD7RHyAYxMZkBxCvY6sHW5x9gcmuL',
-  TOKEN_LOCK: 'QsA8Y11Sq3hFhqpZtwG7fUap5S3nU4VBxv5V4jTS5gh',
-  AIRDROP: '6oQjb8eyGCN8ZZ7i43ffssYWXE8oQquBuANzccdKuDpM',
-  OTC_MARKETPLACE: '7FmyCTWgzvZw2q58NJXEXsvGum72yTbbVvn81GN3RDrQ',
-} as const;
-
-/**
- * ========================================
- * EXPLORER URLS
- * ========================================
- */
-export const ANALOS_EXPLORER_URLS = {
-  // Core Platform
-  NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
-  PRICE_ORACLE: 'https://explorer.analos.io/address/ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn',
-  RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
-  TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
-  
-  // Enhancement Programs
-  METADATA: 'https://explorer.analos.io/address/8ESkxgw28xsZgbeaTbVngduUk3zzWGMwccmUaSjSLYUL',
-  VESTING: 'https://explorer.analos.io/address/GbAkoxYYPx5tcn5BD7RHyAYxMZkBxCvY6sHW5x9gcmuL',
-  TOKEN_LOCK: 'https://explorer.analos.io/address/QsA8Y11Sq3hFhqpZtwG7fUap5S3nU4VBxv5V4jTS5gh',
-  AIRDROP: 'https://explorer.analos.io/address/6oQjb8eyGCN8ZZ7i43ffssYWXE8oQquBuANzccdKuDpM',
-  OTC_MARKETPLACE: 'https://explorer.analos.io/address/7FmyCTWgzvZw2q58NJXEXsvGum72yTbbVvn81GN3RDrQ',
-} as const;
-
-/**
- * ========================================
- * PROGRAM CATEGORIES
- * ========================================
- */
-export const PROGRAM_CATEGORIES = {
-  CORE: ['NFT_LAUNCHPAD', 'PRICE_ORACLE', 'RARITY_ORACLE', 'TOKEN_LAUNCH'],
-  ENHANCEMENT: ['METADATA', 'VESTING', 'TOKEN_LOCK', 'AIRDROP', 'OTC_MARKETPLACE'],
-} as const;
-
-/**
- * ========================================
- * PROGRAM DISPLAY NAMES
- * ========================================
- */
-export const PROGRAM_NAMES = {
-  NFT_LAUNCHPAD: 'NFT Launchpad',
-  PRICE_ORACLE: 'Price Oracle',
-  RARITY_ORACLE: 'Rarity Oracle',
-  TOKEN_LAUNCH: 'Token Launch',
-  METADATA: 'Metadata',
-  VESTING: 'Vesting',
-  TOKEN_LOCK: 'Token Lock',
-  AIRDROP: 'Airdrop',
-  OTC_MARKETPLACE: 'OTC Marketplace',
-} as const;
-
-/**
- * ========================================
- * PROGRAM EMOJI ICONS
- * ========================================
- */
-export const PROGRAM_ICONS = {
-  NFT_LAUNCHPAD: '🚀',
-  PRICE_ORACLE: '💰',
-  RARITY_ORACLE: '🎲',
-  TOKEN_LAUNCH: '📈',
-  METADATA: '📝',
-  VESTING: '⏳',
-  TOKEN_LOCK: '🔒',
-  AIRDROP: '🎁',
-  OTC_MARKETPLACE: '🤝',
-} as const;
-
-/**
- * ========================================
- * NETWORK CONFIGURATION
- * ========================================
+ * Analos RPC Endpoint
  */
 export const ANALOS_RPC_URL = 'https://rpc.analos.io';
-export const ANALOS_EXPLORER_BASE = 'https://explorer.analos.io';
 
 /**
- * ========================================
- * DEPLOYMENT INFORMATION
- * ========================================
+ * Program IDs as strings (for display/logging)
  */
-export const PROGRAM_INFO = {
-  DEPLOYMENT_DATE: '2025-10-11',
-  NETWORK: 'Analos Mainnet',
-  AUTHORITY: '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q',
-  TOTAL_PROGRAMS: 9,
-  CORE_PROGRAMS: 4,
-  ENHANCEMENT_PROGRAMS: 5,
-  TOTAL_COST: '~31.5 SOL',
-  STATUS: 'PRODUCTION READY',
+export const ANALOS_PROGRAM_IDS = {
+  PRICE_ORACLE: '9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym',
+  RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
+  TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
+  NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
+  OTC_ENHANCED: '7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
+  AIRDROP_ENHANCED: 'J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
+  VESTING_ENHANCED: 'Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY',
+  TOKEN_LOCK_ENHANCED: '3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH',
+  MONITORING_SYSTEM: '7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG',
 } as const;
 
 /**
- * ========================================
- * HELPER FUNCTIONS
- * ========================================
+ * Explorer URLs for verification
  */
+export const ANALOS_EXPLORER_URLS = {
+  PRICE_ORACLE: 'https://explorer.analos.io/address/9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym',
+  RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
+  TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
+  NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
+  OTC_ENHANCED: 'https://explorer.analos.io/address/7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
+  AIRDROP_ENHANCED: 'https://explorer.analos.io/address/J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
+  VESTING_ENHANCED: 'https://explorer.analos.io/address/Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY',
+  TOKEN_LOCK_ENHANCED: 'https://explorer.analos.io/address/3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKwZH',
+  MONITORING_SYSTEM: 'https://explorer.analos.io/address/7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG',
+} as const;
 
 /**
- * Get explorer URL for any address
+ * Program deployment information
+ */
+export const PROGRAM_INFO = {
+  DEPLOYMENT_DATE: '2025-10-10',
+  NETWORK: 'Analos Mainnet',
+  AUTHORITY: '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q',
+  TOTAL_COST: '~16 SOL',
+} as const;
+
+/**
+ * Helper function to get explorer URL for any address
  */
 export function getAnalosExplorerUrl(address: string): string {
-  return `${ANALOS_EXPLORER_BASE}/address/${address}`;
+  return `https://explorer.analos.io/address/${address}`;
 }
 
 /**
- * Validate all program IDs
+ * Helper function to validate program IDs
  */
 export function validateProgramIds(): boolean {
   try {
+    // Attempt to create PublicKey objects from all program IDs
     Object.values(ANALOS_PROGRAMS).forEach(program => {
       if (!(program instanceof PublicKey)) {
         throw new Error('Invalid program ID');
@@ -245,69 +164,10 @@ export function validateProgramIds(): boolean {
     });
     return true;
   } catch (error) {
-    console.error('❌ Program ID validation failed:', error);
+    console.error('Program ID validation failed:', error);
     return false;
   }
 }
 
-/**
- * Get all program IDs as array
- */
-export function getAllProgramIds(): PublicKey[] {
-  return Object.values(ANALOS_PROGRAMS);
-}
-
-/**
- * Get core program IDs
- */
-export function getCoreProgramIds(): PublicKey[] {
-  return PROGRAM_CATEGORIES.CORE.map(key => ANALOS_PROGRAMS[key as keyof typeof ANALOS_PROGRAMS]);
-}
-
-/**
- * Get enhancement program IDs
- */
-export function getEnhancementProgramIds(): PublicKey[] {
-  return PROGRAM_CATEGORIES.ENHANCEMENT.map(key => ANALOS_PROGRAMS[key as keyof typeof ANALOS_PROGRAMS]);
-}
-
-/**
- * Get program info by key
- */
-export function getProgramInfo(programKey: keyof typeof ANALOS_PROGRAMS) {
-  return {
-    name: PROGRAM_NAMES[programKey],
-    icon: PROGRAM_ICONS[programKey],
-    programId: ANALOS_PROGRAM_IDS[programKey],
-    explorerUrl: ANALOS_EXPLORER_URLS[programKey],
-    publicKey: ANALOS_PROGRAMS[programKey],
-  };
-}
-
-/**
- * Log all deployed programs (for debugging)
- */
-export function logDeployedPrograms(): void {
-  console.log('🎉 ANALOS DEPLOYED PROGRAMS 🎉');
-  console.log('='.repeat(60));
-  
-  console.log('\n📦 CORE PLATFORM (4/4):');
-  PROGRAM_CATEGORIES.CORE.forEach(key => {
-    const info = getProgramInfo(key as keyof typeof ANALOS_PROGRAMS);
-    console.log(`  ${info.icon} ${info.name}: ${info.programId}`);
-  });
-  
-  console.log('\n✨ ENHANCEMENT PROGRAMS (5/5):');
-  PROGRAM_CATEGORIES.ENHANCEMENT.forEach(key => {
-    const info = getProgramInfo(key as keyof typeof ANALOS_PROGRAMS);
-    console.log(`  ${info.icon} ${info.name}: ${info.programId}`);
-  });
-  
-  console.log('\n' + '='.repeat(60));
-  console.log(`✅ Total Programs: ${PROGRAM_INFO.TOTAL_PROGRAMS}/9 (100%)`);
-  console.log(`💰 Total Investment: ${PROGRAM_INFO.TOTAL_COST}`);
-  console.log(`🚀 Status: ${PROGRAM_INFO.STATUS}`);
-  console.log('='.repeat(60));
-}
-
 export default ANALOS_PROGRAMS;
+

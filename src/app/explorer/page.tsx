@@ -125,32 +125,50 @@ export default function ExplorerPage() {
           },
           // Enhancement Programs
           {
-            programId: ANALOS_PROGRAMS.METADATA.toString(),
-            programName: 'Metadata',
+            programId: ANALOS_PROGRAMS.OTC_ENHANCED.toString(),
+            programName: 'OTC Enhanced',
             recentTransactions: [],
             totalTransactions: 0
           },
           {
-            programId: ANALOS_PROGRAMS.VESTING.toString(),
-            programName: 'Vesting',
+            programId: ANALOS_PROGRAMS.AIRDROP_ENHANCED.toString(),
+            programName: 'Airdrop Enhanced',
             recentTransactions: [],
             totalTransactions: 0
           },
           {
-            programId: ANALOS_PROGRAMS.TOKEN_LOCK.toString(),
-            programName: 'Token Lock',
+            programId: ANALOS_PROGRAMS.VESTING_ENHANCED.toString(),
+            programName: 'Vesting Enhanced',
             recentTransactions: [],
             totalTransactions: 0
           },
           {
-            programId: ANALOS_PROGRAMS.AIRDROP.toString(),
-            programName: 'Airdrop',
+            programId: ANALOS_PROGRAMS.TOKEN_LOCK_ENHANCED.toString(),
+            programName: 'Token Lock Enhanced',
             recentTransactions: [],
             totalTransactions: 0
           },
           {
-            programId: ANALOS_PROGRAMS.OTC_MARKETPLACE.toString(),
-            programName: 'OTC Marketplace',
+            programId: ANALOS_PROGRAMS.MONITORING_SYSTEM.toString(),
+            programName: 'Monitoring System',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.TOKEN_LOCK_ENHANCED.toString(),
+            programName: 'Token Lock Enhanced',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.AIRDROP_ENHANCED.toString(),
+            programName: 'Airdrop Enhanced',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.OTC_ENHANCED.toString(),
+            programName: 'OTC Enhanced',
             recentTransactions: [],
             totalTransactions: 0
           }
