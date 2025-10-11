@@ -192,17 +192,63 @@ app.post('/api/ticker/reserve', async (req, res) => {
 
 app.post('/api/rpc/proxy', async (req, res) => {
   try {
+    console.log('📡 RPC Proxy request:', JSON.stringify(req.body, null, 2));
+    
+    // Convert frontend format to proper JSON-RPC format
+    let rpcPayload;
+    if (req.body.method && req.body.params !== undefined) {
+      // Frontend format: {method: 'getHealth', params: []}
+      rpcPayload = {
+        jsonrpc: '2.0',
+        id: Math.floor(Math.random() * 1000000),
+        method: req.body.method,
+        params: req.body.params
+      };
+    } else if (req.body.jsonrpc) {
+      // Already in JSON-RPC format
+      rpcPayload = req.body;
+    } else {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid RPC request format. Expected {method, params} or JSON-RPC format' 
+      });
+    }
+    
+    console.log('📡 Forwarding to Analos RPC:', JSON.stringify(rpcPayload, null, 2));
+    
     const response = await fetch(ANALOS_RPC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(rpcPayload)
     });
+    
+    if (!response.ok) {
+      console.error('❌ Analos RPC error:', response.status, response.statusText);
+      return res.status(500).json({ 
+        success: false, 
+        error: `Analos RPC error: ${response.status} ${response.statusText}` 
+      });
+    }
+    
     const data = await response.json();
+    console.log('✅ RPC Proxy response:', JSON.stringify(data, null, 2));
     res.json(data);
   } catch (error: any) {
-    console.error('Error proxying RPC request:', error);
+    console.error('❌ Error proxying RPC request:', error);
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// ============================================================================
+// IPFS ENDPOINTS
+// ============================================================================
+
+app.get('/api/ipfs/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'IPFS service is available',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Start the server
