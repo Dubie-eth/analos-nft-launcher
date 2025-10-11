@@ -179,7 +179,7 @@ app.post('/api/ticker/reserve', async (req, res) => {
     }
     
     const result = tickerRegistryService.reserveTicker(ticker, walletAddress);
-    res.json({ success: true, ...result });
+    res.json({ success: true, result });
   } catch (error: any) {
     console.error('Error reserving ticker:', error);
     res.status(500).json({ success: false, error: error.message });
