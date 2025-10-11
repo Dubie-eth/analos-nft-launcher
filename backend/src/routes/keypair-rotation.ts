@@ -4,8 +4,8 @@
  */
 
 import * as express from 'express';
-import { getKeypairRotationService } from '../services/keypair-rotation-service.js';
-import { getTwoFactorAuthService } from '../services/two-factor-auth-service.js';
+import { getKeypairRotationService } from '../services/keypair-rotation-service';
+import { getTwoFactorAuthService } from '../services/two-factor-auth-service';
 
 const router = express.Router();
 
