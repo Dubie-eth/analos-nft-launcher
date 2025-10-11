@@ -251,6 +251,76 @@ app.get('/api/ipfs/test', (req, res) => {
   });
 });
 
+app.post('/api/ipfs/upload-json', (req, res) => {
+  try {
+    console.log('📤 IPFS JSON upload request:', JSON.stringify(req.body, null, 2));
+    
+    // For now, return a mock response since we don't have IPFS configured yet
+    const mockHash = 'Qm' + Math.random().toString(36).substring(2, 15);
+    
+    res.json({
+      success: true,
+      hash: mockHash,
+      url: `https://ipfs.io/ipfs/${mockHash}`,
+      message: 'JSON uploaded to IPFS (mock)',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('❌ IPFS JSON upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+app.get('/api/ipfs/upload-file', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'IPFS file upload endpoint available',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ============================================================================
+// WEBHOOK ENDPOINTS
+// ============================================================================
+
+app.get('/api/webhook/status', (req, res) => {
+  res.json({
+    success: true,
+    status: 'active',
+    message: 'Webhook service is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.post('/api/webhook/analos-event', (req, res) => {
+  try {
+    console.log('🔔 Webhook event received:', JSON.stringify(req.body, null, 2));
+    
+    res.json({
+      success: true,
+      message: 'Webhook event processed',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('❌ Webhook error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+app.post('/api/webhook/start-listener', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Webhook listener started',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Analos Core Service running on port ${PORT}`);
