@@ -1,0 +1,163 @@
+═══════════════════════════════════════════════════════════════
+         🔑 YOUR KEYPAIR LOCATIONS & CLEANUP GUIDE
+═══════════════════════════════════════════════════════════════
+
+PUBLIC KEY: BpPn6H75SaYmHYtxTpLnpkddYviRj5ESaGNwv7iNWZze
+BALANCE: 9.82 SOL ✅
+
+───────────────────────────────────────────────────────────────
+📍 FOUND IN 4 LOCATIONS:
+───────────────────────────────────────────────────────────────
+
+1. ⭐ payer-wallet.json
+   Location: C:\Users\dusti\OneDrive\Desktop\LosLauncher\payer-wallet.json
+   Status: ORIGINAL FILE - DO NOT DELETE YET
+   
+2. YOUR_AUTHORITY_KEYPAIR_FOR_RAILWAY.md
+   Location: C:\Users\dusti\OneDrive\Desktop\LosLauncher\YOUR_AUTHORITY_KEYPAIR_FOR_RAILWAY.md
+   Status: Documentation - Delete after Railway setup
+   
+3. ANALOS_LAUNCHPAD_INTEGRATION.md
+   Location: C:\Users\dusti\OneDrive\Desktop\LosLauncher\ANALOS_LAUNCHPAD_INTEGRATION.md
+   Status: Old doc - Safe to delete
+   
+4. backend\new-program-config.md
+   Location: C:\Users\dusti\OneDrive\Desktop\LosLauncher\backend\new-program-config.md
+   Status: Old doc - Safe to delete
+
+───────────────────────────────────────────────────────────────
+📋 THE KEYPAIR ARRAY TO COPY:
+───────────────────────────────────────────────────────────────
+
+[82,204,132,209,87,176,71,21,67,147,2,207,56,92,240,77,86,253,104,104,122,39,75,43,211,37,84,87,89,111,14,211,160,184,235,251,245,32,50,10,128,139,75,189,56,55,81,140,39,76,169,93,106,182,94,49,137,191,255,239,252,66,111,7]
+
+───────────────────────────────────────────────────────────────
+🔐 SECURITY PLAN:
+───────────────────────────────────────────────────────────────
+
+STEP 1: SAVE SECURELY (DO THIS FIRST!)
+  □ Open password manager (1Password, LastPass, etc.)
+  □ Create new secure note: "Analos Price Oracle Authority"
+  □ Copy the array above
+  □ Add public key: BpPn6H75SaYmHYtxTpLnpkddYviRj5ESaGNwv7iNWZze
+  □ Save and VERIFY you can retrieve it
+
+STEP 2: ADD TO RAILWAY
+  □ Go to Railway dashboard
+  □ Add variable: PRICE_ORACLE_AUTHORITY_SECRET_KEY
+  □ Paste the array above
+  □ Add the other 5 variables too
+  □ Save
+
+STEP 3: VERIFY RAILWAY WORKS
+  □ Wait 2-3 min for deployment
+  □ Check Railway logs
+  □ Look for: "Authority keypair loaded"
+  □ Test: /api/oracle/automation/status
+
+STEP 4: CLEANUP (ONLY AFTER ABOVE WORKS!)
+  □ Delete: YOUR_AUTHORITY_KEYPAIR_FOR_RAILWAY.md
+  □ Delete: ANALOS_LAUNCHPAD_INTEGRATION.md
+  □ Delete: backend\new-program-config.md
+  □ Move payer-wallet.json to secure backup:
+    move payer-wallet.json C:\SecureBackups\analos-payer-wallet.json
+
+───────────────────────────────────────────────────────────────
+🛡️ WHAT TO WRITE DOWN:
+───────────────────────────────────────────────────────────────
+
+In your password manager or secure note, save:
+
+Title: Analos Price Oracle Authority Wallet
+
+Public Key (Address):
+BpPn6H75SaYmHYtxTpLnpkddYviRj5ESaGNwv7iNWZze
+
+Secret Key (Private Key Array):
+[82,204,132,209,87,176,71,21,67,147,2,207,56,92,240,77,86,253,104,104,122,39,75,43,211,37,84,87,89,111,14,211,160,184,235,251,245,32,50,10,128,139,75,189,56,55,81,140,39,76,169,93,106,182,94,49,137,191,255,239,252,66,111,7]
+
+Purpose:
+- Price Oracle authority
+- Automated price updates
+- DO NOT SHARE
+
+Network:
+Analos Mainnet (https://rpc.analos.io)
+
+Program ID:
+ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn
+
+───────────────────────────────────────────────────────────────
+🧹 CLEANUP COMMANDS (Run after Railway works):
+───────────────────────────────────────────────────────────────
+
+cd C:\Users\dusti\OneDrive\Desktop\LosLauncher
+
+# Delete docs with keypair
+del YOUR_AUTHORITY_KEYPAIR_FOR_RAILWAY.md
+del ANALOS_LAUNCHPAD_INTEGRATION.md
+del backend\new-program-config.md
+
+# Secure original
+mkdir C:\SecureBackups
+move payer-wallet.json C:\SecureBackups\analos-payer-wallet-BACKUP.json
+
+# Verify cleanup
+dir payer-wallet.json
+# Should show: File Not Found ✅
+
+───────────────────────────────────────────────────────────────
+✅ VERIFICATION:
+───────────────────────────────────────────────────────────────
+
+After cleanup, verify no keypair in project:
+
+findstr /s "82,204,132" *.md
+# Should return: No matches found ✅
+
+dir payer-wallet.json
+# Should return: File Not Found ✅
+
+───────────────────────────────────────────────────────────────
+⚠️ IMPORTANT REMINDERS:
+───────────────────────────────────────────────────────────────
+
+BEFORE DELETING:
+  1. Keypair saved in password manager ✅
+  2. Can retrieve from password manager ✅
+  3. Railway variables added ✅
+  4. Railway deployed successfully ✅
+  5. Automation working (tested) ✅
+
+NEVER:
+  ✗ Commit keypair to git
+  ✗ Share keypair with anyone
+  ✗ Post keypair online
+  ✗ Email keypair
+  ✗ Store in plain text on cloud
+
+ALWAYS:
+  ✓ Use password manager
+  ✓ Encrypt backups
+  ✓ Keep multiple backups
+  ✓ Test backups work
+
+───────────────────────────────────────────────────────────────
+🎯 QUICK REFERENCE:
+───────────────────────────────────────────────────────────────
+
+File to Keep (in secure location):
+  payer-wallet.json → Move to C:\SecureBackups\
+
+Files to Delete (after Railway setup):
+  YOUR_AUTHORITY_KEYPAIR_FOR_RAILWAY.md
+  ANALOS_LAUNCHPAD_INTEGRATION.md
+  backend\new-program-config.md
+
+Where to Save:
+  Password Manager (1Password, LastPass, Bitwarden, etc.)
+
+═══════════════════════════════════════════════════════════════
+         🔐 SECURITY FIRST - SAVE BEFORE DELETING!
+═══════════════════════════════════════════════════════════════
+

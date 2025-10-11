@@ -1,37 +1,47 @@
+/**
+ * Minimal server for debugging route mounting issues
+ */
+
 import express from 'express';
 import cors from 'cors';
+import testRoute from './test-route.js';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
+
+console.log('🚀 Starting Minimal Debug Server...');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Simple health check
+// Health check
 app.get('/health', (req, res) => {
-  console.log('🏥 Health check requested');
-  res.json({
-    status: 'healthy',
+  res.json({ 
+    status: 'healthy', 
     timestamp: new Date().toISOString(),
-    message: 'Minimal server is running'
+    service: 'Minimal Debug Server',
+    version: '1.0.0'
   });
-  console.log('✅ Health check responded');
 });
 
-// Simple test endpoint
-app.get('/test', (req, res) => {
-  res.json({ message: 'Server is working!' });
+// Test route
+app.use('/api/test', testRoute);
+console.log('🧪 Test Route API mounted at /api/test');
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`🚀 Minimal Debug Server running on port ${PORT}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🧪 Test route: http://localhost:${PORT}/api/test/test`);
 });
 
-// Start server
-console.log('🚀 Starting minimal server...');
-console.log(`📡 Port: ${PORT}`);
+// Error handling
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
-app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`✅ Minimal server started on port ${PORT}`);
-  console.log(`🏥 Health check: http://0.0.0.0:${PORT}/health`);
-}).on('error', (error) => {
-  console.error('❌ Server failed to start:', error);
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
   process.exit(1);
 });
