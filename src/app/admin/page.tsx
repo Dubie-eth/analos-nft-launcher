@@ -6,6 +6,8 @@ import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import BackendTester from '@/components/BackendTester';
 import SystemHealthDashboard from '@/components/SystemHealthDashboard';
+import PriceOracleInitializer from '@/components/PriceOracleInitializer';
+import PriceOracleAutomation from '@/components/PriceOracleAutomation';
 
 interface CollectionStats {
   name: string;
@@ -41,7 +43,7 @@ export default function AdminDashboard() {
   const { connection } = useConnection();
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'backend-test' | 'health-check' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'backend-test' | 'health-check' | 'settings'>('overview');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -248,9 +250,11 @@ export default function AdminDashboard() {
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
+              { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
+              { id: 'price-automation', label: 'Price Automation', icon: '🤖' },
               { id: 'collections', label: 'Collections', icon: '📦' },
               { id: 'programs', label: 'Programs', icon: '⚙️' },
-              { id: 'oracle', label: 'Oracle', icon: '💰' },
+              { id: 'oracle', label: 'Rarity Oracle', icon: '🎲' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map((tab) => (
               <button
@@ -515,6 +519,18 @@ export default function AdminDashboard() {
         {activeTab === 'backend-test' && (
           <div>
             <BackendTester />
+          </div>
+        )}
+
+        {activeTab === 'price-oracle' && (
+          <div>
+            <PriceOracleInitializer />
+          </div>
+        )}
+
+        {activeTab === 'price-automation' && (
+          <div>
+            <PriceOracleAutomation />
           </div>
         )}
 
