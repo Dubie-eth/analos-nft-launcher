@@ -8,6 +8,7 @@ import BackendTester from '@/components/BackendTester';
 import SystemHealthDashboard from '@/components/SystemHealthDashboard';
 import PriceOracleInitializer from '@/components/PriceOracleInitializer';
 import PriceOracleAutomation from '@/components/PriceOracleAutomation';
+import SecureKeypairRotation from '@/components/SecureKeypairRotation';
 
 interface CollectionStats {
   name: string;
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
   const { connection } = useConnection();
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'backend-test' | 'health-check' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'settings'>('overview');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -252,6 +253,7 @@ export default function AdminDashboard() {
               { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
               { id: 'price-automation', label: 'Price Automation', icon: '🤖' },
+              { id: 'keypair-rotation', label: 'Keypair Security', icon: '🔐' },
               { id: 'collections', label: 'Collections', icon: '📦' },
               { id: 'programs', label: 'Programs', icon: '⚙️' },
               { id: 'oracle', label: 'Rarity Oracle', icon: '🎲' },
@@ -531,6 +533,12 @@ export default function AdminDashboard() {
         {activeTab === 'price-automation' && (
           <div>
             <PriceOracleAutomation />
+          </div>
+        )}
+
+        {activeTab === 'keypair-rotation' && (
+          <div>
+            <SecureKeypairRotation />
           </div>
         )}
 
