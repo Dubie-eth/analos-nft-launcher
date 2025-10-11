@@ -15,38 +15,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": [
-    "src/simple-server.ts",
-    "src/nft-tracking-service.ts",
-    "src/blockchain-recovery-service.ts",
-    "src/blockchain-first-nft-service.ts",
-    "src/analos-program-service.ts",
-    "src/mint-tracking-service.ts",
-    "src/ticker-registry-service.ts",
-    "src/initialize-recovery.ts",
-    "src/initialize-los-bros-collection.ts",
-    "src/init-price-oracle-automation.ts",
-    "src/init-keypair-rotation.ts",
-    "src/routes/**/*",
-    "src/services/price-oracle-automation.ts",
-    "src/services/keypair-rotation-service.ts",
-    "src/services/two-factor-auth-service.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/analos-metaplex-service.ts",
-    "src/arweave-service.ts",
-    "src/collection-service.ts",
-    "src/metaplex-nft-service.ts",
-    "src/real-blockchain-deployment.ts",
-    "src/real-deployment-service.ts",
-    "src/real-metaplex-nft-service.ts",
-    "src/real-nft-mint-service.ts",
-    "src/services/blockchain-deployer.ts",
-    "src/services/complete-generator-integration.ts",
-    "src/services/ipfs-integration.ts",
-    "src/services/payment-service.ts",
-    "src/spl-nft-service.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
