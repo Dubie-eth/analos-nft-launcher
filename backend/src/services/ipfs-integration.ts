@@ -227,7 +227,7 @@ export class IPFSIntegrationService {
               name: filename,
               keyvalues: {
                 type: 'nft-image',
-                timestamp: Date.now().toString(),
+                timestamp: Date.now().toString() as any,
               }
             },
             pinataOptions: {
@@ -283,7 +283,7 @@ export class IPFSIntegrationService {
               keyvalues: {
                 type: 'nft-metadata',
                 collection: collectionName,
-                timestamp: Date.now().toString(),
+                timestamp: Date.now().toString() as any,
               }
             },
             pinataOptions: {
