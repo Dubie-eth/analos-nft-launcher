@@ -18,7 +18,7 @@ import './init-price-oracle-automation.js'; // Initialize price oracle automatio
 import './init-keypair-rotation.js'; // Initialize keypair rotation with 2FA
 import priceOracleAutomationRoutes from './routes/price-oracle-automation.js';
 import keypairRotationRoutes from './routes/keypair-rotation.js';
-import testRoute from './test-route.js';
+// import testRoute from './test-route.js';
 
 // Initialize services
 const mintTrackingService = new MintTrackingService();
@@ -1281,8 +1281,24 @@ app.get('/api/launchpad/mint/:collectionConfig/:mintIndex', async (req, res) => 
 // TEST ROUTE (FOR DEBUGGING)
 // =============================================================================
 
-app.use('/api/test', testRoute);
-console.log('🧪 Test Route API mounted at /api/test');
+app.get('/api/test/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Test route is working!',
+    timestamp: new Date().toISOString(),
+    service: 'Analos NFT Launcher Backend'
+  });
+});
+
+app.get('/api/test/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Test routes are mounted and working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+console.log('🧪 Test Routes API mounted at /api/test');
 
 // =============================================================================
 // PRICE ORACLE AUTOMATION API ENDPOINTS
