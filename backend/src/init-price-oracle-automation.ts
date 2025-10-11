@@ -6,7 +6,7 @@
  */
 
 import { Keypair } from '@solana/web3.js';
-import { initializePriceOracleAutomation } from './services/price-oracle-automation';
+import { initializePriceOracleAutomation } from './services/price-oracle-automation.js';
 import fs from 'fs';
 import path from 'path';
 

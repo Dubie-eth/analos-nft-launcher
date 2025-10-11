@@ -3,7 +3,7 @@
  */
 
 import express from 'express';
-import { getPriceOracleAutomation } from '../services/price-oracle-automation';
+import { getPriceOracleAutomation } from '../services/price-oracle-automation.js';
 
 const router = express.Router();
 

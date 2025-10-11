@@ -2,8 +2,8 @@
  * Initialize Keypair Rotation Service
  */
 
-import { initializeKeypairRotation } from './services/keypair-rotation-service';
-import { initializeTwoFactorAuth } from './services/two-factor-auth-service';
+import { initializeKeypairRotation } from './services/keypair-rotation-service.js';
+import { initializeTwoFactorAuth } from './services/two-factor-auth-service.js';
 import * as path from 'path';
 
 const ENABLED = process.env.KEYPAIR_ROTATION_ENABLED === 'true';

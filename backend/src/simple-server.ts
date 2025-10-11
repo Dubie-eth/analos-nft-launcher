@@ -14,10 +14,10 @@ import { MintTrackingService } from './mint-tracking-service.js';
 import { TickerRegistryService } from './ticker-registry-service.js';
 import './initialize-recovery.js'; // Initialize recovery system on startup
 import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
-import './init-price-oracle-automation.ts'; // Initialize price oracle automation
-import './init-keypair-rotation.ts'; // Initialize keypair rotation with 2FA
-import priceOracleAutomationRoutes from './routes/price-oracle-automation.ts';
-import keypairRotationRoutes from './routes/keypair-rotation.ts';
+import './init-price-oracle-automation.js'; // Initialize price oracle automation
+import './init-keypair-rotation.js'; // Initialize keypair rotation with 2FA
+import priceOracleAutomationRoutes from './routes/price-oracle-automation.js';
+import keypairRotationRoutes from './routes/keypair-rotation.js';
 
 // Initialize services
 const mintTrackingService = new MintTrackingService();
