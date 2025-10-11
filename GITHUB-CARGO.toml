@@ -1,0 +1,24 @@
+[package]
+name = "analos-nft-launchpad"
+version = "0.1.0"
+description = "NFT Launchpad for Analos blockchain with advanced features"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "analos_nft_launchpad"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.28.0"
+anchor-spl = "0.28.0"
+
+[dev-dependencies]
+solana-program-test = "1.16.0"
+tokio = "1.0"

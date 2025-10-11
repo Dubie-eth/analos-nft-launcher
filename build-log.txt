@@ -1,0 +1,6 @@
+info: uninstalling toolchain 'solana'
+info: toolchain 'solana' uninstalled
+error: package `solana-program v2.3.0` cannot be built because it requires rustc 1.79.0 or newer, while the currently active rustc version is 1.75.0-dev
+Either upgrade to rustc 1.79.0 or newer, or use
+cargo update solana-program@2.3.0 --precise ver
+where `ver` is the latest version of `solana-program` supporting rustc 1.75.0-dev
