@@ -98,6 +98,7 @@ export default function ExplorerPage() {
         ];
 
         const demoProgramActivity: ProgramActivity[] = [
+          // Core Platform Programs
           {
             programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
             programName: 'NFT Launchpad',
@@ -119,6 +120,37 @@ export default function ExplorerPage() {
           {
             programId: ANALOS_PROGRAMS.TOKEN_LAUNCH.toString(),
             programName: 'Token Launch',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          // Enhancement Programs
+          {
+            programId: ANALOS_PROGRAMS.METADATA.toString(),
+            programName: 'Metadata',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.VESTING.toString(),
+            programName: 'Vesting',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.TOKEN_LOCK.toString(),
+            programName: 'Token Lock',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.AIRDROP.toString(),
+            programName: 'Airdrop',
+            recentTransactions: [],
+            totalTransactions: 0
+          },
+          {
+            programId: ANALOS_PROGRAMS.OTC_MARKETPLACE.toString(),
+            programName: 'OTC Marketplace',
             recentTransactions: [],
             totalTransactions: 0
           }
@@ -199,8 +231,8 @@ export default function ExplorerPage() {
           </p>
         </div>
 
-        {/* Program Status Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Program Status Cards - All 9 Programs! 🎉 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {Object.entries(ANALOS_PROGRAMS).map(([key, programId]) => {
             const programName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             const activity = programActivity.find(p => p.programId === programId.toString());
@@ -213,6 +245,11 @@ export default function ExplorerPage() {
                     {key === 'PRICE_ORACLE' && '💰'}
                     {key === 'RARITY_ORACLE' && '🎲'}
                     {key === 'TOKEN_LAUNCH' && '📈'}
+                    {key === 'METADATA' && '📝'}
+                    {key === 'VESTING' && '⏳'}
+                    {key === 'TOKEN_LOCK' && '🔒'}
+                    {key === 'AIRDROP' && '🎁'}
+                    {key === 'OTC_MARKETPLACE' && '🤝'}
                   </div>
                   <h3 className="text-lg font-bold text-white mb-2">{programName}</h3>
                   <div className="bg-gray-800/50 rounded-lg p-2 font-mono text-xs text-gray-300 break-all mb-3">

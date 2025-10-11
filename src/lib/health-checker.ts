@@ -246,11 +246,17 @@ export class HealthChecker {
       console.log('🔍 Checking program deployments...');
       
       const programs = [
+        // Core Platform Programs
         { name: 'NFT Launchpad', id: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString() },
         { name: 'Price Oracle', id: ANALOS_PROGRAMS.PRICE_ORACLE.toString() },
         { name: 'Rarity Oracle', id: ANALOS_PROGRAMS.RARITY_ORACLE.toString() },
         { name: 'Token Launch', id: ANALOS_PROGRAMS.TOKEN_LAUNCH.toString() },
+        // Enhancement Programs
         { name: 'Metadata', id: ANALOS_PROGRAMS.METADATA.toString() },
+        { name: 'Vesting', id: ANALOS_PROGRAMS.VESTING.toString() },
+        { name: 'Token Lock', id: ANALOS_PROGRAMS.TOKEN_LOCK.toString() },
+        { name: 'Airdrop', id: ANALOS_PROGRAMS.AIRDROP.toString() },
+        { name: 'OTC Marketplace', id: ANALOS_PROGRAMS.OTC_MARKETPLACE.toString() },
       ];
 
       for (const program of programs) {

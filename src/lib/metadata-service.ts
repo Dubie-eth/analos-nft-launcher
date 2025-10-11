@@ -15,7 +15,7 @@ import type { NFTMetadata, CreateMetadataParams } from '@/types/metadata-program
  */
 export const METADATA_PROGRAM_CONFIG = {
   // Metaplex Token Metadata Program (Analos-compatible)
-  PROGRAM_ID: 'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s', // ✅ DEPLOYED ON ANALOS
+  PROGRAM_ID: '8ESkxgw28xsZgbeaTbVngduUk3zzWGMwccmUaSjSLYUL', // ✅ DEPLOYED ON ANALOS
   NETWORK: 'Analos Mainnet',
 };
 
