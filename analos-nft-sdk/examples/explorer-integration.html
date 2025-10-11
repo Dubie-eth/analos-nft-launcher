@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analos NFT Explorer Integration Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            transform: translateY(-2px);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            text-align: center;
+            padding: 2rem;
+            color: #ff6b6b;
+            font-size: 1.2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card h3 {
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .nft-card, .collection-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        .nft-card:hover, .collection-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nft-image, .collection-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+            margin-bottom: 1rem;
+        }
+
+        .nft-title, .collection-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .nft-description, .collection-description {
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .nft-meta, .collection-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .explorer-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .explorer-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            transition: width 0.3s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analos NFT Explorer</h1>
+            <p>Discover and explore NFTs on the Analos blockchain</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('nfts')">NFTs</button>
+            <button class="tab" onclick="showTab('collections')">Collections</button>
+            <button class="tab" onclick="showTab('stats')">Analytics</button>
+        </div>
+
+        <div class="content">
+            <!-- NFTs Tab -->
+            <div id="nfts-tab">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Search NFTs..." onkeyup="searchNFTs(this.value)">
+                </div>
+                <div id="nfts-content">
+                    <div class="loading">Loading NFTs...</div>
+                </div>
+            </div>
+
+            <!-- Collections Tab -->
+            <div id="collections-tab" class="hidden">
+                <div id="collections-content">
+                    <div class="loading">Loading Collections...</div>
+                </div>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="stats-tab" class="hidden">
+                <div id="stats-content">
+                    <div class="loading">Loading Analytics...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock SDK implementation for demonstration
+        class MockAnalosNFTSDK {
+            constructor() {
+                this.mockNFTs = this.generateMockNFTs();
+                this.mockCollections = this.generateMockCollections();
+                this.mockStats = this.generateMockStats();
+            }
+
+            generateMockNFTs() {
+                const collections = ['Analos Apes', 'Analos Cats', 'Analos Dogs', 'Analos Birds'];
+                const nfts = [];
+                
+                for (let i = 1; i <= 20; i++) {
+                    const collection = collections[Math.floor(Math.random() * collections.length)];
+                    nfts.push({
+                        mintAddress: `mock_mint_${i}`,
+                        tokenId: i,
+                        name: `${collection} #${i}`,
+                        description: `A unique NFT from the ${collection} collection on Analos blockchain`,
+                        image: `https://picsum.photos/500/500?random=${i}`,
+                        collection: collection,
+                        owner: `owner_${Math.random().toString(36).substr(2, 9)}`,
+                        transactionSignature: `mock_tx_${Date.now()}_${i}`,
+                        explorerUrl: `https://explorer.analos.io/tx/mock_tx_${Date.now()}_${i}`,
+                        mintedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        attributes: [
+                            { trait_type: 'Background', value: ['Blue', 'Red', 'Green', 'Purple'][Math.floor(Math.random() * 4)] },
+                            { trait_type: 'Eyes', value: ['Normal', 'Laser', 'Cyborg', 'Glowing'][Math.floor(Math.random() * 4)] },
+                            { trait_type: 'Rarity', value: ['Common', 'Rare', 'Epic', 'Legendary'][Math.floor(Math.random() * 4)] }
+                        ]
+                    });
+                }
+                
+                return nfts;
+            }
+
+            generateMockCollections() {
+                return [
+                    {
+                        id: 'analos-apes',
+                        name: 'Analos Apes',
+                        symbol: 'APE',
+                        description: 'A collection of unique apes on the Analos blockchain',
+                        imageUrl: 'https://picsum.photos/500/500?random=ape',
+                        totalSupply: 1000,
+                        currentSupply: 750,
+                        mintPrice: 100,
+                        currency: 'LOS',
+                        deployedAt: '2024-01-01T00:00:00Z',
+                        isActive: true
+                    },
+                    {
+                        id: 'analos-cats',
+                        name: 'Analos Cats',
+                        symbol: 'CAT',
+                        description: 'Cute cats living on the Analos blockchain',
+                        imageUrl: 'https://picsum.photos/500/500?random=cat',
+                        totalSupply: 500,
+                        currentSupply: 320,
+                        mintPrice: 50,
+                        currency: 'LOS',
+                        deployedAt: '2024-01-15T00:00:00Z',
+                        isActive: true
+                    },
+                    {
+                        id: 'analos-dogs',
+                        name: 'Analos Dogs',
+                        symbol: 'DOG',
+                        description: 'Loyal dogs on the Analos blockchain',
+                        imageUrl: 'https://picsum.photos/500/500?random=dog',
+                        totalSupply: 800,
+                        currentSupply: 600,
+                        mintPrice: 75,
+                        currency: 'LOS',
+                        deployedAt: '2024-02-01T00:00:00Z',
+                        isActive: true
+                    }
+                ];
+            }
+
+            generateMockStats() {
+                return {
+                    totalNFTs: 1670,
+                    totalCollections: 3,
+                    totalVolume: 125000,
+                    averagePrice: 75,
+                    topCollections: [
+                        { name: 'Analos Apes', volume: 75000, count: 750 },
+                        { name: 'Analos Dogs', volume: 45000, count: 600 },
+                        { name: 'Analos Cats', volume: 16000, count: 320 }
+                    ],
+                    recentActivity: [
+                        { type: 'mint', nft: 'Analos Apes #751', to: 'owner_abc123', timestamp: new Date().toISOString() },
+                        { type: 'mint', nft: 'Analos Cats #321', to: 'owner_def456', timestamp: new Date(Date.now() - 300000).toISOString() },
+                        { type: 'mint', nft: 'Analos Dogs #601', to: 'owner_ghi789', timestamp: new Date(Date.now() - 600000).toISOString() }
+                    ]
+                };
+            }
+
+            async getAllNFTs() {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve(this.mockNFTs), 1000);
+                });
+            }
+
+            async getPopularCollections() {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve(this.mockCollections), 1000);
+                });
+            }
+
+            async getAnalytics() {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve(this.mockStats), 1000);
+                });
+            }
+
+            async searchNFTs(query) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const filtered = this.mockNFTs.filter(nft => 
+                            nft.name.toLowerCase().includes(query.toLowerCase()) ||
+                            nft.collection.toLowerCase().includes(query.toLowerCase())
+                        );
+                        resolve(filtered);
+                    }, 500);
+                });
+            }
+        }
+
+        // Initialize SDK
+        const sdk = new MockAnalosNFTSDK();
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Load content based on tab
+            switch(tabName) {
+                case 'nfts':
+                    loadNFTs();
+                    break;
+                case 'collections':
+                    loadCollections();
+                    break;
+                case 'stats':
+                    loadStats();
+                    break;
+            }
+        }
+
+        // Load NFTs
+        async function loadNFTs() {
+            const content = document.getElementById('nfts-content');
+            content.innerHTML = '<div class="loading">Loading NFTs...</div>';
+            
+            try {
+                const nfts = await sdk.getAllNFTs();
+                renderNFTs(nfts);
+            } catch (error) {
+                content.innerHTML = `<div class="error">Error loading NFTs: ${error.message}</div>`;
+            }
+        }
+
+        // Render NFTs
+        function renderNFTs(nfts) {
+            const content = document.getElementById('nfts-content');
+            
+            if (nfts.length === 0) {
+                content.innerHTML = '<div class="error">No NFTs found</div>';
+                return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'nft-grid';
+            
+            nfts.forEach(nft => {
+                const card = document.createElement('div');
+                card.className = 'nft-card';
+                card.innerHTML = `
+                    <img src="${nft.image}" alt="${nft.name}" class="nft-image">
+                    <h3 class="nft-title">${nft.name}</h3>
+                    <p class="nft-description">${nft.description}</p>
+                    <div class="nft-meta">
+                        <span>Collection: ${nft.collection}</span>
+                        <span>#${nft.tokenId}</span>
+                    </div>
+                    <div class="nft-meta">
+                        <span>Owner: ${nft.owner.slice(0, 8)}...</span>
+                        <span>${new Date(nft.mintedAt).toLocaleDateString()}</span>
+                    </div>
+                    <button class="explorer-btn" onclick="window.open('${nft.explorerUrl}', '_blank')">
+                        View on Explorer
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+            
+            content.innerHTML = '';
+            content.appendChild(grid);
+        }
+
+        // Load Collections
+        async function loadCollections() {
+            const content = document.getElementById('collections-content');
+            content.innerHTML = '<div class="loading">Loading Collections...</div>';
+            
+            try {
+                const collections = await sdk.getPopularCollections();
+                renderCollections(collections);
+            } catch (error) {
+                content.innerHTML = `<div class="error">Error loading collections: ${error.message}</div>`;
+            }
+        }
+
+        // Render Collections
+        function renderCollections(collections) {
+            const content = document.getElementById('collections-content');
+            
+            const grid = document.createElement('div');
+            grid.className = 'collection-grid';
+            
+            collections.forEach(collection => {
+                const progress = (collection.currentSupply / collection.totalSupply) * 100;
+                
+                const card = document.createElement('div');
+                card.className = 'collection-card';
+                card.innerHTML = `
+                    <img src="${collection.imageUrl}" alt="${collection.name}" class="collection-image">
+                    <h3 class="collection-title">${collection.name}</h3>
+                    <p class="collection-description">${collection.description}</p>
+                    <div class="collection-meta">
+                        <span>Supply: ${collection.currentSupply}/${collection.totalSupply}</span>
+                        <span>Price: ${collection.mintPrice} ${collection.currency}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="collection-meta">
+                        <span>${progress.toFixed(1)}% minted</span>
+                        <span>${collection.totalSupply - collection.currentSupply} remaining</span>
+                    </div>
+                    <button class="explorer-btn" onclick="viewCollection('${collection.id}')">
+                        View Collection
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+            
+            content.innerHTML = '';
+            content.appendChild(grid);
+        }
+
+        // Load Stats
+        async function loadStats() {
+            const content = document.getElementById('stats-content');
+            content.innerHTML = '<div class="loading">Loading Analytics...</div>';
+            
+            try {
+                const stats = await sdk.getAnalytics();
+                renderStats(stats);
+            } catch (error) {
+                content.innerHTML = `<div class="error">Error loading analytics: ${error.message}</div>`;
+            }
+        }
+
+        // Render Stats
+        function renderStats(stats) {
+            const content = document.getElementById('stats-content');
+            
+            content.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total NFTs</h3>
+                        <div class="value">${stats.totalNFTs.toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Collections</h3>
+                        <div class="value">${stats.totalCollections}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Volume</h3>
+                        <div class="value">${stats.totalVolume.toLocaleString()} LOS</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Average Price</h3>
+                        <div class="value">${stats.averagePrice} LOS</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem;">Top Collections</h3>
+                <div class="collection-grid">
+                    ${stats.topCollections.map(collection => `
+                        <div class="collection-card">
+                            <h3 class="collection-title">${collection.name}</h3>
+                            <div class="collection-meta">
+                                <span>Volume: ${collection.volume.toLocaleString()} LOS</span>
+                                <span>Count: ${collection.count}</span>
+                            </div>
+                            <button class="explorer-btn" onclick="viewCollection('${collection.name.toLowerCase().replace(/\s+/g, '-')}')">
+                                View Collection
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <h3 style="margin: 2rem 0 1rem 0;">Recent Activity</h3>
+                <div style="background: rgba(255, 255, 255, 0.1); border-radius: 0.5rem; padding: 1rem;">
+                    ${stats.recentActivity.map(activity => `
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                            <span>${activity.type.toUpperCase()}: ${activity.nft}</span>
+                            <span style="opacity: 0.8;">${new Date(activity.timestamp).toLocaleString()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Search NFTs
+        async function searchNFTs(query) {
+            if (query.length < 2) {
+                loadNFTs();
+                return;
+            }
+            
+            const content = document.getElementById('nfts-content');
+            content.innerHTML = '<div class="loading">Searching...</div>';
+            
+            try {
+                const nfts = await sdk.searchNFTs(query);
+                renderNFTs(nfts);
+            } catch (error) {
+                content.innerHTML = `<div class="error">Search error: ${error.message}</div>`;
+            }
+        }
+
+        // View Collection
+        function viewCollection(collectionId) {
+            // Filter NFTs by collection and show in NFTs tab
+            showTab('nfts');
+            // This would filter the NFTs by collection in a real implementation
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNFTs();
+        });
+    </script>
+</body>
+</html>

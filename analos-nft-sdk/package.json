@@ -1,0 +1,48 @@
+{
+  "name": "@analos/nft-sdk",
+  "version": "1.0.0",
+  "description": "Analos NFT SDK for integrating NFT functionality into the Analos explorer",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "analos",
+    "nft",
+    "blockchain",
+    "metaplex",
+    "explorer"
+  ],
+  "author": "Analos NFT Launcher Team",
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.11",
+    "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
+    "@metaplex-foundation/umi": "^0.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "peerDependencies": {
+    "@analos/web3": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/analos/nft-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/analos/nft-sdk/issues"
+  },
+  "homepage": "https://github.com/analos/nft-sdk#readme"
+}

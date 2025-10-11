@@ -1,0 +1,94 @@
+name: Linear Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    types: [opened, closed, merged]
+
+jobs:
+  update-linear-on-pr:
+    runs-on: ubuntu-latest
+    name: Update Linear on PR
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Update Linear issue on PR open
+      if: github.event_name == 'pull_request' && github.event.action == 'opened'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueNumber = context.payload.pull_request.title.match(/\[(.*?)\]/);
+          if (issueNumber) {
+            const linearIssueId = issueNumber[1];
+            // Update Linear issue status to "In Review"
+            console.log(`Updating Linear issue ${linearIssueId} to In Review`);
+          }
+          
+    - name: Update Linear issue on PR merge
+      if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const issueNumber = context.payload.pull_request.title.match(/\[(.*?)\]/);
+          if (issueNumber) {
+            const linearIssueId = issueNumber[1];
+            // Update Linear issue status to "Done"
+            console.log(`Updating Linear issue ${linearIssueId} to Done`);
+          }
+
+  create-linear-issue-on-failure:
+    runs-on: ubuntu-latest
+    name: Create Linear Issue on Failure
+    if: failure()
+    
+    steps:
+    - name: Create Linear issue for failed workflow
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const workflowRun = context.payload.workflow_run;
+          const issueTitle = `🚨 Workflow Failed: ${workflowRun.head_branch}`;
+          const issueBody = `
+          ## Workflow Failure Details
+          
+          **Workflow**: ${workflowRun.name}
+          **Branch**: ${workflowRun.head_branch}
+          **Commit**: ${workflowRun.head_sha}
+          **Failure URL**: ${workflowRun.html_url}
+          
+          ## Error Details
+          Please check the workflow logs and fix the issues.
+          
+          ## Labels
+          - bug
+          - P1-High
+          - deployment
+          `;
+          
+          // Create GitHub issue
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: issueTitle,
+            body: issueBody,
+            labels: ['bug', 'P1-High', 'deployment']
+          });
+          
+          console.log(`Created issue #${issue.data.number} for failed workflow`);
+
+  sync-linear-milestones:
+    runs-on: ubuntu-latest
+    name: Sync Linear Milestones
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Sync milestones with Linear
+      run: |
+        echo "Syncing milestones with Linear..."
+        # This would integrate with Linear API to sync milestones
+        # You'll need to set up Linear API token in secrets

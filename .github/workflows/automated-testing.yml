@@ -1,0 +1,169 @@
+name: Automated Testing
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-type-check:
+    runs-on: ubuntu-latest
+    name: Lint & Type Check
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend-new/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend-new
+        npm ci
+        
+    - name: Run ESLint
+      run: |
+        cd frontend-new
+        npm run lint
+        
+    - name: Run TypeScript check
+      run: |
+        cd frontend-new
+        npm run type-check
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend-new/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend-new
+        npm ci
+        
+    - name: Run unit tests
+      run: |
+        cd frontend-new
+        npm run test:unit
+        
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: coverage-reports
+        path: frontend-new/coverage/
+
+  build-test:
+    runs-on: ubuntu-latest
+    name: Build Test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend-new/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend-new
+        npm ci
+        
+    - name: Run build
+      run: |
+        cd frontend-new
+        npm run build
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: build-artifacts
+        path: frontend-new/.next/
+
+  blockchain-integration-tests:
+    runs-on: ubuntu-latest
+    name: Blockchain Integration Tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend-new/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend-new
+        npm ci
+        
+    - name: Run blockchain integration tests
+      run: |
+        cd frontend-new
+        npm run test:blockchain
+      env:
+        ANALOS_RPC_URL: https://rpc.analos.io
+        TEST_WALLET_PRIVATE_KEY: ${{ secrets.TEST_WALLET_PRIVATE_KEY }}
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend-new/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend-new
+        npm ci
+        
+    - name: Start application
+      run: |
+        cd frontend-new
+        npm run build
+        npm run start &
+        sleep 30
+        
+    - name: Run performance tests
+      run: |
+        cd frontend-new
+        npm run test:performance
+        
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: frontend-new/performance-results/
