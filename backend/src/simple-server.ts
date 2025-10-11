@@ -18,6 +18,7 @@ import './init-price-oracle-automation.js'; // Initialize price oracle automatio
 import './init-keypair-rotation.js'; // Initialize keypair rotation with 2FA
 import priceOracleAutomationRoutes from './routes/price-oracle-automation.js';
 import keypairRotationRoutes from './routes/keypair-rotation.js';
+import testRoute from './test-route.js';
 
 // Initialize services
 const mintTrackingService = new MintTrackingService();
@@ -1271,6 +1272,17 @@ app.get('/api/launchpad/mint/:collectionConfig/:mintIndex', async (req, res) => 
     });
   }
 });
+
+// =============================================================================
+// PRICE ORACLE AUTOMATION API ENDPOINTS
+// =============================================================================
+
+// =============================================================================
+// TEST ROUTE (FOR DEBUGGING)
+// =============================================================================
+
+app.use('/api/test', testRoute);
+console.log('🧪 Test Route API mounted at /api/test');
 
 // =============================================================================
 // PRICE ORACLE AUTOMATION API ENDPOINTS
