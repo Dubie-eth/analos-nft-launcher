@@ -424,6 +424,186 @@ export default function EnhancedLandingPage() {
         </div>
       </section>
 
+      {/* $LOL Token Section */}
+      <section className="py-20 bg-gradient-to-r from-yellow-600/5 to-orange-600/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              💰 $LOL Token
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              The governance and utility token powering the Analos NFT Launchpad ecosystem
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Token Info */}
+            <div className="bg-gradient-to-r from-yellow-600/10 to-orange-600/10 border border-yellow-400/20 rounded-3xl p-12 backdrop-blur-sm">
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">💎</div>
+                <h3 className="text-3xl font-bold text-white mb-4">$LOL Token</h3>
+                <p className="text-gray-300 text-lg leading-relaxed">
+                  Hold $LOL tokens to unlock exclusive benefits, governance voting rights, and platform discounts
+                </p>
+              </div>
+
+              {/* Contract Address */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 mb-6">
+                <h4 className="text-white font-bold mb-3">Contract Address</h4>
+                <div className="flex items-center justify-between bg-black/20 rounded-lg p-3">
+                  <code className="text-yellow-400 font-mono text-sm break-all">
+                    ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6
+                  </code>
+                  <button
+                    onClick={() => navigator.clipboard.writeText('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6')}
+                    className="ml-3 px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-black rounded-lg text-sm font-semibold transition-colors duration-200"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-4">
+                <a
+                  href="https://app.analos.io/dex/9pan9bMn5HatX4EJdBwg9VgCa7Uz5HL8N1m5D3NdXejP/ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg text-center"
+                >
+                  <div className="text-xl mb-1">💱</div>
+                  <div>Buy $LOL</div>
+                </a>
+                <a
+                  href="https://losscreener.com/token/ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg text-center"
+                >
+                  <div className="text-xl mb-1">📊</div>
+                  <div>View Chart</div>
+                </a>
+              </div>
+
+              {/* Social Links */}
+              <div className="mt-6 flex justify-center space-x-4">
+                <a
+                  href="https://x.com/launchonlos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-black hover:bg-gray-800 text-white p-3 rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  <span className="text-xl">🐦</span>
+                </a>
+                <a
+                  href="https://t.me/launchonlos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  <span className="text-xl">📱</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Swap Component */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-4">🔄</div>
+                <h3 className="text-2xl font-bold text-white mb-2">Direct Swap</h3>
+                <p className="text-gray-300">
+                  Trade tokens directly on our platform using your wallet
+                </p>
+              </div>
+
+              {/* Simple Swap Interface */}
+              <div className="space-y-4">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-300 text-sm">From</span>
+                    <span className="text-gray-400 text-xs">Balance: 0.00</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <input
+                      type="number"
+                      placeholder="0.0"
+                      className="bg-transparent text-white text-xl font-semibold outline-none flex-1"
+                    />
+                    <select className="bg-white/10 text-white rounded-lg px-3 py-2 border border-white/20">
+                      <option value="los">$LOS</option>
+                      <option value="sol">$SOL</option>
+                      <option value="usdc">$USDC</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors duration-200">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-300 text-sm">To</span>
+                    <span className="text-gray-400 text-xs">Balance: 0.00</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <input
+                      type="number"
+                      placeholder="0.0"
+                      className="bg-transparent text-white text-xl font-semibold outline-none flex-1"
+                    />
+                    <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black rounded-lg px-3 py-2 font-bold">
+                      $LOL
+                    </div>
+                  </div>
+                </div>
+
+                <button className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>🔄</span>
+                    <span>Swap Tokens</span>
+                  </div>
+                </button>
+
+                <div className="text-center">
+                  <p className="text-xs text-gray-400">
+                    Powered by Analos DEX • Slippage: 0.5%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Token Stats */}
+          <div className="mt-12 grid md:grid-cols-4 gap-6">
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
+              <div className="text-2xl mb-2">💎</div>
+              <div className="text-2xl font-bold text-white mb-1">$LOL</div>
+              <div className="text-gray-400 text-sm">Governance Token</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
+              <div className="text-2xl mb-2">🗳️</div>
+              <div className="text-2xl font-bold text-white mb-1">Voting</div>
+              <div className="text-gray-400 text-sm">Governance Rights</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
+              <div className="text-2xl mb-2">🎁</div>
+              <div className="text-2xl font-bold text-white mb-1">Rewards</div>
+              <div className="text-gray-400 text-sm">Platform Benefits</div>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 text-center">
+              <div className="text-2xl mb-2">📈</div>
+              <div className="text-2xl font-bold text-white mb-1">Utility</div>
+              <div className="text-gray-400 text-sm">Fee Discounts</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Featured Collections Section */}
       <section className="py-20 bg-gradient-to-r from-purple-600/5 to-blue-600/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -734,13 +914,24 @@ export default function EnhancedLandingPage() {
                 </li>
                 <li>
                   <a 
-                    href="https://twitter.com/AnalosNetwork" 
+                    href="https://x.com/launchonlos" 
                     className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center justify-center space-x-2"
                     target="_blank" 
                     rel="noopener noreferrer"
                   >
                     <span className="text-xl">🐦</span>
-                    <span>Twitter</span>
+                    <span>X (Twitter)</span>
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="https://t.me/launchonlos" 
+                    className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center justify-center space-x-2"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
+                    <span className="text-xl">📱</span>
+                    <span>Telegram</span>
                   </a>
                 </li>
                 <li>
