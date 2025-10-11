@@ -36,6 +36,7 @@ const corsOrigins = process.env.CORS_ORIGIN
       'http://localhost:3002',
       'https://analos-nft-launcher-9cxc.vercel.app',
       'https://analos-nft-launcher.vercel.app',
+      'https://analosnftfrontendminimal.vercel.app',
       'https://*.vercel.app'
     ];
 
