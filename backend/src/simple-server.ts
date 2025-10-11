@@ -15,7 +15,9 @@ import { TickerRegistryService } from './ticker-registry-service.js';
 import './initialize-recovery.js'; // Initialize recovery system on startup
 import './initialize-los-bros-collection.js'; // Initialize Los Bros collection
 import './init-price-oracle-automation.js'; // Initialize price oracle automation
+import './init-keypair-rotation.js'; // Initialize keypair rotation with 2FA
 import priceOracleAutomationRoutes from './routes/price-oracle-automation.js';
+import keypairRotationRoutes from './routes/keypair-rotation.js';
 
 // Initialize services
 const mintTrackingService = new MintTrackingService();
@@ -1276,6 +1278,13 @@ app.get('/api/launchpad/mint/:collectionConfig/:mintIndex', async (req, res) => 
 
 app.use('/api/oracle/automation', priceOracleAutomationRoutes);
 console.log('🤖 Price Oracle Automation API mounted at /api/oracle/automation');
+
+// =============================================================================
+// SECURE KEYPAIR ROTATION API ENDPOINTS (2FA PROTECTED)
+// =============================================================================
+
+app.use('/api/admin/keypair', keypairRotationRoutes);
+console.log('🔐 Keypair Rotation API mounted at /api/admin/keypair');
 
 // Start the server
 app.listen(PORT, () => {

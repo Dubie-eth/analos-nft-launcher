@@ -56,10 +56,10 @@ export class PriceOracleAutomation {
 
   constructor(config: PriceOracleConfig) {
     this.config = {
-      checkIntervalMs: 60000, // 1 minute
-      updateThresholdPercent: 1.0, // 1%
-      minTimeBetweenUpdates: 300000, // 5 minutes
       ...config,
+      checkIntervalMs: config.checkIntervalMs || 60000, // 1 minute default
+      updateThresholdPercent: config.updateThresholdPercent || 1.0, // 1% default
+      minTimeBetweenUpdates: config.minTimeBetweenUpdates || 300000, // 5 minutes default
     };
     
     this.connection = new Connection(this.config.rpcUrl, 'confirmed');

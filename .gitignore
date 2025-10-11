@@ -18,6 +18,14 @@ dist/
 .env.test.local
 .env.production.local
 
+# 🔐 SECURITY: Keypairs and Wallets (NEVER COMMIT!)
+payer-wallet.json
+*-wallet.json
+*-keypair.json
+*.key
+authority-keypair.json
+deployer-keypair.json
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
