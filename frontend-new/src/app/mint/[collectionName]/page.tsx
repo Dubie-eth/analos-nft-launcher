@@ -87,7 +87,7 @@ function CollectionMintContent() {
   const fetchMintStats = useCallback(async () => {
     try {
       console.log('📊 Fetching real-time mint statistics...');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-backend-production.up.railway.app'}/api/mint-stats/Los%20Bros`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_CORE_API_URL || 'https://analos-core-service-production.up.railway.app'}/api/mint-stats/Los%20Bros`);
       
       if (response.ok) {
         const data = await response.json();

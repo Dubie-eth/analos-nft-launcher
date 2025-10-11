@@ -34,7 +34,7 @@ export interface PersistenceBackup {
 }
 
 export class DataPersistenceService {
-  private readonly BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
+  private readonly BACKEND_API_URL = process.env.NEXT_PUBLIC_CORE_API_URL || 'https://analos-core-service-production.up.railway.app';
   private readonly GITHUB_GIST_ID = 'your-gist-id'; // Will be set up
   private readonly GITHUB_TOKEN = process.env.NEXT_PUBLIC_GITHUB_TOKEN; // For GitHub API
   private readonly BACKUP_INTERVAL = 60000; // 1 minute

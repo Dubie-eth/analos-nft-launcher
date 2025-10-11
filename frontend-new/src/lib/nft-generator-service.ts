@@ -55,7 +55,7 @@ export class NFTGeneratorService {
   private backendUrl: string;
 
   constructor() {
-    this.backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-launcher-backend-production.up.railway.app';
+    this.backendUrl = process.env.NEXT_PUBLIC_CORE_API_URL || 'https://analos-core-service-production.up.railway.app';
   }
 
   /**
