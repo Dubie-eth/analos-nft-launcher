@@ -76,52 +76,29 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      // Convert market cap to micro USD (6 decimals)
-      const marketCapMicroUSD = parseInt(losMarketCap) * 1000000; // Convert to 6 decimals
-      console.log('🔧 Market cap micro USD:', marketCapMicroUSD);
-      console.log('🔧 Market cap type:', typeof marketCapMicroUSD);
-      console.log('🔧 Market cap value:', marketCapMicroUSD);
+      // For minimal IDL testing, we don't need market cap arguments
+      console.log('🔧 Using minimal initialization (no arguments)');
 
-      // Validate the value before creating BN
-      if (isNaN(marketCapMicroUSD) || marketCapMicroUSD <= 0) {
-        throw new Error(`Invalid market cap value: ${losMarketCap}`);
-      }
-
-      // Create BN instance with validation
-      console.log('🔧 Creating BN instance...');
-      console.log('🔧 BN constructor available:', typeof BN);
-      console.log('🔧 BN from Anchor:', BN);
-      
-      // Try different BN constructor approaches
-      let marketCapBN;
-      try {
-        // Try with string first (most reliable)
-        marketCapBN = new BN(marketCapMicroUSD.toString(), 10);
-        console.log('✅ BN created with string and radix:', marketCapBN.toString());
-      } catch (bnError1) {
-        console.error('❌ BN creation with string failed:', bnError1);
-        try {
-          // Fallback: try with number directly
-          marketCapBN = new BN(marketCapMicroUSD);
-          console.log('✅ BN created with number:', marketCapBN.toString());
-        } catch (bnError2) {
-          console.error('❌ BN creation with number failed:', bnError2);
-          // Last resort: try with hex
-          marketCapBN = new BN(marketCapMicroUSD.toString(16), 16);
-          console.log('✅ BN created with hex:', marketCapBN.toString());
-        }
-      }
-
-      // Call the initializeOracle instruction (temporarily without arguments for testing)
+      // Call the initializeOracle instruction with minimal setup
       console.log('🚀 Calling initializeOracle instruction...');
-      const signature = await program.methods
+      
+      // Create a simple transaction first to test
+      const transaction = new Transaction();
+      
+      // Add the initialize instruction with explicit accounts
+      const initializeIx = await program.methods
         .initializeOracle()
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
           systemProgram: SystemProgram.programId,
         })
-        .rpc();
+        .instruction();
+      
+      transaction.add(initializeIx);
+      
+      // Send the transaction
+      const signature = await provider.sendAndConfirm(transaction);
       
       console.log('🚀 Price Oracle initialized successfully:', signature);
       
