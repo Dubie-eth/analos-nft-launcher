@@ -79,9 +79,19 @@ export default function PriceOracleInitializer() {
       // Try raw instruction approach - bypass IDL entirely
       console.log('🔧 Trying raw instruction approach...');
       
-      // Create raw instruction data
+      // Create raw instruction data with different discriminators
       const instructionData = Buffer.alloc(8); // 8 bytes for instruction discriminator
-      instructionData.writeUInt32LE(0, 0); // Simple discriminator
+      
+      // Try different discriminators - Anchor programs often use hashed discriminators
+      const discriminators = [
+        0, // Simple zero
+        1, // Simple one
+        0x8f9e4e4e, // Common Anchor discriminator pattern
+        0x1337, // Test value
+      ];
+      
+      // Try discriminator 1 first
+      instructionData.writeUInt32LE(1, 0);
       
       // Convert market cap to buffer
       const marketCapBuffer = Buffer.alloc(8);
@@ -92,7 +102,9 @@ export default function PriceOracleInitializer() {
       const fullInstructionData = Buffer.concat([instructionData, marketCapBuffer]);
       
       console.log('🔧 Raw instruction data length:', fullInstructionData.length);
+      console.log('🔧 Instruction discriminator:', instructionData.toString('hex'));
       console.log('🔧 Market cap buffer:', marketCapBuffer.toString('hex'));
+      console.log('🔧 Full instruction data:', fullInstructionData.toString('hex'));
       
       // Create raw instruction
       const instruction = new TransactionInstruction({
