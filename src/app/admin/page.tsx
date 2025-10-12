@@ -12,7 +12,7 @@ import SecureKeypairRotation from '@/components/SecureKeypairRotation';
 import TwoFactorAuth from '@/components/TwoFactorAuth';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
 import ProgramInitializer from '@/components/ProgramInitializer';
-import { SecureWalletConnection } from '@/components/SecureWalletConnection';
+import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
   name: string;
