@@ -90,6 +90,12 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
     setResult(null);
 
     try {
+      // Ensure publicKey is available
+      if (!publicKey || !signTransaction) {
+        setResult({ success: false, message: 'Wallet connection lost' });
+        return;
+      }
+
       let transaction: Transaction;
       let message: string;
 
