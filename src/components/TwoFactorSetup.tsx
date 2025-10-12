@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 interface TwoFactorSetupProps {
@@ -14,6 +14,13 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
   const [isSetup, setIsSetup] = useState(false);
+  const [hasShownSecret, setHasShownSecret] = useState(false);
+
+  // Check if secret has been shown before
+  useEffect(() => {
+    const secretShown = localStorage.getItem('admin-2fa-secret-shown') === 'true';
+    setHasShownSecret(secretShown);
+  }, []);
 
   // Mock secret key - in production, generate a real TOTP secret
   const mockSecret = 'JBSWY3DPEHPK3PXP';
@@ -35,8 +42,9 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
       // For demo purposes, accept any 6-digit code
       if (setupCode.length === 6) {
         setIsSetup(true);
-        // In production, store the verified secret in your backend
+        // Mark 2FA as set up and secret as shown (never show again)
         localStorage.setItem('admin-2fa-setup', 'true');
+        localStorage.setItem('admin-2fa-secret-shown', 'true');
         onSetupComplete();
       } else {
         setError('Invalid setup code');
@@ -51,6 +59,14 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   const handleCopySecret = () => {
     navigator.clipboard.writeText(mockSecret);
     alert('Secret copied to clipboard!');
+  };
+
+  const handleReset2FA = () => {
+    if (window.confirm('Are you sure you want to reset 2FA? This will require setting up again.')) {
+      localStorage.removeItem('admin-2fa-setup');
+      localStorage.removeItem('admin-2fa-secret-shown');
+      window.location.reload();
+    }
   };
 
   return (
@@ -76,46 +92,59 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
 
         {!isSetup ? (
           <>
-            {/* QR Code Section */}
-            <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10 text-center">
-              <h3 className="text-white font-semibold mb-4">Scan QR Code</h3>
-              <div className="bg-white p-4 rounded-lg inline-block mb-4">
-                <div className="w-48 h-48 bg-gray-200 rounded flex items-center justify-center">
-                  <div className="text-gray-600 text-center">
-                    <div className="text-4xl mb-2">📱</div>
-                    <div className="text-sm">QR Code</div>
-                    <div className="text-xs mt-1">Scan with authenticator app</div>
+            {!hasShownSecret ? (
+              <>
+                {/* QR Code Section */}
+                <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10 text-center">
+                  <h3 className="text-white font-semibold mb-4">Scan QR Code</h3>
+                  <div className="bg-white p-4 rounded-lg inline-block mb-4">
+                    <div className="w-48 h-48 bg-gray-200 rounded flex items-center justify-center">
+                      <div className="text-gray-600 text-center">
+                        <div className="text-4xl mb-2">📱</div>
+                        <div className="text-sm">QR Code</div>
+                        <div className="text-xs mt-1">Scan with authenticator app</div>
+                      </div>
+                    </div>
                   </div>
+                  <p className="text-gray-300 text-sm">
+                    Scan this QR code with your authenticator app
+                  </p>
                 </div>
-              </div>
-              <p className="text-gray-300 text-sm">
-                Scan this QR code with your authenticator app
-              </p>
-            </div>
 
-            {/* Manual Setup */}
-            <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
-              <h3 className="text-white font-semibold mb-3">Manual Setup</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-gray-300 text-sm mb-1">Secret Key:</label>
-                  <div className="flex items-center space-x-2">
-                    <code className="bg-gray-800/50 text-gray-300 px-3 py-2 rounded text-sm font-mono flex-1">
-                      {mockSecret}
-                    </code>
-                    <button
-                      onClick={handleCopySecret}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
-                    >
-                      Copy
-                    </button>
+                {/* Manual Setup */}
+                <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
+                  <h3 className="text-white font-semibold mb-3">Manual Setup</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-gray-300 text-sm mb-1">Secret Key:</label>
+                      <div className="flex items-center space-x-2">
+                        <code className="bg-gray-800/50 text-gray-300 px-3 py-2 rounded text-sm font-mono flex-1">
+                          {mockSecret}
+                        </code>
+                        <button
+                          onClick={handleCopySecret}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-gray-400 text-xs">
+                      Enter this secret key manually in your authenticator app
+                    </p>
                   </div>
                 </div>
-                <p className="text-gray-400 text-xs">
-                  Enter this secret key manually in your authenticator app
+              </>
+            ) : (
+              /* Secret Already Shown - Skip to Verification */
+              <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 mb-6 text-center">
+                <div className="text-4xl mb-4">✅</div>
+                <h3 className="text-green-300 font-semibold mb-2">2FA Already Configured</h3>
+                <p className="text-gray-300 text-sm">
+                  Your authenticator app is already set up. Enter your 6-digit code below to verify.
                 </p>
               </div>
-            </div>
+            )}
 
             {/* Verification */}
             <div className="space-y-4">
@@ -175,12 +204,18 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
           </div>
         )}
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <button
             onClick={onCancel}
-            className="text-gray-400 hover:text-white text-sm underline"
+            className="text-gray-400 hover:text-white text-sm underline block"
           >
             Cancel Setup
+          </button>
+          <button
+            onClick={handleReset2FA}
+            className="text-red-400 hover:text-red-300 text-sm underline block"
+          >
+            Reset 2FA (Testing)
           </button>
         </div>
 
