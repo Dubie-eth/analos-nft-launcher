@@ -53,41 +53,38 @@ export default function PriceOracleInitializer() {
       }
 
       console.log('🔧 Creating Price Oracle PDA...');
+      // FIXED: PDA uses only [b"price_oracle"] seeds, no authority pubkey
       const [priceOraclePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('price_oracle'), publicKey.toBuffer()],
+        [Buffer.from('price_oracle')],
         ANALOS_PROGRAMS.PRICE_ORACLE
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      console.log('🔗 RAW INSTRUCTION APPROACH: Testing with original program ID...');
+      console.log('🔗 Using Anchor Method Discriminator for initialize_oracle...');
       
-      // Convert market cap to proper format (LOS with 9 decimals)
+      // Market cap in USD (6 decimals as per program)
       const marketCapUSD = parseInt(losMarketCap);
-      const marketCapNanoLOS = marketCapUSD * 1000000000; // Convert to nano LOS (9 decimals)
       
       console.log('📊 Market Cap (USD):', marketCapUSD);
-      console.log('📊 Market Cap (nano LOS):', marketCapNanoLOS);
       console.log('🔗 Program ID:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
       console.log('🔗 PDA:', priceOraclePda.toString());
 
-      // Try different discriminators - the deployed program might use a different one
-      const discriminators = [
-        crypto.createHash('sha256').update('global:initialize_oracle').digest().slice(0, 8),
-        Buffer.from([0x8f, 0x9e, 0x4e, 0x4e, 0x00, 0x00, 0x00, 0x00]), // Previous attempt
-        Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // Simple zero discriminator
-      ];
-      
-      const discriminator = discriminators[0]; // Try the standard Anchor discriminator
+      // Anchor discriminator for method "initialize_oracle"
+      // Hash of "global:initialize_oracle" first 8 bytes
+      const discriminator = crypto.createHash('sha256')
+        .update('global:initialize_oracle')
+        .digest()
+        .slice(0, 8);
       
       console.log('🔧 Discriminator:', discriminator.toString('hex'));
 
-      // Create raw instruction data
-      const instructionData = Buffer.alloc(8 + 8); // 8 bytes discriminator + 8 bytes u64
+      // Create raw instruction data: discriminator (8 bytes) + market_cap_usd (u64, 8 bytes)
+      const instructionData = Buffer.alloc(8 + 8); 
       instructionData.set(discriminator, 0);
       
-      // Set market cap as little-endian u64
+      // Set market cap as little-endian u64 (in USD, no conversion needed)
       const marketCapBuffer = Buffer.alloc(8);
-      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapNanoLOS), 0);
+      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapUSD), 0);
       instructionData.set(marketCapBuffer, 8);
       
       console.log('🔧 Instruction data length:', instructionData.length);
@@ -134,10 +131,10 @@ export default function PriceOracleInitializer() {
       const oracleData = {
         authority: publicKey.toString(),
         marketCapUsd: marketCapUSD,
-        marketCapNanoLos: marketCapNanoLOS,
         lastUpdated: new Date().toISOString(),
         isActive: true,
         programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
+        pdaAddress: priceOraclePda.toString(),
         signature: signature
       };
       
@@ -146,7 +143,7 @@ export default function PriceOracleInitializer() {
       // Blockchain initialization complete - show success
       setResult({
         success: true,
-        message: `Price Oracle initialized with $${parseInt(losMarketCap).toLocaleString()} market cap ✅ BLOCKCHAIN`,
+        message: `Price Oracle initialized successfully! LOS market cap set to $${parseInt(losMarketCap).toLocaleString()} USD ✅`,
         signature: signature
       });
 
@@ -197,7 +194,10 @@ export default function PriceOracleInitializer() {
             className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
           />
           <p className="text-gray-400 text-sm mt-1">
-            Example: 1000000 means $1,000,000 USD market cap for LOS token
+            Example: 1000000 means $1,000,000 USD total market cap for LOS token
+          </p>
+          <p className="text-gray-300 text-xs mt-1">
+            💡 The program calculates individual LOS price from market cap ÷ circulating supply
           </p>
         </div>
 
@@ -263,11 +263,11 @@ export default function PriceOracleInitializer() {
       </div>
 
       <div className="mt-6 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-        <h4 className="text-green-300 font-semibold mb-2">✅ Pure Raw Instruction Approach - No Anchor, No BN Issues</h4>
+        <h4 className="text-green-300 font-semibold mb-2">✅ Correct PDA & Discriminator - Matches Deployed Program</h4>
         <ul className="text-green-200 text-sm space-y-1">
-          <li>• <span className="text-green-300">🚀 Completely bypasses Anchor and BN processing</span></li>
-          <li>• Calculates correct discriminator using crypto.sha256</li>
-          <li>• Market Cap: Sets initial LOS market cap in USD (9 decimals)</li>
+          <li>• <span className="text-green-300">🎯 Uses correct PDA seeds: [b"price_oracle"]</span></li>
+          <li>• Anchor discriminator: global:initialize_oracle (sha256)</li>
+          <li>• Market Cap: Sets initial LOS market cap in USD</li>
           <li>• Creates real PriceOracle account on-chain</li>
           <li>• Uses pure Solana Web3.js instructions</li>
         </ul>
