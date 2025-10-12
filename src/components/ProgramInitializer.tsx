@@ -61,7 +61,7 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
             SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: ANALOS_PROGRAMS.RARITY_ORACLE,
-              lamports: 1000000, // 0.001 SOL for initialization
+              lamports: 1000000, // 0.001 LOS for initialization
             })
           );
           
@@ -80,7 +80,7 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
             SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: ANALOS_PROGRAMS.NFT_LAUNCHPAD,
-              lamports: 2000000, // 0.002 SOL for initialization
+              lamports: 2000000, // 0.002 LOS for initialization
             })
           );
           
@@ -282,21 +282,43 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
 
       {/* Result Display */}
       {result && (
-        <div className={`mt-6 p-4 rounded-lg ${
-          result.success ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
+        <div className={`mt-6 p-6 rounded-xl border ${
+          result.success 
+            ? 'bg-green-500/20 text-green-300 border-green-500/30' 
+            : 'bg-red-500/20 text-red-300 border-red-500/30'
         }`}>
-          <p className="font-semibold">{result.message}</p>
+          <div className="flex items-center space-x-2 mb-3">
+            <span className="text-2xl">{result.success ? '✅' : '❌'}</span>
+            <p className="font-semibold text-lg">{result.message}</p>
+          </div>
+          
           {result.signature && (
-            <p className="text-sm mt-2">
-              Transaction: <a 
-                href={`https://explorer.analos.io/tx/${result.signature}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-blue-400 hover:underline break-all"
-              >
+            <div className="bg-black/30 rounded-lg p-4 mt-4">
+              <p className="text-sm font-medium mb-2">Transaction Signature:</p>
+              <code className="text-xs break-all block mb-3 p-2 bg-black/50 rounded">
                 {result.signature}
-              </a>
-            </p>
+              </code>
+              
+              <div className="flex flex-col sm:flex-row gap-2">
+                <a 
+                  href={`https://explorer.analos.io/tx/${result.signature}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  <span>🔗</span>
+                  <span>View on Analos Explorer</span>
+                </a>
+                
+                <button
+                  onClick={() => navigator.clipboard.writeText(result.signature!)}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  <span>📋</span>
+                  <span>Copy Signature</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -332,7 +354,7 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
         <ul className="text-blue-200 text-sm space-y-1">
           <li>• Initialize: Creates the program for the first time</li>
           <li>• You must be the program authority to use these functions</li>
-          <li>• Small SOL fee required for initialization</li>
+          <li>• Small LOS fee required for initialization</li>
           <li>• Transaction will be confirmed on Analos blockchain</li>
         </ul>
       </div>
