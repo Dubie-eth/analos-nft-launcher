@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   const [authStep, setAuthStep] = useState<'wallet' | 'setup' | '2fa' | 'authenticated'>('wallet');
   const [is2FASetup, setIs2FASetup] = useState(false);
   const [sessionAuthenticated, setSessionAuthenticated] = useState(false);
+  const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'settings'>('overview');
@@ -106,15 +107,17 @@ export default function AdminDashboard() {
         setAuthStep('authenticated');
       } else if (isSetup && authStep !== '2fa' && authStep !== 'authenticated') {
         setAuthStep('2fa');
-      } else if (!isSetup && authStep !== 'setup' && authStep !== 'authenticated') {
+      } else if (!isSetup && authStep !== 'setup' && authStep !== 'authenticated' && !hasCanceledSetup) {
         setAuthStep('setup');
       }
+      // If user canceled setup, don't redirect them back to setup
     } else {
       setAuthStep('wallet');
       setSessionAuthenticated(false);
+      setHasCanceledSetup(false); // Reset cancel flag when not admin
       sessionStorage.removeItem('admin-authenticated');
     }
-  }, [isAdmin, authStep]);
+  }, [isAdmin, authStep, hasCanceledSetup]);
 
   // Authentication handlers
   const handle2FASetupComplete = () => {
@@ -131,12 +134,14 @@ export default function AdminDashboard() {
   const handleAuthCancel = () => {
     setAuthStep('wallet');
     setSessionAuthenticated(false);
+    setHasCanceledSetup(true);
     sessionStorage.removeItem('admin-authenticated');
   };
 
   const handleLogout = () => {
     setAuthStep('wallet');
     setSessionAuthenticated(false);
+    setHasCanceledSetup(false);
     sessionStorage.removeItem('admin-authenticated');
   };
 
@@ -326,6 +331,32 @@ export default function AdminDashboard() {
           </p>
           <div className="text-gray-400">
             Wallet: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Block access if not properly authenticated
+  if (authStep === 'wallet') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-6">🔐</div>
+          <h1 className="text-4xl font-bold text-white mb-4">2FA Authentication Required</h1>
+          <p className="text-xl text-gray-300 mb-8 max-w-md">
+            You must complete 2FA setup to access the admin dashboard
+          </p>
+          <div className="space-y-4">
+            <button
+              onClick={() => setAuthStep('setup')}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200"
+            >
+              Setup 2FA Authentication
+            </button>
+            <div className="text-gray-400 text-sm">
+              Admin: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+            </div>
           </div>
         </div>
       </div>
