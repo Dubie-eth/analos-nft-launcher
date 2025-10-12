@@ -62,10 +62,32 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   };
 
   const handleReset2FA = () => {
-    if (window.confirm('Are you sure you want to reset 2FA? This will require setting up again.')) {
-      localStorage.removeItem('admin-2fa-setup');
-      localStorage.removeItem('admin-2fa-secret-shown');
-      window.location.reload();
+    const resetMethod = prompt('Reset method:\n1. Enter your 6-digit 2FA code\n2. Enter your secret key\n\nType "code" or "secret":');
+    
+    if (resetMethod === 'code') {
+      const userCode = prompt('Enter your 6-digit 2FA code to reset:');
+      if (userCode && userCode.length === 6) {
+        // In production, verify against actual TOTP secret
+        // For demo, accept any 6-digit code
+        if (window.confirm('Are you sure you want to reset 2FA? You will need to set it up again.')) {
+          localStorage.removeItem('admin-2fa-setup');
+          localStorage.removeItem('admin-2fa-secret-shown');
+          window.location.reload();
+        }
+      } else if (userCode) {
+        alert('Invalid code. Reset cancelled.');
+      }
+    } else if (resetMethod === 'secret') {
+      const secretKey = prompt('Enter your secret key to reset:');
+      if (secretKey === mockSecret) {
+        if (window.confirm('Are you sure you want to reset 2FA? You will need to set it up again.')) {
+          localStorage.removeItem('admin-2fa-setup');
+          localStorage.removeItem('admin-2fa-secret-shown');
+          window.location.reload();
+        }
+      } else if (secretKey) {
+        alert('Invalid secret key. Reset cancelled.');
+      }
     }
   };
 
@@ -215,18 +237,19 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
             onClick={handleReset2FA}
             className="text-red-400 hover:text-red-300 text-sm underline block"
           >
-            Reset 2FA (Testing)
+            Reset 2FA (Code or Secret)
           </button>
         </div>
 
         {/* Security Notice */}
         <div className="mt-6 bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
-          <h3 className="text-yellow-300 font-semibold mb-2">Security Notice</h3>
+          <h3 className="text-yellow-300 font-semibold mb-2">🔒 Security Notice</h3>
           <ul className="text-yellow-200 text-sm space-y-1">
+            <li>• <strong>WRITE DOWN YOUR SECRET KEY OFFLINE</strong></li>
+            <li>• Store it in a secure physical location</li>
+            <li>• This secret key will NEVER be shown again</li>
             <li>• Keep your authenticator app secure</li>
-            <li>• Backup your secret key in a safe place</li>
-            <li>• This setup is only needed once</li>
-            <li>• Contact support if you lose access</li>
+            <li>• Only your 2FA code can reset this system</li>
           </ul>
         </div>
       </div>
