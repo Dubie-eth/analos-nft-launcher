@@ -77,7 +77,7 @@ export default function PriceOracleInitializer() {
         Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // Simple zero discriminator
       ];
       
-      const discriminator = discriminators[0]; // Try the first one
+      const discriminator = discriminators[2]; // Try the zero discriminator
       
       console.log('🔧 Discriminator:', discriminator.toString('hex'));
 
