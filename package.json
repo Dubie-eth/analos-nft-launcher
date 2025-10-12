@@ -1,6 +1,6 @@
 {
   "name": "analos-nft-frontend-minimal",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Minimal frontend for Analos NFT Launcher with clean architecture",
   "private": true,
   "scripts": {

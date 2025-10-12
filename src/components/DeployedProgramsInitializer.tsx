@@ -15,7 +15,7 @@ const DeployedProgramsInitializer: React.FC<DeployedProgramsInitializerProps> = 
   const deployedPrograms = [
     {
       name: 'Price Oracle',
-      id: 'v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62',
+      id: '5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD',
       description: 'Provides real-time $LOS price data for USD-pegged NFT pricing',
       explorerUrl: ANALOS_EXPLORER_URLS.PRICE_ORACLE,
       status: 'Deployed ✅'
