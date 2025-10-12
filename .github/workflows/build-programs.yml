@@ -14,6 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Remove incompatible Cargo.lock
+      run: |
+        find . -name "Cargo.lock" -type f -delete
+        echo "Removed all Cargo.lock files"
+    
     - name: Install System Dependencies
       run: |
         sudo apt-get update
@@ -52,7 +57,6 @@ jobs:
     
     - name: Build Programs
       run: |
-        rm -f Cargo.lock
         anchor build
     
     - name: Upload Artifacts
