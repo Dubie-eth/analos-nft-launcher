@@ -446,24 +446,24 @@ export default function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
-          <div className="flex space-x-2 overflow-x-auto">
+          <div className="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'health-check', label: 'Health Check', icon: '🏥' },
-              { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
+              { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
-              { id: 'price-automation', label: 'Price Automation', icon: '🤖' },
-              { id: 'keypair-rotation', label: 'Keypair Security', icon: '🔐' },
               { id: 'collections', label: 'Collections', icon: '📦' },
               { id: 'programs', label: 'Programs', icon: '⚙️' },
+              { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
+              { id: 'price-automation', label: 'Price Automation', icon: '🤖' },
+              { id: 'keypair-rotation', label: 'Keypair Security', icon: '🔐' },
               { id: 'oracle', label: 'Rarity Oracle', icon: '🎲' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ${
+                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap text-xs sm:text-sm ${
                   activeTab === tab.id
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                     : 'text-gray-300 hover:text-white hover:bg-white/10'
