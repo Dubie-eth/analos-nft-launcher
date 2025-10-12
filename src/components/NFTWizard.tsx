@@ -34,6 +34,15 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
     twitter: '',
     discord: '',
     telegram: '',
+    // Bonding Curve Options
+    useBondingCurve: false,
+    bondingCurveBasePrice: 0.1,
+    bondingCurvePriceIncrement: 0.01,
+    bondingCurveMaxPrice: 10,
+    creatorBCAllocation: 2500, // 25% default
+    // Tiered Minting
+    enableTieredMinting: false,
+    tiers: [] as any[],
   });
 
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
@@ -41,7 +50,7 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
   const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([]);
   const [whitelistFile, setWhitelistFile] = useState<File | null>(null);
 
-  const totalSteps = 6;
+  const totalSteps = 8; // Added bonding curve and pricing steps
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -474,7 +483,198 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
       case 6:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-white mb-6">Social Links & Final Review</h3>
+            <h3 className="text-2xl font-bold text-white mb-6">💰 Bonding Curve & Pricing</h3>
+            <p className="text-gray-300 mb-4">
+              Configure dynamic pricing with bonding curves for a fun mint experience like pump.fun!
+            </p>
+
+            {/* Enable Bonding Curve */}
+            <div className="bg-white/10 rounded-lg p-6 border border-white/20">
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={collectionData.useBondingCurve}
+                  onChange={(e) => setCollectionData(prev => ({ ...prev, useBondingCurve: e.target.checked }))}
+                  className="w-5 h-5 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-white font-semibold text-lg">Enable Bonding Curve Pricing</span>
+                  <p className="text-gray-400 text-sm">Price increases automatically as more NFTs are minted</p>
+                </div>
+              </label>
+            </div>
+
+            {collectionData.useBondingCurve && (
+              <div className="space-y-6">
+                {/* Bonding Curve Configuration */}
+                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg p-6 border border-purple-500/30">
+                  <h4 className="text-white font-bold text-xl mb-4">🎢 Bonding Curve Settings</h4>
+                  
+                  <div className="grid md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <label className="block text-white font-semibold mb-2">Base Price (SOL)</label>
+                      <input
+                        type="number"
+                        value={collectionData.bondingCurveBasePrice}
+                        onChange={(e) => setCollectionData(prev => ({ ...prev, bondingCurveBasePrice: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        step="0.01"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-400"
+                      />
+                      <p className="text-gray-400 text-xs mt-1">Starting mint price</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white font-semibold mb-2">Price Increment (SOL)</label>
+                      <input
+                        type="number"
+                        value={collectionData.bondingCurvePriceIncrement}
+                        onChange={(e) => setCollectionData(prev => ({ ...prev, bondingCurvePriceIncrement: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        step="0.001"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-400"
+                      />
+                      <p className="text-gray-400 text-xs mt-1">Price increase per NFT</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white font-semibold mb-2">Max Price (SOL)</label>
+                      <input
+                        type="number"
+                        value={collectionData.bondingCurveMaxPrice}
+                        onChange={(e) => setCollectionData(prev => ({ ...prev, bondingCurveMaxPrice: parseFloat(e.target.value) || 0 }))}
+                        min="0"
+                        step="0.1"
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-400"
+                      />
+                      <p className="text-gray-400 text-xs mt-1">Price cap (0 = no limit)</p>
+                    </div>
+                  </div>
+
+                  {/* Price Formula Display */}
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h5 className="text-white font-semibold mb-2">📊 Price Formula</h5>
+                    <code className="text-blue-300 text-sm">
+                      Price = {collectionData.bondingCurveBasePrice} + (Current Supply × {collectionData.bondingCurvePriceIncrement})
+                    </code>
+                    <div className="mt-3 text-gray-300 text-sm space-y-1">
+                      <p>NFT #1: {collectionData.bondingCurveBasePrice.toFixed(2)} SOL</p>
+                      <p>NFT #100: {(collectionData.bondingCurveBasePrice + (100 * collectionData.bondingCurvePriceIncrement)).toFixed(2)} SOL</p>
+                      <p>NFT #500: {Math.min(collectionData.bondingCurveBasePrice + (500 * collectionData.bondingCurvePriceIncrement), collectionData.bondingCurveMaxPrice || Infinity).toFixed(2)} SOL</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Creator BC Allocation */}
+                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-6 border border-green-500/30">
+                  <h4 className="text-white font-bold text-xl mb-4">💎 Bonding Curve Reserve Allocation</h4>
+                  <p className="text-gray-300 text-sm mb-4">
+                    Allocate a percentage of mint funds to create a bonding curve reserve for floor price protection
+                  </p>
+                  
+                  <div>
+                    <label className="block text-white font-semibold mb-2">
+                      Reserve Allocation: {collectionData.creatorBCAllocation / 100}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="5000"
+                      step="100"
+                      value={collectionData.creatorBCAllocation}
+                      onChange={(e) => setCollectionData(prev => ({ ...prev, creatorBCAllocation: parseInt(e.target.value) }))}
+                      className="w-full h-3 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex justify-between text-gray-400 text-xs mt-1">
+                      <span>0% (No reserve)</span>
+                      <span>50% (Maximum)</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-gray-400">Creator Receives</p>
+                      <p className="text-white font-bold text-lg">{((10000 - collectionData.creatorBCAllocation) / 100).toFixed(1)}%</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3">
+                      <p className="text-gray-400">Bonding Curve Reserve</p>
+                      <p className="text-green-400 font-bold text-lg">{(collectionData.creatorBCAllocation / 100).toFixed(1)}%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-2xl font-bold text-white mb-6">🎯 Tiered Minting (Optional)</h3>
+            <p className="text-gray-300 mb-4">
+              Create multiple mint tiers with different pricing and access rules (whitelist, token-gating, etc.)
+            </p>
+
+            {/* Enable Tiered Minting */}
+            <div className="bg-white/10 rounded-lg p-6 border border-white/20">
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={collectionData.enableTieredMinting}
+                  onChange={(e) => setCollectionData(prev => ({ ...prev, enableTieredMinting: e.target.checked }))}
+                  className="w-5 h-5 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-white font-semibold text-lg">Enable Tiered Minting</span>
+                  <p className="text-gray-400 text-sm">Create special tiers for whitelist, token holders, and public</p>
+                </div>
+              </label>
+            </div>
+
+            {collectionData.enableTieredMinting && (
+              <div className="space-y-4">
+                <div className="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/30">
+                  <p className="text-yellow-300 text-sm">
+                    ⚠️ <strong>Coming Soon:</strong> Tiered minting will be fully available after deployment. 
+                    For now, you can enable it and configure tiers in the admin dashboard.
+                  </p>
+                </div>
+
+                <div className="bg-white/5 rounded-lg p-6">
+                  <h4 className="text-white font-semibold mb-4">Example Tier Structure</h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center space-x-3 p-3 bg-purple-500/10 rounded">
+                      <span className="text-2xl">🥇</span>
+                      <div className="flex-1">
+                        <p className="text-white font-semibold">Tier 0: Whitelist</p>
+                        <p className="text-gray-400">100 NFTs @ 20% discount, whitelist required</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-blue-500/10 rounded">
+                      <span className="text-2xl">🥈</span>
+                      <div className="flex-1">
+                        <p className="text-white font-semibold">Tier 1: Token Holders</p>
+                        <p className="text-gray-400">500 NFTs @ 10% discount, hold 100+ $LOL</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-green-500/10 rounded">
+                      <span className="text-2xl">🥉</span>
+                      <div className="flex-1">
+                        <p className="text-white font-semibold">Tier 2: Public</p>
+                        <p className="text-gray-400">9,400 NFTs @ full price, open to all</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 8:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-2xl font-bold text-white mb-6">🔗 Social Links & Final Review</h3>
             
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -524,21 +724,35 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
 
             {/* Final Review */}
             <div className="bg-white/10 rounded-lg p-6">
-              <h4 className="text-white font-semibold mb-4">Collection Summary</h4>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-300">Name: <span className="text-white">{collectionData.name}</span></p>
-                  <p className="text-gray-300">Symbol: <span className="text-white">{collectionData.symbol}</span></p>
-                  <p className="text-gray-300">Supply: <span className="text-white">{collectionData.maxSupply}</span></p>
-                  <p className="text-gray-300">Price: <span className="text-white">{collectionData.mintPrice} SOL</span></p>
+              <h4 className="text-white font-semibold mb-4">📋 Collection Summary</h4>
+              <div className="grid md:grid-cols-2 gap-4 text-sm mb-6">
+                <div className="space-y-2">
+                  <p className="text-gray-300">Name: <span className="text-white font-semibold">{collectionData.name}</span></p>
+                  <p className="text-gray-300">Symbol: <span className="text-white font-semibold">{collectionData.symbol}</span></p>
+                  <p className="text-gray-300">Supply: <span className="text-white font-semibold">{collectionData.maxSupply}</span></p>
+                  <p className="text-gray-300">Images: <span className="text-white font-semibold">{uploadedImages.length}</span></p>
+                  <p className="text-gray-300">Metadata: <span className="text-white font-semibold">{metadata.length}</span></p>
                 </div>
-                <div>
-                  <p className="text-gray-300">Images: <span className="text-white">{uploadedImages.length}</span></p>
-                  <p className="text-gray-300">Metadata: <span className="text-white">{metadata.length}</span></p>
-                  <p className="text-gray-300">Whitelist: <span className="text-white">{whitelist.length} addresses</span></p>
-                  <p className="text-gray-300">Reveal: <span className="text-white">{collectionData.revealType}</span></p>
+                <div className="space-y-2">
+                  <p className="text-gray-300">Whitelist: <span className="text-white font-semibold">{whitelist.length} addresses</span></p>
+                  <p className="text-gray-300">Reveal: <span className="text-white font-semibold">{collectionData.revealType}</span></p>
+                  <p className="text-gray-300">Bonding Curve: <span className="text-white font-semibold">{collectionData.useBondingCurve ? '✅ Enabled' : '❌ Disabled'}</span></p>
+                  <p className="text-gray-300">Tiered Minting: <span className="text-white font-semibold">{collectionData.enableTieredMinting ? '✅ Enabled' : '❌ Disabled'}</span></p>
                 </div>
               </div>
+
+              {/* Bonding Curve Summary */}
+              {collectionData.useBondingCurve && (
+                <div className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/30">
+                  <h5 className="text-white font-semibold mb-2">💰 Bonding Curve Details</h5>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <p className="text-gray-300">Base Price: <span className="text-white">{collectionData.bondingCurveBasePrice} SOL</span></p>
+                    <p className="text-gray-300">Increment: <span className="text-white">{collectionData.bondingCurvePriceIncrement} SOL</span></p>
+                    <p className="text-gray-300">Max Price: <span className="text-white">{collectionData.bondingCurveMaxPrice || 'Unlimited'} SOL</span></p>
+                    <p className="text-gray-300">BC Reserve: <span className="text-green-400">{collectionData.creatorBCAllocation / 100}%</span></p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
