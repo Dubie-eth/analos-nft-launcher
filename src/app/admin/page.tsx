@@ -62,7 +62,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -412,14 +412,14 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-8">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 relative">
           <div className="flex justify-between items-center mb-4">
             <div className="flex-1"></div>
             <h1 className="text-4xl md:text-5xl font-bold text-white">
               🎛️ Admin Dashboard
             </h1>
             <div className="flex-1 flex justify-end space-x-2 items-center">
-              <div className="mobile-btn-fix">
+              <div className="mobile-btn-fix relative z-50">
                 <SecureWalletConnection />
               </div>
               <button
@@ -448,8 +448,8 @@ export default function AdminDashboard() {
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
           <div className="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
+              { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
               { id: 'collections', label: 'Collections', icon: '📦' },
