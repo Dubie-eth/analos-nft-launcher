@@ -60,7 +60,7 @@ export default function PriceOracleInitializer() {
       
       let program;
       try {
-        program = new Program(idl as any, ANALOS_PROGRAMS.PRICE_ORACLE, provider);
+        program = new Program(idl as any, provider);
         console.log('✅ Program created successfully:', program.programId.toString());
         console.log('🔧 Program methods available:', Object.keys(program.methods));
       } catch (programError) {

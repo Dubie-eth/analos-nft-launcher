@@ -1,5 +1,5 @@
 {
-  "version": "3.3.0",
+  "version": "3.4.0",
   "name": "analos_price_oracle",
   "instructions": [
     {
@@ -46,5 +46,6 @@
         ]
       }
     }
-  ]
+  ],
+  "address": "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"
 }
