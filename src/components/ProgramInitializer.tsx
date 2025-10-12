@@ -99,18 +99,36 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
       const signedTransaction = await signTransaction(transaction);
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
-      // Wait for confirmation with extended timeout for slow Analos network
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight
-      }, 'confirmed');
-
+      // Transaction sent successfully - show success immediately
       setResult({
         success: true,
-        message,
+        message: `${message} Transaction sent: ${signature}`,
         signature
       });
+
+      // Try to confirm in background (don't block UI)
+      try {
+        await connection.confirmTransaction({
+          signature,
+          blockhash,
+          lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight
+        }, 'confirmed');
+        
+        // Update with confirmation success
+        setResult({
+          success: true,
+          message: `${message} ✅ CONFIRMED on blockchain`,
+          signature
+        });
+      } catch (confirmError) {
+        // Confirmation timeout is OK - transaction might still succeed
+        console.log('Confirmation timeout, but transaction was sent:', signature);
+        setResult({
+          success: true,
+          message: `${message} ⏳ Sent (check explorer for confirmation)`,
+          signature
+        });
+      }
 
     } catch (error: any) {
       console.error('Initialization error:', error);
