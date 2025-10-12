@@ -16,7 +16,6 @@ import PriceOracleInitializer from '@/components/PriceOracleInitializer';
 import RarityOracleInitializer from '@/components/RarityOracleInitializer';
 import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
-import { clearAll2FAStorage } from '@/utils/clear2FAStorage';
 
 interface CollectionStats {
   name: string;
@@ -151,15 +150,8 @@ export default function AdminDashboard() {
     sessionStorage.removeItem('admin-authenticated');
   };
 
-  const handleResetAuth = () => {
-    if (window.confirm('Reset all admin authentication? This will require 2FA setup again.')) {
-      clearAll2FAStorage();
-      setAuthStep('wallet');
-      setSessionAuthenticated(false);
-      setHasCanceledSetup(false);
-      window.location.reload();
-    }
-  };
+  // REMOVED: handleResetAuth - No reset functionality should exist
+  // Only way to reset is with the secret key that is stored offline
 
   // Load admin data
   useEffect(() => {
@@ -429,12 +421,6 @@ export default function AdminDashboard() {
               <div className="mobile-btn-fix relative z-50">
                 <SecureWalletConnection />
               </div>
-              <button
-                onClick={handleResetAuth}
-                className="bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/50 text-orange-300 hover:text-orange-200 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
-              >
-                🔄 Reset Auth
-              </button>
               <button
                 onClick={handleLogout}
                 className="bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 hover:text-red-200 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"

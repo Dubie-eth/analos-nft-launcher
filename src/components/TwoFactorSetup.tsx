@@ -275,7 +275,8 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
             <li>• Store it in a secure physical location</li>
             <li>• This secret key will be PERMANENTLY DELETED after setup</li>
             <li>• Keep your authenticator app secure</li>
-            <li>• Only your 2FA code can reset this system</li>
+            <li>• <strong>ONLY YOUR SECRET KEY CAN RESET THIS SYSTEM</strong></li>
+            <li>• There is NO other way to reset 2FA</li>
             <li>• Secret key is NEVER stored on this device</li>
           </ul>
         </div>
