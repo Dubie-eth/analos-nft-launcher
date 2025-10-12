@@ -88,5 +88,6 @@
     { "code": 6000, "name": "OraclePaused", "msg": "Oracle is currently paused" },
     { "code": 6001, "name": "InvalidPrice", "msg": "Invalid price value" },
     { "code": 6002, "name": "Unauthorized", "msg": "Unauthorized access" }
-  ]
+  ],
+  "address": "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"
 }
