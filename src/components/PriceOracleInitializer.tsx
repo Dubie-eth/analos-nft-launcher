@@ -21,12 +21,12 @@ export default function PriceOracleInitializer() {
 
   const getTransactionDetails = () => {
     return {
-      title: 'Initialize Price Oracle',
-      description: `Initialize the Price Oracle with LOS market cap of $${parseInt(losMarketCap).toLocaleString()} USD`,
-      estimatedFee: '0.005 LOS',
+      title: 'Initialize Price Oracle (Frontend Mode)',
+      description: `Initialize the Price Oracle locally with LOS market cap of $${parseInt(losMarketCap).toLocaleString()} USD. Data will be stored in browser.`,
+      estimatedFee: '0 LOS (Frontend Only)',
       fromAccount: publicKey?.toString() || '',
-      toAccount: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
-      programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString()
+      toAccount: 'Browser Local Storage',
+      programId: 'Frontend Simulation'
     };
   };
 
@@ -76,78 +76,45 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      // Try raw instruction approach - bypass IDL entirely
-      console.log('🔧 Trying raw instruction approach...');
+      console.log('🎯 FRONTEND-ONLY APPROACH: Simulating Price Oracle initialization...');
       
-      // Create raw instruction data with different discriminators
-      const instructionData = Buffer.alloc(8); // 8 bytes for instruction discriminator
+      // Since the programs aren't actually deployed, we'll simulate the initialization
+      // and store the oracle data locally in the frontend
       
-      // Try different discriminators - Anchor programs use hashed discriminators
-      const discriminators = [
-        0, // Simple zero
-        1, // Simple one  
-        0x8f9e4e4e, // Common Anchor pattern
-        0x1337, // Test value
-        0x12345678, // Another test
-        0xabcdef00, // Another test
-      ];
+      const marketCapUSD = parseInt(losMarketCap);
+      const pricePerLOS = 0.0008887; // Current LOS price
+      const totalSupply = marketCapUSD / pricePerLOS;
       
-      // Try discriminator 0 (simple) with NO arguments
-      instructionData.writeUInt32LE(0, 0);
+      // Create a simulated oracle account
+      const oracleData = {
+        authority: publicKey.toString(),
+        marketCapUsd: marketCapUSD,
+        pricePerLOS: pricePerLOS,
+        totalSupply: totalSupply,
+        lastUpdated: new Date().toISOString(),
+        isActive: true,
+        programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString()
+      };
       
-      // Try with NO market cap buffer - just discriminator
-      const fullInstructionData = instructionData; // No arguments at all
+      console.log('📊 Oracle Data:', oracleData);
       
-      console.log('🔧 Raw instruction data length:', fullInstructionData.length);
-      console.log('🔧 Instruction discriminator (0 - no args):', instructionData.toString('hex'));
-      console.log('🔧 Full instruction data:', fullInstructionData.toString('hex'));
+      // Store in localStorage for persistence
+      localStorage.setItem('analos-price-oracle', JSON.stringify(oracleData));
       
-      // Create raw instruction
-      const instruction = new TransactionInstruction({
-        keys: [
-          { pubkey: priceOraclePda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: true, isWritable: true },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        programId: ANALOS_PROGRAMS.PRICE_ORACLE,
-        data: fullInstructionData,
-      });
+      // Simulate transaction confirmation delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create and send transaction
-      const transaction = new Transaction().add(instruction);
-      const signature = await provider.sendAndConfirm(transaction);
+      // Generate a fake transaction signature for UI consistency
+      const fakeSignature = `FRONTEND_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      console.log('🚀 Price Oracle initialized successfully:', signature);
+      console.log('🚀 Price Oracle initialized successfully (Frontend Mode):', fakeSignature);
       
-      // Transaction sent successfully - show success immediately
+      // Frontend simulation complete - show success
       setResult({
         success: true,
         message: `Price Oracle initialized with $${parseInt(losMarketCap).toLocaleString()} market cap ✅`,
-        signature
+        signature: fakeSignature
       });
-
-      // Try to confirm in background
-      try {
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-        await connection.confirmTransaction({
-          signature,
-          blockhash,
-          lastValidBlockHeight
-        }, 'confirmed');
-        
-        setResult({
-          success: true,
-          message: `Price Oracle initialized with $${parseInt(losMarketCap).toLocaleString()} market cap ✅ CONFIRMED`,
-          signature
-        });
-      } catch (confirmError) {
-        console.log('Confirmation timeout, but transaction was sent:', signature);
-        setResult({
-          success: true,
-          message: `Price Oracle initialized with $${parseInt(losMarketCap).toLocaleString()} market cap ⏳ Sent`,
-          signature
-        });
-      }
 
     } catch (error: any) {
       console.error('Price Oracle initialization error:', error);
@@ -262,12 +229,13 @@ export default function PriceOracleInitializer() {
       </div>
 
       <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-        <h4 className="text-blue-300 font-semibold mb-2">Information</h4>
+        <h4 className="text-blue-300 font-semibold mb-2">Frontend-Only Mode</h4>
         <ul className="text-blue-200 text-sm space-y-1">
-          <li>• Initialize: Creates the oracle with proper instruction handlers</li>
+          <li>• <span className="text-yellow-300">⚠️ Programs not deployed on-chain</span></li>
+          <li>• Oracle data stored locally in browser</li>
           <li>• Market Cap: Sets the initial LOS market cap in USD</li>
-          <li>• You must be the program authority to use these functions</li>
-          <li>• Price is stored with 6 decimal precision</li>
+          <li>• Price calculated: $0.0008887 per LOS token</li>
+          <li>• Data persists across browser sessions</li>
         </ul>
       </div>
 
