@@ -1,7 +1,5 @@
 'use client';
 
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import SecureWalletConnection from './SecureWalletConnection';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -13,30 +11,7 @@ Navigation._contextWarningLogged = false;
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Add safety check for wallet context with better error handling
-  let walletContext;
-  let modalContext;
-  
-  try {
-    walletContext = useWallet();
-    modalContext = useWalletModal();
-  } catch (error) {
-    // Only log the warning once to avoid spam
-    if (!Navigation._contextWarningLogged) {
-      console.warn('Wallet context not available yet, using fallback');
-      Navigation._contextWarningLogged = true;
-    }
-    walletContext = { connected: false, publicKey: null, disconnect: () => {} };
-    modalContext = { setVisible: () => {} };
-  }
-  
-  const { connected, publicKey, disconnect } = walletContext;
-  const { setVisible } = modalContext;
   const pathname = usePathname();
-
-  // Check if current user is an admin (you can define your admin addresses here)
-  const ADMIN_WALLETS = ['86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW']; // Add your admin wallet addresses
-  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
 
   // Base navigation items (always visible)
     const baseNavItems = [
@@ -52,13 +27,13 @@ export default function Navigation() {
         { href: '/profile', label: 'Profile', icon: '👤' },
       ];
 
-  // Admin-only navigation items
+  // Admin-only navigation items (always show for now - admin check happens in admin page)
   const adminNavItems = [
     { href: '/admin', label: 'Admin Dashboard', icon: '🎛️' },
   ];
 
-  // Combine navigation items based on admin status
-  const navItems = isAdmin ? [...baseNavItems, ...adminNavItems] : baseNavItems;
+  // Combine navigation items - show admin link for all users (admin page handles auth)
+  const navItems = [...baseNavItems, ...adminNavItems];
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';

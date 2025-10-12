@@ -120,16 +120,37 @@ export default function EnhancedLandingPage() {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center">
-            <h1 className={`text-5xl md:text-7xl font-bold text-white mb-6 transition-all duration-1000 ${
+            <div className={`flex flex-col lg:flex-row items-center justify-center mb-8 space-y-6 lg:space-y-0 lg:space-x-8 transition-all duration-1000 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
-              🚀 Enterprise-Grade NFT Launchpad v4.2.2
-            </h1>
-            <p className={`text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto transition-all duration-1000 delay-300 ${
+              <div className="text-8xl lg:text-9xl">🚀</div>
+              <div className="flex-1 text-center lg:text-left">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6">
+                  Enterprise-Grade NFT Launchpad v4.2.2
+                </h1>
+                <p className="text-lg md:text-xl lg:text-2xl text-gray-300 leading-relaxed">
+                  On-chain ticker collision prevention • Automatic fee distribution • Real-time supply tracking • Blind mint & reveal
+                </p>
+              </div>
+            </div>
+            
+            {/* CTA Buttons */}
+            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 transition-all duration-1000 delay-300 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}>
-              On-chain ticker collision prevention • Automatic fee distribution • Real-time supply tracking • Blind mint & reveal
-            </p>
+              <Link
+                href="/launch-collection"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                🚀 Launch Your Collection
+              </Link>
+              <Link
+                href="/marketplace"
+                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border border-white/20"
+              >
+                🏪 Browse Marketplace
+              </Link>
+            </div>
             
             {/* Program Information Section */}
             <div className={`bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 max-w-6xl mx-auto transition-all duration-1000 delay-500 ${
@@ -142,7 +163,7 @@ export default function EnhancedLandingPage() {
                 Deployed on Analos Mainnet with enterprise-grade features
               </p>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Program ID */}
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                   <div className="text-center">
