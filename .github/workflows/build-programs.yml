@@ -40,12 +40,12 @@ jobs:
         echo "Building NFT Launchpad..."
         cd programs/analos-nft-launchpad
         rm -f Cargo.lock
-        cargo build-sbf --release
+        cargo build-sbf
         cd ../..
         echo "Building Token Lock Enhanced..."
         cd programs/analos-token-lock-enhanced  
         rm -f Cargo.lock
-        cargo build-sbf --release
+        cargo build-sbf
         cd ../..
         echo "Build complete!"
         find target -name "*.so" -type f
