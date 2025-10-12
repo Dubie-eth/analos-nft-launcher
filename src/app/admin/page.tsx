@@ -12,7 +12,11 @@ import SecureKeypairRotation from '@/components/SecureKeypairRotation';
 import TwoFactorAuth from '@/components/TwoFactorAuth';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
 import ProgramInitializer from '@/components/ProgramInitializer';
+import PriceOracleInitializer from '@/components/PriceOracleInitializer';
+import RarityOracleInitializer from '@/components/RarityOracleInitializer';
+import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
+import { clearAll2FAStorage } from '@/utils/clear2FAStorage';
 
 interface CollectionStats {
   name: string;
@@ -149,12 +153,10 @@ export default function AdminDashboard() {
 
   const handleResetAuth = () => {
     if (window.confirm('Reset all admin authentication? This will require 2FA setup again.')) {
+      clearAll2FAStorage();
       setAuthStep('wallet');
       setSessionAuthenticated(false);
       setHasCanceledSetup(false);
-      sessionStorage.removeItem('admin-authenticated');
-      localStorage.removeItem('admin-2fa-setup');
-      localStorage.removeItem('admin-2fa-secret-shown');
       window.location.reload();
     }
   };
@@ -378,17 +380,18 @@ export default function AdminDashboard() {
   }
 
   // 2FA Setup Step - Only show if 2FA is not already set up
-  const is2FASetupInStorage = localStorage.getItem('admin-2fa-setup') === 'true' || 
-                             sessionStorage.getItem('admin-2fa-setup') === 'true';
-  
-  if (authStep === 'setup' && !is2FASetupInStorage) {
-    return (
-      <TwoFactorSetup
-        onSetupComplete={handle2FASetupComplete}
-        onCancel={handleAuthCancel}
-      />
-    );
-  }
+        const is2FASetupInStorage = localStorage.getItem('admin-2fa-setup') === 'true' || 
+                                   sessionStorage.getItem('admin-2fa-setup') === 'true';
+        
+        // CRITICAL: Only show 2FA setup if it's truly not set up AND not canceled
+        if (authStep === 'setup' && !is2FASetupInStorage && !hasCanceledSetup) {
+          return (
+            <TwoFactorSetup
+              onSetupComplete={handle2FASetupComplete}
+              onCancel={handleAuthCancel}
+            />
+          );
+        }
 
   // 2FA Verification Step
   if (authStep === '2fa') {
@@ -730,7 +733,14 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'price-oracle' && (
-          <div>
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">💰 Price Oracle Management</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Initialize and manage the Price Oracle with proper instruction handlers to enable price updates and data storage.
+              </p>
+            </div>
+            
             <PriceOracleInitializer />
           </div>
         )}
@@ -752,13 +762,13 @@ export default function AdminDashboard() {
 
             <div className="grid lg:grid-cols-1 gap-8">
               {/* Price Oracle Initializer */}
-              <ProgramInitializer programType="price-oracle" />
+              <PriceOracleInitializer />
               
               {/* Rarity Oracle Initializer */}
-              <ProgramInitializer programType="rarity-oracle" />
+              <RarityOracleInitializer />
               
               {/* NFT Launchpad Initializer */}
-              <ProgramInitializer programType="nft-launchpad" />
+              <NFTLaunchpadInitializer />
             </div>
 
             {/* Information Section */}

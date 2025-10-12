@@ -53,7 +53,12 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
     
     // Only generate secret if this is truly the first time
     console.log('🔐 WARNING: Generating secret for first-time setup only');
-    const secret = 'JBSWY3DPEHPK3PXP'; // This should be generated randomly in production
+    // Generate a random secret key
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let secret = '';
+    for (let i = 0; i < 16; i++) {
+        secret += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
     setGeneratedSecret(secret);
   }, []);
 
@@ -116,26 +121,6 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
     }
   };
 
-  const handleReset2FA = () => {
-    const resetMethod = prompt('Reset method:\n1. Enter your 6-digit 2FA code\n2. Enter your secret key\n\nType "code" or "secret":');
-    
-    if (resetMethod === 'code') {
-      const userCode = prompt('Enter your 6-digit 2FA code to reset:');
-      if (userCode && userCode.length === 6) {
-        // In production, verify against actual TOTP secret
-        // For demo, accept any 6-digit code
-        if (window.confirm('Are you sure you want to reset 2FA? You will need to set it up again.')) {
-          localStorage.removeItem('admin-2fa-setup');
-          localStorage.removeItem('admin-2fa-secret-shown');
-          window.location.reload();
-        }
-      } else if (userCode) {
-        alert('Invalid code. Reset cancelled.');
-      }
-    } else if (resetMethod === 'secret') {
-      alert('Secret key reset is no longer available for security reasons. Please use your 2FA code to reset.');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
@@ -273,18 +258,12 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
           </div>
         )}
 
-        <div className="mt-6 text-center space-y-2">
+        <div className="mt-6 text-center">
           <button
             onClick={onCancel}
-            className="text-gray-400 hover:text-white text-sm underline block"
+            className="text-gray-400 hover:text-white text-sm underline"
           >
             Cancel Setup
-          </button>
-          <button
-            onClick={handleReset2FA}
-            className="text-red-400 hover:text-red-300 text-sm underline block"
-          >
-            Reset 2FA (Code Only)
           </button>
         </div>
 
