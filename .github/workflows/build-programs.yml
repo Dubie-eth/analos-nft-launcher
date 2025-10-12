@@ -3,7 +3,7 @@ name: Build Solana Programs
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master, enhanced-features ]
+    branches: [ main, master, enhanced-features, build-with-github-actions ]
     paths:
       - 'programs/**'
       - 'Cargo.toml'
