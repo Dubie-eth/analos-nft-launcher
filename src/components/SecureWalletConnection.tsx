@@ -118,7 +118,7 @@ export default function SecureWalletConnection({ className = '' }: SecureWalletC
               </span>
             </div>
             <div className="text-sm text-gray-300 mb-2">
-              <div className="font-mono break-all">
+              <div className="font-mono break-all wallet-address">
                 {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
               </div>
               {wallet && (

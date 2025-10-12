@@ -31,3 +31,42 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .container {
+    max-width: 100vw;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Fix wallet address truncation */
+  .wallet-address {
+    font-size: 0.75rem;
+    word-break: break-all;
+    max-width: 100%;
+  }
+  
+  /* Fix navigation tabs */
+  .nav-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix card layouts */
+  .mobile-card {
+    margin: 0.5rem;
+    min-width: calc(100% - 1rem);
+  }
+  
+  /* Fix button sizing */
+  .mobile-btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+}

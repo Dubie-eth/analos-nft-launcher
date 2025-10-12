@@ -185,7 +185,7 @@ export default function ProfilePage() {
                 <div className="space-y-1">
                   <div className="text-gray-300">
                     <span className="font-medium">Wallet:</span>
-                    <code className="ml-2 font-mono text-sm bg-gray-800/50 px-2 py-1 rounded">
+                    <code className="ml-2 font-mono text-sm bg-gray-800/50 px-2 py-1 rounded wallet-address">
                       {publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Not connected'}
                     </code>
                   </div>
@@ -241,7 +241,7 @@ export default function ProfilePage() {
 
         {/* Navigation Tabs */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 nav-tabs">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'nfts', label: 'My NFTs', icon: '🎨' },
