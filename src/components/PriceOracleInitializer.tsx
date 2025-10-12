@@ -92,6 +92,7 @@ export default function PriceOracleInitializer() {
       // Try each discriminator until one works
       let success = false;
       let lastError = null;
+      let finalSignature: string = '';
       
       for (const { name, discriminator } of discriminators) {
         try {
@@ -147,6 +148,7 @@ export default function PriceOracleInitializer() {
           }, 'confirmed');
 
           console.log('✅ Price Oracle initialized successfully on blockchain:', signature);
+          finalSignature = signature;
           success = true;
           break; // Exit the loop on success
           
@@ -170,7 +172,7 @@ export default function PriceOracleInitializer() {
         isActive: true,
         programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
         pdaAddress: priceOraclePda.toString(),
-        signature: signature
+        signature: finalSignature
       };
       
       localStorage.setItem('analos-price-oracle', JSON.stringify(oracleData));
@@ -179,7 +181,7 @@ export default function PriceOracleInitializer() {
       setResult({
         success: true,
         message: `Price Oracle initialized successfully! LOS market cap set to $${parseInt(losMarketCap).toLocaleString()} USD ✅`,
-        signature: signature
+        signature: finalSignature
       });
 
     } catch (error: any) {
