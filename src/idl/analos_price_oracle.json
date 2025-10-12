@@ -9,9 +9,7 @@
         { "name": "authority", "isMut": true, "isSigner": true },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
-      "args": [
-        { "name": "initialLosMarketCapUsd", "type": "u64" }
-      ]
+      "args": []
     },
     {
       "name": "updateLosMarketCap",
@@ -19,9 +17,7 @@
         { "name": "priceOracle", "isMut": true, "isSigner": false },
         { "name": "authority", "isMut": false, "isSigner": true }
       ],
-      "args": [
-        { "name": "newLosMarketCapUsd", "type": "u64" }
-      ]
+      "args": []
     },
     {
       "name": "pauseOracle",

@@ -111,10 +111,10 @@ export default function PriceOracleInitializer() {
         }
       }
 
-      // Call the initializeOracle instruction
+      // Call the initializeOracle instruction (temporarily without arguments for testing)
       console.log('🚀 Calling initializeOracle instruction...');
       const signature = await program.methods
-        .initializeOracle(marketCapBN)
+        .initializeOracle()
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
