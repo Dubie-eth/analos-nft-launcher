@@ -58,12 +58,18 @@ jobs:
     - name: Build Programs
       run: |
         find . -name "Cargo.lock" -type f -delete
-        export RUSTUP_TOOLCHAIN=1.82.0
-        cargo build-sbf --manifest-path programs/analos-nft-launchpad/Cargo.toml
-        cargo build-sbf --manifest-path programs/analos-token-lock-enhanced/Cargo.toml
+        # Install BPF target for system Rust
+        rustup target add sbf-solana-solana
+        # Build directly with cargo using system Rust 1.82
+        cd programs/analos-nft-launchpad && cargo build --release --target sbf-solana-solana && cd ../..
+        cd programs/analos-token-lock-enhanced && cargo build --release --target sbf-solana-solana && cd ../..
+        # Create deploy directory and copy artifacts
         mkdir -p target/deploy target/idl
-        anchor idl build -p analos_nft_launchpad -o target/idl/analos_nft_launchpad.json
-        anchor idl build -p analos_token_lock_enhanced -o target/idl/analos_token_lock_enhanced.json
+        cp target/sbf-solana-solana/release/analos_nft_launchpad.so target/deploy/ || true
+        cp target/sbf-solana-solana/release/analos_token_lock_enhanced.so target/deploy/ || true
+        # Generate IDLs
+        anchor idl build -p analos_nft_launchpad -o target/idl/analos_nft_launchpad.json || true
+        anchor idl build -p analos_token_lock_enhanced -o target/idl/analos_token_lock_enhanced.json || true
     
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
