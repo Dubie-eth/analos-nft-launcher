@@ -92,20 +92,14 @@ export default function PriceOracleInitializer() {
         0xabcdef00, // Another test
       ];
       
-      // Try discriminator 0x8f9e4e4e (common Anchor pattern)
-      instructionData.writeUInt32LE(0x8f9e4e4e, 0);
+      // Try discriminator 0 (simple) with NO arguments
+      instructionData.writeUInt32LE(0, 0);
       
-      // Convert market cap to buffer
-      const marketCapBuffer = Buffer.alloc(8);
-      const marketCapMicroUSD = parseInt(losMarketCap) * 1000000;
-      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapMicroUSD), 0);
-      
-      // Combine instruction data
-      const fullInstructionData = Buffer.concat([instructionData, marketCapBuffer]);
+      // Try with NO market cap buffer - just discriminator
+      const fullInstructionData = instructionData; // No arguments at all
       
       console.log('🔧 Raw instruction data length:', fullInstructionData.length);
-      console.log('🔧 Instruction discriminator (0x8f9e4e4e):', instructionData.toString('hex'));
-      console.log('🔧 Market cap buffer:', marketCapBuffer.toString('hex'));
+      console.log('🔧 Instruction discriminator (0 - no args):', instructionData.toString('hex'));
       console.log('🔧 Full instruction data:', fullInstructionData.toString('hex'));
       
       // Create raw instruction
