@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+import { PublicKey, Transaction, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
@@ -76,21 +76,38 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      // Test with no arguments - maybe the program doesn't expect any
-      console.log('🔧 Testing with no arguments...');
+      // Try raw instruction approach - bypass IDL entirely
+      console.log('🔧 Trying raw instruction approach...');
       
-      // Call the initializeOracle instruction without any arguments
-      console.log('🚀 Calling initializeOracle instruction without arguments...');
+      // Create raw instruction data
+      const instructionData = Buffer.alloc(8); // 8 bytes for instruction discriminator
+      instructionData.writeUInt32LE(0, 0); // Simple discriminator
       
-      // Try using .rpc() method directly without arguments
-      const signature = await program.methods
-        .initializeOracle()
-        .accounts({
-          priceOracle: priceOraclePda,
-          authority: publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+      // Convert market cap to buffer
+      const marketCapBuffer = Buffer.alloc(8);
+      const marketCapMicroUSD = parseInt(losMarketCap) * 1000000;
+      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapMicroUSD), 0);
+      
+      // Combine instruction data
+      const fullInstructionData = Buffer.concat([instructionData, marketCapBuffer]);
+      
+      console.log('🔧 Raw instruction data length:', fullInstructionData.length);
+      console.log('🔧 Market cap buffer:', marketCapBuffer.toString('hex'));
+      
+      // Create raw instruction
+      const instruction = new TransactionInstruction({
+        keys: [
+          { pubkey: priceOraclePda, isSigner: false, isWritable: true },
+          { pubkey: publicKey, isSigner: true, isWritable: true },
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: ANALOS_PROGRAMS.PRICE_ORACLE,
+        data: fullInstructionData,
+      });
+      
+      // Create and send transaction
+      const transaction = new Transaction().add(instruction);
+      const signature = await provider.sendAndConfirm(transaction);
       
       console.log('🚀 Price Oracle initialized successfully:', signature);
       
