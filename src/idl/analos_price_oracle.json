@@ -105,6 +105,8 @@
   ],
   "address": "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym",
   "metadata": {
-    "docs": "Updated event names to match Anchor conventions"
+    "docs": "Updated event names to match Anchor conventions",
+    "version": "2.0.0",
+    "cache_buster": "2025-01-12-07:30:00"
   }
 }
