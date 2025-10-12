@@ -59,7 +59,7 @@
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "authority", "type": "publicKey" },
+          { "name": "authority", "type": { "array": ["u8", 32] } },
           { "name": "losMarketCapUsd", "type": "u64" },
           { "name": "losPrice", "type": "u64" },
           { "name": "isPaused", "type": "bool" },
@@ -81,6 +81,7 @@
         "fields": [
           { "name": "authority", "type": { "array": ["u8", 32] } },
           { "name": "losMarketCapUsd", "type": "u64" },
+          { "name": "losPrice", "type": "u64" },
           { "name": "isPaused", "type": "bool" },
           { "name": "lastUpdated", "type": "i64" }
         ]
