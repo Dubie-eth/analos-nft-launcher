@@ -11,6 +11,7 @@ import PriceOracleAutomation from '@/components/PriceOracleAutomation';
 import SecureKeypairRotation from '@/components/SecureKeypairRotation';
 import TwoFactorAuth from '@/components/TwoFactorAuth';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
+import ProgramInitializer from '@/components/ProgramInitializer';
 
 interface CollectionStats {
   name: string;
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
   const [is2FASetup, setIs2FASetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'settings'>('overview');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -350,6 +351,7 @@ export default function AdminDashboard() {
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
+              { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
               { id: 'price-automation', label: 'Price Automation', icon: '🤖' },
               { id: 'keypair-rotation', label: 'Keypair Security', icon: '🔐' },
@@ -632,6 +634,66 @@ export default function AdminDashboard() {
         {activeTab === 'price-automation' && (
           <div>
             <PriceOracleAutomation />
+          </div>
+        )}
+
+        {activeTab === 'program-init' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🚀 Program Initialization</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Initialize the 3 programs that require setup. The other 6 programs are ready to use immediately.
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-1 gap-8">
+              {/* Price Oracle Initializer */}
+              <ProgramInitializer programType="price-oracle" />
+              
+              {/* Rarity Oracle Initializer */}
+              <ProgramInitializer programType="rarity-oracle" />
+              
+              {/* NFT Launchpad Initializer */}
+              <ProgramInitializer programType="nft-launchpad" />
+            </div>
+
+            {/* Information Section */}
+            <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl p-6 border border-green-500/30">
+              <h3 className="text-2xl font-bold text-white mb-4">✅ Ready to Use Programs</h3>
+              <p className="text-gray-300 mb-4">
+                These 6 programs are already deployed and ready to use without initialization:
+              </p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✅</span>
+                    <span>Token Launch Program</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✅</span>
+                    <span>OTC Enhanced Program</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✅</span>
+                    <span>Airdrop Enhanced Program</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✅</span>
+                    <span>Vesting Enhanced Program</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✅</span>
+                    <span>Token Lock Enhanced Program</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✅</span>
+                    <span>Monitoring System Program</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
