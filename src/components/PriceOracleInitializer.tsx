@@ -59,7 +59,7 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      console.log('🔗 PURE RAW INSTRUCTION APPROACH: No Anchor, no BN issues...');
+      console.log('🔗 RAW INSTRUCTION APPROACH: Testing with original program ID...');
       
       // Convert market cap to proper format (LOS with 9 decimals)
       const marketCapUSD = parseInt(losMarketCap);
@@ -77,7 +77,7 @@ export default function PriceOracleInitializer() {
         Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // Simple zero discriminator
       ];
       
-      const discriminator = discriminators[2]; // Try the zero discriminator
+      const discriminator = discriminators[0]; // Try the standard Anchor discriminator
       
       console.log('🔧 Discriminator:', discriminator.toString('hex'));
 

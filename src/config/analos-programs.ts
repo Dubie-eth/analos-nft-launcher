@@ -108,7 +108,7 @@ export const ANALOS_RPC_URL = 'https://rpc.analos.io';
  * Program IDs as strings (for display/logging)
  */
 export const ANALOS_PROGRAM_IDS = {
-  PRICE_ORACLE: 'v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62',
+  PRICE_ORACLE: '5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD',
   RARITY_ORACLE: 'DP8sA6BQH3Ymd823uxfd5KPXMzNy4wDccQSp6gzPQiDR',
   TOKEN_LAUNCH: 'FkW7A6Hwivab7JZnxmH7fJJSNgAeGM1jCKQt5KaTyUpz',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
