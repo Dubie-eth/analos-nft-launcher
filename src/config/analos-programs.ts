@@ -15,19 +15,19 @@ export const ANALOS_PROGRAMS = {
    * Price Oracle Program
    * Provides real-time $LOS price data for USD-pegged NFT pricing
    */
-  PRICE_ORACLE: new PublicKey('9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym'),
+  PRICE_ORACLE: new PublicKey('v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62'),
 
   /**
    * Rarity Oracle Program
    * Calculates and stores NFT rarity scores and trait distributions
    */
-  RARITY_ORACLE: new PublicKey('H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6'),
+  RARITY_ORACLE: new PublicKey('DP8sA6BQH3Ymd823uxfd5KPXMzNy4wDccQSp6gzPQiDR'),
 
   /**
    * Token Launch Program
    * Handles token launches with bonding curves, creator prebuy, and trading fees
    */
-  TOKEN_LAUNCH: new PublicKey('HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx'),
+  TOKEN_LAUNCH: new PublicKey('FkW7A6Hwivab7JZnxmH7fJJSNgAeGM1jCKQt5KaTyUpz'),
 
   /**
    * NFT Launchpad Program (Main Integration)
@@ -108,9 +108,9 @@ export const ANALOS_RPC_URL = 'https://rpc.analos.io';
  * Program IDs as strings (for display/logging)
  */
 export const ANALOS_PROGRAM_IDS = {
-  PRICE_ORACLE: '9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym',
-  RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
-  TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
+  PRICE_ORACLE: 'v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62',
+  RARITY_ORACLE: 'DP8sA6BQH3Ymd823uxfd5KPXMzNy4wDccQSp6gzPQiDR',
+  TOKEN_LAUNCH: 'FkW7A6Hwivab7JZnxmH7fJJSNgAeGM1jCKQt5KaTyUpz',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: '7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
   AIRDROP_ENHANCED: 'J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
@@ -123,9 +123,9 @@ export const ANALOS_PROGRAM_IDS = {
  * Explorer URLs for verification
  */
 export const ANALOS_EXPLORER_URLS = {
-  PRICE_ORACLE: 'https://explorer.analos.io/address/9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym',
-  RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
-  TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
+  PRICE_ORACLE: 'https://explorer.analos.io/address/v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62',
+  RARITY_ORACLE: 'https://explorer.analos.io/address/DP8sA6BQH3Ymd823uxfd5KPXMzNy4wDccQSp6gzPQiDR',
+  TOKEN_LAUNCH: 'https://explorer.analos.io/address/FkW7A6Hwivab7JZnxmH7fJJSNgAeGM1jCKQt5KaTyUpz',
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: 'https://explorer.analos.io/address/7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
   AIRDROP_ENHANCED: 'https://explorer.analos.io/address/J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',

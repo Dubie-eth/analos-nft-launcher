@@ -169,6 +169,7 @@
     { "code": 6001, "name": "InsufficientSupply", "msg": "Insufficient token supply" },
     { "code": 6002, "name": "InvalidAmount", "msg": "Invalid token amount" },
     { "code": 6003, "name": "Unauthorized", "msg": "Unauthorized access" }
-  ]
+  ],
+  "address": "FkW7A6Hwivab7JZnxmH7fJJSNgAeGM1jCKQt5KaTyUpz"
 }
 
