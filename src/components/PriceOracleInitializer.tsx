@@ -82,14 +82,6 @@ export default function PriceOracleInitializer() {
       // Create raw instruction data with different discriminators
       const instructionData = Buffer.alloc(8); // 8 bytes for instruction discriminator
       
-      // Try different discriminators - Anchor programs often use hashed discriminators
-      const discriminators = [
-        0, // Simple zero
-        1, // Simple one
-        0x8f9e4e4e, // Common Anchor discriminator pattern
-        0x1337, // Test value
-      ];
-      
       // Try different discriminators - Anchor programs use hashed discriminators
       const discriminators = [
         0, // Simple zero
