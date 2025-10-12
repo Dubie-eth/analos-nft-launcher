@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
+import { Program, AnchorProvider } from '@coral-xyz/anchor';
+import { BN } from 'bn.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
@@ -69,11 +70,29 @@ export default function PriceOracleInitializer() {
       // Convert market cap to micro USD (6 decimals)
       const marketCapMicroUSD = parseInt(losMarketCap) * 1000000; // Convert to 6 decimals
       console.log('🔧 Market cap micro USD:', marketCapMicroUSD);
+      console.log('🔧 Market cap type:', typeof marketCapMicroUSD);
+      console.log('🔧 Market cap value:', marketCapMicroUSD);
 
-      // Create BN instance
+      // Validate the value before creating BN
+      if (isNaN(marketCapMicroUSD) || marketCapMicroUSD <= 0) {
+        throw new Error(`Invalid market cap value: ${losMarketCap}`);
+      }
+
+      // Create BN instance with validation
       console.log('🔧 Creating BN instance...');
-      const marketCapBN = new BN(marketCapMicroUSD);
-      console.log('✅ BN created:', marketCapBN.toString());
+      console.log('🔧 BN constructor available:', typeof BN);
+      
+      // Try different BN constructor approaches
+      let marketCapBN;
+      try {
+        marketCapBN = new BN(marketCapMicroUSD.toString());
+        console.log('✅ BN created with string:', marketCapBN.toString());
+      } catch (bnError) {
+        console.error('❌ BN creation failed:', bnError);
+        // Fallback: try with number directly
+        marketCapBN = new BN(marketCapMicroUSD);
+        console.log('✅ BN created with number:', marketCapBN.toString());
+      }
 
       // Call the initializeOracle instruction
       console.log('🚀 Calling initializeOracle instruction...');
