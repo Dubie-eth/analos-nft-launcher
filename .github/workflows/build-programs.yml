@@ -36,12 +36,11 @@ jobs:
         export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
         solana --version
         cargo --version
-        echo "Cleaning any existing Cargo.lock files..."
-        rm -f Cargo.lock
-        rm -f programs/*/Cargo.lock
+        echo "Removing ALL Cargo.lock files..."
+        find . -name "Cargo.lock" -type f -exec rm -fv {} \;
         echo "Building programs with Solana's toolchain..."
-        cargo build-sbf --manifest-path=programs/analos-nft-launchpad/Cargo.toml
-        cargo build-sbf --manifest-path=programs/analos-token-lock-enhanced/Cargo.toml
+        cd programs/analos-nft-launchpad && cargo build-sbf && cd ../..
+        cd programs/analos-token-lock-enhanced && cargo build-sbf && cd ../..
         echo "Build complete!"
         ls -la target/deploy/
     
