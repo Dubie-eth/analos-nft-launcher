@@ -55,8 +55,17 @@ export default function PriceOracleInitializer() {
       const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
       
       console.log('🔧 Creating Program instance...');
-      const program = new Program(idl as any, provider);
-      console.log('✅ Program created successfully:', program.programId.toString());
+      console.log('🔧 IDL object:', idl);
+      console.log('🔧 Provider object:', provider);
+      
+      try {
+        const program = new Program(idl as any, ANALOS_PROGRAMS.PRICE_ORACLE, provider);
+        console.log('✅ Program created successfully:', program.programId.toString());
+        console.log('🔧 Program methods available:', Object.keys(program.methods));
+      } catch (programError) {
+        console.error('❌ Program creation failed:', programError);
+        throw programError;
+      }
 
       // Create the Price Oracle PDA
       console.log('🔧 Creating Price Oracle PDA...');
