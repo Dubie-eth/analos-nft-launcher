@@ -12,7 +12,6 @@ import SecureKeypairRotation from '@/components/SecureKeypairRotation';
 import TwoFactorAuth from '@/components/TwoFactorAuth';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
 import ProgramInitializer from '@/components/ProgramInitializer';
-import PriceOracleInitializer from '@/components/PriceOracleInitializer';
 import RarityOracleInitializer from '@/components/RarityOracleInitializer';
 import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
