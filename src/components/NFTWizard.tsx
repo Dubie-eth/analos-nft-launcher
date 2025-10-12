@@ -238,7 +238,7 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
               </div>
               
               <div>
-                <label className="block text-white font-semibold mb-2">Mint Price (SOL)</label>
+                <label className="block text-white font-semibold mb-2">Mint Price (LOS)</label>
                 <input
                   type="number"
                   value={collectionData.mintPrice}
@@ -512,7 +512,7 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
                   
                   <div className="grid md:grid-cols-3 gap-4 mb-4">
                     <div>
-                      <label className="block text-white font-semibold mb-2">Base Price (SOL)</label>
+                      <label className="block text-white font-semibold mb-2">Base Price (LOS)</label>
                       <input
                         type="number"
                         value={collectionData.bondingCurveBasePrice}
@@ -525,7 +525,7 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
                     </div>
                     
                     <div>
-                      <label className="block text-white font-semibold mb-2">Price Increment (SOL)</label>
+                      <label className="block text-white font-semibold mb-2">Price Increment (LOS)</label>
                       <input
                         type="number"
                         value={collectionData.bondingCurvePriceIncrement}
@@ -538,7 +538,7 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
                     </div>
                     
                     <div>
-                      <label className="block text-white font-semibold mb-2">Max Price (SOL)</label>
+                      <label className="block text-white font-semibold mb-2">Max Price (LOS)</label>
                       <input
                         type="number"
                         value={collectionData.bondingCurveMaxPrice}
@@ -558,9 +558,9 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
                       Price = {collectionData.bondingCurveBasePrice} + (Current Supply × {collectionData.bondingCurvePriceIncrement})
                     </code>
                     <div className="mt-3 text-gray-300 text-sm space-y-1">
-                      <p>NFT #1: {collectionData.bondingCurveBasePrice.toFixed(2)} SOL</p>
-                      <p>NFT #100: {(collectionData.bondingCurveBasePrice + (100 * collectionData.bondingCurvePriceIncrement)).toFixed(2)} SOL</p>
-                      <p>NFT #500: {Math.min(collectionData.bondingCurveBasePrice + (500 * collectionData.bondingCurvePriceIncrement), collectionData.bondingCurveMaxPrice || Infinity).toFixed(2)} SOL</p>
+                      <p>NFT #1: {collectionData.bondingCurveBasePrice.toFixed(2)} LOS</p>
+                      <p>NFT #100: {(collectionData.bondingCurveBasePrice + (100 * collectionData.bondingCurvePriceIncrement)).toFixed(2)} LOS</p>
+                      <p>NFT #500: {Math.min(collectionData.bondingCurveBasePrice + (500 * collectionData.bondingCurvePriceIncrement), collectionData.bondingCurveMaxPrice || Infinity).toFixed(2)} LOS</p>
                     </div>
                   </div>
                 </div>
@@ -746,9 +746,9 @@ export default function NFTWizard({ onComplete, onCancel }: NFTWizardProps) {
                 <div className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/30">
                   <h5 className="text-white font-semibold mb-2">💰 Bonding Curve Details</h5>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <p className="text-gray-300">Base Price: <span className="text-white">{collectionData.bondingCurveBasePrice} SOL</span></p>
-                    <p className="text-gray-300">Increment: <span className="text-white">{collectionData.bondingCurvePriceIncrement} SOL</span></p>
-                    <p className="text-gray-300">Max Price: <span className="text-white">{collectionData.bondingCurveMaxPrice || 'Unlimited'} SOL</span></p>
+                    <p className="text-gray-300">Base Price: <span className="text-white">{collectionData.bondingCurveBasePrice} LOS</span></p>
+                    <p className="text-gray-300">Increment: <span className="text-white">{collectionData.bondingCurvePriceIncrement} LOS</span></p>
+                    <p className="text-gray-300">Max Price: <span className="text-white">{collectionData.bondingCurveMaxPrice || 'Unlimited'} LOS</span></p>
                     <p className="text-gray-300">BC Reserve: <span className="text-green-400">{collectionData.creatorBCAllocation / 100}%</span></p>
                   </div>
                 </div>

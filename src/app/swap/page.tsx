@@ -20,9 +20,9 @@ export default function SwapPage() {
       if (fromToken === 'los') {
         // LOS to LOL conversion using oracle rate
         calculatedAmount = parseFloat(fromAmount) * prices.losToLol;
-      } else if (fromToken === 'sol') {
-        // SOL to LOL conversion (would need SOL price from oracle)
-        calculatedAmount = parseFloat(fromAmount) * 100; // Placeholder rate
+      } else if (fromToken === 'lol') {
+        // LOL to USD conversion
+        calculatedAmount = parseFloat(fromAmount) * prices.lolToUsd;
       } else if (fromToken === 'usdc') {
         // USDC to LOL conversion
         calculatedAmount = parseFloat(fromAmount) / prices.lolToUsd;
@@ -119,7 +119,7 @@ export default function SwapPage() {
                 className="bg-white/10 text-white rounded-lg px-4 py-3 border border-white/20 font-semibold"
               >
                 <option value="los">$LOS</option>
-                <option value="sol">$SOL</option>
+                <option value="lol">$LOL</option>
                 <option value="usdc">$USDC</option>
               </select>
             </div>
@@ -221,7 +221,7 @@ export default function SwapPage() {
                 Powered by Analos DEX • Slippage: 2.0%
               </p>
               <p className="text-xs text-gray-500">
-                Estimated gas fee: ~0.001 SOL
+                Estimated gas fee: ~0.001 LOS
               </p>
             </div>
           </div>

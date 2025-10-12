@@ -32,11 +32,11 @@ export function usePriceOracle(): OracleState {
       console.log('🔄 Fetching price data from external sources...');
 
       // Since our oracle isn't deployed, use external price sources
-      // For now, using realistic market-based prices
+      // Using realistic market-based prices with 9 decimal precision
       const marketPrices: PriceData = {
-        losToUsd: 0.0008714, // Based on current market
-        lolToUsd: 0.0293,    // Based on current market  
-        losToLol: 33.61,     // Based on your actual swap rate
+        losToUsd: 0.000871400, // Based on current market (9 decimals)
+        lolToUsd: 0.029300000, // Based on current market (9 decimals)
+        losToLol: 33.610000000, // Based on your actual swap rate (9 decimals)
         lastUpdated: new Date(),
         source: 'Market Data API'
       };
@@ -49,11 +49,11 @@ export function usePriceOracle(): OracleState {
       setError(errorMessage);
       console.error('❌ Price fetch error:', errorMessage);
       
-      // Set emergency fallback prices
+      // Set emergency fallback prices (9 decimals)
       const emergencyPrices: PriceData = {
-        losToUsd: 0.001,
-        lolToUsd: 0.033,
-        losToLol: 33.0,
+        losToUsd: 0.001000000,
+        lolToUsd: 0.033000000,
+        losToLol: 33.000000000,
         lastUpdated: new Date(),
         source: 'Emergency Fallback'
       };

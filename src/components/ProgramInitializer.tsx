@@ -39,14 +39,14 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
 
       switch (programType) {
         case 'price-oracle':
-          // Initialize Price Oracle with LOS price
-          const priceInMicroUSD = Math.floor(parseFloat(losPrice) * 1000000); // Convert to micro USD
+          // Initialize Price Oracle with LOS price (9 decimals)
+          const priceInMicroUSD = Math.floor(parseFloat(losPrice) * 1000000000); // Convert to 9 decimal places
           
           transaction = new Transaction().add(
             SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: ANALOS_PROGRAMS.PRICE_ORACLE,
-              lamports: 1000000, // 0.001 SOL for initialization
+              lamports: 1000000, // 0.001 LOS for initialization
             })
           );
           
