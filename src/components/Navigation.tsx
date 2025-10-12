@@ -4,14 +4,24 @@ import SecureWalletConnection from './SecureWalletConnection';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 // Add static property to track warning logging
 Navigation._contextWarningLogged = false;
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { publicKey, connected } = useWallet();
   
   const pathname = usePathname();
+
+  // Admin wallet addresses - only these wallets can see admin link
+  const ADMIN_WALLETS = [
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your admin wallet
+    // Add more admin wallets here if needed
+  ];
+
+  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
 
   // Base navigation items (always visible)
     const baseNavItems = [
@@ -27,8 +37,13 @@ export default function Navigation() {
         { href: '/profile', label: 'Profile', icon: '👤' },
       ];
 
-  // Navigation items - admin page is hidden from navigation for security
-  const navItems = baseNavItems;
+  // Admin-only navigation items
+  const adminNavItems = isAdmin ? [
+    { href: '/admin', label: 'Admin Dashboard', icon: '🎛️' },
+  ] : [];
+
+  // Navigation items - show admin link only for admin wallets
+  const navItems = [...baseNavItems, ...adminNavItems];
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';

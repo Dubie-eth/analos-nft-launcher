@@ -1,14 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import usePriceOracle from '@/hooks/usePriceOracle';
 
 export default function SwapPage() {
   const { connected, publicKey } = useWallet();
+  const { prices, loading: oracleLoading, error: oracleError, refreshPrices } = usePriceOracle();
   const [fromAmount, setFromAmount] = useState('');
   const [toAmount, setToAmount] = useState('');
   const [fromToken, setFromToken] = useState('los');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Calculate real-time pricing based on oracle data
+  useEffect(() => {
+    if (prices && fromAmount && parseFloat(fromAmount) > 0) {
+      let calculatedAmount = 0;
+      
+      if (fromToken === 'los') {
+        // LOS to LOL conversion using oracle rate
+        calculatedAmount = parseFloat(fromAmount) * prices.losToLol;
+      } else if (fromToken === 'sol') {
+        // SOL to LOL conversion (would need SOL price from oracle)
+        calculatedAmount = parseFloat(fromAmount) * 100; // Placeholder rate
+      } else if (fromToken === 'usdc') {
+        // USDC to LOL conversion
+        calculatedAmount = parseFloat(fromAmount) / prices.lolToUsd;
+      }
+      
+      setToAmount(calculatedAmount.toFixed(4));
+    } else {
+      setToAmount('');
+    }
+  }, [fromAmount, fromToken, prices]);
 
   const handleSwap = async () => {
     if (!connected) {
@@ -30,14 +54,18 @@ export default function SwapPage() {
     if (userConfirmed) {
       setIsLoading(true);
       try {
+        if (!prices) {
+          alert('Price data not available. Please try again.');
+          return;
+        }
+
         // Simulate swap processing
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // Calculate estimated output (mock calculation)
-        const estimatedOutput = (parseFloat(fromAmount) * 0.95).toFixed(4);
-        setToAmount(estimatedOutput);
+        // Use real oracle pricing
+        const estimatedOutput = parseFloat(fromAmount) * prices.losToLol;
         
-        alert(`Swap initiated! Estimated output: ${estimatedOutput} $LOL`);
+        alert(`Swap initiated! Estimated output: ${estimatedOutput.toFixed(4)} $LOL (Rate: 1 LOS = ${prices.losToLol} LOL)`);
       } catch (error) {
         alert('Swap failed. Please try again.');
       } finally {
@@ -150,14 +178,52 @@ export default function SwapPage() {
             </div>
           </button>
 
-          {/* Swap Info */}
-          <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-400">
-              Powered by Analos DEX • Slippage: 0.5%
-            </p>
-            <p className="text-xs text-gray-500">
-              Estimated gas fee: ~0.001 SOL
-            </p>
+          {/* Oracle Status & Swap Info */}
+          <div className="mt-6 space-y-3">
+            {/* Oracle Status */}
+            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white font-semibold">📊 Price Oracle Status</span>
+                <button
+                  onClick={refreshPrices}
+                  className="text-blue-400 hover:text-blue-300 text-sm"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              
+              {oracleLoading ? (
+                <p className="text-yellow-400 text-sm">Loading price data...</p>
+              ) : prices ? (
+                <div className="space-y-1 text-sm">
+                  <p className="text-green-400">
+                    ✅ Source: {prices.source} • Updated: {prices.lastUpdated.toLocaleTimeString()}
+                  </p>
+                  <p className="text-gray-300">
+                    1 LOS = {prices.losToLol} LOL • 1 LOL = ${prices.lolToUsd.toFixed(3)}
+                  </p>
+                  {fromAmount && parseFloat(fromAmount) > 0 && (
+                    <p className="text-blue-300 font-semibold">
+                      {fromAmount} {fromToken.toUpperCase()} → {toAmount} LOL
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-red-400 text-sm">
+                  ❌ {oracleError || 'Price data unavailable'}
+                </p>
+              )}
+            </div>
+
+            {/* Swap Info */}
+            <div className="text-center space-y-2">
+              <p className="text-sm text-gray-400">
+                Powered by Analos DEX • Slippage: 2.0%
+              </p>
+              <p className="text-xs text-gray-500">
+                Estimated gas fee: ~0.001 SOL
+              </p>
+            </div>
           </div>
         </div>
 
