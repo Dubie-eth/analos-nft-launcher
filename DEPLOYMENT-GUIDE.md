@@ -1,413 +1,209 @@
-# 🚀 Analos NFT Launchpad - Complete Deployment Guide
+# Analos Program Deployment Guide
 
-This guide walks you through the complete deployment process from start to finish.
+## 🚀 **Quick Start**
 
-## 📋 Pre-Deployment Checklist
+### Prerequisites
+- Rust 1.70+
+- Solana CLI 1.16+
+- Anchor Framework 0.29+
 
-### 1. Development Environment
-- [ ] Rust installed (version 1.70+)
-- [ ] Solana CLI installed (version 1.17+)
-- [ ] Anchor CLI installed (version 0.29.0)
-- [ ] Node.js installed (version 16+)
-- [ ] Git initialized
-
-### 2. Wallet Setup
+### Installation
 ```bash
-# Generate Analos wallet
-solana-keygen new --outfile ~/.config/analos/id.json
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Save your seed phrase securely!
+# Install Solana CLI
+sh -c "$(curl -sSfL https://release.solana.com/v1.16.0/install)"
 
-# Configure for Analos
-solana config set --url https://rpc.analos.io
-solana config set --keypair ~/.config/analos/id.json
-
-# Verify
-solana address
+# Install Anchor
+sh -c "$(curl -sSfL https://release.anchor-lang.com/install)"
 ```
 
-### 3. Fund Wallet
-- [ ] Acquire $LOS tokens (minimum 5 LOS recommended)
-- [ ] Bridge from Solana or buy on Analos DEX
-- [ ] Verify balance: `solana balance`
+## 🔧 **Building Programs**
 
-### 4. Prepare Assets
-
-#### A. Images
-Upload to IPFS/Arweave:
-- [ ] Placeholder mystery box image
-- [ ] 10,000 unique revealed NFT images
-- [ ] Collection logo
-
-Recommended services:
-- **Arweave**: Permanent storage (use Bundlr)
-- **IPFS**: via Pinata, NFT.Storage, or Web3.Storage
-
+### Build All Programs
 ```bash
-# Example with Pinata CLI
-pinata upload placeholder-mystery-box.png
-pinata upload revealed-folder/
-```
-
-#### B. Metadata
-- [ ] Generate metadata using `metadata-generator.ts`
-- [ ] Update placeholder URI
-- [ ] Update revealed base URI
-- [ ] Upload to IPFS/Arweave
-
-```bash
-# Generate metadata
-ts-node app/metadata-generator.ts
-
-# Upload to IPFS
-pinata upload metadata/placeholder/
-pinata upload metadata/revealed/
-```
-
-## 🔨 Build & Deploy
-
-### Step 1: Install Dependencies
-```bash
-cd analos-nft-launchpad
-npm install
-```
-
-### Step 2: Configure Collection Parameters
-
-Edit `scripts/initialize-collection.ts`:
-```typescript
-const CONFIG = {
-  maxSupply: 10000,              // Your collection size
-  mintPrice: 0.1 * LAMPORTS_PER_SOL,  // Price per mint
-  revealThreshold: 5000,         // 50% for reveal
-  collectionName: "Your Collection Name",
-  collectionSymbol: "SYMBOL",
-  placeholderUri: "https://arweave.net/YOUR_PLACEHOLDER_URI",
-};
-```
-
-### Step 3: Build Program
-```bash
-# Build the Anchor program
 anchor build
-
-# Verify build
-ls -la target/deploy/
 ```
 
-### Step 4: Deploy to Analos
+### Build Individual Program
 ```bash
-# Make deploy script executable
-chmod +x scripts/deploy.sh
-
-# Run deployment
-./scripts/deploy.sh
+anchor build --program-name <program-name>
 ```
 
-**Expected Output:**
-```
-✅ Program deployed successfully!
-Program ID: ABC123...
-```
-
-### Step 5: Initialize Collection
+### Verify Build
 ```bash
-# Run initialization script
-ts-node scripts/initialize-collection.ts
+anchor verify
 ```
 
-This will:
-1. Create Merkle tree for compressed NFTs
-2. Initialize collection configuration
-3. Set all parameters
-4. Save `collection-info.json`
+## 🌐 **Network Configuration**
 
-### Step 6: Verify Deployment
+### Devnet (Recommended for Testing)
 ```bash
-# Check program on explorer
-# Visit: https://explorer.analos.io/address/<PROGRAM_ID>
-
-# Verify collection config
-anchor run verify-collection
+solana config set --url https://api.devnet.solana.com
 ```
 
-## 🎨 Frontend Deployment
-
-### Option 1: Next.js App
-
+### Mainnet
 ```bash
-# Create Next.js app
-npx create-next-app@latest my-nft-launchpad --typescript --tailwind
-
-cd my-nft-launchpad
-
-# Install dependencies
-npm install @solana/wallet-adapter-react \
-  @solana/wallet-adapter-react-ui \
-  @solana/wallet-adapter-wallets \
-  @coral-xyz/anchor \
-  @solana/web3.js \
-  @solana/spl-account-compression
-
-# Copy UI components
-cp ../app/mint-ui-example.tsx ./components/MintUI.tsx
-cp ../app/wallet-provider-setup.tsx ./components/WalletProvider.tsx
-
-# Copy IDL
-cp ../target/idl/analos_nft_launchpad.json ./idl/
+solana config set --url https://api.mainnet-beta.solana.com
 ```
 
-Update `app/page.tsx`:
-```tsx
-import { WalletContextProvider } from '@/components/WalletProvider';
-import MintUI from '@/components/MintUI';
-
-export default function Home() {
-  return (
-    <WalletContextProvider>
-      <MintUI />
-    </WalletContextProvider>
-  );
-}
-```
-
-Update `next.config.js`:
-```javascript
-module.exports = {
-  webpack: (config) => {
-    config.resolve.fallback = { 
-      fs: false,
-      net: false,
-      tls: false
-    };
-    return config;
-  },
-};
-```
-
-Deploy to Vercel:
+### Analos Network
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
+solana config set --url https://rpc.analos.io
 ```
 
-### Option 2: React + Vite
+## 📋 **Deployment Steps**
 
+### 1. Setup Wallet
 ```bash
-# Create Vite app
-npm create vite@latest my-nft-launchpad -- --template react-ts
+# Generate new keypair
+solana-keygen new --outfile ~/analos-deployer.json
 
-cd my-nft-launchpad
-npm install
+# Set as default
+solana config set --keypair ~/analos-deployer.json
 
-# Install wallet adapter
-npm install @solana/wallet-adapter-react \
-  @solana/wallet-adapter-react-ui \
-  @solana/wallet-adapter-wallets \
-  @coral-xyz/anchor
-
-# Copy components
-cp ../app/mint-ui-example.tsx ./src/components/
-cp ../app/wallet-provider-setup.tsx ./src/components/
-cp ../target/idl/analos_nft_launchpad.json ./src/
-
-# Build and deploy
-npm run build
+# Fund wallet (devnet)
+solana airdrop 10
 ```
 
-## 🔧 Post-Deployment Configuration
+### 2. Deploy Programs
 
-### 1. Update Frontend Constants
-
-In your `MintUI` component:
-```typescript
-const PROGRAM_ID = new PublicKey('YOUR_DEPLOYED_PROGRAM_ID');
-const COLLECTION_AUTHORITY = new PublicKey('YOUR_AUTHORITY_PUBKEY');
-```
-
-### 2. Set Up Indexer
-
-For production, use Helius or similar indexer to fetch compressed NFT proofs:
-
-```typescript
-import { Helius } from "helius-sdk";
-
-const helius = new Helius("YOUR_API_KEY", "mainnet-beta");
-
-// Fetch NFT proof for updates
-async function getAssetProof(assetId: string) {
-  return await helius.rpc.getAssetProof({ id: assetId });
-}
-```
-
-### 3. Configure Analytics
-
-Add analytics to track:
-- Mint transactions
-- Wallet connections
-- Reveal events
-- Secondary sales
-
-### 4. Set Up Monitoring
-
-Monitor your collection:
+#### Deploy to Devnet
 ```bash
-# Watch program logs
-solana logs <PROGRAM_ID> --url https://rpc.analos.io
-
-# Monitor account changes
-solana account <COLLECTION_CONFIG_PDA> --url https://rpc.analos.io
+anchor deploy --provider.cluster devnet
 ```
 
-## 🎯 Launch Day Operations
-
-### Pre-Launch (1 hour before)
-- [ ] Verify mint price is correct
-- [ ] Test mint with a test wallet
-- [ ] Verify metadata URIs are accessible
-- [ ] Check wallet has LOS for any admin actions
-- [ ] Announce on social media
-- [ ] Prepare FAQ document
-
-### During Launch
-- [ ] Monitor transaction success rate
-- [ ] Watch for errors in logs
-- [ ] Track mint progress
-- [ ] Respond to community questions
-- [ ] Be ready to pause if issues arise
-
-### Emergency Controls
+#### Deploy to Mainnet
 ```bash
-# Pause minting (if issues)
-anchor run pause-collection
-
-# Update price (if needed)
-anchor run update-price -- --new-price 150000000
-
-# Resume minting
-anchor run unpause-collection
+anchor deploy --provider.cluster mainnet
 ```
 
-## 🎊 Reveal Process
-
-### Automatic Reveal (at threshold)
+#### Deploy to Analos
 ```bash
-# Check if threshold met
-anchor run check-threshold
-
-# Trigger reveal
-ts-node scripts/reveal-collection.ts
+anchor deploy --provider.cluster https://rpc.analos.io
 ```
 
-### Manual Reveal (admin triggered)
+### 3. Update Program IDs
+
+After deployment, update the program IDs in:
+- `Anchor.toml`
+- Frontend configuration files
+- IDL files
+
+## 🎯 **Program-Specific Deployment**
+
+### Price Oracle
 ```bash
-# Force reveal (only after threshold)
-anchor run force-reveal
+anchor deploy --program-name analos_price_oracle
 ```
 
-### Batch Update Metadata
+### Rarity Oracle
 ```bash
-# Update all NFT metadata with revealed traits
-# This can take time for large collections
-ts-node scripts/batch-update-metadata.ts
+anchor deploy --program-name analos_rarity_oracle
 ```
 
-**Note**: Metadata updates require fetching Merkle proofs for each NFT. Use an indexer service for efficiency.
-
-## 💰 Revenue Management
-
-### Withdraw Funds
+### NFT Launchpad
 ```bash
-# Check collection balance
-anchor run check-balance
-
-# Withdraw (specify amount in lamports)
-anchor run withdraw-funds -- --amount 10000000000  # 10 LOS
+anchor deploy --program-name analos_nft_launchpad
 ```
 
-### Royalty Setup
-Royalties are enforced at the program level (5% by default). Ensure your marketplace integration supports Metaplex royalty standards.
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-**Issue**: "Insufficient funds"
+### Token Launch
 ```bash
-# Solution: Fund wallet with more LOS
-solana balance
-# Transfer more LOS to wallet
+anchor deploy --program-name analos_token_launch
 ```
 
-**Issue**: "Tree account doesn't exist"
+## 🔍 **Verification**
+
+### Verify Deployment
 ```bash
-# Solution: Ensure tree was created in initialize step
-# Check tree account exists:
-solana account <MERKLE_TREE_PUBKEY> --url https://rpc.analos.io
+# Check program exists
+solana program show <PROGRAM_ID>
+
+# Verify program data
+solana program dump <PROGRAM_ID> program.so
+
+# Compare with built program
+sha256sum program.so target/deploy/analos_program.so
 ```
 
-**Issue**: "Transaction too large"
+### Test Instructions
 ```bash
-# Solution: For batch updates, reduce batch size
-# Update in smaller batches of 50-100 NFTs
+# Run tests
+anchor test
+
+# Test specific program
+anchor test --program-name <program-name>
 ```
 
-**Issue**: "Invalid proof"
+## 📊 **Post-Deployment**
+
+### 1. Initialize Programs
+Use the frontend admin panel to initialize:
+- Price Oracle with market cap data
+- Rarity Oracle configuration
+- NFT Launchpad collections
+
+### 2. Update Frontend
+- Update program IDs in configuration
+- Deploy updated frontend
+- Test all functionality
+
+### 3. Monitor
+- Check program accounts
+- Monitor for errors
+- Verify all instructions work
+
+## 🛡️ **Security Checklist**
+
+### Before Deployment
+- [ ] Code review completed
+- [ ] Tests passing
+- [ ] Security audit done
+- [ ] Program IDs verified
+- [ ] Authority keys secured
+
+### After Deployment
+- [ ] Programs deployed successfully
+- [ ] Initialization completed
+- [ ] Frontend updated
+- [ ] Monitoring active
+- [ ] Documentation updated
+
+## 🚨 **Emergency Procedures**
+
+### Pause Programs
 ```bash
-# Solution: Ensure you're fetching the latest Merkle proof
-# Use a reliable indexer (Helius, TheGraph)
+# Use program-specific pause instructions
+# or update program authority to pause account
 ```
 
-## 📊 Analytics & Monitoring
+### Upgrade Programs
+```bash
+# Deploy new version
+anchor deploy
 
-### Track Collection Stats
-```typescript
-// Fetch collection data
-const config = await program.account.collectionConfig.fetch(configPDA);
-
-console.log({
-  minted: config.currentSupply.toNumber(),
-  remaining: config.maxSupply.toNumber() - config.currentSupply.toNumber(),
-  revealed: config.isRevealed,
-  revenue: config.currentSupply * config.priceLamports / LAMPORTS_PER_SOL,
-});
+# Update program data
+solana program deploy --program-id <PROGRAM_ID> target/deploy/program.so
 ```
 
-### Set Up Webhooks
-Use Helius webhooks to get notified of:
-- New mints
-- NFT transfers
-- Metadata updates
+### Recovery
+```bash
+# Restore from backup
+solana program deploy --program-id <PROGRAM_ID> backup/program.so
+```
 
-## 🎓 Best Practices
+## 📞 **Support**
 
-1. **Test on Devnet First**: Always test full flow on devnet
-2. **Backup Keys**: Keep multiple secure backups of your keypair
-3. **Rate Limiting**: Implement rate limiting on frontend
-4. **Error Handling**: Graceful error messages for users
-5. **Gas Estimation**: Always estimate transaction costs
-6. **Monitoring**: Set up alerts for unusual activity
-7. **Community**: Keep community informed throughout process
+### Issues
+- GitHub Issues for bug reports
+- security@analos.io for security issues
 
-## 📚 Additional Resources
-
-- [Metaplex Docs](https://docs.metaplex.com)
-- [Analos Docs](https://docs.analos.io)
-- [Anchor Book](https://book.anchor-lang.com)
-- [Solana Cookbook](https://solanacookbook.com)
-
-## 🆘 Support
-
-If you encounter issues:
-1. Check logs: `solana logs <PROGRAM_ID>`
-2. Review explorer: `https://explorer.analos.io`
-3. Consult documentation
-4. Ask in Analos Discord/community
+### Documentation
+- Program documentation in `/docs`
+- IDL files in `/idl`
+- Tests in `/tests`
 
 ---
 
-**Good luck with your launch! 🚀**
-
+**⚠️ Important**: Always test on devnet before mainnet deployment. Keep backup keys secure and never share private keys.

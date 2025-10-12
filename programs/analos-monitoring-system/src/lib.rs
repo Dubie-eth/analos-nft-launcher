@@ -1,6 +1,24 @@
 use anchor_lang::prelude::*;
 
-declare_id!("MONIT1111111111111111111111111111111111111");
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos Monitoring System",
+    project_url: "https://github.com/Dubie-eth/analos-programs",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-programs",
+    source_revision: "7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
+declare_id!("7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG");
 
 /// Advanced Monitoring and Alerting System for NFT Launchpad
 /// - Real-time security monitoring

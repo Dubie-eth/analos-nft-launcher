@@ -17,3 +17,5 @@ default = []
 
 [dependencies]
 anchor-lang = "0.29.0"
+solana-security-txt = "1.1.1"
+default-env = "0.1.1"

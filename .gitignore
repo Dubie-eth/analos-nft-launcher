@@ -1,55 +1,55 @@
-# Anchor
-.anchor
+# Rust
 target/
+Cargo.lock
+**/*.rs.bk
+
+# Anchor
+.anchor/
 test-ledger/
 .DS_Store
 
 # IDL
-*.d.ts
-!node_modules
+target/idl/
+target/types/
 
-# Build artifacts
-*.so
-*.dll
-*.dylib
-*.a
-*.lib
-
-# Keypairs (IMPORTANT: Never commit these!)
-*-keypair.json
+# Keys
 *.json
-!Anchor.toml
-!Cargo.toml
-!package.json
-!tsconfig.json
+!**/test-keypair.json
+!**/test-keypair.json.example
 
-# Rust
-Cargo.lock
-**/*.rs.bk
-*.pdb
-
-# Node
-node_modules/
-dist/
-.env
-.env.local
+# Logs
+*.log
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Node modules (if any)
+node_modules/
+package-lock.json
 
-# Solana
-.solana/
+# Build artifacts
+*.so
+*.wasm
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Test results
+test-results/

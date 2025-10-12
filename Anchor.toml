@@ -6,7 +6,7 @@ seeds = false
 skip-lint = false
 
 [programs.mainnet]
-analos_nft_launchpad = "5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"
+analos_nft_launchpad = "HGGghTkBtk6Quz151SUwwKKJ4SxNkhpKBSXpApD4yf1W"
 analos_token_launch = "CDJZZCSod3YS9crpWAvWSLWEpPyx9QZCRRAcv7xL1FZf"
 analos_rarity_oracle = "3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2"
 analos_price_oracle = "5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD"

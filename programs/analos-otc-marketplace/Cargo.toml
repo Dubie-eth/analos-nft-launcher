@@ -1,12 +1,12 @@
 [package]
-name = "analos-vesting-enhanced"
+name = "analos-otc-marketplace"
 version = "0.1.0"
-description = "Enhanced Vesting Program with Advanced Security"
+description = "Analos OTC Marketplace Program"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "analos_vesting_enhanced"
+name = "analos_otc_marketplace"
 
 [features]
 no-entrypoint = []
@@ -18,5 +18,4 @@ default = []
 [dependencies]
 anchor-lang = "0.29.0"
 anchor-spl = "0.29.0"
-solana-security-txt = "1.1.1"
-default-env = "0.1.1"
+solana-program = "=1.18.26"

@@ -1,7 +1,25 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("7FmyCTWgzvZw2q58NJXEXsvGum72yTbbVvn81GN3RDrQ");
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos Token Lock Enhanced",
+    project_url: "https://github.com/Dubie-eth/analos-programs",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-programs",
+    source_revision: "3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKzZH",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
+declare_id!("3WmPLvyFpmQ8yPHh7nLxj6FLSATn2uVeD2ceNpuRKzZH");
 
 /// Enhanced Token Lock Program with Advanced Security Features
 /// - Multi-signature support

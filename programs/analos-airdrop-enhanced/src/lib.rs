@@ -1,7 +1,25 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("CDFUsKYumZXBp1qyyJUa7YnxLbuJRHxjNeZ4Pqqohmzy");
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos Airdrop Enhanced",
+    project_url: "https://github.com/Dubie-eth/analos-programs",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-programs",
+    source_revision: "J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
+declare_id!("J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC");
 
 /// Enhanced Airdrop Program with Advanced Security Features
 /// - Emergency pause functions

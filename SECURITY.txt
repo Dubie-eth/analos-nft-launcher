@@ -1,158 +1,46 @@
-=======================================================================
-SECURITY CONTACT INFORMATION
-=======================================================================
+Contact: mailto:security@analos.io
+Contact: https://twitter.com/EWildn
+Contact: https://t.me/Dubie_420
+Expires: 2026-12-31T23:59:59.000Z
+Encryption: https://github.com/Dubie-eth/analos-programs/pgp-key.txt
+Preferred-Languages: en
+Canonical: https://github.com/Dubie-eth/analos-programs/security.txt
+Policy: https://github.com/Dubie-eth/analos-programs/SECURITY.md
 
-Program: Analos NFT Launchpad Ecosystem
-Network: Analos Blockchain (Solana fork)
-Deployment Date: October 10, 2025
+# Security Policy for Analos Programs
 
-=======================================================================
-DEPLOYED PROGRAMS
-=======================================================================
+## Reporting Security Vulnerabilities
 
-1. NFT Launchpad:    5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT
-2. Price Oracle:     ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn
-3. Rarity Oracle:    H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6
-4. Token Launch:     HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx
-5. Metadata:         [To be deployed]
-6. Token Vesting:    [To be deployed]
-7. Token Lock:       [To be deployed]
+If you discover a security vulnerability in any of the Analos programs, please report it responsibly:
 
-=======================================================================
-SECURITY CONTACT
-=======================================================================
+1. **Email**: security@analos.io
+2. **Twitter**: @EWildn
+3. **Telegram**: t.me/Dubie_420
 
-Contact: security@loslauncher.io
-Discord: [Your Discord]
-Twitter: @LosLauncher
-Telegram: [Your Telegram]
+## What to Include
 
-Bug Bounty: Active
-Response Time: 24-48 hours
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
 
-=======================================================================
-SECURITY AUDIT STATUS
-=======================================================================
+## Response Time
 
-Status: PENDING PROFESSIONAL AUDIT
-Self-Audit: COMPLETED
-Third-Party Audit: REQUIRED BEFORE MAINNET
+We aim to respond to security reports within 24 hours and provide updates within 72 hours.
 
-=======================================================================
-KNOWN SECURITY MEASURES
-=======================================================================
+## Scope
 
-✅ Access Control:
-   - Authority-based permissions on all admin functions
-   - Signer verification on all state-changing operations
-   - PDA seeds include authority for unique accounts
+This security policy covers all programs in the Analos NFT Launchpad ecosystem:
+- Price Oracle
+- Rarity Oracle  
+- NFT Launchpad
+- Token Launch
+- Enhanced Programs
 
-✅ Arithmetic Safety:
-   - Overflow checks enabled in all programs
-   - SafeMath patterns used for calculations
-   - Checked arithmetic operations
+## Rewards
 
-✅ Reentrancy Protection:
-   - No external calls before state updates
-   - State changes finalized before CPIs
-   - Account ownership verified
+We may offer rewards for valid security vulnerabilities depending on severity and impact.
 
-✅ Input Validation:
-   - String length limits enforced
-   - Numeric bounds checked
-   - Timestamp validation
+## Disclosure
 
-✅ Emergency Controls:
-   - Pause mechanisms in critical programs
-   - Revoke functions where applicable
-   - Authority transfer capabilities
-
-=======================================================================
-VULNERABILITIES TO REVIEW
-=======================================================================
-
-⚠️ HIGH PRIORITY:
-1. Cross-program invocation (CPI) security
-2. Price oracle manipulation resistance
-3. Vesting schedule calculation overflow
-4. Rarity score manipulation
-5. Governance vote weight attacks
-
-⚠️ MEDIUM PRIORITY:
-6. Frontrunning on reveals
-7. Timestamp dependency attacks
-8. Account rent exemption
-9. Token account validation
-10. PDA collision resistance
-
-⚠️ LOW PRIORITY:
-11. Event emission completeness
-12. Error message information leakage
-13. Gas optimization opportunities
-
-=======================================================================
-AUDIT CHECKLIST
-=======================================================================
-
-[ ] Integer overflow/underflow protection
-[ ] Authority verification on admin functions
-[ ] PDA derivation security
-[ ] CPI context validation
-[ ] Account ownership checks
-[ ] Timestamp manipulation resistance
-[ ] Reentrancy attack prevention
-[ ] Economic attack vectors
-[ ] Governance manipulation
-[ ] Oracle price manipulation
-[ ] Vesting calculation accuracy
-[ ] Lock period enforcement
-[ ] Whitelist bypass attempts
-[ ] Reveal randomness fairness
-
-=======================================================================
-RESPONSIBLE DISCLOSURE
-=======================================================================
-
-If you discover a security vulnerability:
-
-1. DO NOT publicly disclose it
-2. Email: security@loslauncher.io with details
-3. Include:
-   - Vulnerability description
-   - Proof of concept (if available)
-   - Potential impact assessment
-   - Suggested mitigation
-
-4. Wait for our response (24-48h)
-5. Coordinate disclosure timeline
-
-=======================================================================
-BUG BOUNTY PROGRAM
-=======================================================================
-
-Rewards based on severity:
-
-CRITICAL (Smart Contract Exploit): $10,000 - $50,000
-HIGH (Fund Loss Risk): $5,000 - $10,000
-MEDIUM (Logic Errors): $1,000 - $5,000
-LOW (Minor Issues): $100 - $1,000
-
-Paid in $LOS or USDC
-
-=======================================================================
-ADDITIONAL RESOURCES
-=======================================================================
-
-Documentation: https://docs.loslauncher.io
-Source Code: https://github.com/[your-repo]
-Audit Reports: https://audits.loslauncher.io [When available]
-
-=======================================================================
-DISCLAIMER
-=======================================================================
-
-These programs are provided "AS IS" without warranty.
-Users interact at their own risk.
-Always conduct your own due diligence.
-
-=======================================================================
+We will coordinate disclosure of vulnerabilities with reporters to ensure proper patching before public disclosure.

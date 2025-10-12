@@ -1,7 +1,25 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("32kbqYVJ5EWPs6f1L7AcAZYWtYX1p4tR5qQQRcKWnZ9v");
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos Vesting Enhanced",
+    project_url: "https://github.com/Dubie-eth/analos-programs",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-programs",
+    source_revision: "Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
+declare_id!("Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY");
 
 /// Enhanced Token Vesting Program with Advanced Security Features
 /// - Multi-signature support

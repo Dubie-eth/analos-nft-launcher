@@ -1,6 +1,24 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{keccak, pubkey};
 
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos Rarity Oracle",
+    project_url: "https://github.com/Dubie-eth/analos-programs",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-programs",
+    source_revision: "3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
 declare_id!("3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2");
 
 /// Maximum rarity tiers
