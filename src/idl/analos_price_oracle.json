@@ -70,14 +70,14 @@
   ],
   "events": [
     {
-      "name": "PriceUpdated",
+      "name": "priceUpdated",
       "fields": [
         { "name": "newPrice", "type": "u64", "index": false },
         { "name": "timestamp", "type": "i64", "index": false }
       ]
     },
     {
-      "name": "MarketCapUpdated",
+      "name": "marketCapUpdated",
       "fields": [
         { "name": "newMarketCap", "type": "u64", "index": false },
         { "name": "timestamp", "type": "i64", "index": false }
