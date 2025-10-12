@@ -103,5 +103,8 @@
       }
     }
   ],
-  "address": "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"
+  "address": "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym",
+  "metadata": {
+    "docs": "Updated event names to match Anchor conventions"
+  }
 }
