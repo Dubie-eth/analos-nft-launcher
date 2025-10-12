@@ -59,85 +59,52 @@ export default function SecureWalletConnection({ className = '' }: SecureWalletC
     }
   };
 
+  // For navigation, show a simplified version
+  if (!connected) {
+    return (
+      <button
+        onClick={handleConnect}
+        className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-sm ${className}`}
+      >
+        <div className="flex items-center space-x-2">
+          <span>🔒</span>
+          <span>Connect Wallet</span>
+        </div>
+      </button>
+    );
+  }
+
   return (
-    <div className={className}>
-      {/* Security Warning */}
-      {showWarning && connected && (
-        <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-red-400 text-xl">⚠️</span>
-            <h4 className="font-bold text-red-300">Security Warning</h4>
-          </div>
-          <p className="text-red-200 text-sm">
-            You're using a wallet that may contain significant funds. For safety, 
-            consider using a burner wallet with minimal funds for testing.
-          </p>
-          <button
-            onClick={() => setShowWarning(false)}
-            className="mt-2 text-red-300 hover:text-red-200 text-sm underline"
-          >
-            I understand the risks
-          </button>
+    <div className={`space-y-2 ${className}`}>
+      {/* Connected Wallet Info - Compact */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-white font-semibold text-sm">Connected</span>
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            isBurnerWallet ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+          }`}>
+            {isBurnerWallet ? 'Secure' : 'Caution'}
+          </span>
         </div>
-      )}
-
-      {/* Burner Wallet Indicator */}
-      {isBurnerWallet && connected && (
-        <div className="mb-4 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-green-400 text-xl">✅</span>
-            <h4 className="font-bold text-green-300">Secure Wallet Detected</h4>
+        <div className="text-xs text-gray-300 mb-2">
+          <div className="font-mono break-all wallet-address">
+            {publicKey?.toString().slice(0, 6)}...{publicKey?.toString().slice(-6)}
           </div>
-          <p className="text-green-200 text-sm">
-            Good! You're using what appears to be a burner wallet. This is the recommended approach for testing.
-          </p>
-        </div>
-      )}
-
-      {/* Wallet Connection */}
-      {!connected ? (
-        <button
-          onClick={handleConnect}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
-        >
-          <div className="flex items-center space-x-2">
-            <span>🔒</span>
-            <span>Connect Secure Wallet</span>
-          </div>
-        </button>
-      ) : (
-        <div className="space-y-3">
-          {/* Connected Wallet Info */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white font-semibold">Connected Wallet</span>
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                isBurnerWallet ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-              }`}>
-                {isBurnerWallet ? 'Secure' : 'Caution'}
-              </span>
+          {wallet && (
+            <div className="text-xs text-gray-400 mt-1">
+              {wallet.adapter.name}
             </div>
-            <div className="text-sm text-gray-300 mb-2">
-              <div className="font-mono break-all wallet-address">
-                {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
-              </div>
-              {wallet && (
-                <div className="text-xs text-gray-400 mt-1">
-                  {wallet.adapter.name}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Disconnect Button */}
-          <button
-            onClick={handleDisconnect}
-            className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 py-2 px-4 rounded-lg transition-all duration-200"
-          >
-            Disconnect Wallet
-          </button>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Disconnect Button - Compact */}
+      <button
+        onClick={handleDisconnect}
+        className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 py-1 px-3 rounded-lg transition-all duration-200 text-sm"
+      >
+        Disconnect
+      </button>
     </div>
   );
 }
