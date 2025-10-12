@@ -22,7 +22,7 @@ export default function PriceOracleInitializer() {
   const getTransactionDetails = () => {
     return {
       title: 'Initialize Price Oracle (Analos Blockchain)',
-      description: `Initialize the Price Oracle on Analos blockchain with LOS market cap of $${parseInt(losMarketCap).toLocaleString()} USD. Data will be stored on-chain.`,
+      description: `Initialize the Price Oracle on Analos blockchain. Market cap will be set in a separate transaction.`,
       estimatedFee: '~0.001 LOS',
       fromAccount: publicKey?.toString() || '',
       toAccount: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
@@ -94,7 +94,7 @@ export default function PriceOracleInitializer() {
 
       // Try to initialize the oracle using the deployed program
       const signature = await program.methods
-        .initializeOracle(new BN(marketCapMicroUSD))
+        .initializeOracle()
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
@@ -107,7 +107,7 @@ export default function PriceOracleInitializer() {
       // Blockchain initialization complete - show success
       setResult({
         success: true,
-        message: `Price Oracle initialized with $${parseInt(losMarketCap).toLocaleString()} market cap ✅ BLOCKCHAIN`,
+        message: `Price Oracle initialized successfully ✅ BLOCKCHAIN (Market cap will be set separately)`,
         signature: signature
       });
 
