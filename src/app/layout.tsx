@@ -28,6 +28,19 @@ export default function RootLayout({
       <body className={inter.className}>
         <SecureWalletProvider>
           <ClientNavigation />
+          
+          {/* Global Warning Banner */}
+          <div className="bg-yellow-500/90 border-b border-yellow-400/50 shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <div className="flex items-center justify-center space-x-2 text-yellow-900">
+                <span className="text-lg">⚠️</span>
+                <span className="font-semibold text-sm">
+                  Please use a burner wallet for safety - This platform is in BETA
+                </span>
+              </div>
+            </div>
+          </div>
+          
           <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
             {children}
           </div>

@@ -131,8 +131,14 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
 
       {/* Warning for non-burner wallets */}
       {showWarning && connected && !isBurnerWallet && (
-        <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs text-yellow-300">
-          ⚠️ Please use a burner wallet for safety
+        <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-sm text-yellow-200 shadow-lg">
+          <div className="flex items-center space-x-2">
+            <span className="text-yellow-400 text-lg">⚠️</span>
+            <span className="font-semibold">Please use a burner wallet for safety</span>
+          </div>
+          <p className="text-xs text-yellow-300 mt-1">
+            This platform is in BETA. Use a wallet with minimal funds only.
+          </p>
         </div>
       )}
 

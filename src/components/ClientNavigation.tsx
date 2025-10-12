@@ -18,8 +18,21 @@ export default function ClientNavigation() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-                  A
+                <div className="w-8 h-8 flex items-center justify-center">
+                  <img 
+                    src="/analos-logo.svg" 
+                    alt="Analos Logo" 
+                    className="w-8 h-8"
+                    onError={(e) => {
+                      // Fallback to gradient circle if logo fails to load
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg hidden">
+                    A
+                  </div>
                 </div>
               </div>
               <div className="ml-4">
