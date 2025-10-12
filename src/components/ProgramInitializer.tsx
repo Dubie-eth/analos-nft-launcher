@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
+import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 
 interface ProgramInitializerProps {
   programType: 'price-oracle' | 'rarity-oracle' | 'nft-launchpad';
@@ -22,7 +23,8 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
   const [collectionSymbol, setCollectionSymbol] = useState('');
   const [maxSupply, setMaxSupply] = useState(1000);
 
-  const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
+  // Use WebSocket-disabled connection to Analos RPC
+  const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
   const handleInitialize = async () => {
     if (!connected || !publicKey || !signTransaction) {
@@ -97,8 +99,12 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
       const signedTransaction = await signTransaction(transaction);
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
-      // Wait for confirmation
-      await connection.confirmTransaction(signature, 'confirmed');
+      // Wait for confirmation with extended timeout for slow Analos network
+      await connection.confirmTransaction({
+        signature,
+        blockhash,
+        lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight
+      }, 'confirmed');
 
       setResult({
         success: true,
@@ -108,10 +114,24 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
 
     } catch (error: any) {
       console.error('Initialization error:', error);
-      setResult({
-        success: false,
-        message: `Initialization failed: ${error.message}`
-      });
+      
+      // Handle specific timeout errors
+      if (error.message?.includes('TransactionExpiredTimeoutError')) {
+        setResult({
+          success: false,
+          message: 'Transaction timeout - Analos network is slow. Please check transaction status manually or try again later.'
+        });
+      } else if (error.message?.includes('WebSocket')) {
+        setResult({
+          success: false,
+          message: 'Connection error - WebSocket disabled for security. Please try again.'
+        });
+      } else {
+        setResult({
+          success: false,
+          message: `Initialization failed: ${error.message}`
+        });
+      }
     } finally {
       setLoading(false);
     }
