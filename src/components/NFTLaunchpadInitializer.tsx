@@ -77,40 +77,47 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
         return;
       }
 
-      console.log('🎯 FRONTEND-ONLY APPROACH: Simulating NFT Launchpad initialization...');
+      console.log('🔗 BLOCKCHAIN APPROACH: Initializing NFT Launchpad on Analos blockchain...');
       
-      // Create a simulated NFT collection
-      const collectionData = {
-        authority: publicKey.toString(),
-        collectionName: collectionName || 'Unnamed Collection',
-        collectionSymbol: collectionSymbol || 'SYMBOL',
-        maxSupply: parseInt(maxSupply),
-        priceLamports: parseInt(priceLamports),
-        priceLOS: parseFloat(priceLamports) / 1000000000,
-        revealThreshold: parseInt(revealThreshold),
-        placeholderUri: placeholderUri,
-        lastUpdated: new Date().toISOString(),
-        isActive: true,
-        programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString()
-      };
+      // Now that programs are deployed, use real blockchain calls
+      const program = getProgram();
+      if (!program) {
+        throw new Error('Program not found or wallet not connected');
+      }
+
+      // Create the Collection Config PDA
+      const [collectionConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('collection_config'), publicKey.toBuffer()],
+        program.programId
+      );
+
+      console.log('📊 Attempting to initialize NFT Launchpad on blockchain...');
+      console.log('🔗 Program ID:', ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString());
+      console.log('🔗 Collection Config PDA:', collectionConfigPda.toString());
+
+      // Call the initializeCollection instruction
+      const signature = await program.methods
+        .initializeCollection(
+          new BN(maxSupply),
+          new BN(priceLamports),
+          new BN(revealThreshold),
+          collectionName,
+          collectionSymbol,
+          placeholderUri
+        )
+        .accounts({
+          collectionConfig: collectionConfigPda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
       
-      console.log('📊 NFT Collection Data:', collectionData);
-      
-      // Store in localStorage for persistence
-      localStorage.setItem('analos-nft-collection', JSON.stringify(collectionData));
-      
-      // Simulate transaction confirmation delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Generate a fake transaction signature for UI consistency
-      const fakeSignature = `FRONTEND_NFT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      console.log('🚀 NFT Launchpad initialized successfully (Frontend Mode):', fakeSignature);
+      console.log('🚀 NFT Launchpad initialized successfully on blockchain:', signature);
       
       setResult({
         success: true,
-        message: `NFT Launchpad initialized for collection: ${collectionName} (${collectionSymbol}) ✅ Frontend Mode`,
-        signature: fakeSignature
+        message: `NFT Launchpad initialized for collection: ${collectionName} (${collectionSymbol}) ✅ BLOCKCHAIN`,
+        signature: signature
       });
 
     } catch (error: any) {

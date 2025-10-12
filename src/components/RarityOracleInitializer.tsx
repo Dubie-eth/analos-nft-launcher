@@ -68,35 +68,47 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
         return;
       }
 
-      console.log('🎯 FRONTEND-ONLY APPROACH: Simulating Rarity Oracle initialization...');
+      console.log('🔗 BLOCKCHAIN APPROACH: Initializing Rarity Oracle on Analos blockchain...');
       
-      // Create a simulated rarity oracle account
-      const oracleData = {
-        authority: publicKey.toString(),
-        rarityConfig: 'rarity_config_' + Date.now(),
-        collectionConfig: 'collection_config_' + Date.now(),
-        lastUpdated: new Date().toISOString(),
-        isActive: true,
-        programId: ANALOS_PROGRAMS.RARITY_ORACLE.toString()
-      };
+      // Now that programs are deployed, use real blockchain calls
+      const program = getProgram();
+      if (!program) {
+        throw new Error('Program not found or wallet not connected');
+      }
+
+      // Create the Rarity Config PDA
+      const [rarityConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('rarity_config'), publicKey.toBuffer()],
+        program.programId
+      );
+
+      // Create a dummy collection config PDA for initialization
+      const [collectionConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('collection_config'), publicKey.toBuffer()],
+        program.programId
+      );
+
+      console.log('📊 Attempting to initialize Rarity Oracle on blockchain...');
+      console.log('🔗 Program ID:', ANALOS_PROGRAMS.RARITY_ORACLE.toString());
+      console.log('🔗 Rarity Config PDA:', rarityConfigPda.toString());
+
+      // Call the initializeRarityConfig instruction
+      const signature = await program.methods
+        .initializeRarityConfig()
+        .accounts({
+          rarityConfig: rarityConfigPda,
+          collectionConfig: collectionConfigPda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
       
-      console.log('📊 Rarity Oracle Data:', oracleData);
-      
-      // Store in localStorage for persistence
-      localStorage.setItem('analos-rarity-oracle', JSON.stringify(oracleData));
-      
-      // Simulate transaction confirmation delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Generate a fake transaction signature for UI consistency
-      const fakeSignature = `FRONTEND_RARITY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      console.log('🚀 Rarity Oracle initialized successfully (Frontend Mode):', fakeSignature);
+      console.log('🚀 Rarity Oracle initialized successfully on blockchain:', signature);
       
       setResult({
         success: true,
-        message: `Rarity Oracle initialized ✅ Frontend Mode`,
-        signature: fakeSignature
+        message: `Rarity Oracle initialized ✅ BLOCKCHAIN`,
+        signature: signature
       });
 
     } catch (error: any) {
