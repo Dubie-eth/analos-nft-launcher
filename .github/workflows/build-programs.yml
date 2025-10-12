@@ -27,13 +27,11 @@ jobs:
     
     - name: Install Solana
       run: |
-        sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+        sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-    
-    - name: Install Solana Build Tools
-      run: |
-        cargo install solana-cli
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        solana --version
+        solana-install init 1.18.26
     
     - name: Install Anchor
       run: |
