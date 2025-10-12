@@ -3,13 +3,11 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-// import { Program, AnchorProvider, web3 } from '@project-serum/anchor'; // Temporarily disabled - no IDL available
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
-
-// NFT Launchpad IDL - you'll need to add this file
-// import idl from '../../programs/analos-nft-launchpad/target/idl/analos_nft_launchpad.json';
+import idl from '@/idl/analos_nft_launchpad.json';
 
 interface NFTLaunchpadInitializerProps {}
 
@@ -19,14 +17,19 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
   const [result, setResult] = useState<{ success: boolean; message: string; signature?: string } | null>(null);
   const [collectionName, setCollectionName] = useState('');
   const [collectionSymbol, setCollectionSymbol] = useState('');
+  const [maxSupply, setMaxSupply] = useState('1000');
+  const [priceLamports, setPriceLamports] = useState('1000000000'); // 1 LOS in lamports (9 decimals)
+  const [revealThreshold, setRevealThreshold] = useState('100');
+  const [placeholderUri, setPlaceholderUri] = useState('https://example.com/placeholder.json');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [pendingTransactionDetails, setPendingTransactionDetails] = useState<any>(null);
 
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
   const getProgram = () => {
-    // Temporarily disabled until Anchor IDL is available
-    return null;
+    if (!publicKey || !signTransaction) return null;
+    const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
+    return new Program(idl as any, ANALOS_PROGRAMS.NFT_LAUNCHPAD, provider);
   };
 
   const getTransactionDetails = () => {
@@ -35,12 +38,18 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
     const fee = '0.002 LOS'; // Estimated fee for initialization
     const programId = ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString();
     
+    // Calculate collection config PDA
+    const [collectionConfigPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from('collection_config'), publicKey.toBuffer()],
+      ANALOS_PROGRAMS.NFT_LAUNCHPAD
+    );
+    
     return {
       title: 'Initialize NFT Launchpad Collection',
-      description: `Initialize the NFT Launchpad for collection: ${collectionName || 'Unnamed'} (${collectionSymbol || 'SYMBOL'})`,
+      description: `Initialize NFT collection: ${collectionName || 'Unnamed'} (${collectionSymbol || 'SYMBOL'}) with ${maxSupply} max supply at ${(parseFloat(priceLamports) / 1000000000).toFixed(2)} LOS each`,
       estimatedFee: fee,
       fromAccount: publicKey.toString(),
-      toAccount: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
+      toAccount: collectionConfigPda.toString(),
       programId: programId,
       actionType: 'initialize'
     };
@@ -77,21 +86,34 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
         return;
       }
 
-      // For now, use simple transfer until we have proper IDL
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: ANALOS_PROGRAMS.NFT_LAUNCHPAD,
-          lamports: 2000000, // 0.002 LOS for initialization
-        })
+      const program = getProgram();
+      if (!program) {
+        setResult({ success: false, message: 'NFT Launchpad program not found or wallet not connected.' });
+        return;
+      }
+
+      // Create the Collection Config PDA
+      const [collectionConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('collection_config'), publicKey.toBuffer()],
+        program.programId
       );
 
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      // Call the initializeCollection instruction
+      const signature = await program.methods
+        .initializeCollection(
+          new BN(maxSupply),
+          new BN(priceLamports),
+          new BN(revealThreshold),
+          collectionName,
+          collectionSymbol,
+          placeholderUri
+        )
+        .accounts({
+          collectionConfig: collectionConfigPda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
       
       console.log('🚀 NFT Launchpad transaction sent successfully:', signature);
       
@@ -178,6 +200,79 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
           />
           <p className="text-gray-400 text-sm mt-2">
             Enter the symbol for your NFT collection (max 10 characters).
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-white font-semibold mb-2">
+            Max Supply
+          </label>
+          <input
+            type="number"
+            value={maxSupply}
+            onChange={(e) => setMaxSupply(e.target.value)}
+            placeholder="e.g., 1000"
+            min="1"
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          />
+          <p className="text-gray-400 text-sm mt-2">
+            Maximum number of NFTs in this collection.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-white font-semibold mb-2">
+            Price (LOS)
+          </label>
+          <input
+            type="number"
+            step="0.000000001"
+            value={(parseFloat(priceLamports) / 1000000000).toString()}
+            onChange={(e) => setPriceLamports((parseFloat(e.target.value || '0') * 1000000000).toString())}
+            placeholder="e.g., 1.0"
+            min="0"
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          />
+          <p className="text-gray-400 text-sm mt-2">
+            Price per NFT in LOS tokens (9 decimals).
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-white font-semibold mb-2">
+            Reveal Threshold
+          </label>
+          <input
+            type="number"
+            value={revealThreshold}
+            onChange={(e) => setRevealThreshold(e.target.value)}
+            placeholder="e.g., 100"
+            min="1"
+            max={maxSupply}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          />
+          <p className="text-gray-400 text-sm mt-2">
+            Number of NFTs that must be minted before reveal is allowed.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-white font-semibold mb-2">
+            Placeholder URI
+          </label>
+          <input
+            type="url"
+            value={placeholderUri}
+            onChange={(e) => setPlaceholderUri(e.target.value)}
+            placeholder="https://example.com/placeholder.json"
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+          />
+          <p className="text-gray-400 text-sm mt-2">
+            URL to the placeholder metadata JSON file.
           </p>
         </div>
 
