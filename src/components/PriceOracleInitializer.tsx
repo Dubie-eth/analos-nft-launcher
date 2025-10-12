@@ -3,9 +3,11 @@
 import React, { useState, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, SystemProgram, TransactionInstruction } from '@solana/web3.js';
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
+import idl from '@/idl/analos_price_oracle_correct.json';
 
 export default function PriceOracleInitializer() {
   const { publicKey, connected, signTransaction } = useWallet();
@@ -17,7 +19,11 @@ export default function PriceOracleInitializer() {
   // Use WebSocket-disabled connection
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
-  // No need for getProgram - we'll use raw instructions to bypass Anchor BN issues
+  const getProgram = useCallback(() => {
+    if (!publicKey || !signTransaction) return null;
+    const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
+    return new Program(idl as any, provider);
+  }, [publicKey, signTransaction, connection]);
 
   const getTransactionDetails = () => {
     return {
@@ -58,47 +64,32 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      console.log('🔗 HYBRID APPROACH: Using deployed program with simple transfer...');
+      console.log('🔗 PROPER ANCHOR APPROACH: Using deployed program with correct IDL...');
       
+      // Get the program instance using the correct IDL
+      const program = getProgram();
+      if (!program) {
+        throw new Error('Program not found or wallet not connected');
+      }
+
       // Convert market cap to proper format (LOS with 9 decimals)
       const marketCapUSD = parseInt(losMarketCap);
       const marketCapNanoLOS = marketCapUSD * 1000000000; // Convert to nano LOS (9 decimals)
       
       console.log('📊 Market Cap (USD):', marketCapUSD);
       console.log('📊 Market Cap (nano LOS):', marketCapNanoLOS);
-      console.log('🔗 Program ID:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
+      console.log('🔗 Program ID:', program.programId.toString());
       console.log('🔗 PDA:', priceOraclePda.toString());
 
-      // Since we're getting DeclaredProgramIdMismatch, let's use a simple approach
-      // Create a simple transfer to the program to trigger initialization
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: ANALOS_PROGRAMS.PRICE_ORACLE,
-          lamports: 1000000, // 0.001 SOL transfer
+      // Use the proper Anchor instruction call with the deployed program
+      const signature = await program.methods
+        .initializeOracle(new BN(marketCapNanoLOS))
+        .accounts({
+          priceOracle: priceOraclePda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
         })
-      );
-      
-      // Get latest blockhash and set transaction properties
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      // Sign and send transaction
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-        skipPreflight: false,
-        maxRetries: 3,
-      });
-
-      console.log('✅ Transaction sent successfully! Signature:', signature);
-
-      // Confirm transaction
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight,
-      }, 'confirmed');
+        .rpc();
 
       console.log('✅ Price Oracle initialized successfully on blockchain:', signature);
 
@@ -235,13 +226,13 @@ export default function PriceOracleInitializer() {
       </div>
 
       <div className="mt-6 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-        <h4 className="text-green-300 font-semibold mb-2">✅ Hybrid Approach - Working Around Program ID Mismatch</h4>
+        <h4 className="text-green-300 font-semibold mb-2">✅ Proper Anchor Approach - Using Deployed Program</h4>
         <ul className="text-green-200 text-sm space-y-1">
-          <li>• <span className="text-green-300">🚀 Uses simple transfer to deployed program</span></li>
-          <li>• Bypasses DeclaredProgramIdMismatch error</li>
+          <li>• <span className="text-green-300">🚀 Uses proper Anchor Program with correct IDL</span></li>
+          <li>• Calls actual initializeOracle instruction on blockchain</li>
           <li>• Market Cap: Sets initial LOS market cap in USD (9 decimals)</li>
-          <li>• Triggers real blockchain interaction</li>
-          <li>• Stores data locally for UI persistence</li>
+          <li>• Creates real PriceOracle account on-chain</li>
+          <li>• Uses deployed program with correct program ID</li>
         </ul>
       </div>
 
