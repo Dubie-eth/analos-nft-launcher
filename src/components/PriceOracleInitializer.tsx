@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@coral-xyz/anchor';
-import { BN } from 'bn.js';
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
@@ -81,17 +80,26 @@ export default function PriceOracleInitializer() {
       // Create BN instance with validation
       console.log('🔧 Creating BN instance...');
       console.log('🔧 BN constructor available:', typeof BN);
+      console.log('🔧 BN from Anchor:', BN);
       
       // Try different BN constructor approaches
       let marketCapBN;
       try {
-        marketCapBN = new BN(marketCapMicroUSD.toString());
-        console.log('✅ BN created with string:', marketCapBN.toString());
-      } catch (bnError) {
-        console.error('❌ BN creation failed:', bnError);
-        // Fallback: try with number directly
-        marketCapBN = new BN(marketCapMicroUSD);
-        console.log('✅ BN created with number:', marketCapBN.toString());
+        // Try with string first (most reliable)
+        marketCapBN = new BN(marketCapMicroUSD.toString(), 10);
+        console.log('✅ BN created with string and radix:', marketCapBN.toString());
+      } catch (bnError1) {
+        console.error('❌ BN creation with string failed:', bnError1);
+        try {
+          // Fallback: try with number directly
+          marketCapBN = new BN(marketCapMicroUSD);
+          console.log('✅ BN created with number:', marketCapBN.toString());
+        } catch (bnError2) {
+          console.error('❌ BN creation with number failed:', bnError2);
+          // Last resort: try with hex
+          marketCapBN = new BN(marketCapMicroUSD.toString(16), 16);
+          console.log('✅ BN created with hex:', marketCapBN.toString());
+        }
       }
 
       // Call the initializeOracle instruction
