@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
+import TransactionConfirmationDialog from './TransactionConfirmationDialog';
 
 interface ProgramInitializerProps {
   programType: 'price-oracle' | 'rarity-oracle' | 'nft-launchpad';
@@ -14,6 +15,8 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
   const { publicKey, connected, signTransaction } = useWallet();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string; signature?: string } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingTransaction, setPendingTransaction] = useState<any>(null);
   
   // Price Oracle specific state
   const [losPrice, setLosPrice] = useState('0.0008714');
@@ -26,12 +29,63 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
   // Use WebSocket-disabled connection to Analos RPC
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
+  const getTransactionDetails = () => {
+    const fee = programType === 'nft-launchpad' ? '0.002 LOS' : '0.001 LOS';
+    const programId = ANALOS_PROGRAMS[programType.toUpperCase().replace('-', '_') as keyof typeof ANALOS_PROGRAMS];
+    
+    switch (programType) {
+      case 'price-oracle':
+        return {
+          title: 'Initialize Price Oracle',
+          description: `Initialize the Price Oracle with current LOS market data ($${losPrice} USD)`,
+          estimatedFee: fee,
+          fromAccount: publicKey?.toString() || '',
+          toAccount: programId.toString(),
+          programId: programId.toString()
+        };
+      case 'rarity-oracle':
+        return {
+          title: 'Initialize Rarity Oracle',
+          description: 'Initialize the Rarity Oracle for NFT metadata processing',
+          estimatedFee: fee,
+          fromAccount: publicKey?.toString() || '',
+          toAccount: programId.toString(),
+          programId: programId.toString()
+        };
+      case 'nft-launchpad':
+        return {
+          title: 'Initialize NFT Launchpad',
+          description: `Initialize NFT Launchpad for collection: ${collectionName} (${collectionSymbol}) - Max Supply: ${maxSupply}`,
+          estimatedFee: fee,
+          fromAccount: publicKey?.toString() || '',
+          toAccount: programId.toString(),
+          programId: programId.toString()
+        };
+      default:
+        return {
+          title: 'Initialize Program',
+          description: 'Initialize the selected program',
+          estimatedFee: fee,
+          fromAccount: publicKey?.toString() || '',
+          programId: programId.toString()
+        };
+    }
+  };
+
   const handleInitialize = async () => {
     if (!connected || !publicKey || !signTransaction) {
       setResult({ success: false, message: 'Please connect your wallet first' });
       return;
     }
 
+    // Prepare transaction details for confirmation
+    const transactionDetails = getTransactionDetails();
+    setPendingTransaction({ programType, losPrice, collectionName, collectionSymbol, maxSupply });
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmTransaction = async () => {
+    setShowConfirmation(false);
     setLoading(true);
     setResult(null);
 
@@ -39,10 +93,13 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
       let transaction: Transaction;
       let message: string;
 
-      switch (programType) {
+      // Use pending transaction data
+      const { programType: pendingProgramType, losPrice: pendingLosPrice, collectionName: pendingCollectionName, collectionSymbol: pendingCollectionSymbol } = pendingTransaction;
+
+      switch (pendingProgramType) {
         case 'price-oracle':
           // Initialize Price Oracle with LOS price (9 decimals)
-          const priceInMicroUSD = Math.floor(parseFloat(losPrice) * 1000000000); // Convert to 9 decimal places
+          const priceInMicroUSD = Math.floor(parseFloat(pendingLosPrice) * 1000000000); // Convert to 9 decimal places
           
           transaction = new Transaction().add(
             SystemProgram.transfer({
@@ -52,7 +109,7 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
             })
           );
           
-          message = `Price Oracle initialized with LOS price: $${losPrice}`;
+          message = `Price Oracle initialized with LOS price: $${pendingLosPrice}`;
           break;
 
         case 'rarity-oracle':
@@ -84,7 +141,7 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
             })
           );
           
-          message = `NFT Launchpad initialized for collection: ${collectionName} (${collectionSymbol})`;
+          message = `NFT Launchpad initialized for collection: ${pendingCollectionName} (${pendingCollectionSymbol})`;
           break;
 
         default:
@@ -358,6 +415,14 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
           <li>• Transaction will be confirmed on Analos blockchain</li>
         </ul>
       </div>
+
+      {/* Transaction Confirmation Dialog */}
+      <TransactionConfirmationDialog
+        isOpen={showConfirmation}
+        onConfirm={handleConfirmTransaction}
+        onCancel={() => setShowConfirmation(false)}
+        transactionDetails={getTransactionDetails()}
+      />
     </div>
   );
 }
