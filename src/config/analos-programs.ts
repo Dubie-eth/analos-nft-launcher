@@ -3,6 +3,7 @@
  * All 9 programs deployed and verified on Analos mainnet
  * Deployment Date: October 10, 2025
  * Updated: October 11, 2025 - Added 5 Enhanced Programs
+ * CACHE BUST: v1.0.2 - Testing original program ID for Price Oracle
  */
 
 import { PublicKey } from '@solana/web3.js';
