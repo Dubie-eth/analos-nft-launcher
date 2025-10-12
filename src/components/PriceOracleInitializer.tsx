@@ -90,8 +90,8 @@ export default function PriceOracleInitializer() {
         0x1337, // Test value
       ];
       
-      // Try discriminator 1 first
-      instructionData.writeUInt32LE(1, 0);
+      // Try discriminator 0 first (back to original)
+      instructionData.writeUInt32LE(0, 0);
       
       // Convert market cap to buffer
       const marketCapBuffer = Buffer.alloc(8);
