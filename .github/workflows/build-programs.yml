@@ -34,15 +34,21 @@ jobs:
     - name: Build Programs
       run: |
         export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        export CARGO_NET_GIT_FETCH_WITH_CLI=true
         solana --version
         cargo --version
-        echo "Removing ALL Cargo.lock files..."
-        find . -name "Cargo.lock" -type f -exec rm -fv {} \;
-        echo "Building programs with Solana's toolchain..."
-        cd programs/analos-nft-launchpad && cargo build-sbf && cd ../..
-        cd programs/analos-token-lock-enhanced && cargo build-sbf && cd ../..
+        echo "Building NFT Launchpad..."
+        cd programs/analos-nft-launchpad
+        rm -f Cargo.lock
+        cargo build-sbf --release
+        cd ../..
+        echo "Building Token Lock Enhanced..."
+        cd programs/analos-token-lock-enhanced  
+        rm -f Cargo.lock
+        cargo build-sbf --release
+        cd ../..
         echo "Build complete!"
-        ls -la target/deploy/
+        find target -name "*.so" -type f
     
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
