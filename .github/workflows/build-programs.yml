@@ -52,6 +52,7 @@ jobs:
     
     - name: Build Programs
       run: |
+        rm -f Cargo.lock
         anchor build
     
     - name: Upload Artifacts
