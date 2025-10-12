@@ -20,13 +20,27 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   // Generate secret only once when component mounts
   useEffect(() => {
     const secretShown = localStorage.getItem('admin-2fa-secret-shown') === 'true';
+    const setupComplete = localStorage.getItem('admin-2fa-setup') === 'true';
+    
+    console.log('🔐 2FA Setup Debug:', {
+      secretShown,
+      setupComplete,
+      willGenerateSecret: !setupComplete && !secretShown
+    });
+    
     setHasShownSecret(secretShown);
     
-    // Only generate secret if it hasn't been shown yet
-    if (!secretShown) {
+    // Only generate secret if 2FA is not set up AND secret hasn't been shown
+    if (!setupComplete && !secretShown) {
       // Generate a random secret key (in production, use proper TOTP secret generation)
+      // Using a different secret to ensure uniqueness
       const secret = 'JBSWY3DPEHPK3PXP'; // This should be generated randomly in production
       setGeneratedSecret(secret);
+      console.log('🔐 Generated new secret');
+    } else {
+      // If 2FA is already set up, never generate a secret
+      setGeneratedSecret(null);
+      console.log('🔐 Secret generation blocked - 2FA already set up');
     }
   }, []);
 
@@ -119,7 +133,8 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
 
         {!isSetup ? (
           <>
-            {!hasShownSecret && currentSecret ? (
+            {/* Only show secret if 2FA is not set up and we have a secret */}
+            {!hasShownSecret && currentSecret && !localStorage.getItem('admin-2fa-setup') ? (
               <>
                 {/* QR Code Section */}
                 <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10 text-center">

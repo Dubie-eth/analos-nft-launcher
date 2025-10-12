@@ -108,7 +108,8 @@ export default function AdminDashboard() {
         setAuthStep('authenticated');
       } else if (isSetup && authStep !== '2fa' && authStep !== 'authenticated') {
         setAuthStep('2fa');
-      } else if (!isSetup && authStep !== 'setup' && authStep !== 'authenticated' && !hasCanceledSetup) {
+      } else if (!isSetup && authStep === 'wallet' && !hasCanceledSetup) {
+        // Only redirect to setup if we're in wallet step and haven't canceled
         setAuthStep('setup');
       }
       // If user canceled setup, don't redirect them back to setup
