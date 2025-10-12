@@ -14,6 +14,7 @@ import TwoFactorSetup from '@/components/TwoFactorSetup';
 import ProgramInitializer from '@/components/ProgramInitializer';
 import RarityOracleInitializer from '@/components/RarityOracleInitializer';
 import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
+import DeployedProgramsInitializer from '@/components/DeployedProgramsInitializer';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -441,6 +442,7 @@ export default function AdminDashboard() {
           <div className="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {[
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
+              { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
@@ -793,6 +795,19 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'deployed-programs' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">✅ Deployed Programs on Analos</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                These programs are successfully deployed on the Analos blockchain and ready for integration.
+              </p>
+            </div>
+
+            <DeployedProgramsInitializer onInitializeSuccess={() => {}} />
           </div>
         )}
 
