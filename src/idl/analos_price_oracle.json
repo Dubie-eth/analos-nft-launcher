@@ -18,6 +18,5 @@
     { "code": 6001, "name": "InvalidPrice", "msg": "Invalid price value" },
     { "code": 6002, "name": "Unauthorized", "msg": "Unauthorized access" }
   ],
-  "types": [],
-  "address": "5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD"
+  "types": []
 }
