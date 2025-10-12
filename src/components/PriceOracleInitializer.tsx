@@ -58,8 +58,9 @@ export default function PriceOracleInitializer() {
       console.log('🔧 IDL object:', idl);
       console.log('🔧 Provider object:', provider);
       
+      let program;
       try {
-        const program = new Program(idl as any, provider);
+        program = new Program(idl as any, provider);
         console.log('✅ Program created successfully:', program.programId.toString());
         console.log('🔧 Program methods available:', Object.keys(program.methods));
       } catch (programError) {
