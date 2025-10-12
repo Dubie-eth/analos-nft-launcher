@@ -140,11 +140,13 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
         .wallet-adapter-button-custom {
           background: linear-gradient(to right, #2563eb, #7c3aed) !important;
           font-weight: bold !important;
-          padding: 0.5rem 1rem !important;
+          padding: 0.5rem 1.5rem !important;
           border-radius: 0.5rem !important;
           font-size: 0.875rem !important;
           transition: all 0.2s !important;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+          min-width: 140px !important;
+          white-space: nowrap !important;
         }
         
         .wallet-adapter-button-custom:hover {

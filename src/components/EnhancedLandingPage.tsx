@@ -774,28 +774,42 @@ export default function EnhancedLandingPage() {
                   </div>
                   
                   <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
-                    <h4 className="font-bold text-blue-300 mb-2">💼 Recommended Wallet</h4>
+                    <h4 className="font-bold text-blue-300 mb-2">💼 Recommended Wallets</h4>
                     <p className="mb-3">
-                      We support <strong>Phantom Wallet</strong> and encourage using <strong>Backpack Wallet</strong> for the best experience on Analos:
+                      We support <strong>Backpack Wallet</strong> and <strong>Solflare Wallet</strong> for the best experience on Analos:
                     </p>
-                    <a
-                      href="https://backpack.app"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                      <span className="text-xl">🎒</span>
-                      <span>Download Backpack Wallet</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <a
+                        href="https://backpack.app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        <span className="text-xl">🎒</span>
+                        <span>Download Backpack</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                      <a
+                        href="https://solflare.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        <span className="text-xl">🔥</span>
+                        <span>Download Solflare</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                   
                   <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
                     <h4 className="font-bold text-yellow-300 mb-2">⚙️ Wallet Setup Instructions</h4>
                     <ol className="list-decimal list-inside space-y-1 text-yellow-200">
-                      <li>Download Phantom Wallet from phantom.app or Backpack Wallet from backpack.app</li>
+                      <li>Download Backpack Wallet from backpack.app or Solflare Wallet from solflare.com</li>
                       <li>Create a new wallet (don't import your main wallet)</li>
                       <li>Set up custom RPC: <code className="bg-black/20 px-1 rounded">https://rpc.analos.io</code></li>
                       <li>Fund with small amount of $LOS for testing</li>
