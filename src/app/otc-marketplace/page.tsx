@@ -53,7 +53,7 @@ export default function OTCMarketplacePage() {
 
         {/* Program Info */}
         <div className="bg-blue-900/20 border border-blue-500 rounded-lg p-4 mb-8">
-          <p className="text-sm font-mono">
+          <p className="text-sm font-mono program-id">
             Program: <span className="text-blue-400">{programId.toBase58()}</span>
           </p>
         </div>

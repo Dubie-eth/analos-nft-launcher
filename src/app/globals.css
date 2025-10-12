@@ -89,3 +89,35 @@ body {
   position: relative;
   z-index: 45;
 }
+
+/* Mobile text truncation fixes */
+@media (max-width: 768px) {
+  /* Fix button text wrapping */
+  .mobile-btn-fix {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: fit-content !important;
+  }
+  
+  /* Fix long text overflow */
+  .text-truncate-mobile {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Fix wallet connection button sizing */
+  .wallet-connection-container button {
+    min-width: 120px !important;
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  
+  /* Fix program ID display */
+  .program-id {
+    word-break: break-all !important;
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+  }
+}
