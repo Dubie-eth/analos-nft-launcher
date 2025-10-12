@@ -1,5 +1,5 @@
 {
-  "version": "5.0.0",
+  "version": "6.0.0",
   "name": "analos_price_oracle",
   "instructions": [
     {
@@ -9,7 +9,9 @@
         { "name": "authority", "isMut": true, "isSigner": true },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
-      "args": []
+      "args": [
+        { "name": "marketCapUsd", "type": "u64" }
+      ]
     }
   ],
   "accounts": [],

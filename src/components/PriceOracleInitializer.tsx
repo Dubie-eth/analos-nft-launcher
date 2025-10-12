@@ -76,18 +76,24 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      // For minimal IDL testing, we don't need market cap arguments
-      console.log('🔧 Using minimal initialization (no arguments)');
+      // Convert market cap to micro USD (6 decimals)
+      const marketCapMicroUSD = parseInt(losMarketCap) * 1000000; // Convert to 6 decimals
+      console.log('🔧 Market cap micro USD:', marketCapMicroUSD);
+      console.log('🔧 Market cap type:', typeof marketCapMicroUSD);
 
-      // Call the initializeOracle instruction with minimal setup
-      console.log('🚀 Calling initializeOracle instruction...');
+      // Create BN instance for market cap
+      const marketCapBN = new BN(marketCapMicroUSD);
+      console.log('✅ BN created for market cap:', marketCapBN.toString());
+
+      // Call the initializeOracle instruction with market cap argument
+      console.log('🚀 Calling initializeOracle instruction with market cap...');
       
       // Create a simple transaction first to test
       const transaction = new Transaction();
       
-      // Add the initialize instruction with explicit accounts
+      // Add the initialize instruction with market cap argument
       const initializeIx = await program.methods
-        .initializeOracle()
+        .initializeOracle(marketCapBN)
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
