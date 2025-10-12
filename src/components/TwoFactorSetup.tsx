@@ -17,6 +17,17 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   const [hasShownSecret, setHasShownSecret] = useState(false);
   const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
 
+  // CRITICAL: If 2FA is already set up, immediately redirect to verification
+  useEffect(() => {
+    const setupComplete = localStorage.getItem('admin-2fa-setup') === 'true' || 
+                         sessionStorage.getItem('admin-2fa-setup') === 'true';
+    if (setupComplete) {
+      console.log('🔐 CRITICAL: 2FA already set up - redirecting immediately');
+      onSetupComplete();
+      return;
+    }
+  }, [onSetupComplete]);
+
   // Generate secret only once when component mounts
   useEffect(() => {
     // Check multiple storage locations for persistence
@@ -51,6 +62,14 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
       return;
     }
     
+    // CRITICAL: Only generate secret if this is truly the first time AND no secret exists in storage
+    const existingSecret = localStorage.getItem('admin-2fa-secret') || sessionStorage.getItem('admin-2fa-secret');
+    if (existingSecret) {
+      setGeneratedSecret(null);
+      console.log('🔐 CRITICAL: Secret already exists in storage - NO NEW SECRET GENERATED');
+      return;
+    }
+    
     // Only generate secret if this is truly the first time
     console.log('🔐 WARNING: Generating secret for first-time setup only');
     // Generate a random secret key
@@ -60,6 +79,10 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
         secret += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setGeneratedSecret(secret);
+    
+    // Immediately mark as shown to prevent regeneration
+    localStorage.setItem('admin-2fa-secret-shown', 'true');
+    sessionStorage.setItem('admin-2fa-secret-shown', 'true');
   }, []);
 
   // CRITICAL: If 2FA is already set up, redirect to verification
@@ -101,6 +124,10 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
         
         // PERMANENTLY DELETE THE SECRET - NEVER STORE IT
         setGeneratedSecret(null);
+        
+        // Also clear any existing secret from storage (just in case)
+        localStorage.removeItem('admin-2fa-secret');
+        sessionStorage.removeItem('admin-2fa-secret');
         
         console.log('🔐 2FA Setup completed - secret permanently deleted');
         onSetupComplete();
@@ -146,7 +173,7 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
         {!isSetup ? (
           <>
             {/* CRITICAL: Only show secret if 2FA is not set up, secret hasn't been shown, and we have a secret */}
-            {!hasShownSecret && currentSecret && !localStorage.getItem('admin-2fa-setup') && !localStorage.getItem('admin-2fa-secret-shown') ? (
+            {currentSecret && !localStorage.getItem('admin-2fa-setup') && !sessionStorage.getItem('admin-2fa-setup') ? (
               <>
                 {/* QR Code Section */}
                 <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10 text-center">
