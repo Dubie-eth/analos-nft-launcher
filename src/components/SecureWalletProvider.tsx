@@ -31,6 +31,20 @@ export default function SecureWalletProvider({ children }: SecureWalletProviderP
     (conn as any)._rpcWebSocket = null;
     (conn as any)._rpcWebSocketConnected = false;
     
+    // Override confirmTransaction to use our extended timeout
+    const originalConfirmTransaction = conn.confirmTransaction.bind(conn);
+    conn.confirmTransaction = async (signature: any, commitment?: any) => {
+      if (typeof signature === 'string') {
+        // Use extended timeout for string signatures
+        return await conn.confirmTransaction({
+          signature,
+          blockhash: (await conn.getLatestBlockhash()).blockhash,
+          lastValidBlockHeight: (await conn.getLatestBlockhash()).lastValidBlockHeight
+        }, commitment || 'confirmed');
+      }
+      return originalConfirmTransaction(signature, commitment);
+    };
+    
     return conn;
   }, [endpoint]);
 

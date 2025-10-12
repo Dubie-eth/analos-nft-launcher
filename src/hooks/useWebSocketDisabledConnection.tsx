@@ -6,7 +6,7 @@ export function useWebSocketDisabledConnection(endpoint: string) {
     const connection = new Connection(endpoint, {
       commitment: 'confirmed',
       disableRetryOnRateLimit: false,
-      confirmTransactionInitialTimeout: 120000, // 2 minutes
+      confirmTransactionInitialTimeout: 180000, // 3 minutes for extra safety
     });
 
     // Disable WebSocket completely
@@ -55,6 +55,21 @@ export function useWebSocketDisabledConnection(endpoint: string) {
 
     connection.onSlotUpdate = () => {
       throw new Error('Slot update subscriptions disabled - WebSocket not supported');
+    };
+
+    // Override confirmTransaction to use extended timeout and proper blockhash handling
+    const originalConfirmTransaction = connection.confirmTransaction.bind(connection);
+    connection.confirmTransaction = async (signature: any, commitment?: any) => {
+      if (typeof signature === 'string') {
+        // Use extended timeout for string signatures with proper blockhash
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        return await originalConfirmTransaction({
+          signature,
+          blockhash,
+          lastValidBlockHeight
+        }, commitment || 'confirmed');
+      }
+      return originalConfirmTransaction(signature, commitment);
     };
 
     return connection;
