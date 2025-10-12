@@ -15,6 +15,24 @@ use anchor_spl::{
 //     types::{DataV2, Creator, Collection},
 // };
 
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos NFT Launchpad",
+    project_url: "https://github.com/Dubie-eth/analos-nft-launchpad-program",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-nft-launchpad-program/blob/main/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-nft-launchpad-program",
+    source_revision: "5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
 declare_id!("5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT");
 
 /// Royalty basis points (500 = 5%)
