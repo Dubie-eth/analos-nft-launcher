@@ -109,10 +109,11 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
       });
 
       try {
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
         await connection.confirmTransaction({
           signature,
           blockhash,
-          lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight
+          lastValidBlockHeight
         }, 'confirmed');
         
         setResult({

@@ -124,10 +124,11 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
       });
 
       try {
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
         await connection.confirmTransaction({
           signature,
           blockhash,
-          lastValidBlockHeight: (await connection.getLatestBlockhash()).lastValidBlockHeight
+          lastValidBlockHeight
         }, 'confirmed');
         
         setResult({
