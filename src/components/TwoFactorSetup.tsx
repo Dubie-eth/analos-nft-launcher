@@ -19,13 +19,20 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
 
   // Generate secret only once when component mounts
   useEffect(() => {
-    const secretShown = localStorage.getItem('admin-2fa-secret-shown') === 'true';
-    const setupComplete = localStorage.getItem('admin-2fa-setup') === 'true';
+    // Check multiple storage locations for persistence
+    const secretShown = localStorage.getItem('admin-2fa-secret-shown') === 'true' || 
+                       sessionStorage.getItem('admin-2fa-secret-shown') === 'true';
+    const setupComplete = localStorage.getItem('admin-2fa-setup') === 'true' || 
+                         sessionStorage.getItem('admin-2fa-setup') === 'true';
     
     console.log('🔐 2FA Setup Debug:', {
       secretShown,
       setupComplete,
-      willGenerateSecret: !setupComplete && !secretShown
+      willGenerateSecret: !setupComplete && !secretShown,
+      localStorageSecretShown: localStorage.getItem('admin-2fa-secret-shown'),
+      localStorageSetupComplete: localStorage.getItem('admin-2fa-setup'),
+      sessionStorageSecretShown: sessionStorage.getItem('admin-2fa-secret-shown'),
+      sessionStorageSetupComplete: sessionStorage.getItem('admin-2fa-setup')
     });
     
     setHasShownSecret(secretShown);
@@ -37,17 +44,17 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
       return;
     }
     
-    // Only generate secret if 2FA is not set up AND secret hasn't been shown
-    if (!secretShown) {
-      // Generate a random secret key (in production, use proper TOTP secret generation)
-      const secret = 'JBSWY3DPEHPK3PXP'; // This should be generated randomly in production
-      setGeneratedSecret(secret);
-      console.log('🔐 Generated new secret for first-time setup');
-    } else {
-      // Secret was already shown before
+    // CRITICAL: If secret was already shown, NEVER show it again
+    if (secretShown) {
       setGeneratedSecret(null);
-      console.log('🔐 Secret was already shown - NO SECRET GENERATED');
+      console.log('🔐 CRITICAL: Secret was already shown - NO SECRET GENERATED');
+      return;
     }
+    
+    // Only generate secret if this is truly the first time
+    console.log('🔐 WARNING: Generating secret for first-time setup only');
+    const secret = 'JBSWY3DPEHPK3PXP'; // This should be generated randomly in production
+    setGeneratedSecret(secret);
   }, []);
 
   // CRITICAL: If 2FA is already set up, redirect to verification
@@ -80,13 +87,17 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
       // For demo purposes, accept any 6-digit code
       if (setupCode.length === 6) {
         setIsSetup(true);
-        // Mark 2FA as set up and secret as shown (never show again)
+        
+        // Store in BOTH localStorage and sessionStorage for maximum persistence
         localStorage.setItem('admin-2fa-setup', 'true');
         localStorage.setItem('admin-2fa-secret-shown', 'true');
+        sessionStorage.setItem('admin-2fa-setup', 'true');
+        sessionStorage.setItem('admin-2fa-secret-shown', 'true');
         
         // PERMANENTLY DELETE THE SECRET - NEVER STORE IT
         setGeneratedSecret(null);
         
+        console.log('🔐 2FA Setup completed - secret permanently deleted');
         onSetupComplete();
       } else {
         setError('Invalid setup code');

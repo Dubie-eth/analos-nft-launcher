@@ -378,7 +378,10 @@ export default function AdminDashboard() {
   }
 
   // 2FA Setup Step - Only show if 2FA is not already set up
-  if (authStep === 'setup' && !localStorage.getItem('admin-2fa-setup')) {
+  const is2FASetupInStorage = localStorage.getItem('admin-2fa-setup') === 'true' || 
+                             sessionStorage.getItem('admin-2fa-setup') === 'true';
+  
+  if (authStep === 'setup' && !is2FASetupInStorage) {
     return (
       <TwoFactorSetup
         onSetupComplete={handle2FASetupComplete}
