@@ -81,30 +81,41 @@ export default function PriceOracleInitializer() {
       console.log('🔧 Market cap micro USD:', marketCapMicroUSD);
       console.log('🔧 Market cap type:', typeof marketCapMicroUSD);
 
-      // Create BN instance for market cap
-      const marketCapBN = new BN(marketCapMicroUSD);
-      console.log('✅ BN created for market cap:', marketCapBN.toString());
+      // Create BN instance for market cap with multiple fallback approaches
+      let marketCapBN;
+      try {
+        // Try Anchor's BN first
+        marketCapBN = new BN(marketCapMicroUSD);
+        console.log('✅ BN created with Anchor BN:', marketCapBN.toString());
+      } catch (anchorBnError) {
+        console.error('❌ Anchor BN failed:', anchorBnError);
+        try {
+          // Try with string
+          marketCapBN = new BN(marketCapMicroUSD.toString());
+          console.log('✅ BN created with string:', marketCapBN.toString());
+        } catch (stringBnError) {
+          console.error('❌ String BN failed:', stringBnError);
+          // Last resort: try with hex
+          marketCapBN = new BN(marketCapMicroUSD.toString(16), 16);
+          console.log('✅ BN created with hex:', marketCapBN.toString());
+        }
+      }
 
       // Call the initializeOracle instruction with market cap argument
       console.log('🚀 Calling initializeOracle instruction with market cap...');
+      console.log('🔧 Market cap BN object:', marketCapBN);
+      console.log('🔧 Market cap BN type:', typeof marketCapBN);
+      console.log('🔧 Market cap BN constructor:', marketCapBN.constructor.name);
       
-      // Create a simple transaction first to test
-      const transaction = new Transaction();
-      
-      // Add the initialize instruction with market cap argument
-      const initializeIx = await program.methods
+      // Try using .rpc() method directly instead of .instruction()
+      const signature = await program.methods
         .initializeOracle(marketCapBN)
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
           systemProgram: SystemProgram.programId,
         })
-        .instruction();
-      
-      transaction.add(initializeIx);
-      
-      // Send the transaction
-      const signature = await provider.sendAndConfirm(transaction);
+        .rpc();
       
       console.log('🚀 Price Oracle initialized successfully:', signature);
       
