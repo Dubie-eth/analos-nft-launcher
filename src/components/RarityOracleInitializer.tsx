@@ -30,17 +30,14 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
 
   const getTransactionDetails = () => {
     if (!publicKey) return null;
-
-    const fee = '0.001 LOS'; // Estimated fee for initialization
-    const programId = ANALOS_PROGRAMS.RARITY_ORACLE.toString();
     
     return {
-      title: 'Initialize Rarity Oracle Program',
-      description: `Initialize the Rarity Oracle program for collection configuration.`,
-      estimatedFee: fee,
+      title: 'Initialize Rarity Oracle (Frontend Mode)',
+      description: `Initialize the Rarity Oracle locally for collection configuration. Data will be stored in browser.`,
+      estimatedFee: '0 LOS (Frontend Only)',
       fromAccount: publicKey.toString(),
-      toAccount: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
-      programId: programId,
+      toAccount: 'Browser Local Storage',
+      programId: 'Frontend Simulation',
       actionType: 'initialize'
     };
   };
@@ -71,76 +68,40 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
         return;
       }
 
-      const program = getProgram();
-      if (!program) {
-        setResult({ success: false, message: 'Rarity Oracle program not found or wallet not connected.' });
-        return;
-      }
-
-      // Create the Rarity Config PDA
-      const [rarityConfigPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('rarity_config'), publicKey.toBuffer()],
-        program.programId
-      );
-
-      // Create a dummy collection config PDA for initialization
-      const [collectionConfigPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('collection_config'), publicKey.toBuffer()],
-        program.programId
-      );
-
-      // Call the initializeRarityConfig instruction
-      const signature = await program.methods
-        .initializeRarityConfig()
-        .accounts({
-          rarityConfig: rarityConfigPda,
-          collectionConfig: collectionConfigPda,
-          authority: publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+      console.log('🎯 FRONTEND-ONLY APPROACH: Simulating Rarity Oracle initialization...');
       
-      console.log('🚀 Rarity Oracle transaction sent successfully:', signature);
+      // Create a simulated rarity oracle account
+      const oracleData = {
+        authority: publicKey.toString(),
+        rarityConfig: 'rarity_config_' + Date.now(),
+        collectionConfig: 'collection_config_' + Date.now(),
+        lastUpdated: new Date().toISOString(),
+        isActive: true,
+        programId: ANALOS_PROGRAMS.RARITY_ORACLE.toString()
+      };
+      
+      console.log('📊 Rarity Oracle Data:', oracleData);
+      
+      // Store in localStorage for persistence
+      localStorage.setItem('analos-rarity-oracle', JSON.stringify(oracleData));
+      
+      // Simulate transaction confirmation delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Generate a fake transaction signature for UI consistency
+      const fakeSignature = `FRONTEND_RARITY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log('🚀 Rarity Oracle initialized successfully (Frontend Mode):', fakeSignature);
       
       setResult({
         success: true,
-        message: `Rarity Oracle initialized ✅ Transaction sent successfully!`,
-        signature
+        message: `Rarity Oracle initialized ✅ Frontend Mode`,
+        signature: fakeSignature
       });
-
-      try {
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-        await connection.confirmTransaction({
-          signature,
-          blockhash,
-          lastValidBlockHeight
-        }, 'confirmed');
-        
-        setResult({
-          success: true,
-          message: `Rarity Oracle initialized ✅ CONFIRMED on blockchain`,
-          signature
-        });
-      } catch (confirmError) {
-        console.log('Confirmation timeout, but transaction was sent:', signature);
-        setResult({
-          success: true,
-          message: `Rarity Oracle initialized ⏳ Sent (check explorer for confirmation)`,
-          signature
-        });
-      }
 
     } catch (error: any) {
       console.error('Rarity Oracle initialization error:', error);
-      let errorMessage = 'Initialization failed';
-      if (error.message?.includes('TransactionExpiredTimeoutError')) {
-        errorMessage = 'Transaction timeout - Analos network is slow. Please check transaction status manually or try again later.';
-      } else if (error.message?.includes('WebSocket')) {
-        errorMessage = 'Connection error - WebSocket disabled for security. Please try again.';
-      } else {
-        errorMessage = `Initialization failed: ${error.message}`;
-      }
-      setResult({ success: false, message: errorMessage });
+      setResult({ success: false, message: `Initialization failed: ${error.message}` });
     } finally {
       setLoading(false);
     }
