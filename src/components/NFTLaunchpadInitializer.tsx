@@ -29,7 +29,7 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
   const getProgram = () => {
     if (!publicKey || !signTransaction) return null;
     const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
-    return new Program(idl as any, ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(), provider);
+    return new Program(idl as any, ANALOS_PROGRAMS.NFT_LAUNCHPAD, provider);
   };
 
   const getTransactionDetails = () => {
