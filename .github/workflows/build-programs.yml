@@ -30,12 +30,12 @@ jobs:
         mkdir -p $HOME/.local/share/solana/install/active_release
         cp -r solana-release/* $HOME/.local/share/solana/install/active_release/
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+    
+    - name: Install Anchor with Solana's Cargo
+      run: |
         export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
         solana --version
         cargo --version
-    
-    - name: Install Anchor
-      run: |
         cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked --force
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     
