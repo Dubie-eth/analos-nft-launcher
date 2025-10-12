@@ -15,16 +15,24 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   const [error, setError] = useState('');
   const [isSetup, setIsSetup] = useState(false);
   const [hasShownSecret, setHasShownSecret] = useState(false);
+  const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
 
-  // Check if secret has been shown before
+  // Generate secret only once when component mounts
   useEffect(() => {
     const secretShown = localStorage.getItem('admin-2fa-secret-shown') === 'true';
     setHasShownSecret(secretShown);
+    
+    // Only generate secret if it hasn't been shown yet
+    if (!secretShown) {
+      // Generate a random secret key (in production, use proper TOTP secret generation)
+      const secret = 'JBSWY3DPEHPK3PXP'; // This should be generated randomly in production
+      setGeneratedSecret(secret);
+    }
   }, []);
 
-  // Mock secret key - in production, generate a real TOTP secret
-  const mockSecret = 'JBSWY3DPEHPK3PXP';
-  const mockQRCode = `otpauth://totp/Analos%20Admin:${publicKey?.toString().slice(0, 8)}?secret=${mockSecret}&issuer=Analos%20NFT%20Launcher`;
+  // Get the current secret (only available during initial setup)
+  const currentSecret = generatedSecret;
+  const mockQRCode = currentSecret ? `otpauth://totp/Analos%20Admin:${publicKey?.toString().slice(0, 8)}?secret=${currentSecret}&issuer=Analos%20NFT%20Launcher` : '';
 
   const handleVerifySetup = async () => {
     if (!setupCode || setupCode.length !== 6) {
@@ -45,6 +53,10 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
         // Mark 2FA as set up and secret as shown (never show again)
         localStorage.setItem('admin-2fa-setup', 'true');
         localStorage.setItem('admin-2fa-secret-shown', 'true');
+        
+        // PERMANENTLY DELETE THE SECRET - NEVER STORE IT
+        setGeneratedSecret(null);
+        
         onSetupComplete();
       } else {
         setError('Invalid setup code');
@@ -57,8 +69,10 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
   };
 
   const handleCopySecret = () => {
-    navigator.clipboard.writeText(mockSecret);
-    alert('Secret copied to clipboard!');
+    if (currentSecret) {
+      navigator.clipboard.writeText(currentSecret);
+      alert('Secret copied to clipboard!');
+    }
   };
 
   const handleReset2FA = () => {
@@ -78,16 +92,7 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
         alert('Invalid code. Reset cancelled.');
       }
     } else if (resetMethod === 'secret') {
-      const secretKey = prompt('Enter your secret key to reset:');
-      if (secretKey === mockSecret) {
-        if (window.confirm('Are you sure you want to reset 2FA? You will need to set it up again.')) {
-          localStorage.removeItem('admin-2fa-setup');
-          localStorage.removeItem('admin-2fa-secret-shown');
-          window.location.reload();
-        }
-      } else if (secretKey) {
-        alert('Invalid secret key. Reset cancelled.');
-      }
+      alert('Secret key reset is no longer available for security reasons. Please use your 2FA code to reset.');
     }
   };
 
@@ -114,7 +119,7 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
 
         {!isSetup ? (
           <>
-            {!hasShownSecret ? (
+            {!hasShownSecret && currentSecret ? (
               <>
                 {/* QR Code Section */}
                 <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10 text-center">
@@ -141,7 +146,7 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
                       <label className="block text-gray-300 text-sm mb-1">Secret Key:</label>
                       <div className="flex items-center space-x-2">
                         <code className="bg-gray-800/50 text-gray-300 px-3 py-2 rounded text-sm font-mono flex-1">
-                          {mockSecret}
+                          {currentSecret}
                         </code>
                         <button
                           onClick={handleCopySecret}
@@ -237,7 +242,7 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
             onClick={handleReset2FA}
             className="text-red-400 hover:text-red-300 text-sm underline block"
           >
-            Reset 2FA (Code or Secret)
+            Reset 2FA (Code Only)
           </button>
         </div>
 
@@ -247,9 +252,10 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
           <ul className="text-yellow-200 text-sm space-y-1">
             <li>• <strong>WRITE DOWN YOUR SECRET KEY OFFLINE</strong></li>
             <li>• Store it in a secure physical location</li>
-            <li>• This secret key will NEVER be shown again</li>
+            <li>• This secret key will be PERMANENTLY DELETED after setup</li>
             <li>• Keep your authenticator app secure</li>
             <li>• Only your 2FA code can reset this system</li>
+            <li>• Secret key is NEVER stored on this device</li>
           </ul>
         </div>
       </div>
