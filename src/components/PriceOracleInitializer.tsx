@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
+import idl from '@/idl/analos_price_oracle.json';
 
 export default function PriceOracleInitializer() {
   const { publicKey, connected, signTransaction } = useWallet();
@@ -49,43 +51,26 @@ export default function PriceOracleInitializer() {
         return;
       }
 
+      const program = new Program(idl as any, ANALOS_PROGRAMS.PRICE_ORACLE, new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' }));
+
       // Create the Price Oracle PDA
       const [priceOraclePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('price_oracle')],
+        [Buffer.from('price_oracle'), publicKey.toBuffer()],
         ANALOS_PROGRAMS.PRICE_ORACLE
       );
 
       // Convert market cap to micro USD (6 decimals)
       const marketCapMicroUSD = parseInt(losMarketCap) * 1000000; // Convert to 6 decimals
 
-      // Create instruction data for initialize_oracle
-      // This is a simplified version - in production you'd use Anchor's instruction builder
-      const instructionData = Buffer.concat([
-        Buffer.from([0x8a, 0x97, 0x15, 0x4b, 0x9a, 0x8e, 0x2c, 0x7b]), // Discriminator for initialize_oracle
-        Buffer.alloc(8), // Placeholder for market cap (will be filled by program)
-      ]);
-
-      // Write the market cap value (8 bytes, little endian)
-      instructionData.writeUInt32LE(marketCapMicroUSD & 0xFFFFFFFF, 8);
-      instructionData.writeUInt32LE((marketCapMicroUSD >> 32) & 0xFFFFFFFF, 12);
-
-      const transaction = new Transaction().add({
-        keys: [
-          { pubkey: priceOraclePda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: true, isWritable: true },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        programId: ANALOS_PROGRAMS.PRICE_ORACLE,
-        data: instructionData,
-      });
-
-      // Sign and send transaction
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      // Call the initializeOracle instruction
+      const signature = await program.methods
+        .initializeOracle(new BN(marketCapMicroUSD))
+        .accounts({
+          priceOracle: priceOraclePda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
       
       console.log('🚀 Price Oracle initialized successfully:', signature);
       

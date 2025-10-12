@@ -1,0 +1,173 @@
+{
+  "version": "0.1.0",
+  "name": "analos_token_launch",
+  "instructions": [
+    {
+      "name": "initializeTokenLaunch",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "totalSupply", "type": "u64" },
+        { "name": "initialPrice", "type": "u64" },
+        { "name": "tokenName", "type": "string" },
+        { "name": "tokenSymbol", "type": "string" }
+      ]
+    },
+    {
+      "name": "createToken",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": true, "isSigner": true },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "buyTokens",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": true, "isSigner": false },
+        { "name": "buyerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "buyer", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "sellTokens",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": true, "isSigner": false },
+        { "name": "sellerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "seller", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "updatePrice",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "newPrice", "type": "u64" }
+      ]
+    },
+    {
+      "name": "pauseLaunch",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "resumeLaunch",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdrawFunds",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "setBondingCurve",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "curveType", "type": "u8" },
+        { "name": "parameters", "type": { "vec": "u64" } }
+      ]
+    },
+    {
+      "name": "distributeByRarity",
+      "accounts": [
+        { "name": "tokenLaunchConfig", "isMut": true, "isSigner": false },
+        { "name": "mint", "isMut": true, "isSigner": false },
+        { "name": "recipientTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "rarityTier", "type": "string" },
+        { "name": "amount", "type": "u64" }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "TokenLaunchConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "mint", "type": "publicKey" },
+          { "name": "totalSupply", "type": "u64" },
+          { "name": "currentPrice", "type": "u64" },
+          { "name": "tokensSold", "type": "u64" },
+          { "name": "isPaused", "type": "bool" },
+          { "name": "curveType", "type": "u8" },
+          { "name": "createdAt", "type": "i64" },
+          { "name": "tokenName", "type": "string" },
+          { "name": "tokenSymbol", "type": "string" }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "TokenLaunchInitialized",
+      "fields": [
+        { "name": "mint", "type": "publicKey", "index": false },
+        { "name": "totalSupply", "type": "u64", "index": false },
+        { "name": "initialPrice", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "TokensBought",
+      "fields": [
+        { "name": "buyer", "type": "publicKey", "index": false },
+        { "name": "amount", "type": "u64", "index": false },
+        { "name": "price", "type": "u64", "index": false }
+      ]
+    },
+    {
+      "name": "TokensSold",
+      "fields": [
+        { "name": "seller", "type": "publicKey", "index": false },
+        { "name": "amount", "type": "u64", "index": false },
+        { "name": "price", "type": "u64", "index": false }
+      ]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "LaunchPaused", "msg": "Token launch is paused" },
+    { "code": 6001, "name": "InsufficientSupply", "msg": "Insufficient token supply" },
+    { "code": 6002, "name": "InvalidAmount", "msg": "Invalid token amount" },
+    { "code": 6003, "name": "Unauthorized", "msg": "Unauthorized access" }
+  ]
+}

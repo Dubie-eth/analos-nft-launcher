@@ -1,0 +1,96 @@
+{
+  "version": "0.1.0",
+  "name": "analos_price_oracle",
+  "instructions": [
+    {
+      "name": "initializeOracle",
+      "accounts": [
+        { "name": "priceOracle", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "initialLosMarketCapUsd", "type": "u64" }
+      ]
+    },
+    {
+      "name": "updateLosMarketCap",
+      "accounts": [
+        { "name": "priceOracle", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "newLosMarketCapUsd", "type": "u64" }
+      ]
+    },
+    {
+      "name": "pauseOracle",
+      "accounts": [
+        { "name": "priceOracle", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "resumeOracle",
+      "accounts": [
+        { "name": "priceOracle", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "updatePrice",
+      "accounts": [
+        { "name": "priceOracle", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "newPrice", "type": "u64" }
+      ]
+    },
+    {
+      "name": "getPrice",
+      "accounts": [
+        { "name": "priceOracle", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PriceOracle",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "losMarketCapUsd", "type": "u64" },
+          { "name": "losPrice", "type": "u64" },
+          { "name": "isPaused", "type": "bool" },
+          { "name": "lastUpdated", "type": "i64" }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "PriceUpdated",
+      "fields": [
+        { "name": "newPrice", "type": "u64", "index": false },
+        { "name": "timestamp", "type": "i64", "index": false }
+      ]
+    },
+    {
+      "name": "MarketCapUpdated",
+      "fields": [
+        { "name": "newMarketCap", "type": "u64", "index": false },
+        { "name": "timestamp", "type": "i64", "index": false }
+      ]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "OraclePaused", "msg": "Oracle is currently paused" },
+    { "code": 6001, "name": "InvalidPrice", "msg": "Invalid price value" },
+    { "code": 6002, "name": "Unauthorized", "msg": "Unauthorized access" }
+  ]
+}

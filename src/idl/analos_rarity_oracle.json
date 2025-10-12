@@ -1,0 +1,117 @@
+{
+  "version": "0.1.0",
+  "name": "analos_rarity_oracle",
+  "instructions": [
+    {
+      "name": "initializeRarityConfig",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": true, "isSigner": false },
+        { "name": "collectionConfig", "isMut": false, "isSigner": false },
+        { "name": "authority", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "setRarityTiers",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "tiers", "type": { "vec": { "defined": "RarityTier" } } }
+      ]
+    },
+    {
+      "name": "calculateRarity",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": false, "isSigner": false },
+        { "name": "mintRecord", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "revealRarity",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": false, "isSigner": false },
+        { "name": "mintRecord", "isMut": true, "isSigner": false }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateMetadata",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": false, "isSigner": false },
+        { "name": "mintRecord", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": [
+        { "name": "metadataUri", "type": "string" }
+      ]
+    },
+    {
+      "name": "pauseOracle",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "resumeOracle",
+      "accounts": [
+        { "name": "rarityConfig", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "RarityConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "collectionConfig", "type": "publicKey" },
+          { "name": "authority", "type": "publicKey" },
+          { "name": "oracleAuthority", "type": "publicKey" },
+          { "name": "totalRevealed", "type": "u64" },
+          { "name": "isActive", "type": "bool" },
+          { "name": "useMetadataBased", "type": "bool" },
+          { "name": "useRandomness", "type": "bool" },
+          { "name": "createdAt", "type": "i64" }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "RarityTier",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "name", "type": "string" },
+          { "name": "minScore", "type": "u64" },
+          { "name": "maxScore", "type": "u64" },
+          { "name": "percentage", "type": "u8" }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "RarityCalculated",
+      "fields": [
+        { "name": "mintIndex", "type": "u64", "index": false },
+        { "name": "rarityScore", "type": "u64", "index": false },
+        { "name": "tier", "type": "string", "index": false }
+      ]
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "OraclePaused", "msg": "Rarity oracle is paused" },
+    { "code": 6001, "name": "InvalidTier", "msg": "Invalid rarity tier configuration" },
+    { "code": 6002, "name": "AlreadyRevealed", "msg": "Rarity already revealed" }
+  ]
+}

@@ -3,13 +3,12 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-// import { Program, AnchorProvider, web3 } from '@project-serum/anchor'; // Temporarily disabled - no IDL available
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
 
-// Rarity Oracle IDL - you'll need to add this file
-// import idl from '../../programs/analos-rarity-oracle/target/idl/analos_rarity_oracle.json';
+import idl from '@/idl/analos_rarity_oracle.json';
 
 interface RarityOracleInitializerProps {}
 
@@ -24,8 +23,9 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
   const getProgram = () => {
-    // Temporarily disabled until Anchor IDL is available
-    return null;
+    if (!publicKey || !signTransaction) return null;
+    const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
+    return new Program(idl as any, ANALOS_PROGRAMS.RARITY_ORACLE, provider);
   };
 
   const getTransactionDetails = () => {
@@ -71,21 +71,34 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
         return;
       }
 
-      // For now, use simple transfer until we have proper IDL
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: ANALOS_PROGRAMS.RARITY_ORACLE,
-          lamports: 1000000, // 0.001 LOS for initialization
-        })
+      const program = getProgram();
+      if (!program) {
+        setResult({ success: false, message: 'Rarity Oracle program not found or wallet not connected.' });
+        return;
+      }
+
+      // Create the Rarity Config PDA
+      const [rarityConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('rarity_config'), publicKey.toBuffer()],
+        program.programId
       );
 
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
+      // Create a dummy collection config PDA for initialization
+      const [collectionConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('collection_config'), publicKey.toBuffer()],
+        program.programId
+      );
 
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      // Call the initializeRarityConfig instruction
+      const signature = await program.methods
+        .initializeRarityConfig()
+        .accounts({
+          rarityConfig: rarityConfigPda,
+          collectionConfig: collectionConfigPda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
       
       console.log('🚀 Rarity Oracle transaction sent successfully:', signature);
       
