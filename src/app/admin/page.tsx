@@ -57,6 +57,7 @@ export default function AdminDashboard() {
   // Authentication state management
   const [authStep, setAuthStep] = useState<'wallet' | 'setup' | '2fa' | 'authenticated'>('wallet');
   const [is2FASetup, setIs2FASetup] = useState(false);
+  const [sessionAuthenticated, setSessionAuthenticated] = useState(false);
   
   // State management
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'settings'>('overview');
@@ -72,13 +73,18 @@ export default function AdminDashboard() {
   const [programStatus, setProgramStatus] = useState<ProgramStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Check 2FA setup status
+  // Check authentication status on mount
   useEffect(() => {
-    const check2FASetup = () => {
+    const checkAuthStatus = () => {
       const isSetup = localStorage.getItem('admin-2fa-setup') === 'true';
-      setIs2FASetup(isSetup);
+      const isSessionAuth = sessionStorage.getItem('admin-authenticated') === 'true';
       
-      if (isAdmin && isSetup) {
+      setIs2FASetup(isSetup);
+      setSessionAuthenticated(isSessionAuth);
+      
+      if (isAdmin && isSessionAuth) {
+        setAuthStep('authenticated');
+      } else if (isAdmin && isSetup) {
         setAuthStep('2fa');
       } else if (isAdmin && !isSetup) {
         setAuthStep('setup');
@@ -87,8 +93,28 @@ export default function AdminDashboard() {
       }
     };
 
-    check2FASetup();
-  }, [isAdmin]);
+    checkAuthStatus();
+  }, []);
+
+  // Handle admin wallet connection changes
+  useEffect(() => {
+    if (isAdmin) {
+      const isSetup = localStorage.getItem('admin-2fa-setup') === 'true';
+      const isSessionAuth = sessionStorage.getItem('admin-authenticated') === 'true';
+      
+      if (isSessionAuth && authStep !== 'authenticated') {
+        setAuthStep('authenticated');
+      } else if (isSetup && authStep !== '2fa' && authStep !== 'authenticated') {
+        setAuthStep('2fa');
+      } else if (!isSetup && authStep !== 'setup' && authStep !== 'authenticated') {
+        setAuthStep('setup');
+      }
+    } else {
+      setAuthStep('wallet');
+      setSessionAuthenticated(false);
+      sessionStorage.removeItem('admin-authenticated');
+    }
+  }, [isAdmin, authStep]);
 
   // Authentication handlers
   const handle2FASetupComplete = () => {
@@ -97,11 +123,21 @@ export default function AdminDashboard() {
 
   const handle2FAVerified = () => {
     setAuthStep('authenticated');
+    setSessionAuthenticated(true);
+    sessionStorage.setItem('admin-authenticated', 'true');
     loadAdminData();
   };
 
   const handleAuthCancel = () => {
     setAuthStep('wallet');
+    setSessionAuthenticated(false);
+    sessionStorage.removeItem('admin-authenticated');
+  };
+
+  const handleLogout = () => {
+    setAuthStep('wallet');
+    setSessionAuthenticated(false);
+    sessionStorage.removeItem('admin-authenticated');
   };
 
   // Load admin data
@@ -333,9 +369,20 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            🎛️ Admin Dashboard
-          </h1>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex-1"></div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white">
+              🎛️ Admin Dashboard
+            </h1>
+            <div className="flex-1 flex justify-end">
+              <button
+                onClick={handleLogout}
+                className="bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 hover:text-red-200 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+              >
+                🚪 Logout
+              </button>
+            </div>
+          </div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Manage collections, programs, and platform settings on the Analos blockchain
           </p>
