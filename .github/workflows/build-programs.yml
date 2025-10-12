@@ -31,23 +31,16 @@ jobs:
         cp -r solana-release/* $HOME/.local/share/solana/install/active_release/
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
     
-    - name: Install Anchor with Solana's Cargo
+    - name: Build Programs
       run: |
         export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
         solana --version
         cargo --version
-        cargo install --git https://github.com/coral-xyz/anchor anchor-cli --locked --force
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    
-    - name: Build Programs  
-      run: |
-        find . -name "Cargo.lock" -type f -delete
-        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        echo "Building programs with Solana's toolchain..."
         cargo build-sbf --manifest-path=programs/analos-nft-launchpad/Cargo.toml
         cargo build-sbf --manifest-path=programs/analos-token-lock-enhanced/Cargo.toml
-        mkdir -p target/idl
-        anchor idl build -p analos_nft_launchpad -o target/idl/analos_nft_launchpad.json || echo "IDL generation skipped"
-        anchor idl build -p analos_token_lock_enhanced -o target/idl/analos_token_lock_enhanced.json || echo "IDL generation skipped"
+        echo "Build complete!"
+        ls -la target/deploy/
     
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
