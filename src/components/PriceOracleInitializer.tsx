@@ -76,40 +76,15 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      // Convert market cap to micro USD (6 decimals)
-      const marketCapMicroUSD = parseInt(losMarketCap) * 1000000; // Convert to 6 decimals
-      console.log('🔧 Market cap micro USD:', marketCapMicroUSD);
-      console.log('🔧 Market cap type:', typeof marketCapMicroUSD);
-
-      // Create BN instance for market cap with multiple fallback approaches
-      let marketCapBN;
-      try {
-        // Try Anchor's BN first
-        marketCapBN = new BN(marketCapMicroUSD);
-        console.log('✅ BN created with Anchor BN:', marketCapBN.toString());
-      } catch (anchorBnError) {
-        console.error('❌ Anchor BN failed:', anchorBnError);
-        try {
-          // Try with string
-          marketCapBN = new BN(marketCapMicroUSD.toString());
-          console.log('✅ BN created with string:', marketCapBN.toString());
-        } catch (stringBnError) {
-          console.error('❌ String BN failed:', stringBnError);
-          // Last resort: try with hex
-          marketCapBN = new BN(marketCapMicroUSD.toString(16), 16);
-          console.log('✅ BN created with hex:', marketCapBN.toString());
-        }
-      }
-
-      // Call the initializeOracle instruction with market cap argument
-      console.log('🚀 Calling initializeOracle instruction with market cap...');
-      console.log('🔧 Market cap BN object:', marketCapBN);
-      console.log('🔧 Market cap BN type:', typeof marketCapBN);
-      console.log('🔧 Market cap BN constructor:', marketCapBN.constructor.name);
+      // Test with no arguments - maybe the program doesn't expect any
+      console.log('🔧 Testing with no arguments...');
       
-      // Try using .rpc() method directly instead of .instruction()
+      // Call the initializeOracle instruction without any arguments
+      console.log('🚀 Calling initializeOracle instruction without arguments...');
+      
+      // Try using .rpc() method directly without arguments
       const signature = await program.methods
-        .initializeOracle(marketCapBN)
+        .initializeOracle()
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
