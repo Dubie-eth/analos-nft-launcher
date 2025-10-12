@@ -2,12 +2,10 @@
 
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, Transaction, SystemProgram, TransactionInstruction } from '@solana/web3.js';
-import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
+import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
-import idl from '@/idl/analos_price_oracle.json';
 
 export default function PriceOracleInitializer() {
   const { publicKey, connected, signTransaction } = useWallet();
@@ -51,24 +49,6 @@ export default function PriceOracleInitializer() {
         return;
       }
 
-      console.log('🔧 Creating Anchor provider...');
-      const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
-      
-      console.log('🔧 Creating Program instance...');
-      console.log('🔧 IDL object:', idl);
-      console.log('🔧 Provider object:', provider);
-      
-      let program;
-      try {
-        program = new Program(idl as any, provider);
-        console.log('✅ Program created successfully:', program.programId.toString());
-        console.log('🔧 Program methods available:', Object.keys(program.methods));
-      } catch (programError) {
-        console.error('❌ Program creation failed:', programError);
-        throw programError;
-      }
-
-      // Create the Price Oracle PDA
       console.log('🔧 Creating Price Oracle PDA...');
       const [priceOraclePda] = PublicKey.findProgramAddressSync(
         [Buffer.from('price_oracle'), publicKey.toBuffer()],
