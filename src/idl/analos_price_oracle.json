@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "analos_price_oracle",
   "instructions": [
     {
@@ -31,6 +31,21 @@
     { "code": 6000, "name": "OraclePaused", "msg": "Oracle is currently paused" },
     { "code": 6001, "name": "InvalidPrice", "msg": "Invalid price value" },
     { "code": 6002, "name": "Unauthorized", "msg": "Unauthorized access" }
+  ],
+  "types": [
+    {
+      "name": "PriceOracle",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "publicKey" },
+          { "name": "losMarketCapUsd", "type": "u64" },
+          { "name": "losPrice", "type": "u64" },
+          { "name": "isPaused", "type": "bool" },
+          { "name": "lastUpdated", "type": "i64" }
+        ]
+      }
+    }
   ],
   "address": "9dEJ2oK4cgDE994FU9za4t2BN7mFwSCfhSsLTGD3a4ym"
 }
