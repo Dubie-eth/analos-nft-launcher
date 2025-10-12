@@ -30,19 +30,35 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
     
     setHasShownSecret(secretShown);
     
+    // CRITICAL: If 2FA is already set up, NEVER generate a secret
+    if (setupComplete) {
+      setGeneratedSecret(null);
+      console.log('🔐 CRITICAL: 2FA already set up - NO SECRET GENERATED');
+      return;
+    }
+    
     // Only generate secret if 2FA is not set up AND secret hasn't been shown
-    if (!setupComplete && !secretShown) {
+    if (!secretShown) {
       // Generate a random secret key (in production, use proper TOTP secret generation)
-      // Using a different secret to ensure uniqueness
       const secret = 'JBSWY3DPEHPK3PXP'; // This should be generated randomly in production
       setGeneratedSecret(secret);
-      console.log('🔐 Generated new secret');
+      console.log('🔐 Generated new secret for first-time setup');
     } else {
-      // If 2FA is already set up, never generate a secret
+      // Secret was already shown before
       setGeneratedSecret(null);
-      console.log('🔐 Secret generation blocked - 2FA already set up');
+      console.log('🔐 Secret was already shown - NO SECRET GENERATED');
     }
   }, []);
+
+  // CRITICAL: If 2FA is already set up, redirect to verification
+  useEffect(() => {
+    const setupComplete = localStorage.getItem('admin-2fa-setup') === 'true';
+    if (setupComplete && !isSetup) {
+      console.log('🔐 2FA already set up - redirecting to verification');
+      // Call the setup complete handler to move to verification step
+      onSetupComplete();
+    }
+  }, [isSetup, onSetupComplete]);
 
   // Get the current secret (only available during initial setup)
   const currentSecret = generatedSecret;
@@ -133,8 +149,8 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
 
         {!isSetup ? (
           <>
-            {/* Only show secret if 2FA is not set up and we have a secret */}
-            {!hasShownSecret && currentSecret && !localStorage.getItem('admin-2fa-setup') ? (
+            {/* CRITICAL: Only show secret if 2FA is not set up, secret hasn't been shown, and we have a secret */}
+            {!hasShownSecret && currentSecret && !localStorage.getItem('admin-2fa-setup') && !localStorage.getItem('admin-2fa-secret-shown') ? (
               <>
                 {/* QR Code Section */}
                 <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10 text-center">
