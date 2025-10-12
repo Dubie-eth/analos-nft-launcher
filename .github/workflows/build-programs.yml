@@ -36,12 +36,12 @@ jobs:
         path: |
           ~/.cache/solana/
           ~/.local/share/solana/
-        key: solana-${{ runner.os }}-v1.18.26
+        key: solana-${{ runner.os }}-v2.0.0
     
     - name: Install Solana
       run: |
         if ! command -v solana &> /dev/null; then
-          wget -O - https://github.com/solana-labs/solana/releases/download/v1.18.26/solana-release-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
+          wget -O - https://github.com/anza-xyz/agave/releases/download/v2.0.0/solana-release-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
           mkdir -p $HOME/.local/share/solana/install
           cp -r solana-release/* $HOME/.local/share/solana/install/
           ln -sf $HOME/.local/share/solana/install $HOME/.local/share/solana/install/active_release
