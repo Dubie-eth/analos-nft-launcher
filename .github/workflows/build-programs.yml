@@ -58,7 +58,12 @@ jobs:
     - name: Build Programs
       run: |
         find . -name "Cargo.lock" -type f -delete
-        CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=fallback anchor build
+        export RUSTUP_TOOLCHAIN=1.82.0
+        cargo build-sbf --manifest-path programs/analos-nft-launchpad/Cargo.toml
+        cargo build-sbf --manifest-path programs/analos-token-lock-enhanced/Cargo.toml
+        mkdir -p target/deploy target/idl
+        anchor idl build -p analos_nft_launchpad -o target/idl/analos_nft_launchpad.json
+        anchor idl build -p analos_token_lock_enhanced -o target/idl/analos_token_lock_enhanced.json
     
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
