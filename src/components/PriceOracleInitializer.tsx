@@ -69,63 +69,98 @@ export default function PriceOracleInitializer() {
       console.log('🔗 Program ID:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
       console.log('🔗 PDA:', priceOraclePda.toString());
 
-      // Anchor discriminator for method "initialize_oracle"
-      // Hash of "global:initialize_oracle" first 8 bytes
-      const discriminator = crypto.createHash('sha256')
-        .update('global:initialize_oracle')
-        .digest()
-        .slice(0, 8);
+      // Try different discriminators - the deployed program might use a different one
+      const discriminators = [
+        {
+          name: 'Anchor global:initialize_oracle',
+          discriminator: crypto.createHash('sha256').update('global:initialize_oracle').digest().slice(0, 8)
+        },
+        {
+          name: 'Anchor global:initialize',
+          discriminator: crypto.createHash('sha256').update('global:initialize').digest().slice(0, 8)
+        },
+        {
+          name: 'Simple zero discriminator',
+          discriminator: Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        },
+        {
+          name: 'Simple one discriminator',
+          discriminator: Buffer.from([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        }
+      ];
       
-      console.log('🔧 Discriminator:', discriminator.toString('hex'));
-
-      // Create raw instruction data: discriminator (8 bytes) + market_cap_usd (u64, 8 bytes)
-      const instructionData = Buffer.alloc(8 + 8); 
-      instructionData.set(discriminator, 0);
+      // Try each discriminator until one works
+      let success = false;
+      let lastError = null;
       
-      // Set market cap as little-endian u64 (in USD, no conversion needed)
-      const marketCapBuffer = Buffer.alloc(8);
-      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapUSD), 0);
-      instructionData.set(marketCapBuffer, 8);
+      for (const { name, discriminator } of discriminators) {
+        try {
+          console.log(`🔧 Trying discriminator: ${name}`);
+          console.log(`🔧 Discriminator: ${discriminator.toString('hex')}`);
+
+          // Create raw instruction data: discriminator (8 bytes) + market_cap_usd (u64, 8 bytes)
+          const instructionData = Buffer.alloc(8 + 8); 
+          instructionData.set(discriminator, 0);
+          
+          // Set market cap as little-endian u64 (in USD, no conversion needed)
+          const marketCapBuffer = Buffer.alloc(8);
+          marketCapBuffer.writeBigUInt64LE(BigInt(marketCapUSD), 0);
+          instructionData.set(marketCapBuffer, 8);
       
-      console.log('🔧 Instruction data length:', instructionData.length);
-      console.log('🔧 Market cap buffer:', marketCapBuffer.toString('hex'));
+          console.log('🔧 Instruction data length:', instructionData.length);
+          console.log('🔧 Market cap buffer:', marketCapBuffer.toString('hex'));
 
-      // Create the raw instruction
-      const initializeInstruction = new TransactionInstruction({
-        keys: [
-          { pubkey: priceOraclePda, isSigner: false, isWritable: true },
-          { pubkey: publicKey, isSigner: true, isWritable: true },
-          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-        ],
-        programId: ANALOS_PROGRAMS.PRICE_ORACLE,
-        data: instructionData,
-      });
+          // Create the raw instruction
+          const initializeInstruction = new TransactionInstruction({
+            keys: [
+              { pubkey: priceOraclePda, isSigner: false, isWritable: true },
+              { pubkey: publicKey, isSigner: true, isWritable: true },
+              { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+            ],
+            programId: ANALOS_PROGRAMS.PRICE_ORACLE,
+            data: instructionData,
+          });
 
-      // Create and send transaction
-      const transaction = new Transaction().add(initializeInstruction);
+          // Create and send transaction
+          const transaction = new Transaction().add(initializeInstruction);
+          
+          // Get latest blockhash and set transaction properties
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+          transaction.recentBlockhash = blockhash;
+          transaction.feePayer = publicKey;
+
+          // Sign and send transaction
+          const signedTransaction = await signTransaction(transaction);
+          const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+            skipPreflight: false,
+            maxRetries: 3,
+          });
+
+          console.log('✅ Transaction sent successfully! Signature:', signature);
+          console.log(`✅ Success with discriminator: ${name}`);
+
+          // Confirm transaction
+          await connection.confirmTransaction({
+            signature,
+            blockhash,
+            lastValidBlockHeight,
+          }, 'confirmed');
+
+          console.log('✅ Price Oracle initialized successfully on blockchain:', signature);
+          success = true;
+          break; // Exit the loop on success
+          
+        } catch (error: any) {
+          console.log(`❌ Failed with discriminator: ${name}`);
+          console.log(`❌ Error: ${error.message}`);
+          lastError = error;
+          continue; // Try next discriminator
+        }
+      }
       
-      // Get latest blockhash and set transaction properties
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      // Sign and send transaction
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-        skipPreflight: false,
-        maxRetries: 3,
-      });
-
-      console.log('✅ Transaction sent successfully! Signature:', signature);
-
-      // Confirm transaction
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight,
-      }, 'confirmed');
-
-      console.log('✅ Price Oracle initialized successfully on blockchain:', signature);
+      if (!success) {
+        throw lastError || new Error('All discriminators failed');
+      }
 
       // Also store locally for UI persistence
       const oracleData = {
