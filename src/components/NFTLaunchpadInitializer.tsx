@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { Program, AnchorProvider, web3 } from '@project-serum/anchor';
+// import { Program, AnchorProvider, web3 } from '@project-serum/anchor'; // Temporarily disabled - no IDL available
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
@@ -25,15 +25,12 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
   const getProgram = () => {
-    if (!publicKey) return null;
-    const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
-    // return new Program(idl as any, ANALOS_PROGRAMS.NFT_LAUNCHPAD, provider);
-    return null; // Temporarily disabled until IDL is available
+    // Temporarily disabled until Anchor IDL is available
+    return null;
   };
 
   const getTransactionDetails = () => {
-    const program = getProgram();
-    if (!program || !publicKey) return null;
+    if (!publicKey) return null;
 
     const fee = '0.002 LOS'; // Estimated fee for initialization
     const programId = ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString();

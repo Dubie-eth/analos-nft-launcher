@@ -51,7 +51,7 @@ export default function PriceOracleInitializer() {
 
       // Create the Price Oracle PDA
       const [priceOraclePda] = PublicKey.findProgramAddressSync(
-        [b"price_oracle"],
+        [Buffer.from('price_oracle')],
         ANALOS_PROGRAMS.PRICE_ORACLE
       );
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { Program, AnchorProvider, web3 } from '@project-serum/anchor';
+// import { Program, AnchorProvider, web3 } from '@project-serum/anchor'; // Temporarily disabled - no IDL available
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
@@ -24,20 +24,16 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
 
   const getProgram = () => {
-    if (!publicKey) return null;
-    const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
-    // return new Program(idl as any, ANALOS_PROGRAMS.RARITY_ORACLE, provider);
-    return null; // Temporarily disabled until IDL is available
+    // Temporarily disabled until Anchor IDL is available
+    return null;
   };
 
   const getTransactionDetails = () => {
-    const program = getProgram();
-    if (!program || !publicKey) return null;
+    if (!publicKey) return null;
 
     const fee = '0.001 LOS'; // Estimated fee for initialization
     const programId = ANALOS_PROGRAMS.RARITY_ORACLE.toString();
     
-    // For now, use a simple transfer until we have the proper IDL
     return {
       title: 'Initialize Rarity Oracle Program',
       description: `Initialize the Rarity Oracle program for collection configuration.`,
