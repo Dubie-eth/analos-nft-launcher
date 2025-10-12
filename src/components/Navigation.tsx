@@ -125,7 +125,7 @@ export default function Navigation() {
           </div>
 
           {/* Secure Wallet Connection */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 wallet-connection-container">
             <SecureWalletConnection />
           </div>
         </div>

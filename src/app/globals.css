@@ -70,3 +70,22 @@ body {
     padding: 0.5rem 1rem;
   }
 }
+
+/* Fix warning banner positioning */
+.warning-banner {
+  position: relative;
+  z-index: 50;
+  margin-bottom: 0;
+}
+
+/* Ensure navigation is below warning banner */
+.navigation-container {
+  position: relative;
+  z-index: 40;
+}
+
+/* Fix wallet button positioning */
+.wallet-connection-container {
+  position: relative;
+  z-index: 45;
+}

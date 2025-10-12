@@ -27,11 +27,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SecureWalletProvider>
-          <ClientNavigation />
-          
-          {/* Global Warning Banner */}
-          <div className="bg-yellow-500/90 border-b border-yellow-400/50 shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          {/* Global Warning Banner - positioned above navigation */}
+          <div className="bg-yellow-500/90 border-b border-yellow-400/50 shadow-lg warning-banner">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
               <div className="flex items-center justify-center space-x-2 text-yellow-900">
                 <span className="text-lg">⚠️</span>
                 <span className="font-semibold text-sm">
@@ -39,6 +37,10 @@ export default function RootLayout({
                 </span>
               </div>
             </div>
+          </div>
+          
+          <div className="navigation-container">
+            <ClientNavigation />
           </div>
           
           <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
