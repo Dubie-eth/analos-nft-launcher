@@ -79,7 +79,6 @@ export default function PriceOracleInitializer() {
       console.log('🔗 BLOCKCHAIN APPROACH: Initializing Price Oracle on Analos blockchain...');
       
       // Now that programs are deployed, use real blockchain calls
-      const program = getProgram();
       if (!program) {
         throw new Error('Program not found or wallet not connected');
       }
