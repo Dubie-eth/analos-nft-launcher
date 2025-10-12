@@ -69,13 +69,14 @@ export default function PriceOracleInitializer() {
       console.log('🔗 Program ID:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
       console.log('🔗 PDA:', priceOraclePda.toString());
 
-      // Calculate the correct discriminator for initializeOracle
-      // Anchor uses sha256("global:initialize_oracle")[0:8]
-      const crypto = require('crypto');
-      const discriminator = crypto.createHash('sha256')
-        .update('global:initialize_oracle')
-        .digest()
-        .slice(0, 8);
+      // Try different discriminators - the deployed program might use a different one
+      const discriminators = [
+        crypto.createHash('sha256').update('global:initialize_oracle').digest().slice(0, 8),
+        Buffer.from([0x8f, 0x9e, 0x4e, 0x4e, 0x00, 0x00, 0x00, 0x00]), // Previous attempt
+        Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]), // Simple zero discriminator
+      ];
+      
+      const discriminator = discriminators[0]; // Try the first one
       
       console.log('🔧 Discriminator:', discriminator.toString('hex'));
 
