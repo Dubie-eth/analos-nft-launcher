@@ -27,13 +27,8 @@ export default function Navigation() {
         { href: '/profile', label: 'Profile', icon: '👤' },
       ];
 
-  // Admin-only navigation items (always show for now - admin check happens in admin page)
-  const adminNavItems = [
-    { href: '/admin', label: 'Admin Dashboard', icon: '🎛️' },
-  ];
-
-  // Combine navigation items - show admin link for all users (admin page handles auth)
-  const navItems = [...baseNavItems, ...adminNavItems];
+  // Navigation items - admin page is hidden from navigation for security
+  const navItems = baseNavItems;
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';

@@ -9,6 +9,8 @@ import SystemHealthDashboard from '@/components/SystemHealthDashboard';
 import PriceOracleInitializer from '@/components/PriceOracleInitializer';
 import PriceOracleAutomation from '@/components/PriceOracleAutomation';
 import SecureKeypairRotation from '@/components/SecureKeypairRotation';
+import TwoFactorAuth from '@/components/TwoFactorAuth';
+import TwoFactorSetup from '@/components/TwoFactorSetup';
 
 interface CollectionStats {
   name: string;
@@ -43,6 +45,18 @@ export default function AdminDashboard() {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
   
+  // Admin wallet addresses - only these wallets can access admin
+  const ADMIN_WALLETS = [
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your admin wallet
+    // Add more admin wallets here if needed
+  ];
+  
+  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+  
+  // Authentication state management
+  const [authStep, setAuthStep] = useState<'wallet' | 'setup' | '2fa' | 'authenticated'>('wallet');
+  const [is2FASetup, setIs2FASetup] = useState(false);
+  
   // State management
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'settings'>('overview');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
@@ -57,18 +71,46 @@ export default function AdminDashboard() {
   const [programStatus, setProgramStatus] = useState<ProgramStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Admin wallet addresses (you can add your admin addresses here)
-  const ADMIN_WALLETS = ['86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q'];
-  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+  // Check 2FA setup status
+  useEffect(() => {
+    const check2FASetup = () => {
+      const isSetup = localStorage.getItem('admin-2fa-setup') === 'true';
+      setIs2FASetup(isSetup);
+      
+      if (isAdmin && isSetup) {
+        setAuthStep('2fa');
+      } else if (isAdmin && !isSetup) {
+        setAuthStep('setup');
+      } else {
+        setAuthStep('wallet');
+      }
+    };
+
+    check2FASetup();
+  }, [isAdmin]);
+
+  // Authentication handlers
+  const handle2FASetupComplete = () => {
+    setAuthStep('2fa');
+  };
+
+  const handle2FAVerified = () => {
+    setAuthStep('authenticated');
+    loadAdminData();
+  };
+
+  const handleAuthCancel = () => {
+    setAuthStep('wallet');
+  };
 
   // Load admin data
   useEffect(() => {
-    if (connected && isAdmin) {
+    if (connected && isAdmin && authStep === 'authenticated') {
       loadAdminData();
     } else {
       setLoading(false);
     }
-  }, [connected, isAdmin]);
+  }, [connected, isAdmin, authStep]);
 
   const loadAdminData = async () => {
     try {
@@ -250,6 +292,26 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // 2FA Setup Step
+  if (authStep === 'setup') {
+    return (
+      <TwoFactorSetup
+        onSetupComplete={handle2FASetupComplete}
+        onCancel={handleAuthCancel}
+      />
+    );
+  }
+
+  // 2FA Verification Step
+  if (authStep === '2fa') {
+    return (
+      <TwoFactorAuth
+        onVerified={handle2FAVerified}
+        onCancel={handleAuthCancel}
+      />
     );
   }
 
