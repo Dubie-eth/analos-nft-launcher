@@ -145,6 +145,18 @@ export default function AdminDashboard() {
     sessionStorage.removeItem('admin-authenticated');
   };
 
+  const handleResetAuth = () => {
+    if (window.confirm('Reset all admin authentication? This will require 2FA setup again.')) {
+      setAuthStep('wallet');
+      setSessionAuthenticated(false);
+      setHasCanceledSetup(false);
+      sessionStorage.removeItem('admin-authenticated');
+      localStorage.removeItem('admin-2fa-setup');
+      localStorage.removeItem('admin-2fa-secret-shown');
+      window.location.reload();
+    }
+  };
+
   // Load admin data
   useEffect(() => {
     if (connected && isAdmin && authStep === 'authenticated') {
@@ -405,7 +417,13 @@ export default function AdminDashboard() {
             <h1 className="text-4xl md:text-5xl font-bold text-white">
               🎛️ Admin Dashboard
             </h1>
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex justify-end space-x-2">
+              <button
+                onClick={handleResetAuth}
+                className="bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/50 text-orange-300 hover:text-orange-200 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+              >
+                🔄 Reset Auth
+              </button>
               <button
                 onClick={handleLogout}
                 className="bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 hover:text-red-200 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
