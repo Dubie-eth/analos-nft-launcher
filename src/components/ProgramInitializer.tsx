@@ -162,10 +162,12 @@ export default function ProgramInitializer({ programType }: ProgramInitializerPr
       const signedTransaction = await signTransaction(transaction);
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
+      console.log('🚀 Transaction sent successfully:', signature);
+      
       // Transaction sent successfully - show success immediately
       setResult({
         success: true,
-        message: `${message} Transaction sent: ${signature}`,
+        message: `${message} ✅ Transaction sent successfully!`,
         signature
       });
 
