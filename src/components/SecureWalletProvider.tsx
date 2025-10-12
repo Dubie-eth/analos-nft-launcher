@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { SolflareWalletAdapter, BackpackWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 
 // Import wallet adapter CSS
@@ -22,6 +22,7 @@ export default function SecureWalletProvider({ children }: SecureWalletProviderP
   // Enhanced security: Only allow trusted wallets that support custom RPCs
   const wallets = useMemo(
     () => [
+      new BackpackWalletAdapter(),
       new SolflareWalletAdapter(),
       // Phantom removed - doesn't support custom RPCs yet
     ],

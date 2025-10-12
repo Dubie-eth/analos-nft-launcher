@@ -21,6 +21,17 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
     setMounted(true);
   }, []);
 
+  // Debug: Log wallet detection
+  useEffect(() => {
+    if (mounted) {
+      console.log('🔗 Wallet adapters loaded:', {
+        connected,
+        publicKey: publicKey?.toString(),
+        walletName: wallet?.adapter?.name
+      });
+    }
+  }, [mounted, connected, publicKey, wallet]);
+
   // Show security warning on first connection attempt
   useEffect(() => {
     if (!hasShownSecurityWarning) {
@@ -168,6 +179,25 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
         
         .wallet-adapter-modal-wrapper {
           z-index: 9999 !important;
+        }
+        
+        /* Mobile-specific wallet button improvements */
+        @media (max-width: 768px) {
+          .wallet-adapter-button-custom {
+            min-width: 120px !important;
+            font-size: 0.75rem !important;
+            padding: 0.5rem 1rem !important;
+          }
+          
+          .wallet-adapter-modal {
+            margin: 1rem !important;
+            max-width: calc(100vw - 2rem) !important;
+          }
+          
+          .wallet-adapter-modal-list {
+            max-height: 60vh !important;
+            overflow-y: auto !important;
+          }
         }
       `}</style>
     </div>
