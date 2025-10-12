@@ -25,7 +25,7 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
   const getProgram = () => {
     if (!publicKey || !signTransaction) return null;
     const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
-    return new Program(idl as any, ANALOS_PROGRAMS.RARITY_ORACLE, provider);
+    return new Program(idl as any, ANALOS_PROGRAMS.RARITY_ORACLE.toString(), provider);
   };
 
   const getTransactionDetails = () => {

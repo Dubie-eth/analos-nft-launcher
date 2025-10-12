@@ -51,7 +51,7 @@ export default function PriceOracleInitializer() {
         return;
       }
 
-      const program = new Program(idl as any, ANALOS_PROGRAMS.PRICE_ORACLE, new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' }));
+      const program = new Program(idl as any, ANALOS_PROGRAMS.PRICE_ORACLE.toString(), new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' }));
 
       // Create the Price Oracle PDA
       const [priceOraclePda] = PublicKey.findProgramAddressSync(
