@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
+import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
+import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
+import idl from '@/idl/analos_price_oracle_correct.json';
 
 export default function PriceOracleInitializer() {
   const { publicKey, connected, signTransaction } = useWallet();
@@ -16,6 +18,12 @@ export default function PriceOracleInitializer() {
   
   // Use WebSocket-disabled connection
   const connection = useWebSocketDisabledConnection(ANALOS_RPC_URL);
+
+  const getProgram = useCallback(() => {
+    if (!publicKey || !signTransaction) return null;
+    const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
+    return new Program(idl as any, provider);
+  }, [publicKey, signTransaction, connection]);
 
   const getTransactionDetails = () => {
     return {
@@ -56,65 +64,47 @@ export default function PriceOracleInitializer() {
       );
       console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
-      console.log('🔗 BLOCKCHAIN APPROACH: Initializing Price Oracle on Analos blockchain...');
+      console.log('🔗 REAL BLOCKCHAIN INITIALIZATION: Using correct IDL with deployed program...');
       
-      // Use the working simulation logic but target the real deployed program
+      // Get the program instance using the correct IDL
+      const program = getProgram();
+      if (!program) {
+        throw new Error('Program not found or wallet not connected');
+      }
+
+      // Convert market cap to proper format (USD with 6 decimals)
       const marketCapUSD = parseInt(losMarketCap);
-      const pricePerLOS = 0.0008887; // Current LOS price
-      const totalSupply = marketCapUSD / pricePerLOS;
+      const marketCapMicroUSD = marketCapUSD * 1000000; // Convert to micro USD (6 decimals)
       
-      // Create oracle data (same as simulation)
+      console.log('📊 Market Cap (USD):', marketCapUSD);
+      console.log('📊 Market Cap (micro USD):', marketCapMicroUSD);
+      console.log('🔗 Program ID:', program.programId.toString());
+      console.log('🔗 PDA:', priceOraclePda.toString());
+
+      // Use the proper Anchor instruction call
+      const signature = await program.methods
+        .initializeOracle(new BN(marketCapMicroUSD))
+        .accounts({
+          priceOracle: priceOraclePda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log('✅ Price Oracle initialized successfully on blockchain:', signature);
+
+      // Also store locally for UI persistence
       const oracleData = {
         authority: publicKey.toString(),
         marketCapUsd: marketCapUSD,
-        pricePerLOS: pricePerLOS,
-        totalSupply: totalSupply,
+        marketCapMicroUsd: marketCapMicroUSD,
         lastUpdated: new Date().toISOString(),
         isActive: true,
-        programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString()
+        programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
+        signature: signature
       };
       
-      console.log('📊 Oracle Data:', oracleData);
-      
-      // Store in localStorage for persistence (same as simulation)
       localStorage.setItem('analos-price-oracle', JSON.stringify(oracleData));
-      
-      // Now send a real transaction to the deployed program
-      console.log('📡 Sending real transaction to deployed program...');
-      console.log('🔗 Program ID:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
-      console.log('🔗 PDA:', priceOraclePda.toString());
-      
-      // Create a simple transfer transaction (like the working simulation did)
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: priceOraclePda,
-          lamports: 1000000, // 0.001 SOL transfer
-        })
-      );
-      
-      // Get latest blockhash and set transaction properties
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      // Sign and send transaction
-      const signedTransaction = await signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-        skipPreflight: false,
-        maxRetries: 3,
-      });
-
-      console.log('✅ Transaction sent successfully! Signature:', signature);
-
-      // Confirm transaction
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight,
-      }, 'confirmed');
-      
-      console.log('🚀 Price Oracle initialized successfully on blockchain:', signature);
       
       // Blockchain initialization complete - show success
       setResult({
@@ -236,13 +226,13 @@ export default function PriceOracleInitializer() {
       </div>
 
       <div className="mt-6 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-        <h4 className="text-green-300 font-semibold mb-2">✅ Hybrid Approach: Simulation Logic + Real Blockchain</h4>
+        <h4 className="text-green-300 font-semibold mb-2">✅ Real Blockchain Initialization with Correct IDL</h4>
         <ul className="text-green-200 text-sm space-y-1">
-          <li>• <span className="text-green-300">🚀 Uses working simulation logic</span></li>
-          <li>• Oracle data stored locally AND on-chain</li>
-          <li>• Market Cap: Sets the initial LOS market cap in USD</li>
-          <li>• Price calculated: $0.0008887 per LOS token</li>
-          <li>• Real transaction sent to deployed program</li>
+          <li>• <span className="text-green-300">🚀 Uses correct IDL matching deployed program</span></li>
+          <li>• Calls actual initializeOracle instruction on blockchain</li>
+          <li>• Market Cap: Sets initial LOS market cap in USD (6 decimals)</li>
+          <li>• Creates real PriceOracle account on-chain</li>
+          <li>• Real transaction with proper Anchor instruction</li>
         </ul>
       </div>
 

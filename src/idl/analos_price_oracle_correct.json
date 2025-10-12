@@ -1,0 +1,258 @@
+{
+  "version": "0.1.0",
+  "name": "analos_price_oracle",
+  "instructions": [
+    {
+      "name": "initializeOracle",
+      "accounts": [
+        {
+          "name": "priceOracle",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "initialLosMarketCapUsd",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateLosMarketCap",
+      "accounts": [
+        {
+          "name": "priceOracle",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "updater",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newMarketCapUsd",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "calculatePrice",
+      "accounts": [
+        {
+          "name": "priceOracle",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "calculatePoolTarget",
+      "accounts": [
+        {
+          "name": "priceOracle",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "pauseOracle",
+      "accounts": [
+        {
+          "name": "priceOracle",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "resumeOracle",
+      "accounts": [
+        {
+          "name": "priceOracle",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PriceOracle",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "losMarketCapUsd",
+            "type": "u64"
+          },
+          {
+            "name": "losPriceUsd",
+            "type": "u64"
+          },
+          {
+            "name": "lastUpdate",
+            "type": "i64"
+          },
+          {
+            "name": "updateCount",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "OracleInitializedEvent",
+      "fields": [
+        {
+          "name": "authority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "initialLosMarketCapUsd",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "LosPriceUpdatedEvent",
+      "fields": [
+        {
+          "name": "oldMarketCapUsd",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "newMarketCapUsd",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "losPriceUsd",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "circulatingSupply",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "updatedBy",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "OraclePausedEvent",
+      "fields": [
+        {
+          "name": "reason",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "pausedBy",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "OracleResumedEvent",
+      "fields": [
+        {
+          "name": "resumedBy",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "OracleInactive",
+      "msg": "Oracle is inactive"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidPrice",
+      "msg": "Invalid price value"
+    },
+    {
+      "code": 6002,
+      "name": "Unauthorized",
+      "msg": "Unauthorized access"
+    }
+  ],
+  "metadata": {
+    "address": "v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62"
+  }
+}
