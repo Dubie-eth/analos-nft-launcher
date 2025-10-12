@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
+import NFTWizard from '@/components/NFTWizard';
 
 interface CollectionConfig {
   name: string;
@@ -21,6 +22,7 @@ export default function LaunchCollectionPage() {
   const { publicKey, connected, signTransaction } = useWallet();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string; signature?: string } | null>(null);
+  const [showWizard, setShowWizard] = useState(false);
   const [collectionConfig, setCollectionConfig] = useState<CollectionConfig>({
     name: '',
     symbol: '',
@@ -42,6 +44,27 @@ export default function LaunchCollectionPage() {
 
   const handleInputChange = (field: keyof CollectionConfig, value: string | number | boolean) => {
     setCollectionConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleWizardComplete = (wizardConfig: any) => {
+    setCollectionConfig({
+      name: wizardConfig.name,
+      symbol: wizardConfig.symbol,
+      description: wizardConfig.description,
+      maxSupply: wizardConfig.maxSupply,
+      mintPriceUSD: wizardConfig.mintPrice,
+      creatorAddress: wizardConfig.creatorAddress,
+      isWhitelistOnly: wizardConfig.isWhitelistOnly,
+      revealType: wizardConfig.revealType,
+      revealDate: wizardConfig.revealDate,
+    });
+    setShowWizard(false);
+    // Here you would also store the images, metadata, and whitelist data
+    console.log('Wizard completed with config:', wizardConfig);
+  };
+
+  const handleWizardCancel = () => {
+    setShowWizard(false);
   };
 
   const validateForm = (): string | null => {
@@ -99,6 +122,11 @@ export default function LaunchCollectionPage() {
     }
   };
 
+  // Show wizard if requested
+  if (showWizard) {
+    return <NFTWizard onComplete={handleWizardComplete} onCancel={handleWizardCancel} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-8">
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
@@ -110,6 +138,28 @@ export default function LaunchCollectionPage() {
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Deploy your collection on the Analos blockchain with our enterprise-grade NFT launchpad
           </p>
+        </div>
+
+        {/* Wizard Option */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">🎨 NFT Collection Wizard</h2>
+            <p className="text-gray-300 mb-6">
+              Use our step-by-step wizard to create your NFT collection with images, metadata, and whitelist configuration
+            </p>
+            <button
+              onClick={() => setShowWizard(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <span>🎨</span>
+                <span>Start NFT Wizard</span>
+              </div>
+            </button>
+            <p className="text-gray-400 text-sm mt-4">
+              Or continue with manual configuration below
+            </p>
+          </div>
         </div>
 
         {/* Program Information */}
