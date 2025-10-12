@@ -113,5 +113,8 @@
     { "code": 6000, "name": "OraclePaused", "msg": "Rarity oracle is paused" },
     { "code": 6001, "name": "InvalidTier", "msg": "Invalid rarity tier configuration" },
     { "code": 6002, "name": "AlreadyRevealed", "msg": "Rarity already revealed" }
-  ]
+  ],
+  "metadata": {
+    "address": "H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6"
+  }
 }

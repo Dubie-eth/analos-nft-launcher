@@ -146,5 +146,8 @@
     { "code": 6004, "name": "NotRevealed", "msg": "Collection has not been revealed yet" },
     { "code": 6005, "name": "InsufficientFunds", "msg": "Insufficient funds for withdrawal" },
     { "code": 6006, "name": "InvalidThreshold", "msg": "Invalid threshold value" }
-  ]
+  ],
+  "metadata": {
+    "address": "5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"
+  }
 }
