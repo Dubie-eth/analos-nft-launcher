@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import dynamic from 'next/dynamic';
 
 interface SecureWalletConnectionProps {
@@ -10,10 +10,10 @@ interface SecureWalletConnectionProps {
 }
 
 function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnectionProps) {
-  const { publicKey, connected, disconnect, wallet, select, wallets } = useWallet();
-  const walletModal = useWalletModal();
+  const { publicKey, connected, wallet } = useWallet();
   const [isBurnerWallet, setIsBurnerWallet] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [hasShownSecurityWarning, setHasShownSecurityWarning] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Ensure component is mounted on client side
@@ -21,10 +21,19 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
     setMounted(true);
   }, []);
 
+  // Show security warning on first connection attempt
+  useEffect(() => {
+    if (!hasShownSecurityWarning) {
+      const warningShown = sessionStorage.getItem('security-warning-shown');
+      if (warningShown) {
+        setHasShownSecurityWarning(true);
+      }
+    }
+  }, [hasShownSecurityWarning]);
+
   // Enhanced security: Check if wallet is likely a burner wallet
   useEffect(() => {
     if (connected && publicKey) {
-      // Check if wallet address suggests it's a new/burner wallet
       const address = publicKey.toString();
       
       // Simple checks for burner wallet indicators
@@ -41,42 +50,42 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
     }
   }, [connected, publicKey]);
 
-  const handleConnect = () => {
-    if (!mounted) return;
-    
-    // Enhanced security: Show warning before connecting
-    const userConfirmed = window.confirm(
-      '🔒 SECURITY WARNING 🔒\n\n' +
-      'Please ensure you are using a BURNER WALLET with minimal funds.\n\n' +
-      '✅ Recommended: Create a new wallet specifically for testing\n' +
-      '❌ Avoid: Using your main wallet with significant funds\n\n' +
-      'This platform is in BETA. Do you want to continue?'
-    );
-    
-    if (userConfirmed) {
-      try {
-        walletModal.setVisible(true);
-      } catch (error) {
-        console.error('Error opening wallet modal:', error);
-        // Fallback: try to select the first available wallet
-        if (wallets.length > 0) {
-          select(wallets[0].adapter.name);
+  // Intercept wallet connection to show security warning
+  useEffect(() => {
+    if (!mounted || hasShownSecurityWarning) return;
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if clicking on wallet button
+      if (target.closest('.wallet-adapter-button')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const userConfirmed = window.confirm(
+          '🔒 SECURITY WARNING 🔒\n\n' +
+          'Please ensure you are using a BURNER WALLET with minimal funds.\n\n' +
+          '✅ Recommended: Create a new wallet specifically for testing\n' +
+          '❌ Avoid: Using your main wallet with significant funds\n\n' +
+          'This platform is in BETA. Do you want to continue?'
+        );
+        
+        if (userConfirmed) {
+          setHasShownSecurityWarning(true);
+          sessionStorage.setItem('security-warning-shown', 'true');
+          // Allow the click to proceed
+          setTimeout(() => {
+            target.click();
+          }, 100);
         }
       }
-    }
-  };
+    };
 
-  const handleDisconnect = async () => {
-    const userConfirmed = window.confirm('Are you sure you want to disconnect your wallet?');
-    if (userConfirmed) {
-      try {
-        await disconnect();
-        setShowWarning(false);
-      } catch (error) {
-        console.error('Error disconnecting wallet:', error);
-      }
-    }
-  };
+    document.addEventListener('click', handleClick, { capture: true });
+    
+    return () => {
+      document.removeEventListener('click', handleClick, { capture: true });
+    };
+  }, [mounted, hasShownSecurityWarning]);
 
   // Don't render until mounted to avoid hydration mismatch
   if (!mounted) {
@@ -93,52 +102,60 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
     );
   }
 
-  // For navigation, show a simplified version
-  if (!connected) {
-    return (
-      <button
-        onClick={handleConnect}
-        className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-sm ${className}`}
-      >
-        <div className="flex items-center space-x-2">
-          <span>🔒</span>
-          <span>Connect Wallet</span>
-        </div>
-      </button>
-    );
-  }
-
   return (
-    <div className={`space-y-2 ${className}`}>
-      {/* Connected Wallet Info - Compact */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-white font-semibold text-sm">Connected</span>
+    <div className={`wallet-connection-wrapper ${className}`}>
+      {/* Wallet Security Badge */}
+      {connected && (
+        <div className="mb-2">
           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
             isBurnerWallet ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
           }`}>
-            {isBurnerWallet ? 'Secure' : 'Caution'}
+            {isBurnerWallet ? '✅ Secure' : '⚠️ Caution'}
           </span>
         </div>
-        <div className="text-xs text-gray-300 mb-2">
-          <div className="font-mono break-all wallet-address">
-            {publicKey?.toString().slice(0, 6)}...{publicKey?.toString().slice(-6)}
-          </div>
-          {wallet && (
-            <div className="text-xs text-gray-400 mt-1">
-              {wallet.adapter.name}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
-      {/* Disconnect Button - Compact */}
-      <button
-        onClick={handleDisconnect}
-        className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/50 py-1 px-3 rounded-lg transition-all duration-200 text-sm"
-      >
-        Disconnect
-      </button>
+      {/* Standard Wallet Multi Button with custom styling */}
+      <WalletMultiButton 
+        className="wallet-adapter-button-custom"
+        style={{
+          background: 'linear-gradient(to right, #2563eb, #7c3aed)',
+          fontWeight: 'bold',
+          padding: '0.5rem 1rem',
+          borderRadius: '0.5rem',
+          fontSize: '0.875rem',
+          transition: 'all 0.2s',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        }}
+      />
+
+      {/* Warning for non-burner wallets */}
+      {showWarning && connected && !isBurnerWallet && (
+        <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs text-yellow-300">
+          ⚠️ Please use a burner wallet for safety
+        </div>
+      )}
+
+      <style jsx global>{`
+        .wallet-adapter-button-custom {
+          background: linear-gradient(to right, #2563eb, #7c3aed) !important;
+          font-weight: bold !important;
+          padding: 0.5rem 1rem !important;
+          border-radius: 0.5rem !important;
+          font-size: 0.875rem !important;
+          transition: all 0.2s !important;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .wallet-adapter-button-custom:hover {
+          background: linear-gradient(to right, #1d4ed8, #6d28d9) !important;
+          transform: scale(1.05);
+        }
+        
+        .wallet-adapter-modal-wrapper {
+          z-index: 9999 !important;
+        }
+      `}</style>
     </div>
   );
 }
