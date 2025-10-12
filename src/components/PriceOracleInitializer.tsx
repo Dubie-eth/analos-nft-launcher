@@ -60,12 +60,12 @@ export default function PriceOracleInitializer() {
 
       console.log('🔗 RAW INSTRUCTION APPROACH: Bypassing Anchor BN issues...');
       
-      // Convert market cap to proper format (USD with 6 decimals)
+      // Convert market cap to proper format (LOS with 9 decimals)
       const marketCapUSD = parseInt(losMarketCap);
-      const marketCapMicroUSD = marketCapUSD * 1000000; // Convert to micro USD (6 decimals)
+      const marketCapNanoLOS = marketCapUSD * 1000000000; // Convert to nano LOS (9 decimals)
       
       console.log('📊 Market Cap (USD):', marketCapUSD);
-      console.log('📊 Market Cap (micro USD):', marketCapMicroUSD);
+      console.log('📊 Market Cap (nano LOS):', marketCapNanoLOS);
       console.log('🔗 Program ID:', ANALOS_PROGRAMS.PRICE_ORACLE.toString());
       console.log('🔗 PDA:', priceOraclePda.toString());
 
@@ -79,7 +79,7 @@ export default function PriceOracleInitializer() {
       
       // Set market cap as little-endian u64
       const marketCapBuffer = Buffer.alloc(8);
-      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapMicroUSD), 0);
+      marketCapBuffer.writeBigUInt64LE(BigInt(marketCapNanoLOS), 0);
       instructionData.set(marketCapBuffer, 8);
       
       console.log('🔧 Raw instruction data length:', instructionData.length);
@@ -126,7 +126,7 @@ export default function PriceOracleInitializer() {
       const oracleData = {
         authority: publicKey.toString(),
         marketCapUsd: marketCapUSD,
-        marketCapMicroUsd: marketCapMicroUSD,
+        marketCapNanoLos: marketCapNanoLOS,
         lastUpdated: new Date().toISOString(),
         isActive: true,
         programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
@@ -259,7 +259,7 @@ export default function PriceOracleInitializer() {
         <ul className="text-green-200 text-sm space-y-1">
           <li>• <span className="text-green-300">🚀 Uses raw TransactionInstruction to avoid Anchor BN errors</span></li>
           <li>• Manually constructs initializeOracle instruction data</li>
-          <li>• Market Cap: Sets initial LOS market cap in USD (6 decimals)</li>
+          <li>• Market Cap: Sets initial LOS market cap in USD (9 decimals)</li>
           <li>• Creates real PriceOracle account on-chain</li>
           <li>• Direct blockchain transaction with proper instruction format</li>
         </ul>
