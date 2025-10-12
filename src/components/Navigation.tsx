@@ -39,17 +39,18 @@ export default function Navigation() {
   const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
 
   // Base navigation items (always visible)
-  const baseNavItems = [
-    { href: '/', label: 'Home', icon: '🏠' },
-    { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
-    { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
-    { href: '/otc-marketplace', label: 'OTC Trading', icon: '💱' },
-    { href: '/airdrops', label: 'Airdrops', icon: '🎁' },
-    { href: '/vesting', label: 'Vesting', icon: '⏰' },
-    { href: '/token-lock', label: 'Token Lock', icon: '🔒' },
-    { href: '/explorer', label: 'Explorer', icon: '🔍' },
-    { href: '/profile', label: 'Profile', icon: '👤' },
-  ];
+    const baseNavItems = [
+        { href: '/', label: 'Home', icon: '🏠' },
+        { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
+        { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
+        { href: '/swap', label: 'Swap', icon: '🔄' },
+        { href: '/otc-marketplace', label: 'OTC Trading', icon: '💱' },
+        { href: '/airdrops', label: 'Airdrops', icon: '🎁' },
+        { href: '/vesting', label: 'Vesting', icon: '⏰' },
+        { href: '/token-lock', label: 'Token Lock', icon: '🔒' },
+        { href: '/explorer', label: 'Explorer', icon: '🔍' },
+        { href: '/profile', label: 'Profile', icon: '👤' },
+      ];
 
   // Admin-only navigation items
   const adminNavItems = [

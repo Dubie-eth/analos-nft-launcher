@@ -506,87 +506,26 @@ export default function EnhancedLandingPage() {
               </div>
             </div>
 
-            {/* Swap Component */}
+            {/* Swap Link Card */}
             <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-              <div className="text-center mb-6">
+              <div className="text-center">
                 <div className="text-4xl mb-4">🔄</div>
-                <h3 className="text-2xl font-bold text-white mb-2">Direct Swap</h3>
-                <p className="text-gray-300">
+                <h3 className="text-2xl font-bold text-white mb-4">Direct Swap</h3>
+                <p className="text-gray-300 mb-6">
                   Trade tokens directly on our platform using your wallet
                 </p>
-              </div>
-
-              {/* Simple Swap Interface */}
-              <div className="space-y-4">
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-300 text-sm">From</span>
-                    <span className="text-gray-400 text-xs">Balance: 0.00</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <input
-                      type="number"
-                      placeholder="0.0"
-                      className="bg-transparent text-white text-xl font-semibold outline-none flex-1"
-                    />
-                    <select className="bg-white/10 text-white rounded-lg px-3 py-2 border border-white/20">
-                      <option value="los">$LOS</option>
-                      <option value="sol">$SOL</option>
-                      <option value="usdc">$USDC</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <button className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors duration-200">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-300 text-sm">To</span>
-                    <span className="text-gray-400 text-xs">Balance: 0.00</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <input
-                      type="number"
-                      placeholder="0.0"
-                      className="bg-transparent text-white text-xl font-semibold outline-none flex-1"
-                    />
-                    <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-black rounded-lg px-3 py-2 font-bold">
-                      $LOL
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => {
-                    const userConfirmed = window.confirm(
-                      '🔒 SECURITY WARNING 🔒\n\n' +
-                      'Please ensure you are using a BURNER WALLET with minimal funds before swapping.\n\n' +
-                      'This feature requires wallet connection. Do you want to continue?'
-                    );
-                    if (userConfirmed) {
-                      // This would trigger wallet connection and swap
-                      alert('Swap functionality requires wallet connection. Please connect your wallet first.');
-                    }
-                  }}
-                  className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+                <a
+                  href="/swap"
+                  className="inline-block bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <span>🔄</span>
-                    <span>Swap Tokens</span>
+                    <span>Go to Swap Page</span>
                   </div>
-                </button>
-
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">
-                    Powered by Analos DEX • Slippage: 0.5%
-                  </p>
-                </div>
+                </a>
+                <p className="text-xs text-gray-400 mt-4">
+                  Dedicated swap page for better mobile experience
+                </p>
               </div>
             </div>
           </div>
