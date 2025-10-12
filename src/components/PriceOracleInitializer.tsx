@@ -90,8 +90,18 @@ export default function PriceOracleInitializer() {
         0x1337, // Test value
       ];
       
-      // Try discriminator 0 first (back to original)
-      instructionData.writeUInt32LE(0, 0);
+      // Try different discriminators - Anchor programs use hashed discriminators
+      const discriminators = [
+        0, // Simple zero
+        1, // Simple one  
+        0x8f9e4e4e, // Common Anchor pattern
+        0x1337, // Test value
+        0x12345678, // Another test
+        0xabcdef00, // Another test
+      ];
+      
+      // Try discriminator 0x8f9e4e4e (common Anchor pattern)
+      instructionData.writeUInt32LE(0x8f9e4e4e, 0);
       
       // Convert market cap to buffer
       const marketCapBuffer = Buffer.alloc(8);
@@ -102,7 +112,7 @@ export default function PriceOracleInitializer() {
       const fullInstructionData = Buffer.concat([instructionData, marketCapBuffer]);
       
       console.log('🔧 Raw instruction data length:', fullInstructionData.length);
-      console.log('🔧 Instruction discriminator:', instructionData.toString('hex'));
+      console.log('🔧 Instruction discriminator (0x8f9e4e4e):', instructionData.toString('hex'));
       console.log('🔧 Market cap buffer:', marketCapBuffer.toString('hex'));
       console.log('🔧 Full instruction data:', fullInstructionData.toString('hex'));
       
