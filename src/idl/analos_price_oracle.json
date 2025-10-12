@@ -1,5 +1,5 @@
 {
-  "version": "3.4.0",
+  "version": "4.0.0",
   "name": "analos_price_oracle",
   "instructions": [
     {
@@ -18,7 +18,7 @@
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "authority", "type": { "array": ["u8", 32] } },
+          { "name": "authority", "type": "publicKey" },
           { "name": "losMarketCapUsd", "type": "u64" },
           { "name": "losPrice", "type": "u64" },
           { "name": "isPaused", "type": "bool" },
@@ -38,7 +38,7 @@
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "authority", "type": { "array": ["u8", 32] } },
+          { "name": "authority", "type": "publicKey" },
           { "name": "losMarketCapUsd", "type": "u64" },
           { "name": "losPrice", "type": "u64" },
           { "name": "isPaused", "type": "bool" },
