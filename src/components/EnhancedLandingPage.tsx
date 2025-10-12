@@ -562,7 +562,20 @@ export default function EnhancedLandingPage() {
                   </div>
                 </div>
 
-                <button className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <button 
+                  onClick={() => {
+                    const userConfirmed = window.confirm(
+                      '🔒 SECURITY WARNING 🔒\n\n' +
+                      'Please ensure you are using a BURNER WALLET with minimal funds before swapping.\n\n' +
+                      'This feature requires wallet connection. Do you want to continue?'
+                    );
+                    if (userConfirmed) {
+                      // This would trigger wallet connection and swap
+                      alert('Swap functionality requires wallet connection. Please connect your wallet first.');
+                    }
+                  }}
+                  className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
                   <div className="flex items-center justify-center space-x-2">
                     <span>🔄</span>
                     <span>Swap Tokens</span>

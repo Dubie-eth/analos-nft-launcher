@@ -1,7 +1,8 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import SecureWalletConnection from './SecureWalletConnection';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -95,9 +96,9 @@ export default function Navigation() {
             ))}
           </div>
 
-          {/* Wallet Connection */}
+          {/* Secure Wallet Connection */}
           <div className="flex items-center space-x-4">
-            <WalletMultiButton className="!bg-gradient-to-r !from-blue-500 !to-purple-600 hover:!from-blue-600 hover:!to-purple-700 !text-white !px-4 !py-2 !rounded-lg !text-sm !font-medium !transition-all !duration-200 transform hover:!scale-105 mobile-btn" />
+            <SecureWalletConnection className="mobile-btn" />
           </div>
         </div>
 
@@ -141,34 +142,9 @@ export default function Navigation() {
                 </Link>
               ))}
               
-              {/* Mobile Wallet Connection */}
+              {/* Mobile Secure Wallet Connection */}
               <div className="pt-3 border-t border-gray-200">
-                {connected && publicKey ? (
-                  <div className="flex flex-col space-y-3">
-                    <div className="text-sm text-gray-600 px-3 py-2 bg-gray-50 rounded-lg">
-                      <span className="font-medium">Wallet:</span> {publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Unknown'}
-                    </div>
-                    <button
-                      onClick={() => {
-                        disconnect();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 mobile-btn"
-                    >
-                      Disconnect Wallet
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setVisible(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 mobile-btn"
-                  >
-                    Connect Wallet
-                  </button>
-                )}
+                <SecureWalletConnection />
               </div>
             </div>
           </div>
