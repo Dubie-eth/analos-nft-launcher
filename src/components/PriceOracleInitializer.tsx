@@ -92,15 +92,42 @@ export default function PriceOracleInitializer() {
       console.log('🔗 PDA:', priceOraclePda.toString());
       console.log('📊 Market Cap (micro USD):', marketCapMicroUSD);
 
-      // Try to initialize the oracle using the deployed program
-      const signature = await program.methods
-        .initializeOracle()
-        .accounts({
-          priceOracle: priceOraclePda,
-          authority: publicKey,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+      // Use raw instruction approach to bypass Anchor IDL parsing issues
+      console.log('🔧 Using raw instruction approach...');
+      
+      // Create raw instruction data with discriminator only (no arguments)
+      const instructionDiscriminator = Buffer.from([0x8f, 0x9e, 0x4e, 0x4e, 0x00, 0x00, 0x00, 0x00]); // initializeOracle discriminator
+      
+      const instruction = new TransactionInstruction({
+        keys: [
+          { pubkey: priceOraclePda, isSigner: false, isWritable: true },
+          { pubkey: publicKey, isSigner: true, isWritable: true },
+          { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+        ],
+        programId: ANALOS_PROGRAMS.PRICE_ORACLE,
+        data: instructionDiscriminator,
+      });
+
+      const transaction = new Transaction().add(instruction);
+      
+      // Get latest blockhash and set transaction properties
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
+
+      // Sign and send transaction
+      const signedTransaction = await signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+        skipPreflight: false,
+        maxRetries: 3,
+      });
+
+      // Confirm transaction
+      await connection.confirmTransaction({
+        signature,
+        blockhash,
+        lastValidBlockHeight,
+      }, 'confirmed');
       
       console.log('🚀 Price Oracle initialized successfully on blockchain:', signature);
       
