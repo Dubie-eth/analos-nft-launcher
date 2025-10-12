@@ -12,6 +12,7 @@ import SecureKeypairRotation from '@/components/SecureKeypairRotation';
 import TwoFactorAuth from '@/components/TwoFactorAuth';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
 import ProgramInitializer from '@/components/ProgramInitializer';
+import { SecureWalletConnection } from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
   name: string;
@@ -417,7 +418,10 @@ export default function AdminDashboard() {
             <h1 className="text-4xl md:text-5xl font-bold text-white">
               🎛️ Admin Dashboard
             </h1>
-            <div className="flex-1 flex justify-end space-x-2">
+            <div className="flex-1 flex justify-end space-x-2 items-center">
+              <div className="mobile-btn-fix">
+                <SecureWalletConnection />
+              </div>
               <button
                 onClick={handleResetAuth}
                 className="bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/50 text-orange-300 hover:text-orange-200 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
