@@ -51,21 +51,34 @@ export default function PriceOracleInitializer() {
         return;
       }
 
+      console.log('🔧 Creating Anchor provider...');
       const provider = new AnchorProvider(connection, { publicKey, signTransaction } as any, { commitment: 'confirmed' });
+      
+      console.log('🔧 Creating Program instance...');
       const program = new Program(idl as any, provider);
+      console.log('✅ Program created successfully:', program.programId.toString());
 
       // Create the Price Oracle PDA
+      console.log('🔧 Creating Price Oracle PDA...');
       const [priceOraclePda] = PublicKey.findProgramAddressSync(
         [Buffer.from('price_oracle'), publicKey.toBuffer()],
         ANALOS_PROGRAMS.PRICE_ORACLE
       );
+      console.log('✅ Price Oracle PDA:', priceOraclePda.toString());
 
       // Convert market cap to micro USD (6 decimals)
       const marketCapMicroUSD = parseInt(losMarketCap) * 1000000; // Convert to 6 decimals
+      console.log('🔧 Market cap micro USD:', marketCapMicroUSD);
+
+      // Create BN instance
+      console.log('🔧 Creating BN instance...');
+      const marketCapBN = new BN(marketCapMicroUSD);
+      console.log('✅ BN created:', marketCapBN.toString());
 
       // Call the initializeOracle instruction
+      console.log('🚀 Calling initializeOracle instruction...');
       const signature = await program.methods
-        .initializeOracle(new BN(marketCapMicroUSD))
+        .initializeOracle(marketCapBN)
         .accounts({
           priceOracle: priceOraclePda,
           authority: publicKey,
