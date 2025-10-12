@@ -1,0 +1,32 @@
+[toolchain]
+anchor_version = "0.30.1"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.mainnet]
+analos_nft_launchpad = "HGGghTkBtk6Quz151SUwwKKJ4SxNkhpKBSXpApD4yf1W"
+analos_token_launch = "CDJZZCSod3YS9crpWAvWSLWEpPyx9QZCRRAcv7xL1FZf"
+analos_rarity_oracle = "3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2"
+analos_price_oracle = "5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD"
+analos_otc_enhanced = "7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY"
+analos_airdrop_enhanced = "J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC"
+analos_vesting_enhanced = "Ae3hXKsHzYPCPUKLtq2mdYZ3E2oKeKrF63ekceGxpHsY"
+analos_token_lock_enhanced = "2uC6uKrog2umA59HVbKzDFjQvzGdyfkDtwm8Cq92euH7"
+analos_monitoring_system = "7PT1ubRGFWXFCmZTpsa9gtm9GZf8BaYTkSd7gE8VcXdG"
+
+[programs.localnet]
+analos_nft_launchpad = "BJcthd8WgvkFbncnb6TyaoLUrMv4R1X3fpPCdzD9PaHS"
+analos_token_lock_enhanced = "2uC6uKrog2umA59HVbKzDFjQvzGdyfkDtwm8Cq92euH7"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+client = "yarn run ts-node client/*.ts"

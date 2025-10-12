@@ -1,0 +1,48 @@
+name: Build Solana Programs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master, enhanced-features ]
+    paths:
+      - 'programs/**'
+      - 'Cargo.toml'
+      - 'Anchor.toml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    
+    - name: Install Solana
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+    
+    - name: Install Anchor
+      run: |
+        cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+        avm install 0.30.1
+        avm use 0.30.1
+    
+    - name: Build Programs
+      run: |
+        anchor build
+    
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: solana-programs
+        path: |
+          target/deploy/*.so
+          target/deploy/*-keypair.json
+          target/idl/*.json
+
