@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "2.0.0",
   "name": "analos_price_oracle",
   "instructions": [
     {
@@ -66,22 +66,6 @@
           { "name": "lastUpdated", "type": "i64" }
         ]
       }
-    }
-  ],
-  "events": [
-    {
-      "name": "priceUpdated",
-      "fields": [
-        { "name": "newPrice", "type": "u64", "index": false },
-        { "name": "timestamp", "type": "i64", "index": false }
-      ]
-    },
-    {
-      "name": "marketCapUpdated",
-      "fields": [
-        { "name": "newMarketCap", "type": "u64", "index": false },
-        { "name": "timestamp", "type": "i64", "index": false }
-      ]
     }
   ],
   "errors": [
