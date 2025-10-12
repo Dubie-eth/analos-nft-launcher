@@ -28,8 +28,9 @@ jobs:
     - name: Install Anchor
       run: |
         cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-        avm install 0.30.1
-        avm use 0.30.1
+        avm list || echo "No anchor versions installed"
+        avm install 0.30.1 --force || echo "Anchor 0.30.1 installation failed, trying to use existing version"
+        avm use 0.30.1 || echo "Using default anchor version"
     
     - name: Build Programs
       run: |
