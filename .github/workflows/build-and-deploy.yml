@@ -23,18 +23,29 @@ jobs:
         sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
         
-    - name: Install Anchor
-      run: |
-        npm install -g @coral-xyz/anchor-cli
-        
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         
+    - name: Install Anchor
+      run: |
+        cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+        avm install latest
+        avm use latest
+        
+    - name: Verify Anchor Installation
+      run: |
+        anchor --version
+        
     - name: Build Price Oracle Program
       run: |
         anchor build --program-name analos_price_oracle
+        echo "Build exit code: $?"
+        if [ ! -f target/deploy/analos_price_oracle.so ]; then
+          echo "ERROR: Build did not produce the expected binary!"
+          exit 1
+        fi
         
     - name: Show Build Output
       run: |
