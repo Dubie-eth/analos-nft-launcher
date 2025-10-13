@@ -17,31 +17,22 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+    container:
+      image: projectserum/build:v0.29.0
+      
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Install Solana CLI
+    - name: Install Solana CLI in container
       run: |
         sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
-        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-        
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: 1.75.0
-        profile: minimal
-        override: true
-        
-    - name: Install Anchor CLI
-      run: |
-        cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli --locked --force
+        export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+        solana --version
         
     - name: Verify Anchor Installation
       run: |
         anchor --version
-        which anchor
         
     - name: Build Price Oracle Program
       run: |
