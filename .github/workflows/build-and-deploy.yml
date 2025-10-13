@@ -39,15 +39,13 @@ jobs:
         sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
         
-    - name: Setup Rust (1.75.0 for compatibility)
-      uses: dtolnay/rust-toolchain@1.75.0
+    - name: Setup Rust (1.78.0 for compatibility)
+      uses: dtolnay/rust-toolchain@1.78.0
       
-    - name: Download pre-built Anchor CLI
+    - name: Install Anchor using cargo-binstall
       run: |
-        wget https://github.com/coral-xyz/anchor/releases/download/v0.29.0/anchor-v0.29.0-x86_64-unknown-linux-gnu.tar.gz
-        tar -xzf anchor-v0.29.0-x86_64-unknown-linux-gnu.tar.gz
-        sudo mv anchor /usr/local/bin/
-        chmod +x /usr/local/bin/anchor
+        curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+        cargo binstall --no-confirm anchor-cli@0.29.0
         
     - name: Verify Installation
       run: |
