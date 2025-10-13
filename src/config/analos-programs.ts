@@ -22,7 +22,7 @@ export const ANALOS_PROGRAMS = {
    * Rarity Oracle Program
    * Calculates and stores NFT rarity scores and trait distributions
    */
-  RARITY_ORACLE: new PublicKey('H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6'),
+  RARITY_ORACLE: new PublicKey('C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5'),
 
   /**
    * Token Launch Program
@@ -110,7 +110,7 @@ export const ANALOS_RPC_URL = 'https://rpc.analos.io';
  */
 export const ANALOS_PROGRAM_IDS = {
   PRICE_ORACLE: 'B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
-  RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
+  RARITY_ORACLE: 'C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5',
   TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: '7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
@@ -125,7 +125,7 @@ export const ANALOS_PROGRAM_IDS = {
  */
 export const ANALOS_EXPLORER_URLS = {
   PRICE_ORACLE: 'https://explorer.analos.io/address/B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
-  RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
+  RARITY_ORACLE: 'https://explorer.analos.io/address/C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5',
   TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: 'https://explorer.analos.io/address/7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
