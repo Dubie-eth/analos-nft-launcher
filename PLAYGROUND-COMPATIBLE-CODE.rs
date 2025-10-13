@@ -1,23 +1,5 @@
 use anchor_lang::prelude::*;
 
-// Security.txt implementation for program verification
-#[cfg(not(feature = "no-entrypoint"))]
-use {default_env::default_env, solana_security_txt::security_txt};
-
-#[cfg(not(feature = "no-entrypoint"))]
-security_txt! {
-    name: "Analos Price Oracle",
-    project_url: "https://github.com/Dubie-eth/analos-programs",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
-    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
-    preferred_languages: "en",
-    source_code: "https://github.com/Dubie-eth/analos-programs",
-    source_revision: "8vwf2KJRoDvzN5izZ7kVjjzEo9nZaQ3434trcvfexqou",
-    source_release: "v1.0.0",
-    auditors: "None",
-    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
-}
-
 declare_id!("8vwf2KJRoDvzN5izZ7kVjjzEo9nZaQ3434trcvfexqou");
 
 /// Price oracle constants
