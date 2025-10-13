@@ -24,7 +24,7 @@ async function main() {
     }
     
     // Test Price Oracle
-    const priceOracleId = new PublicKey("ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn");
+    const priceOracleId = new PublicKey("BRfEFQEPZbPfm4sKkeLfuPDCS1dH1npJaYz9ZQa8UxYw");
     console.log("📍 Price Oracle Program:", priceOracleId.toString());
     
     try {
