@@ -16,7 +16,7 @@ export const ANALOS_PROGRAMS = {
    * Price Oracle Program
    * Provides real-time $LOS price data for USD-pegged NFT pricing
    */
-  PRICE_ORACLE: new PublicKey('ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn'),
+  PRICE_ORACLE: new PublicKey('AaKR2YwrRFohmyUnWLhaVt43Ung6CgAeW43A119i94Vw'),
 
   /**
    * Rarity Oracle Program
