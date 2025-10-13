@@ -16,7 +16,7 @@ export const ANALOS_PROGRAMS = {
    * Price Oracle Program
    * Provides real-time $LOS price data for USD-pegged NFT pricing
    */
-  PRICE_ORACLE: new PublicKey('BRfEFQEPZbPfm4sKkeLfuPDCS1dH1npJaYz9ZQa8UxYw'),
+  PRICE_ORACLE: new PublicKey('B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D'),
 
   /**
    * Rarity Oracle Program
@@ -109,7 +109,7 @@ export const ANALOS_RPC_URL = 'https://rpc.analos.io';
  * Program IDs as strings (for display/logging)
  */
 export const ANALOS_PROGRAM_IDS = {
-  PRICE_ORACLE: 'BRfEFQEPZbPfm4sKkeLfuPDCS1dH1npJaYz9ZQa8UxYw',
+  PRICE_ORACLE: 'B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
   RARITY_ORACLE: 'H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
   TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
@@ -124,7 +124,7 @@ export const ANALOS_PROGRAM_IDS = {
  * Explorer URLs for verification
  */
 export const ANALOS_EXPLORER_URLS = {
-  PRICE_ORACLE: 'https://explorer.analos.io/address/BRfEFQEPZbPfm4sKkeLfuPDCS1dH1npJaYz9ZQa8UxYw',
+  PRICE_ORACLE: 'https://explorer.analos.io/address/B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
   RARITY_ORACLE: 'https://explorer.analos.io/address/H6sAs9Ewx6BNSF3NkPEEtwZo3kfFw4Y71us5U6D5rvW6',
   TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
