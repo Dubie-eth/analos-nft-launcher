@@ -32,17 +32,14 @@ jobs:
       with:
         toolchain: stable
         
-    - name: Install Anchor
+    - name: Install Anchor CLI directly
       run: |
-        cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-        avm install 0.29.0 --force
-        avm use 0.29.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli --locked --force
         
     - name: Verify Anchor Installation
       run: |
         anchor --version
+        which anchor
         
     - name: Build Price Oracle Program
       run: |
