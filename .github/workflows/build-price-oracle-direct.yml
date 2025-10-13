@@ -25,15 +25,13 @@ jobs:
       
     - name: Verify Solana Installation
       run: |
-        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-        solana --version
-        solana-install --version
+        $HOME/.local/share/solana/install/active_release/bin/solana --version
+        ls -la $HOME/.local/share/solana/install/active_release/bin/
         
     - name: Build Program using cargo build-sbf
       run: |
-        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
         cd programs/analos-price-oracle
-        cargo build-sbf
+        $HOME/.local/share/solana/install/active_release/bin/cargo-build-sbf
         
     - name: Show Build Output
       run: |
