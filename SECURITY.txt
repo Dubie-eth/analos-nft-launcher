@@ -31,8 +31,8 @@ We aim to respond to security reports within 24 hours and provide updates within
 ## Scope
 
 This security policy covers all programs in the Analos NFT Launchpad ecosystem:
-- Price Oracle
-- Rarity Oracle  
+- Price Oracle (B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D)
+- Rarity Oracle (C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5)
 - NFT Launchpad
 - Token Launch
 - Enhanced Programs

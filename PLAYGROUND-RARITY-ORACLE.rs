@@ -1,25 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{keccak, pubkey};
 
-// Security.txt implementation for program verification
-#[cfg(not(feature = "no-entrypoint"))]
-use {default_env::default_env, solana_security_txt::security_txt};
-
-#[cfg(not(feature = "no-entrypoint"))]
-security_txt! {
-    name: "Analos Rarity Oracle",
-    project_url: "https://github.com/Dubie-eth/analos-programs",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
-    policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
-    preferred_languages: "en",
-    source_code: "https://github.com/Dubie-eth/analos-programs",
-    source_revision: "C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5",
-    source_release: "v1.0.0",
-    auditors: "None",
-    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
-}
-
-declare_id!("C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5");
+declare_id!("11111111111111111111111111111111");
 
 /// Maximum rarity tiers
 pub const MAX_RARITY_TIERS: usize = 10;
@@ -349,31 +331,6 @@ pub struct InitializeRarityConfig<'info> {
 }
 
 #[derive(Accounts)]
-pub struct AddRarityTier<'info> {
-    #[account(
-        mut,
-        seeds = [b"rarity_config", rarity_config.collection_config.as_ref()],
-        bump,
-        has_one = authority,
-    )]
-    pub rarity_config: Account<'info, RarityConfig>,
-
-    #[account(
-        init,
-        payer = authority,
-        space = 8 + RarityTier::INIT_SPACE,
-        seeds = [b"rarity_tier", rarity_config.key().as_ref(), &[tier_id]],
-        bump
-    )]
-    pub rarity_tier: Account<'info, RarityTier>,
-
-    #[account(mut)]
-    pub authority: Signer<'info>,
-
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
 #[instruction(tier_id: u8)]
 pub struct AddRarityTier<'info> {
     #[account(
@@ -427,26 +384,6 @@ pub struct DetermineRarity<'info> {
 }
 
 #[derive(Accounts)]
-pub struct UpdateRarityTier<'info> {
-    #[account(
-        mut,
-        seeds = [b"rarity_config", rarity_config.collection_config.as_ref()],
-        bump,
-        has_one = authority,
-    )]
-    pub rarity_config: Account<'info, RarityConfig>,
-
-    #[account(
-        mut,
-        seeds = [b"rarity_tier", rarity_config.key().as_ref(), &[tier_id]],
-        bump,
-    )]
-    pub rarity_tier: Account<'info, RarityTier>,
-
-    pub authority: Signer<'info>,
-}
-
-#[derive(Accounts)]
 #[instruction(tier_id: u8)]
 pub struct UpdateRarityTier<'info> {
     #[account(
@@ -465,31 +402,6 @@ pub struct UpdateRarityTier<'info> {
     pub rarity_tier: Account<'info, RarityTier>,
 
     pub authority: Signer<'info>,
-}
-
-#[derive(Accounts)]
-pub struct SetMetadataMapping<'info> {
-    #[account(
-        mut,
-        seeds = [b"rarity_config", rarity_config.collection_config.as_ref()],
-        bump,
-        has_one = authority,
-    )]
-    pub rarity_config: Account<'info, RarityConfig>,
-
-    #[account(
-        init,
-        payer = authority,
-        space = 8 + MetadataRarityMapping::INIT_SPACE,
-        seeds = [b"metadata_mapping", rarity_config.key().as_ref(), &[tier_id]],
-        bump
-    )]
-    pub metadata_mapping: Account<'info, MetadataRarityMapping>,
-
-    #[account(mut)]
-    pub authority: Signer<'info>,
-
-    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -516,22 +428,6 @@ pub struct SetMetadataMapping<'info> {
     pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
-pub struct UpdateRarityStats<'info> {
-    #[account(
-        mut,
-        seeds = [b"rarity_tier", rarity_config.key().as_ref(), &[tier_id]],
-        bump,
-    )]
-    pub rarity_tier: Account<'info, RarityTier>,
-
-    #[account(
-        seeds = [b"rarity_config", rarity_config.collection_config.as_ref()],
-        bump,
-    )]
-    pub rarity_config: Account<'info, RarityConfig>,
 }
 
 #[derive(Accounts)]
@@ -711,4 +607,3 @@ pub enum ErrorCode {
     #[msg("Empty attributes list")]
     EmptyAttributes,
 }
-
