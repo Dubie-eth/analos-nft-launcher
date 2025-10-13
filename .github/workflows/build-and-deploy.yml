@@ -35,7 +35,7 @@ jobs:
     - name: Install Anchor
       run: |
         cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-        avm install 0.29.0
+        avm install 0.29.0 --force
         avm use 0.29.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
