@@ -44,7 +44,7 @@ jobs:
         ls -lh target/deploy/analos_price_oracle.so
         
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: price-oracle-binary
         path: target/deploy/analos_price_oracle.so
