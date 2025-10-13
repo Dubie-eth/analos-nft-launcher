@@ -8,7 +8,7 @@ import * as fs from 'fs';
 
 // Configuration
 const ANALOS_RPC_URL = 'https://rpc.analos.io';
-const PRICE_ORACLE_PROGRAM_ID = new PublicKey('5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD');
+const PRICE_ORACLE_PROGRAM_ID = new PublicKey('ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn');
 
 async function testPriceOracleInitialization() {
   console.log('🔍 Testing Price Oracle Initialization\n');

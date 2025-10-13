@@ -4,7 +4,7 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 
 // Program IDs from Anchor.toml
 const PROGRAM_IDS = {
-  PRICE_ORACLE: new PublicKey("5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD"),
+  PRICE_ORACLE: new PublicKey("ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn"),
   RARITY_ORACLE: new PublicKey("3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2"),
   NFT_LAUNCHPAD: new PublicKey("5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"),
 };

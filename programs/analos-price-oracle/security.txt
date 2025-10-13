@@ -30,7 +30,7 @@ If you discover a security vulnerability, please report it to:
 Details coming soon. Contact security@analos.io for early participation.
 
 ## Deployed Program
-- **Program ID:** 5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD
+- **Program ID:** v9RBPUoi4tVRpxrwv4xuS5LgGXsSXdRvcbw5PkeCt62
 - **Network:** Mainnet
 - **Last Updated:** 2025-10-12
 

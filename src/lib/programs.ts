@@ -8,7 +8,7 @@ export const PROGRAM_IDS = {
   nftLaunchpad: new PublicKey("5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"),
   tokenLaunch: new PublicKey("CDJZZCSod3YS9crpWAvWSLWEpPyx9QZCRRAcv7xL1FZf"),
   rarityOracle: new PublicKey("3cnHMbD3Y88BZbxEPzv7WZGkN12X2bwKEP4FFtaVd5B2"),
-  priceOracle: new PublicKey("5ihyquuoRJXTocBhjEA48rGQGsM9ZB6HezYE1dQq8NUD"),
+  priceOracle: new PublicKey("ztA5VFYMy29tgWpkAioro4HTfXQTgwpPinv9uSEdCMn"),
   
   // NEW ENHANCED PROGRAMS
   otcEnhanced: new PublicKey("7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY"),
