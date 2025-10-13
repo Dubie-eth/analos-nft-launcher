@@ -17,22 +17,43 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    container:
-      image: projectserum/build:v0.29.0
       
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Install Solana CLI in container
+    - name: Cache Solana and Anchor
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.local/share/solana
+          ~/.cargo/bin/anchor
+          ~/.cargo/registry
+          ~/.cargo/git
+        key: solana-anchor-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          solana-anchor-${{ runner.os }}-
+        
+    - name: Install Solana CLI
       run: |
         sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
-        export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
-        solana --version
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
         
-    - name: Verify Anchor Installation
+    - name: Setup Rust (1.75.0 for compatibility)
+      uses: dtolnay/rust-toolchain@1.75.0
+      
+    - name: Download pre-built Anchor CLI
       run: |
+        wget https://github.com/coral-xyz/anchor/releases/download/v0.29.0/anchor-v0.29.0-x86_64-unknown-linux-gnu.tar.gz
+        tar -xzf anchor-v0.29.0-x86_64-unknown-linux-gnu.tar.gz
+        sudo mv anchor /usr/local/bin/
+        chmod +x /usr/local/bin/anchor
+        
+    - name: Verify Installation
+      run: |
+        solana --version
         anchor --version
+        rustc --version
         
     - name: Build Price Oracle Program
       run: |
