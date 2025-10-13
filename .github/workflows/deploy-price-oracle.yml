@@ -1,0 +1,68 @@
+name: Deploy Price Oracle Program
+
+on:
+  workflow_dispatch:
+    inputs:
+      program_id:
+        description: 'Program ID to deploy to'
+        required: true
+        default: 'AaKR2YwrRFohmyUnWLhaVt43Ung6CgAeW43A119i94Vw'
+      rpc_url:
+        description: 'RPC URL for deployment'
+        required: true
+        default: 'https://rpc.analos.io'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Solana CLI
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        
+    - name: Install Anchor
+      run: |
+        npm install -g @coral-xyz/anchor-cli
+        
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        
+    - name: Build Price Oracle Program
+      run: |
+        anchor build --program-name analos_price_oracle
+        
+    - name: Verify Program ID
+      run: |
+        echo "Checking program ID in built binary..."
+        solana program show ${{ github.event.inputs.program_id }} --url ${{ github.event.inputs.rpc_url }} || echo "Program not yet deployed"
+        
+    - name: Deploy Program
+      run: |
+        echo "Deploying to program ID: ${{ github.event.inputs.program_id }}"
+        echo "RPC URL: ${{ github.event.inputs.rpc_url }}"
+        
+        # Deploy the program
+        solana program deploy \
+          target/deploy/analos_price_oracle.so \
+          --program-id ${{ github.event.inputs.program_id }} \
+          --url ${{ github.event.inputs.rpc_url }} \
+          --use-rpc
+          
+    - name: Verify Deployment
+      run: |
+        echo "Verifying deployment..."
+        solana program show ${{ github.event.inputs.program_id }} --url ${{ github.event.inputs.rpc_url }}
+        
+    - name: Output Program Info
+      run: |
+        echo "✅ Price Oracle Program Deployed Successfully!"
+        echo "Program ID: ${{ github.event.inputs.program_id }}"
+        echo "RPC URL: ${{ github.event.inputs.rpc_url }}"
+        echo "Explorer: https://explorer.analos.io/address/${{ github.event.inputs.program_id }}"

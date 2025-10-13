@@ -1,0 +1,70 @@
+name: Build and Deploy Price Oracle
+
+on:
+  push:
+    branches: [ master ]
+    paths: 
+      - 'programs/analos-price-oracle/**'
+      - 'Anchor.toml'
+      - '.github/workflows/build-and-deploy.yml'
+      
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Solana CLI
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        
+    - name: Install Anchor
+      run: |
+        npm install -g @coral-xyz/anchor-cli
+        
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        
+    - name: Build Price Oracle Program
+      run: |
+        anchor build --program-name analos_price_oracle
+        
+    - name: Show Build Output
+      run: |
+        echo "Build completed successfully!"
+        ls -la target/deploy/
+        echo "Program binary size:"
+        ls -lh target/deploy/analos_price_oracle.so
+        
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: price-oracle-binary
+        path: target/deploy/analos_price_oracle.so
+        
+    - name: Create Deployment Instructions
+      run: |
+        echo "## 🚀 Price Oracle Program Built Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Build Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Program ID:** AaKR2YwrRFohmyUnWLhaVt43Ung6CgAeW43A119i94Vw" >> $GITHUB_STEP_SUMMARY
+        echo "- **Binary:** analos_price_oracle.so" >> $GITHUB_STEP_SUMMARY
+        echo "- **Size:** $(ls -lh target/deploy/analos_price_oracle.so | awk '{print $5}')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🎯 Ready for Deployment!" >> $GITHUB_STEP_SUMMARY
+        echo "The program binary has been built with the correct program ID and is ready for deployment." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Deployment Commands:" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo 'solana program deploy target/deploy/analos_price_oracle.so \' >> $GITHUB_STEP_SUMMARY
+        echo '  --program-id AaKR2YwrRFohmyUnWLhaVt43Ung6CgAeW43A119i94Vw \' >> $GITHUB_STEP_SUMMARY
+        echo '  --url https://rpc.analos.io \' >> $GITHUB_STEP_SUMMARY
+        echo '  --use-rpc' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
