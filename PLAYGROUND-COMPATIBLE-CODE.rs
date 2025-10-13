@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("8vwf2KJRoDvzN5izZ7kVjjzEo9nZaQ3434trcvfexqou");
+declare_id!("9KdBrDNLiSXZBvNd1HieqzwEykNM5wVfGiHQfY6mVvy2");
 
 /// Price oracle constants
 pub const PRICE_UPDATE_TOLERANCE_BPS: u16 = 1000; // 10% max change per update
