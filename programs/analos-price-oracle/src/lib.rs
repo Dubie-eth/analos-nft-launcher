@@ -12,13 +12,13 @@ security_txt! {
     policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-programs",
-    source_revision: "9KdBrDNLiSXZBvNd1HieqzwEykNM5wVfGiHQfY6mVvy2",
+    source_revision: "BRfEFQEPZbPfm4sKkeLfuPDCS1dH1npJaYz9ZQa8UxYw",
     source_release: "v1.0.0",
     auditors: "None",
     acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
 }
 
-declare_id!("9KdBrDNLiSXZBvNd1HieqzwEykNM5wVfGiHQfY6mVvy2");
+declare_id!("BRfEFQEPZbPfm4sKkeLfuPDCS1dH1npJaYz9ZQa8UxYw");
 
 /// Price oracle constants
 pub const PRICE_UPDATE_TOLERANCE_BPS: u16 = 1000; // 10% max change per update
