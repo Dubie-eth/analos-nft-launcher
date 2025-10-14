@@ -64,21 +64,30 @@ const MegaNFTLaunchpadCore: React.FC = () => {
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && connection) {
       const initProgram = async () => {
         try {
+          // Check if wallet is connected
+          if (!window.solana || !window.solana.publicKey) {
+            console.warn('Wallet not connected, skipping program initialization');
+            setLoading(false);
+            return;
+          }
+
+          console.log('Initializing program with wallet:', window.solana.publicKey.toString());
           const provider = new AnchorProvider(connection, window.solana as any, {});
           const programInstance = new Program(idl as any, provider);
           setProgram(programInstance);
           await loadPlatformData(programInstance);
         } catch (error) {
           console.error('Failed to initialize program:', error);
+          setLoading(false);
         }
       };
 
       initProgram();
     }
-  }, [connection]);
+  }, [connection, window?.solana?.publicKey]);
 
   const loadPlatformData = async (programInstance: Program) => {
     try {
@@ -94,7 +103,12 @@ const MegaNFTLaunchpadCore: React.FC = () => {
         // Use type assertion to access account methods
         const accountNamespace = programInstance.account as any;
         const platformData = await accountNamespace.platformConfig.fetch(platformConfigPda);
-        setPlatformConfig(platformData as any);
+        
+        if (platformData) {
+          setPlatformConfig(platformData as any);
+        } else {
+          console.log('Platform config not found - platform may not be initialized');
+        }
         
         // Update admin controls with current values
         setAdminFees({
