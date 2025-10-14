@@ -121,6 +121,11 @@ const MegaNFTLaunchpadCore: React.FC = () => {
     try {
       setLoading(true);
       
+      // Check if wallet is connected
+      if (!program.provider.wallet?.publicKey) {
+        throw new Error('Wallet not connected');
+      }
+      
       const [platformConfigPda] = PublicKey.findProgramAddressSync(
         [Buffer.from('platform_config')],
         program.programId
@@ -153,6 +158,11 @@ const MegaNFTLaunchpadCore: React.FC = () => {
 
     try {
       setLoading(true);
+      
+      // Check if wallet is connected
+      if (!program.provider.wallet?.publicKey) {
+        throw new Error('Wallet not connected');
+      }
       
       const [platformConfigPda] = PublicKey.findProgramAddressSync(
         [Buffer.from('platform_config')],
@@ -575,7 +585,7 @@ const MegaNFTLaunchpadCore: React.FC = () => {
               <div>
                 <span className="font-semibold">Your Wallet:</span>
                 <code className="ml-2 bg-gray-200 px-2 py-1 rounded text-xs">
-                  {program.provider.wallet.publicKey?.toString()}
+                  {program.provider.wallet?.publicKey?.toString() || 'Not connected'}
                 </code>
               </div>
               <div className="text-xs text-gray-500 mt-3">

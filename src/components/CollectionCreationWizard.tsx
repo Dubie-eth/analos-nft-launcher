@@ -144,6 +144,11 @@ const CollectionCreationWizard: React.FC = () => {
     try {
       setLoading(true);
 
+      // Check if wallet is connected
+      if (!program.provider.wallet?.publicKey) {
+        throw new Error('Wallet not connected');
+      }
+
       // Derive PDAs
       const [platformConfigPda] = PublicKey.findProgramAddressSync(
         [Buffer.from('platform_config')],
