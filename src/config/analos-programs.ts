@@ -31,14 +31,26 @@ export const ANALOS_PROGRAMS = {
   TOKEN_LAUNCH: new PublicKey('Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw'),
 
   /**
-   * NFT Launchpad Program (Main Integration)
-   * Main NFT launchpad that integrates all oracles and handles:
-   * - Collection management
-   * - Blind mint mechanics
-   * - Reveal system with commit-reveal scheme
-   * - Bonding curve integration
-   * - Community takeover governance
-   * - Whitelist management
+   * NFT Launchpad Core (MEGA PROGRAM)
+   * Complete NFT launchpad with all features:
+   * - Collection management (NFT-Only or NFT-to-Token)
+   * - Whitelist stages (3 tiers + public) with incremental pricing
+   * - Rarity system (merged from Rarity Oracle)
+   * - Platform config & admin controls
+   * - Creator profiles & social verification
+   * - NFT staking (earn tokens)
+   * - LOS staking (earn platform fees - 30% of all fees!)
+   * - Holder rewards distribution
+   * - CTO voting (democratic governance)
+   * - Referral system (viral growth)
+   * - Blockchain-enforced fees
+   * Admin: 86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW
+   */
+  NFT_LAUNCHPAD_CORE: new PublicKey('BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr'),
+  
+  /**
+   * NFT Launchpad (DEPRECATED - Use NFT_LAUNCHPAD_CORE)
+   * Old simple version - kept for backward compatibility
    */
   NFT_LAUNCHPAD: new PublicKey('5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
 
