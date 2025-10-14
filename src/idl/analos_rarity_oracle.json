@@ -3,7 +3,7 @@
   "name": "analos_rarity_oracle",
   "instructions": [
     {
-      "name": "initializeRarityConfig",
+      "name": "initialize_rarity_config",
       "accounts": [
         { "name": "rarityConfig", "isMut": true, "isSigner": false },
         { "name": "collectionConfig", "isMut": false, "isSigner": false },
@@ -115,6 +115,6 @@
     { "code": 6002, "name": "AlreadyRevealed", "msg": "Rarity already revealed" }
   ],
   "metadata": {
-    "address": "DP8sA6BQH3Ymd823uxfd5KPXMzNy4wDccQSp6gzPQiDR"
+    "address": "C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5"
   }
 }

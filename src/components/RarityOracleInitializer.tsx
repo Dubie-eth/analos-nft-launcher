@@ -92,9 +92,9 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
       console.log('🔗 Program ID:', ANALOS_PROGRAMS.RARITY_ORACLE.toString());
       console.log('🔗 Rarity Config PDA:', rarityConfigPda.toString());
 
-      // Call the initializeRarityConfig instruction
+      // Call the initialize_rarity_config instruction
       const signature = await program.methods
-        .initializeRarityConfig()
+        .initialize_rarity_config()
         .accounts({
           rarityConfig: rarityConfigPda,
           collectionConfig: collectionConfigPda,
