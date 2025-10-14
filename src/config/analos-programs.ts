@@ -28,7 +28,7 @@ export const ANALOS_PROGRAMS = {
    * Token Launch Program
    * Handles token launches with bonding curves, creator prebuy, and trading fees
    */
-  TOKEN_LAUNCH: new PublicKey('HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx'),
+  TOKEN_LAUNCH: new PublicKey('Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw'),
 
   /**
    * NFT Launchpad Program (Main Integration)
@@ -111,7 +111,7 @@ export const ANALOS_RPC_URL = 'https://rpc.analos.io';
 export const ANALOS_PROGRAM_IDS = {
   PRICE_ORACLE: 'B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
   RARITY_ORACLE: 'C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5',
-  TOKEN_LAUNCH: 'HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
+  TOKEN_LAUNCH: 'Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw',
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: '7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
   AIRDROP_ENHANCED: 'J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
@@ -126,7 +126,7 @@ export const ANALOS_PROGRAM_IDS = {
 export const ANALOS_EXPLORER_URLS = {
   PRICE_ORACLE: 'https://explorer.analos.io/address/B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
   RARITY_ORACLE: 'https://explorer.analos.io/address/C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5',
-  TOKEN_LAUNCH: 'https://explorer.analos.io/address/HLkjxfp8eonnKdLMoN7otZBHetRMoRaQmHvyDvGjnzVx',
+  TOKEN_LAUNCH: 'https://explorer.analos.io/address/Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw',
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: 'https://explorer.analos.io/address/7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
   AIRDROP_ENHANCED: 'https://explorer.analos.io/address/J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
