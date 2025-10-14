@@ -215,7 +215,8 @@ const CollectionCreationWizard: React.FC = () => {
 
     } catch (error) {
       console.error('Failed to create collection:', error);
-      alert('Failed to create collection: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Failed to create collection: ' + errorMessage);
     } finally {
       setLoading(false);
     }
