@@ -6,3 +6,28 @@ node_modules
 test-ledger
 .yarn
 Cargo.lock
+
+# SECURITY: Never commit private keys or keypairs!
+**/*keypair*.json
+**/deployer-keypair.json
+*.keypair
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Solana keypairs and secrets
+id.json
+wallet.json
+authority.json
+*-keypair.json
+program-keypair.json
+
+# Backup and sensitive files
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets/
