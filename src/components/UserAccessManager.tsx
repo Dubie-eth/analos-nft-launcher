@@ -189,7 +189,8 @@ const UserAccessManager: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to grant access:', error);
-      alert('Failed to grant access: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Failed to grant access: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -215,7 +216,8 @@ const UserAccessManager: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to revoke access:', error);
-      alert('Failed to revoke access: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Failed to revoke access: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -255,7 +257,8 @@ const UserAccessManager: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to create access rule:', error);
-      alert('Failed to create access rule: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert('Failed to create access rule: ' + errorMessage);
     } finally {
       setLoading(false);
     }
