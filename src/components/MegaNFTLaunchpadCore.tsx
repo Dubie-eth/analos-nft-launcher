@@ -10,6 +10,7 @@ import {
 } from '@solana/web3.js';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '../config/analos-programs';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import idl from '../idl/analos_nft_launchpad_core.json';
 
 interface PlatformConfig {
@@ -48,7 +49,8 @@ interface CollectionConfig {
 }
 
 const MegaNFTLaunchpadCore: React.FC = () => {
-  const [connection] = useState(() => new Connection(ANALOS_RPC_URL, 'confirmed'));
+  const { connection } = useConnection();
+  const { publicKey, connected } = useWallet();
   const [program, setProgram] = useState<Program | null>(null);
   const [loading, setLoading] = useState(false);
   const [platformConfig, setPlatformConfig] = useState<PlatformConfig | null>(null);
@@ -64,18 +66,29 @@ const MegaNFTLaunchpadCore: React.FC = () => {
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && connection) {
+    if (connection && publicKey && connected) {
       const initProgram = async () => {
         try {
-          // Check if wallet is connected
-          if (!window.solana || !window.solana.publicKey) {
-            console.warn('Wallet not connected, skipping program initialization');
-            setLoading(false);
-            return;
-          }
+          console.log('Initializing program with wallet:', publicKey.toString());
+          
+          // Create a wallet adapter object that AnchorProvider expects
+          const walletAdapter = {
+            publicKey,
+            signTransaction: async (tx: any) => {
+              if (typeof window !== 'undefined' && window.solana) {
+                return await window.solana.signTransaction(tx);
+              }
+              throw new Error('Wallet not available');
+            },
+            signAllTransactions: async (txs: any[]) => {
+              if (typeof window !== 'undefined' && window.solana) {
+                return await window.solana.signAllTransactions(txs);
+              }
+              throw new Error('Wallet not available');
+            }
+          };
 
-          console.log('Initializing program with wallet:', window.solana.publicKey.toString());
-          const provider = new AnchorProvider(connection, window.solana as any, {});
+          const provider = new AnchorProvider(connection, walletAdapter as any, {});
           const programInstance = new Program(idl as any, provider);
           setProgram(programInstance);
           await loadPlatformData(programInstance);
@@ -86,8 +99,11 @@ const MegaNFTLaunchpadCore: React.FC = () => {
       };
 
       initProgram();
+    } else if (!connected) {
+      console.log('Wallet not connected, skipping program initialization');
+      setLoading(false);
     }
-  }, [connection, window?.solana?.publicKey]);
+  }, [connection, publicKey, connected]);
 
   const loadPlatformData = async (programInstance: Program) => {
     try {
