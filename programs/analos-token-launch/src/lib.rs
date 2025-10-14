@@ -16,13 +16,13 @@ security_txt! {
     policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-programs",
-    source_revision: "CDJZZCSod3YS9crpWAvWSLWEpPyx9QZCRRAcv7xL1FZf",
+    source_revision: "Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw",
     source_release: "v1.0.0",
     auditors: "None",
     acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
 }
 
-declare_id!("CDJZZCSod3YS9crpWAvWSLWEpPyx9QZCRRAcv7xL1FZf");
+declare_id!("Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw");
 
 /// Platform fee constants (same as NFT Launchpad for consistency)
 pub const FEE_DEV_TEAM_BPS: u16 = 100;           // 1% to dev team
