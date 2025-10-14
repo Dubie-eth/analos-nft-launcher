@@ -91,7 +91,9 @@ const MegaNFTLaunchpadCore: React.FC = () => {
       );
 
       try {
-        const platformData = await programInstance.account.PlatformConfig.fetch(platformConfigPda);
+        // Use type assertion to access account methods
+        const accountNamespace = programInstance.account as any;
+        const platformData = await accountNamespace.platformConfig.fetch(platformConfigPda);
         setPlatformConfig(platformData as any);
         
         // Update admin controls with current values
