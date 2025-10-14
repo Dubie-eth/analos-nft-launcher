@@ -17,6 +17,7 @@ import TokenLaunchInitializer from '@/components/TokenLaunchInitializer';
 import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import DeployedProgramsInitializer from '@/components/DeployedProgramsInitializer';
 import EnhancedProgramsVerifier from '@/components/EnhancedProgramsVerifier';
+import EnhancedProgramsInitializer from '@/components/EnhancedProgramsInitializer';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'enhanced-programs' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'enhanced-programs' | 'enhanced-init' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -446,7 +447,8 @@ export default function AdminDashboard() {
             {[
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
-              { id: 'enhanced-programs', label: 'Enhanced Programs', icon: '🔧' },
+              { id: 'enhanced-programs', label: 'Enhanced Verify', icon: '🔧' },
+              { id: 'enhanced-init', label: 'Enhanced Init', icon: '🚀' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
@@ -828,6 +830,19 @@ export default function AdminDashboard() {
             </div>
 
             <EnhancedProgramsVerifier />
+          </div>
+        )}
+
+        {activeTab === 'enhanced-init' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🚀 Enhanced Programs Initialization</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Initialize all 5 Enhanced Programs for actual use. Some programs are ready immediately, others need specific initialization with parameters.
+              </p>
+            </div>
+
+            <EnhancedProgramsInitializer />
           </div>
         )}
 
