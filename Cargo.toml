@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "programs/analos-nft-launchpad-core",
     "programs/analos-nft-launchpad",
     "programs/analos-token-launch",
     "programs/analos-rarity-oracle",
