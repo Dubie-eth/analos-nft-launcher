@@ -22,7 +22,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{keccak, program::invoke_signed, system_instruction};
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("11111111111111111111111111111111"); // UPDATE AFTER FIRST BUILD!
+declare_id!("BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr");
 
 pub const PLATFORM_ADMIN: &str = "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW";
 
