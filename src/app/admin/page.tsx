@@ -13,6 +13,7 @@ import TwoFactorAuth from '@/components/TwoFactorAuth';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
 import ProgramInitializer from '@/components/ProgramInitializer';
 import RarityOracleInitializer from '@/components/RarityOracleInitializer';
+import TokenLaunchInitializer from '@/components/TokenLaunchInitializer';
 import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import DeployedProgramsInitializer from '@/components/DeployedProgramsInitializer';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
@@ -743,13 +744,16 @@ export default function AdminDashboard() {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-4">🚀 Program Initialization</h2>
               <p className="text-gray-300 max-w-3xl mx-auto">
-                Initialize the 3 programs that require setup. The other 6 programs are ready to use immediately.
+                Initialize the 4 programs that require setup. The other 5 programs are ready to use immediately.
               </p>
             </div>
 
             <div className="grid lg:grid-cols-1 gap-8">
               {/* Price Oracle Initializer */}
               <PriceOracleInitializer />
+              
+              {/* Token Launch Initializer */}
+              <TokenLaunchInitializer />
               
               {/* Rarity Oracle Initializer */}
               <RarityOracleInitializer />
