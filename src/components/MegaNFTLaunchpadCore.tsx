@@ -69,26 +69,36 @@ const MegaNFTLaunchpadCore: React.FC = () => {
     if (connection && publicKey && connected) {
       const initProgram = async () => {
         try {
+          if (!publicKey) {
+            console.error('No wallet connected');
+            setLoading(false);
+            return;
+          }
+          
           console.log('Initializing program with wallet:', publicKey.toString());
           
           // Create a wallet adapter object that AnchorProvider expects
           const walletAdapter = {
             publicKey,
             signTransaction: async (tx: any) => {
-              if (typeof window !== 'undefined' && window.solana) {
+              if (typeof window !== 'undefined' && window.solana && window.solana.signTransaction) {
                 return await window.solana.signTransaction(tx);
               }
               throw new Error('Wallet not available');
             },
             signAllTransactions: async (txs: any[]) => {
-              if (typeof window !== 'undefined' && window.solana) {
+              if (typeof window !== 'undefined' && window.solana && window.solana.signAllTransactions) {
                 return await window.solana.signAllTransactions(txs);
               }
               throw new Error('Wallet not available');
             }
           };
 
-          const provider = new AnchorProvider(connection, walletAdapter as any, {});
+          const provider = new AnchorProvider(connection, walletAdapter as any, {
+            commitment: 'confirmed',
+            preflightCommitment: 'confirmed',
+          });
+          
           const programInstance = new Program(idl as any, provider);
           setProgram(programInstance);
           await loadPlatformData(programInstance);

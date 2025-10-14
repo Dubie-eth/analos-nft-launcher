@@ -7,11 +7,12 @@ import {
   LAMPORTS_PER_SOL
 } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '../config/analos-programs';
+import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel } from '@/config/access-control';
 
 interface UserAccess {
   address: string;
   type: 'address' | 'token' | 'nft';
-  accessLevel: 'beta' | 'creator' | 'admin';
+  accessLevel: string; // Now uses ACCESS_LEVELS from config
   tokenThreshold?: number;
   nftCollections?: string[];
   grantedAt: Date;
@@ -64,6 +65,10 @@ const UserAccessManager: React.FC = () => {
     totalAccessRequests: 0,
     activeRules: 0
   });
+
+  // Page access management
+  const [selectedPage, setSelectedPage] = useState<string>('');
+  const [pageAccessUsers, setPageAccessUsers] = useState<UserAccess[]>([]);
 
   useEffect(() => {
     loadUserAccess();
@@ -270,6 +275,54 @@ const UserAccessManager: React.FC = () => {
         rule.id === ruleId ? { ...rule, isActive: !rule.isActive } : rule
       )
     );
+  };
+
+  // Page access management functions
+  const loadPageAccessUsers = (pagePath: string) => {
+    const requiredLevel = PAGE_ACCESS.find(page => page.path === pagePath)?.requiredLevel;
+    if (!requiredLevel) return;
+
+    const levelHierarchy = ['public', 'beta_user', 'premium_user', 'admin'];
+    const requiredIndex = levelHierarchy.indexOf(requiredLevel);
+    
+    const usersWithAccess = userAccess.filter(user => {
+      const userIndex = levelHierarchy.indexOf(user.accessLevel);
+      return userIndex >= requiredIndex && user.isActive;
+    });
+    
+    setPageAccessUsers(usersWithAccess);
+  };
+
+  const updateUserAccessLevel = async (address: string, newLevel: string) => {
+    try {
+      setLoading(true);
+      
+      // Update user access level
+      const updatedUsers = userAccess.map(user => 
+        user.address === address ? { ...user, accessLevel: newLevel } : user
+      );
+      setUserAccess(updatedUsers);
+      
+      // Save to localStorage
+      localStorage.setItem('user-access', JSON.stringify(updatedUsers));
+      
+      // Update in access control system
+      setUserAccessLevel(address, newLevel);
+      
+      // Reload page access if a page is selected
+      if (selectedPage) {
+        loadPageAccessUsers(selectedPage);
+      }
+      
+      // Update analytics
+      loadAnalytics();
+      
+    } catch (error) {
+      console.error('Failed to update access level:', error);
+      alert('Failed to update access level');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAccessLevelColor = (level: string) => {
@@ -763,6 +816,123 @@ const UserAccessManager: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Page Access Management Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">📄 Page Access Management</h2>
+            <p className="text-gray-600">
+              Manage which users can access specific pages on the platform
+            </p>
+          </div>
+        </div>
+
+        {/* Page Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Page to Manage Access
+          </label>
+          <select
+            value={selectedPage}
+            onChange={(e) => {
+              setSelectedPage(e.target.value);
+              if (e.target.value) {
+                loadPageAccessUsers(e.target.value);
+              }
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            <option value="">Select a page...</option>
+            {PAGE_ACCESS.map((page) => (
+              <option key={page.path} value={page.path}>
+                {page.name} - {page.description}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Page Access Details */}
+        {selectedPage && (
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Page Access Details
+              </h3>
+              {(() => {
+                const page = PAGE_ACCESS.find(p => p.path === selectedPage);
+                if (!page) return null;
+                
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Page Name:</p>
+                      <p className="font-medium">{page.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Required Access Level:</p>
+                      <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${getAccessLevelColor(page.requiredLevel)}`}>
+                        {ACCESS_LEVELS.find(level => level.id === page.requiredLevel)?.name || page.requiredLevel}
+                      </span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-sm text-gray-600">Description:</p>
+                      <p className="text-gray-900">{page.description}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Users with Access */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Users with Access ({pageAccessUsers.length})
+              </h3>
+              
+              {pageAccessUsers.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No users have access to this page</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {pageAccessUsers.map((user) => (
+                    <div key={user.address} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-lg">{getAccessTypeIcon(user.type)}</span>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {user.address.slice(0, 8)}...{user.address.slice(-8)}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Type: {user.type} | Granted: {user.grantedAt.toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded text-sm font-medium ${getAccessLevelColor(user.accessLevel)}`}>
+                          {ACCESS_LEVELS.find(level => level.id === user.accessLevel)?.name || user.accessLevel}
+                        </span>
+                        <select
+                          value={user.accessLevel}
+                          onChange={(e) => updateUserAccessLevel(user.address, e.target.value)}
+                          className="text-sm border border-gray-300 rounded px-2 py-1"
+                        >
+                          {ACCESS_LEVELS.map((level) => (
+                            <option key={level.id} value={level.id}>
+                              {level.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

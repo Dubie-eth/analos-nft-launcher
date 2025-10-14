@@ -1,17 +1,56 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Admin wallet addresses - only these wallets can access admin
-const ADMIN_WALLETS = [
-  '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your admin wallet
-  '89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m', // Deployer wallet (for program initialization)
-  // Add more admin wallets here if needed
-];
+// Import access control configuration
+import { 
+  ADMIN_WALLETS, 
+  hasPageAccess, 
+  getUserAccessLevel, 
+  isAdminOnlyPage,
+  PAGE_ACCESS,
+  DEFAULT_ACCESS_LEVEL 
+} from './src/config/access-control';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Protect admin routes
+  // Skip middleware for static files and API routes (except our proxy)
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/favicon.ico') ||
+    pathname.startsWith('/static/') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
+  // Get user wallet from cookies or headers (you may need to adjust this based on your auth system)
+  const userWallet = request.cookies.get('user-wallet')?.value || 
+                    request.headers.get('x-user-wallet') || 
+                    null;
+  
+  // Get user access level
+  const userAccessLevel = userWallet ? getUserAccessLevel(userWallet) : DEFAULT_ACCESS_LEVEL;
+  
+  // Check if user has access to the requested page
+  const hasAccess = hasPageAccess(userWallet, userAccessLevel, pathname);
+  
+  if (!hasAccess) {
+    // Admin-only pages redirect to admin login
+    if (isAdminOnlyPage(pathname)) {
+      const loginUrl = new URL('/admin-login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+    
+    // Other restricted pages redirect to home with access denied message
+    const homeUrl = new URL('/', request.url);
+    homeUrl.searchParams.set('access_denied', 'true');
+    homeUrl.searchParams.set('required_page', pathname);
+    return NextResponse.redirect(homeUrl);
+  }
+  
+  // Special handling for admin routes (existing logic)
   if (pathname.startsWith('/admin')) {
     // For admin routes, we need to check the wallet connection
     // Since this is server-side, we'll redirect to a secure admin login page
