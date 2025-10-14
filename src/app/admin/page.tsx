@@ -69,7 +69,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'enhanced-programs' | 'enhanced-init' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -447,8 +447,6 @@ export default function AdminDashboard() {
             {[
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
-              { id: 'enhanced-programs', label: 'Enhanced Verify', icon: '🔧' },
-              { id: 'enhanced-init', label: 'Enhanced Init', icon: '🚀' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
@@ -457,7 +455,6 @@ export default function AdminDashboard() {
               { id: 'backend-test', label: 'Backend Test', icon: '🔧' },
               { id: 'price-automation', label: 'Price Automation', icon: '🤖' },
               { id: 'keypair-rotation', label: 'Keypair Security', icon: '🔐' },
-              { id: 'oracle', label: 'Rarity Oracle', icon: '🎲' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map((tab) => (
               <button
@@ -666,52 +663,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'oracle' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">Price Oracle Management</h2>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-bold text-white mb-4">Current Oracle Status</h3>
-              
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-2">LOS Price</h4>
-                  <div className="text-3xl font-bold text-green-400">${adminStats.losPrice}</div>
-                  <div className="text-sm text-gray-400 mt-1">Last updated: {new Date().toLocaleString()}</div>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-semibold text-white mb-2">Oracle Program</h4>
-                  <code className="text-sm bg-gray-800/50 px-3 py-2 rounded break-all">
-                    {ANALOS_PROGRAMS.PRICE_ORACLE.toString()}
-                  </code>
-                  <div className="mt-2">
-                    <a
-                      href={ANALOS_EXPLORER_URLS.PRICE_ORACLE}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-400 hover:text-purple-300 text-sm"
-                    >
-                      View on Explorer →
-                    </a>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex space-x-4">
-                <button
-                  onClick={handleUpdateOracle}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200"
-                >
-                  Update Oracle Price
-                </button>
-                <button className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-200 border border-white/20">
-                  View History
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {activeTab === 'health-check' && (
           <div>
@@ -747,59 +698,116 @@ export default function AdminDashboard() {
         {activeTab === 'program-init' && (
           <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-4">🚀 Program Initialization</h2>
+              <h2 className="text-3xl font-bold text-white mb-4">🚀 Program Initialization & Management</h2>
               <p className="text-gray-300 max-w-3xl mx-auto">
-                Initialize the 4 programs that require setup. The other 5 programs are ready to use immediately.
+                Initialize and manage all programs on the Analos blockchain. Core programs need initialization, Enhanced Programs are ready to use.
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-1 gap-8">
-              {/* Price Oracle Initializer */}
-              <PriceOracleInitializer />
-              
-              {/* Token Launch Initializer */}
-              <TokenLaunchInitializer />
-              
-              {/* Rarity Oracle Initializer */}
-              <RarityOracleInitializer />
-              
-              {/* NFT Launchpad Initializer */}
-              <NFTLaunchpadInitializer />
+            {/* Core Programs Section */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl p-6 border border-blue-500/30">
+              <h3 className="text-2xl font-bold text-white mb-4">🔧 Core Programs</h3>
+              <p className="text-gray-300 mb-6">
+                These 4 programs require initialization to function properly:
+              </p>
+              <div className="grid lg:grid-cols-1 gap-6">
+                {/* Price Oracle Initializer */}
+                <PriceOracleInitializer />
+                
+                {/* Token Launch Initializer */}
+                <TokenLaunchInitializer />
+                
+                {/* Rarity Oracle Initializer */}
+                <RarityOracleInitializer />
+                
+                {/* NFT Launchpad Initializer */}
+                <NFTLaunchpadInitializer />
+              </div>
             </div>
 
-            {/* Information Section */}
+            {/* Enhanced Programs Section */}
+            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/30">
+              <h3 className="text-2xl font-bold text-white mb-4">⚡ Enhanced Programs</h3>
+              <p className="text-gray-300 mb-6">
+                These 5 Enhanced Programs are deployed and ready for verification and initialization:
+              </p>
+              
+              {/* Enhanced Programs Verifier */}
+              <div className="mb-6">
+                <EnhancedProgramsVerifier />
+              </div>
+              
+              {/* Enhanced Programs Initializer */}
+              <EnhancedProgramsInitializer />
+            </div>
+
+            {/* Program Status Overview */}
             <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl p-6 border border-green-500/30">
-              <h3 className="text-2xl font-bold text-white mb-4">✅ Ready to Use Programs</h3>
-              <p className="text-gray-300 mb-4">
-                These 6 programs are already deployed and ready to use without initialization:
-              </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <span>✅</span>
-                    <span>Token Launch Program</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <span>✅</span>
-                    <span>OTC Enhanced Program</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <span>✅</span>
-                    <span>Airdrop Enhanced Program</span>
+              <h3 className="text-2xl font-bold text-white mb-4">📊 Program Status Overview</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-blue-400 mb-2">Core Programs</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center space-x-2 text-yellow-400">
+                      <span>⏳</span>
+                      <span>Price Oracle</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-yellow-400">
+                      <span>⏳</span>
+                      <span>Token Launch</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-yellow-400">
+                      <span>⏳</span>
+                      <span>Rarity Oracle</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-yellow-400">
+                      <span>⏳</span>
+                      <span>NFT Launchpad</span>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <span>✅</span>
-                    <span>Vesting Enhanced Program</span>
+                
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-purple-400 mb-2">Enhanced Programs</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center space-x-2 text-green-400">
+                      <span>✅</span>
+                      <span>OTC Enhanced</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-green-400">
+                      <span>✅</span>
+                      <span>Airdrop Enhanced</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-green-400">
+                      <span>✅</span>
+                      <span>Vesting Enhanced</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-green-400">
+                      <span>✅</span>
+                      <span>Token Lock Enhanced</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-green-400">
+                      <span>✅</span>
+                      <span>Monitoring System</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <span>✅</span>
-                    <span>Token Lock Enhanced Program</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-green-400">
-                    <span>✅</span>
-                    <span>Monitoring System Program</span>
+                </div>
+                
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <h4 className="text-lg font-semibold text-orange-400 mb-2">Integration</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center space-x-2 text-blue-400">
+                      <span>🔗</span>
+                      <span>DLMM Integration</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-blue-400">
+                      <span>🔗</span>
+                      <span>Oracle Connections</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-blue-400">
+                      <span>🔗</span>
+                      <span>Cross-Program Calls</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -820,31 +828,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'enhanced-programs' && (
-          <div className="space-y-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-4">🔧 Enhanced Programs Verification</h2>
-              <p className="text-gray-300 max-w-3xl mx-auto">
-                Verify all 5 Enhanced Programs are deployed and accessible on Analos blockchain. These programs provide advanced features for the ecosystem.
-              </p>
-            </div>
-
-            <EnhancedProgramsVerifier />
-          </div>
-        )}
-
-        {activeTab === 'enhanced-init' && (
-          <div className="space-y-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-4">🚀 Enhanced Programs Initialization</h2>
-              <p className="text-gray-300 max-w-3xl mx-auto">
-                Initialize all 5 Enhanced Programs for actual use. Some programs are ready immediately, others need specific initialization with parameters.
-              </p>
-            </div>
-
-            <EnhancedProgramsInitializer />
-          </div>
-        )}
 
         {activeTab === 'keypair-rotation' && (
           <div>
