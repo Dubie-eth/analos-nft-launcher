@@ -1,6 +1,9 @@
 {
   "version": "0.1.0",
   "name": "analos_rarity_oracle",
+  "metadata": {
+    "address": "C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5"
+  },
   "instructions": [
     {
       "name": "initializeRarityConfig",

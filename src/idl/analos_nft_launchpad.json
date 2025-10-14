@@ -1,6 +1,9 @@
 {
   "version": "0.1.0",
   "name": "analos_nft_launchpad",
+  "metadata": {
+    "address": "5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT"
+  },
   "instructions": [
     {
       "name": "initializeCollection",

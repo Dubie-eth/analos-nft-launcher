@@ -1,6 +1,9 @@
 {
   "version": "8.0.0",
   "name": "analos_price_oracle",
+  "metadata": {
+    "address": "B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D"
+  },
   "instructions": [
     {
       "name": "initializeOracle",

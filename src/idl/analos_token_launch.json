@@ -1,6 +1,9 @@
 {
   "version": "0.1.0",
   "name": "analos_token_launch",
+  "metadata": {
+    "address": "Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw"
+  },
   "instructions": [
     {
       "name": "initializeTokenLaunch",
