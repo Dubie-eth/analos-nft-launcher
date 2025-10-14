@@ -4,11 +4,12 @@
  * Connected to: https://analos-nft-backend-minimal-production.up.railway.app
  */
 
-// Backend Configuration
+// SECURITY: Backend Configuration - Now uses secure server-side proxy
 export const BACKEND_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-backend-minimal-production.up.railway.app',
-  API_KEY: process.env.NEXT_PUBLIC_API_KEY || 'a6ffe279-a627-4623-8cc4-266785cf0eaf',
+  // Use secure proxy endpoint instead of direct backend URL
+  BASE_URL: '/api/proxy',
   TIMEOUT: 30000, // 30 seconds
+  // API key is now handled server-side in the proxy
 };
 
 // API Endpoints
@@ -65,15 +66,16 @@ export class BackendAPIClient {
 
   constructor() {
     this.baseURL = BACKEND_CONFIG.BASE_URL;
-    this.apiKey = BACKEND_CONFIG.API_KEY;
+    this.apiKey = ''; // API key now handled server-side
     this.timeout = BACKEND_CONFIG.TIMEOUT;
     
     console.log('🔗 Backend API Client initialized');
     console.log('📍 Base URL:', this.baseURL);
+    console.log('🔒 Using secure server-side proxy');
   }
 
   /**
-   * Make authenticated fetch request
+   * Make secure fetch request through server-side proxy
    */
   private async authenticatedFetch(
     endpoint: string,
@@ -82,7 +84,9 @@ export class BackendAPIClient {
     const url = `${this.baseURL}${endpoint}`;
     
     const headers = new Headers(options.headers);
-    headers.set('x-api-key', this.apiKey);
+    
+    // SECURITY: No API key in client-side requests
+    // Authentication is handled server-side in the proxy
     
     if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
       headers.set('Content-Type', 'application/json');

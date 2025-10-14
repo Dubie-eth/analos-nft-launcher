@@ -1,86 +1,63 @@
-// Backend Configuration
-// Centralized configuration for all backend API calls
+/**
+ * SECURITY: Backend Configuration
+ * Centralized configuration for secure backend communication
+ * All sensitive data is handled server-side
+ */
 
-export const BACKEND_CONFIG = {
-  // Production backend URL
-  BASE_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://analos-nft-backend-minimal-production.up.railway.app',
-  
-  // API endpoints
-  ENDPOINTS: {
-    HEALTH: '/health',
-    IPFS_UPLOAD_FILE: '/api/ipfs/upload-file',
-    IPFS_UPLOAD_JSON: '/api/ipfs/upload-json',
-    IPFS_TEST: '/api/ipfs/test',
-    RPC_PROXY: '/api/rpc/proxy',
-    RPC_ACCOUNT: '/api/rpc/account',
-    RPC_TOKEN_SUPPLY: '/api/rpc/token-supply',
-    RPC_TRANSACTION: '/api/rpc/transaction',
-    WEBHOOK_ANALOS_EVENT: '/api/webhook/analos-event',
-    WEBHOOK_START_LISTENER: '/api/webhook/start-listener',
-    WEBHOOK_STOP_LISTENER: '/api/webhook/stop-listener',
-    WEBHOOK_STATUS: '/api/webhook/status',
-  },
-  
-  // API Key for authentication
-  API_KEY: 'a6ffe279-a627-4623-8cc4-266785cf0eaf',
-  
-  // Request timeout (in milliseconds)
-  TIMEOUT: 30000,
-  
-  // Rate limiting configuration
-  RATE_LIMIT: {
-    WINDOW_MS: 900000, // 15 minutes
-    MAX_REQUESTS: 100,
-  },
-} as const;
-
-// Helper function to build full API URLs
-export const buildApiUrl = (endpoint: string): string => {
-  return `${BACKEND_CONFIG.BASE_URL}${endpoint}`;
+// SECURITY: Server-side environment variables (not exposed to client)
+export const SERVER_BACKEND_CONFIG = {
+  // These should be set in your deployment environment
+  BACKEND_URL: process.env.BACKEND_URL || 'https://analos-core-service-production.up.railway.app',
+  API_KEY: process.env.API_KEY,
+  TIMEOUT: 30000, // 30 seconds
 };
 
-// Helper function to get headers with API key
-export const getApiHeaders = (additionalHeaders: Record<string, string> = {}): Record<string, string> => {
-  return {
-    'Content-Type': 'application/json',
-    'x-api-key': BACKEND_CONFIG.API_KEY,
-    ...additionalHeaders,
-  };
+// Client-side configuration (safe to expose)
+export const CLIENT_BACKEND_CONFIG = {
+  // Use secure proxy endpoint
+  PROXY_URL: '/api/proxy',
+  TIMEOUT: 30000, // 30 seconds
 };
 
-// Helper function for authenticated fetch requests
-export const authenticatedFetch = async (
-  endpoint: string, 
-  options: RequestInit = {}
-): Promise<Response> => {
-  const url = buildApiUrl(endpoint);
-  const headers = getApiHeaders();
+// API Endpoints
+export const API_ENDPOINTS = {
+  // Health
+  HEALTH: '/health',
   
-  // Merge headers
-  const mergedHeaders = {
-    ...headers,
-    ...options.headers,
-  };
+  // IPFS
+  IPFS_UPLOAD_FILE: '/api/ipfs/upload-file',
+  IPFS_UPLOAD_JSON: '/api/ipfs/upload-json',
+  IPFS_TEST: '/api/ipfs/test',
   
-  return fetch(url, {
-    ...options,
-    headers: mergedHeaders,
-  });
+  // RPC Proxy
+  RPC_PROXY: '/api/rpc/proxy',
+  
+  // Webhooks
+  WEBHOOK_ANALOS_EVENT: '/api/webhook/analos-event',
 };
 
-// Health check function
-export const checkBackendHealth = async (): Promise<boolean> => {
-  try {
-    const response = await fetch(buildApiUrl(BACKEND_CONFIG.ENDPOINTS.HEALTH));
-    const data = await response.json();
-    return data.status === 'healthy' || data.status === 'ok';
-  } catch (error) {
-    console.error('Backend health check failed:', error);
-    return false;
-  }
+// Security headers configuration
+export const SECURITY_HEADERS = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-XSS-Protection': '1; mode=block',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://solana.com https://cdn.skypack.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://rpc.analos.io https://api.analos.io wss:; font-src 'self' data:;",
 };
 
-// Export the old URL for reference (will be removed after migration)
-export const OLD_BACKEND_URL = 'https://analos-nft-launcher-backend-production.up.railway.app';
+// Rate limiting configuration
+export const RATE_LIMIT_CONFIG = {
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+};
 
-export default BACKEND_CONFIG;
+// CORS configuration
+export const CORS_CONFIG = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://launchonlos.fun', 'https://www.launchonlos.fun']
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+};
