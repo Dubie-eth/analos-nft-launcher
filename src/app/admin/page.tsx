@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useRouter } from 'next/navigation';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import BackendTester from '@/components/BackendTester';
@@ -52,8 +53,9 @@ interface ProgramStatus {
 }
 
 export default function AdminDashboard() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, disconnect } = useWallet();
   const { connection } = useConnection();
+  const router = useRouter();
   
   // Admin wallet addresses - only these wallets can access admin
   const ADMIN_WALLETS = [
@@ -149,15 +151,43 @@ export default function AdminDashboard() {
     sessionStorage.removeItem('admin-authenticated');
   };
 
-  const handleLogout = () => {
-    setAuthStep('wallet');
-    setSessionAuthenticated(false);
-    setHasCanceledSetup(false);
-    sessionStorage.removeItem('admin-authenticated');
-  };
 
   // REMOVED: handleResetAuth - No reset functionality should exist
   // Only way to reset is with the secret key that is stored offline
+
+  // Handle logout
+  const handleLogout = () => {
+    // Clear admin session
+    document.cookie = 'admin-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    disconnect();
+    router.push('/');
+  };
+
+  // Validate admin session on mount
+  useEffect(() => {
+    const adminSession = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin-session='));
+    
+    if (!adminSession) {
+      // No admin session, redirect to login
+      router.push('/admin-login');
+      return;
+    }
+    
+    try {
+      const sessionData = JSON.parse(decodeURIComponent(adminSession.split('=')[1]));
+      if (!sessionData.walletAddress || !ADMIN_WALLETS.includes(sessionData.walletAddress)) {
+        // Invalid admin session, redirect to login
+        router.push('/admin-login');
+        return;
+      }
+    } catch (error) {
+      // Invalid session data, redirect to login
+      router.push('/admin-login');
+      return;
+    }
+  }, [router]);
 
   // Load admin data
   useEffect(() => {

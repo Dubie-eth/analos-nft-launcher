@@ -2,9 +2,21 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { ANALOS_PROGRAMS, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 
 const HomePage: React.FC = () => {
+  const { publicKey, connected } = useWallet();
+  
+  // Admin wallet addresses - only these wallets can access admin
+  const ADMIN_WALLETS = [
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your admin wallet
+    '89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m', // Deployer wallet (for program initialization)
+    // Add more admin wallets here if needed
+  ];
+  
+  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+
   const programs = [
     {
       name: 'Mega NFT Launchpad Core',
@@ -72,12 +84,14 @@ const HomePage: React.FC = () => {
               >
                 How It Works
               </Link>
-              <Link 
-                href="/admin" 
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Admin Dashboard
-              </Link>
+              {isAdmin && (
+                <Link 
+                  href="/admin-login" 
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
             </nav>
           </div>
         </div>
@@ -103,12 +117,21 @@ const HomePage: React.FC = () => {
             >
               Learn How It Works
             </Link>
-            <Link 
-              href="/admin" 
-              className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-colors"
-            >
-              Launch Your Collection
-            </Link>
+            {isAdmin ? (
+              <Link 
+                href="/admin-login" 
+                className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Admin Dashboard
+              </Link>
+            ) : (
+              <Link 
+                href="/how-it-works" 
+                className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Learn How It Works
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -258,12 +281,21 @@ const HomePage: React.FC = () => {
             Join the future of NFT launches on the Analos blockchain with our complete platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/admin" 
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105"
-            >
-              Start Creating Collections
-            </Link>
+            {isAdmin ? (
+              <Link 
+                href="/admin-login" 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105"
+              >
+                Access Admin Dashboard
+              </Link>
+            ) : (
+              <Link 
+                href="/how-it-works" 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105"
+              >
+                Learn How It Works
+              </Link>
+            )}
             <Link 
               href="/how-it-works" 
               className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg font-semibold transition-colors border border-white/20"
@@ -289,7 +321,9 @@ const HomePage: React.FC = () => {
               <h3 className="text-lg font-bold text-white mb-4">Platform</h3>
               <ul className="space-y-2 text-sm">
                 <li><Link href="/how-it-works" className="text-gray-300 hover:text-white transition-colors">How It Works</Link></li>
-                <li><Link href="/admin" className="text-gray-300 hover:text-white transition-colors">Admin Dashboard</Link></li>
+                {isAdmin && (
+                  <li><Link href="/admin-login" className="text-gray-300 hover:text-white transition-colors">Admin Dashboard</Link></li>
+                )}
                 <li><a href="https://github.com/Dubie-eth/analos-programs" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">Verify Programs</a></li>
               </ul>
             </div>
