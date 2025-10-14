@@ -68,7 +68,7 @@ const MegaNFTLaunchpadCore: React.FC = () => {
       const initProgram = async () => {
         try {
           const provider = new AnchorProvider(connection, window.solana as any, {});
-          const programInstance = new Program(idl as any, ANALOS_PROGRAMS.NFT_LAUNCHPAD_CORE, provider);
+          const programInstance = new Program(idl as any, provider);
           setProgram(programInstance);
           await loadPlatformData(programInstance);
         } catch (error) {
