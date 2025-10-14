@@ -18,6 +18,8 @@ import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import DeployedProgramsInitializer from '@/components/DeployedProgramsInitializer';
 import EnhancedProgramsVerifier from '@/components/EnhancedProgramsVerifier';
 import EnhancedProgramsInitializer from '@/components/EnhancedProgramsInitializer';
+import MegaNFTLaunchpadCore from '@/components/MegaNFTLaunchpadCore';
+import UserAccessManager from '@/components/UserAccessManager';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -69,7 +71,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'deployed-programs' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -436,8 +438,28 @@ export default function AdminDashboard() {
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Manage collections, programs, and platform settings on the Analos blockchain
           </p>
-          <div className="mt-4 text-sm text-gray-400">
+          <div className="mt-4 text-sm text-gray-400 mb-4">
             Admin: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}
+          </div>
+          <div className="flex justify-center space-x-4">
+            <a 
+              href="/how-it-works" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/20 hover:bg-white/30 rounded-lg px-6 py-2 transition-colors flex items-center space-x-2 text-sm"
+            >
+              <span>📚</span>
+              <span>How It Works</span>
+            </a>
+            <a 
+              href="https://github.com/Dubie-eth/analos-programs" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/20 hover:bg-white/30 rounded-lg px-6 py-2 transition-colors flex items-center space-x-2 text-sm"
+            >
+              <span>🔍</span>
+              <span>Verify Programs</span>
+            </a>
           </div>
         </div>
 
@@ -446,6 +468,8 @@ export default function AdminDashboard() {
           <div className="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {[
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
+              { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
+              { id: 'user-access', label: 'User Access', icon: '👥' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
@@ -812,6 +836,32 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'mega-launchpad' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🎨 Mega NFT Launchpad Core</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Complete NFT launchpad platform with all features integrated. Manage collections, 
+                configure platform settings, and monitor revenue distribution.
+              </p>
+            </div>
+            <MegaNFTLaunchpadCore />
+          </div>
+        )}
+
+        {activeTab === 'user-access' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">👥 User Access Management</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Manage beta user access based on Solana addresses, token holdings, or NFT ownership. 
+                Grant access to specific users or create automatic access rules.
+              </p>
+            </div>
+            <UserAccessManager />
           </div>
         )}
 
