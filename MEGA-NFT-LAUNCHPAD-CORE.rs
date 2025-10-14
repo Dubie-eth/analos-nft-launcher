@@ -808,7 +808,7 @@ pub mod analos_nft_launchpad_core {
         
         // Check threshold
         let approval_bps = (proposal.votes_for * 10000) / proposal.total_voting_power;
-        require!(approval_bps >= proposal.threshold_bps, ErrorCode::ThresholdNotMet);
+        require!(approval_bps >= proposal.threshold_bps as u64, ErrorCode::ThresholdNotMet);
         
         // EXECUTE: Change admin
         let old_admin = platform.admin_authority;
@@ -1195,7 +1195,11 @@ pub struct DistributeRewards<'info> {
 
 #[derive(Accounts)]
 pub struct CreateCtoProposal<'info> {
-    #[account(init, payer = proposer, space = 8 + 800, seeds = [b"cto_proposal", &Clock::get()?.unix_timestamp.to_le_bytes()], bump)]
+    #[account(
+        init,
+        payer = proposer,
+        space = 8 + 800
+    )]
     pub cto_proposal: Account<'info, CtoProposal>,
     pub proposer_stake: Account<'info, HolderStake>,
     pub reward_pool: Account<'info, RewardPool>,
@@ -1530,13 +1534,13 @@ pub struct ReferralRecord {
 // ENUMS
 // ========================================
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug, InitSpace)]
 pub enum LaunchMode {
     NftOnly,
     NftToToken,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug, InitSpace)]
 pub enum MintStage {
     Closed,
     Whitelist1,
@@ -1546,7 +1550,7 @@ pub enum MintStage {
     Ended,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug, InitSpace)]
 pub enum SocialPlatform {
     Twitter,
     Website,
@@ -1689,8 +1693,6 @@ pub enum ErrorCode {
     VotingStillActive,
     #[msg("Already executed")]
     AlreadyExecuted,
-    #[msg("Threshold not met")]
-    ThresholdNotMet,
     #[msg("Unauthorized - admin only")]
     Unauthorized,
     #[msg("Invalid allocation")]
