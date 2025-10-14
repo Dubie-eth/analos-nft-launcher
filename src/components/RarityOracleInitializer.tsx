@@ -76,21 +76,24 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
         throw new Error('Program not found or wallet not connected');
       }
 
-      // Create the Rarity Config PDA
-      const [rarityConfigPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('rarity_config'), publicKey.toBuffer()],
-        program.programId
-      );
-
-      // Create a dummy collection config PDA for initialization
+      // Create a collection config PDA (this would normally come from NFT Launchpad)
+      // For testing, we'll create one using the user's public key as a seed
       const [collectionConfigPda] = PublicKey.findProgramAddressSync(
         [Buffer.from('collection_config'), publicKey.toBuffer()],
         program.programId
       );
 
+      // Create the Rarity Config PDA using the collection config (correct seeds)
+      const [rarityConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('rarity_config'), collectionConfigPda.toBuffer()],
+        program.programId
+      );
+
       console.log('📊 Attempting to initialize Rarity Oracle on blockchain...');
       console.log('🔗 Program ID:', ANALOS_PROGRAMS.RARITY_ORACLE.toString());
+      console.log('🔗 Collection Config PDA:', collectionConfigPda.toString());
       console.log('🔗 Rarity Config PDA:', rarityConfigPda.toString());
+      console.log('🔗 Authority (User):', publicKey.toString());
 
       // Call the initialize_rarity_config instruction
       const signature = await program.methods
