@@ -32,12 +32,12 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
     if (!publicKey) return null;
     
     return {
-      title: 'Initialize Rarity Oracle (Frontend Mode)',
-      description: `Initialize the Rarity Oracle locally for collection configuration. Data will be stored in browser.`,
-      estimatedFee: '0 LOS (Frontend Only)',
+      title: 'Initialize Rarity Oracle (Analos Blockchain)',
+      description: `Initialize the Rarity Oracle program on Analos blockchain. This will create a rarity configuration for NFT collections.`,
+      estimatedFee: '~0.002 LOS',
       fromAccount: publicKey.toString(),
-      toAccount: 'Browser Local Storage',
-      programId: 'Frontend Simulation',
+      toAccount: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
+      programId: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
       actionType: 'initialize'
     };
   };
