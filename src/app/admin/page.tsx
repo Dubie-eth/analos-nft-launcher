@@ -16,6 +16,7 @@ import RarityOracleInitializer from '@/components/RarityOracleInitializer';
 import TokenLaunchInitializer from '@/components/TokenLaunchInitializer';
 import NFTLaunchpadInitializer from '@/components/NFTLaunchpadInitializer';
 import DeployedProgramsInitializer from '@/components/DeployedProgramsInitializer';
+import EnhancedProgramsVerifier from '@/components/EnhancedProgramsVerifier';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -67,7 +68,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'oracle' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'deployed-programs' | 'enhanced-programs' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -445,6 +446,7 @@ export default function AdminDashboard() {
             {[
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
+              { id: 'enhanced-programs', label: 'Enhanced Programs', icon: '🔧' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
               { id: 'price-oracle', label: 'Price Oracle', icon: '💰' },
@@ -813,6 +815,19 @@ export default function AdminDashboard() {
             </div>
 
             <DeployedProgramsInitializer onInitializeSuccess={() => {}} />
+          </div>
+        )}
+
+        {activeTab === 'enhanced-programs' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🔧 Enhanced Programs Verification</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Verify all 5 Enhanced Programs are deployed and accessible on Analos blockchain. These programs provide advanced features for the ecosystem.
+              </p>
+            </div>
+
+            <EnhancedProgramsVerifier />
           </div>
         )}
 
