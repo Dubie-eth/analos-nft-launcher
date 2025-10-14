@@ -18,6 +18,7 @@ export default function Navigation() {
   // Admin wallet addresses - only these wallets can see admin link
   const ADMIN_WALLETS = [
     '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Your admin wallet
+    '89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m', // Deployer wallet (for program initialization)
     // Add more admin wallets here if needed
   ];
 
