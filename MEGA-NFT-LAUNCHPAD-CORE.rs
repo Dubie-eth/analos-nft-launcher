@@ -22,6 +22,24 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{keccak, program::invoke_signed, system_instruction};
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
+// Security.txt implementation for program verification
+#[cfg(not(feature = "no-entrypoint"))]
+use {default_env::default_env, solana_security_txt::security_txt};
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "Analos NFT Launchpad Core (Mega Program)",
+    project_url: "https://github.com/Dubie-eth/analos-nft-launcher",
+    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    policy: "https://github.com/Dubie-eth/analos-nft-launcher/blob/master/SECURITY.md",
+    preferred_languages: "en",
+    source_code: "https://github.com/Dubie-eth/analos-nft-launcher",
+    source_revision: "BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr",
+    source_release: "v1.0.0",
+    auditors: "None",
+    acknowledgements: "Thank you to all security researchers who help keep Analos secure!"
+}
+
 declare_id!("BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr");
 
 pub const PLATFORM_ADMIN: &str = "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW";
