@@ -32,13 +32,13 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
     if (!publicKey) return null;
     
     return {
-      title: 'Verify Rarity Oracle (Analos Blockchain)',
-      description: `Verify the Rarity Oracle program is deployed and accessible on Analos blockchain. This program handles rarity calculations for NFT collections.`,
-      estimatedFee: '~0.0001 LOS',
+      title: 'Initialize Rarity Oracle (Analos Blockchain)',
+      description: `Initialize the Rarity Oracle program on Analos blockchain with exact Playground IDL. This program handles rarity calculations for NFT collections.`,
+      estimatedFee: '~0.001 LOS',
       fromAccount: publicKey.toString(),
       toAccount: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
       programId: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
-      actionType: 'verify'
+      actionType: 'initialize'
     };
   };
 
@@ -68,28 +68,49 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
         return;
       }
 
-      console.log('🔗 BLOCKCHAIN APPROACH: Verifying Rarity Oracle on Analos blockchain...');
+      console.log('🎯 Using exact Playground IDL with camelCase instruction names');
+      console.log('🔗 Initializing Rarity Oracle on Analos blockchain...');
       
-      // Test program accessibility by checking if it exists and is executable
-      const programAccount = await connection.getAccountInfo(ANALOS_PROGRAMS.RARITY_ORACLE);
-      
-      if (!programAccount) {
-        throw new Error('Rarity Oracle program not found on Analos blockchain');
-      }
-      
-      if (!programAccount.executable) {
-        throw new Error('Rarity Oracle program account is not executable');
+      const program = getProgram();
+      if (!program) {
+        throw new Error('Failed to create program instance');
       }
 
-      console.log('📊 Rarity Oracle program verification successful!');
-      console.log('🔗 Program ID:', ANALOS_PROGRAMS.RARITY_ORACLE.toString());
-      console.log('🔗 Program Account:', programAccount);
-      console.log('🔗 Authority (User):', publicKey.toString());
+      // Create a collection config PDA (this would normally come from NFT Launchpad)
+      // For testing, we'll create one using the user's public key as a seed
+      const [collectionConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('collection_config'), publicKey.toBuffer()],
+        ANALOS_PROGRAMS.NFT_LAUNCHPAD // Collection configs come from NFT Launchpad
+      );
+      
+      console.log('📦 Collection Config PDA:', collectionConfigPda.toString());
 
-      // Program is accessible - this is sufficient for verification
+      // Create the Rarity Config PDA using the collection config (correct seeds from Rust program)
+      const [rarityConfigPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('rarity_config'), collectionConfigPda.toBuffer()],
+        program.programId
+      );
+      
+      console.log('🎲 Rarity Config PDA:', rarityConfigPda.toString());
+
+      // Call initializeRarityConfig (camelCase as in Playground IDL)
+      const tx = await program.methods
+        .initializeRarityConfig()
+        .accounts({
+          rarityConfig: rarityConfigPda,
+          collectionConfig: collectionConfigPda,
+          authority: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log('✅ Rarity Oracle initialized successfully!');
+      console.log('📝 Transaction signature:', tx);
+
       setResult({
         success: true,
-        message: `Rarity Oracle program verified successfully! Program ID: ${ANALOS_PROGRAMS.RARITY_ORACLE.toString()}`,
+        message: `Rarity Oracle initialized successfully! Transaction: ${tx}`,
+        signature: tx,
       });
 
     } catch (error: any) {
@@ -103,8 +124,8 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
   return (
     <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700 shadow-lg">
       <div className="flex items-center space-x-3 mb-6">
-        <span className="text-4xl">🔍</span>
-        <h2 className="text-3xl font-bold text-white">Rarity Oracle Verifier</h2>
+        <span className="text-4xl">🎲</span>
+        <h2 className="text-3xl font-bold text-white">Rarity Oracle Initializer</h2>
       </div>
 
       <div className="space-y-6">
@@ -137,8 +158,8 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
             </svg>
           ) : (
             <>
-              <span>🔍</span>
-              <span>Verify Rarity Oracle Program</span>
+              <span>🎲</span>
+              <span>Initialize Rarity Oracle Program</span>
             </>
           )}
         </button>
@@ -189,10 +210,11 @@ export default function RarityOracleInitializer({}: RarityOracleInitializerProps
       <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
         <h4 className="text-blue-300 font-semibold mb-2">Information</h4>
         <ul className="text-blue-200 text-sm space-y-1">
-          <li>• Verifies the Rarity Oracle program is deployed and accessible</li>
-          <li>• Checks if the program account exists and is executable</li>
-          <li>• This program handles rarity calculations for NFT collections</li>
-          <li>• Once verified, the oracle can be used for rarity processing</li>
+          <li>• <strong>Using exact Playground IDL</strong> - camelCase instruction names</li>
+          <li>• Initializes the Rarity Oracle with correct PDA derivation</li>
+          <li>• Creates rarity_config account for NFT collections</li>
+          <li>• This program handles rarity calculations and tier assignments</li>
+          <li>• Once initialized, the oracle can assign rarity to minted NFTs</li>
         </ul>
       </div>
 

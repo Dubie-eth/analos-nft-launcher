@@ -3,68 +3,151 @@
   "name": "analos_rarity_oracle",
   "instructions": [
     {
-      "name": "initialize_rarity_config",
+      "name": "initializeRarityConfig",
       "accounts": [
-        { "name": "rarityConfig", "isMut": true, "isSigner": false },
-        { "name": "collectionConfig", "isMut": false, "isSigner": false },
-        { "name": "authority", "isMut": true, "isSigner": true },
-        { "name": "systemProgram", "isMut": false, "isSigner": false }
+        {
+          "name": "rarityConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collectionConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
       "args": []
     },
     {
-      "name": "setRarityTiers",
+      "name": "addRarityTier",
       "accounts": [
-        { "name": "rarityConfig", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": true }
+        {
+          "name": "rarityConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rarityTier",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
       "args": [
-        { "name": "tiers", "type": { "vec": { "defined": "RarityTier" } } }
+        {
+          "name": "tierId",
+          "type": "u8"
+        },
+        {
+          "name": "tierName",
+          "type": "string"
+        },
+        {
+          "name": "tokenMultiplier",
+          "type": "u64"
+        },
+        {
+          "name": "probabilityBps",
+          "type": "u16"
+        }
       ]
     },
     {
-      "name": "calculateRarity",
+      "name": "determineRarity",
       "accounts": [
-        { "name": "rarityConfig", "isMut": false, "isSigner": false },
-        { "name": "mintRecord", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": true }
-      ],
-      "args": []
-    },
-    {
-      "name": "revealRarity",
-      "accounts": [
-        { "name": "rarityConfig", "isMut": false, "isSigner": false },
-        { "name": "mintRecord", "isMut": true, "isSigner": false }
-      ],
-      "args": []
-    },
-    {
-      "name": "updateMetadata",
-      "accounts": [
-        { "name": "rarityConfig", "isMut": false, "isSigner": false },
-        { "name": "mintRecord", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": true }
+        {
+          "name": "rarityConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rarityDetermination",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "nftMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "oracleAuthority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
       "args": [
-        { "name": "metadataUri", "type": "string" }
+        {
+          "name": "nftMint",
+          "type": "publicKey"
+        },
+        {
+          "name": "mintIndex",
+          "type": "u64"
+        }
       ]
     },
     {
-      "name": "pauseOracle",
+      "name": "updateRarityTier",
       "accounts": [
-        { "name": "rarityConfig", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": true }
+        {
+          "name": "rarityConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rarityTier",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        }
       ],
-      "args": []
-    },
-    {
-      "name": "resumeOracle",
-      "accounts": [
-        { "name": "rarityConfig", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": true }
-      ],
-      "args": []
+      "args": [
+        {
+          "name": "tierId",
+          "type": "u8"
+        },
+        {
+          "name": "newProbabilityBps",
+          "type": {
+            "option": "u16"
+          }
+        },
+        {
+          "name": "newMultiplier",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
     }
   ],
   "accounts": [
@@ -73,46 +156,257 @@
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "collectionConfig", "type": "publicKey" },
-          { "name": "authority", "type": "publicKey" },
-          { "name": "oracleAuthority", "type": "publicKey" },
-          { "name": "totalRevealed", "type": "u64" },
-          { "name": "isActive", "type": "bool" },
-          { "name": "useMetadataBased", "type": "bool" },
-          { "name": "useRandomness", "type": "bool" },
-          { "name": "createdAt", "type": "i64" }
+          {
+            "name": "collectionConfig",
+            "type": "publicKey"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "totalRevealed",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
       "name": "RarityTier",
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "name", "type": "string" },
-          { "name": "minScore", "type": "u64" },
-          { "name": "maxScore", "type": "u64" },
-          { "name": "percentage", "type": "u8" }
+          {
+            "name": "collectionConfig",
+            "type": "publicKey"
+          },
+          {
+            "name": "tierId",
+            "type": "u8"
+          },
+          {
+            "name": "tierName",
+            "type": "string"
+          },
+          {
+            "name": "tokenMultiplier",
+            "type": "u64"
+          },
+          {
+            "name": "probabilityBps",
+            "type": "u16"
+          },
+          {
+            "name": "totalCount",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RarityDetermination",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nftMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collectionConfig",
+            "type": "publicKey"
+          },
+          {
+            "name": "rarityTier",
+            "type": "u8"
+          },
+          {
+            "name": "tokenMultiplier",
+            "type": "u64"
+          },
+          {
+            "name": "randomSeed",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "probabilityRoll",
+            "type": "u16"
+          },
+          {
+            "name": "determinedAt",
+            "type": "i64"
+          },
+          {
+            "name": "determinedBy",
+            "type": "publicKey"
+          }
         ]
       }
     }
   ],
   "events": [
     {
-      "name": "RarityCalculated",
+      "name": "RarityConfigInitializedEvent",
       "fields": [
-        { "name": "mintIndex", "type": "u64", "index": false },
-        { "name": "rarityScore", "type": "u64", "index": false },
-        { "name": "tier", "type": "string", "index": false }
+        {
+          "name": "collectionConfig",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "authority",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RarityTierAddedEvent",
+      "fields": [
+        {
+          "name": "collectionConfig",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "tierId",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "tierName",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "tokenMultiplier",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "probabilityBps",
+          "type": "u16",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RarityDeterminedEvent",
+      "fields": [
+        {
+          "name": "nftMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "rarityTier",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "tokenMultiplier",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "probabilityRoll",
+          "type": "u16",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RarityTierUpdatedEvent",
+      "fields": [
+        {
+          "name": "collectionConfig",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "tierId",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "newProbabilityBps",
+          "type": {
+            "option": "u16"
+          },
+          "index": false
+        },
+        {
+          "name": "newMultiplier",
+          "type": {
+            "option": "u64"
+          },
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
       ]
     }
   ],
   "errors": [
-    { "code": 6000, "name": "OraclePaused", "msg": "Rarity oracle is paused" },
-    { "code": 6001, "name": "InvalidTier", "msg": "Invalid rarity tier configuration" },
-    { "code": 6002, "name": "AlreadyRevealed", "msg": "Rarity already revealed" }
+    {
+      "code": 6000,
+      "name": "InvalidTierId",
+      "msg": "Invalid tier ID (must be 0-9)"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidMultiplier",
+      "msg": "Invalid token multiplier (must be 1-1000)"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidProbability",
+      "msg": "Invalid probability (must be 1-10000)"
+    },
+    {
+      "code": 6003,
+      "name": "OracleInactive",
+      "msg": "Oracle is inactive"
+    }
   ],
   "metadata": {
     "address": "C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5"
