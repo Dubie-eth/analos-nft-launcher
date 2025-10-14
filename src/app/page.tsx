@@ -1,14 +1,44 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useSearchParams } from 'next/navigation';
 import { ANALOS_PROGRAMS, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 
+// Force dynamic rendering to avoid static generation issues
+export const dynamic = 'force-dynamic';
+
+// Component that handles search params
+const SearchParamsHandler: React.FC = () => {
+  const searchParams = useSearchParams();
+  
+  // Check for access denied messages from middleware
+  const accessDenied = searchParams.get('access_denied') === 'true';
+  const requiredPage = searchParams.get('required_page');
+
+  if (accessDenied) {
+    return (
+      <div className="bg-red-500/20 border border-red-500/50 backdrop-blur-sm p-4 mx-4 mt-4 rounded-lg">
+        <div className="flex items-center space-x-3">
+          <div className="text-red-400 text-2xl">🔒</div>
+          <div>
+            <h3 className="text-red-200 font-semibold">Access Restricted</h3>
+            <p className="text-red-300 text-sm">
+              You don't have permission to access {requiredPage}. 
+              Contact an admin to request access.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 const HomePage: React.FC = () => {
   const { publicKey, connected } = useWallet();
-  const searchParams = useSearchParams();
   
   // Admin wallet addresses - only these wallets can access admin
   const ADMIN_WALLETS = [
@@ -18,10 +48,6 @@ const HomePage: React.FC = () => {
   ];
   
   const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
-  
-  // Check for access denied messages from middleware
-  const accessDenied = searchParams.get('access_denied') === 'true';
-  const requiredPage = searchParams.get('required_page');
 
   const programs = [
     {
@@ -104,20 +130,9 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Access Denied Banner */}
-      {accessDenied && (
-        <div className="bg-red-500/20 border border-red-500/50 backdrop-blur-sm p-4 mx-4 mt-4 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="text-red-400 text-2xl">🔒</div>
-            <div>
-              <h3 className="text-red-200 font-semibold">Access Restricted</h3>
-              <p className="text-red-300 text-sm">
-                You don't have permission to access {requiredPage}. 
-                Contact an admin to request access.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <Suspense fallback={null}>
+        <SearchParamsHandler />
+      </Suspense>
 
       {/* Hero Section */}
       <section className="py-20">

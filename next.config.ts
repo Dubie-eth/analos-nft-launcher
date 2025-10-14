@@ -2,9 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    serverComponentsExternalPackages: ['@solana/web3.js']
-  },
+  serverExternalPackages: ['@solana/web3.js'],
+  outputFileTracingRoot: __dirname,
   images: {
     domains: ['gateway.pinata.cloud', 'ipfs.io', 'cloudflare-ipfs.com'],
   },

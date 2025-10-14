@@ -3,6 +3,9 @@
 import React from 'react';
 import { useWalletContext } from '@/contexts/WalletContext';
 
+// Force dynamic rendering to avoid static generation issues
+export const dynamic = 'force-dynamic';
+
 const CollectionsPage: React.FC = () => {
   const { hasAccess } = useWalletContext();
 

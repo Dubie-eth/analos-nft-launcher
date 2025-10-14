@@ -8,30 +8,34 @@ const API_KEY = process.env.API_KEY;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  return handleProxyRequest(request, params.path, 'GET');
+  const resolvedParams = await params;
+  return handleProxyRequest(request, resolvedParams.path || [], 'GET');
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  return handleProxyRequest(request, params.path, 'POST');
+  const resolvedParams = await params;
+  return handleProxyRequest(request, resolvedParams.path || [], 'POST');
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  return handleProxyRequest(request, params.path, 'PUT');
+  const resolvedParams = await params;
+  return handleProxyRequest(request, resolvedParams.path || [], 'PUT');
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path?: string[] }> }
 ) {
-  return handleProxyRequest(request, params.path, 'DELETE');
+  const resolvedParams = await params;
+  return handleProxyRequest(request, resolvedParams.path || [], 'DELETE');
 }
 
 async function handleProxyRequest(

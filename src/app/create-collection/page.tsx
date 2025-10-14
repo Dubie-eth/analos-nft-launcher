@@ -4,6 +4,9 @@ import React from 'react';
 import { useWalletContext } from '@/contexts/WalletContext';
 import CollectionCreationWizard from '@/components/CollectionCreationWizard';
 
+// Force dynamic rendering to avoid static generation issues
+export const dynamic = 'force-dynamic';
+
 const CreateCollectionPage: React.FC = () => {
   const { hasAccess } = useWalletContext();
 
