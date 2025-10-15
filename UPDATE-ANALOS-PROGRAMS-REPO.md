@@ -239,7 +239,7 @@ Each program includes an embedded security.txt following the [securitytxt.org](h
 security_txt! {
     name: "Analos [Program Name]",
     project_url: "https://github.com/Dubie-eth/analos-programs",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    contacts: "email:support@launchonlos.fun,twitter:@EWildn,telegram:t.me/Dubie_420",
     policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-programs",
@@ -253,7 +253,7 @@ security_txt! {
 If you discover a security vulnerability:
 
 1. **DO NOT** open a public GitHub issue
-2. Email: security@analos.io with details
+2. Email: support@launchonlos.fun with details
 3. Allow 90 days for patch development
 4. Coordinate disclosure timing
 
@@ -320,7 +320,7 @@ This code is provided "as is" without warranty. Always verify program IDs before
 ## 🔐 Root security.txt File
 
 ```
-Contact: mailto:security@analos.io
+Contact: mailto:support@launchonlos.fun
 Contact: https://twitter.com/EWildn
 Contact: https://t.me/Dubie_420
 Expires: 2026-01-01T00:00:00.000Z
@@ -376,7 +376,7 @@ All Analos programs include:
 
 ### DO
 
-1. **Email**: security@analos.io
+1. **Email**: support@launchonlos.fun
 2. **Include**:
    - Description of the vulnerability
    - Steps to reproduce
@@ -433,7 +433,7 @@ All Analos programs include:
 
 ## 📞 Contact Information
 
-- **Security Email**: security@analos.io
+- **Security Email**: support@launchonlos.fun
 - **Twitter**: [@EWildn](https://twitter.com/EWildn)
 - **Telegram**: [t.me/Dubie_420](https://t.me/Dubie_420)
 - **GitHub**: [Dubie-eth](https://github.com/Dubie-eth)

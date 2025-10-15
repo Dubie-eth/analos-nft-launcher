@@ -216,9 +216,9 @@ pub struct VestingSchedule {
 
 ## 📞 **Support & Security**
 
-**Security Contact**: security@analos.io  
+**Security Contact**: support@launchonlos.fun  
 **Twitter**: @EWildn  
 **Telegram**: t.me/Dubie_420  
 **GitHub**: https://github.com/Dubie-eth/analos-programs
 
-For security vulnerabilities, please use responsible disclosure through security@analos.io.
+For security vulnerabilities, please use responsible disclosure through support@launchonlos.fun.

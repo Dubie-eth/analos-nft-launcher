@@ -30,7 +30,7 @@ use {default_env::default_env, solana_security_txt::security_txt};
 security_txt! {
     name: "Analos NFT Launchpad Core (Mega Program)",
     project_url: "https://github.com/Dubie-eth/analos-nft-launcher",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    contacts: "email:support@launchonlos.fun,twitter:@EWildn,telegram:t.me/Dubie_420",
     policy: "https://github.com/Dubie-eth/analos-nft-launcher/blob/master/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-nft-launcher",

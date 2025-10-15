@@ -30,7 +30,7 @@ use {default_env::default_env, solana_security_txt::security_txt};
 security_txt! {
     name: "Analos NFT Launchpad Core (Mega Program)",
     project_url: "https://github.com/Dubie-eth/analos-nft-launcher",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    contacts: "email:support@launchonlos.fun,twitter:@EWildn,telegram:t.me/Dubie_420",
     policy: "https://github.com/Dubie-eth/analos-nft-launcher/blob/master/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-nft-launcher",
@@ -43,6 +43,7 @@ security_txt! {
 declare_id!("BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr");
 
 pub const PLATFORM_ADMIN: &str = "86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW";
+pub const PLATFORM_FEE_BPS: u16 = 250; // 2.5% platform fee for creator airdrops
 
 #[program]
 pub mod analos_nft_launchpad_core {
@@ -56,8 +57,19 @@ pub mod analos_nft_launchpad_core {
         ctx: Context<InitializePlatform>,
     ) -> Result<()> {
         let config = &mut ctx.accounts.platform_config;
+        let treasury = &mut ctx.accounts.platform_fee_treasury;
         
         config.admin_authority = ctx.accounts.admin.key();
+        
+        // Initialize platform fee treasury
+        treasury.admin_authority = ctx.accounts.admin.key();
+        treasury.total_fees_collected = 0;
+        treasury.total_campaigns = 0;
+        treasury.average_fee_per_campaign = 0;
+        treasury.monthly_revenue = [0; 12];
+        treasury.fee_rate_bps = PLATFORM_FEE_BPS;
+        treasury.treasury_wallet = ctx.accounts.admin.key(); // Admin wallet as treasury
+        treasury.last_update = Clock::get()?.unix_timestamp;
         
         // Fee configuration
         config.nft_mint_fee_bps = 250;        // 2.5% on NFT mints
@@ -919,6 +931,127 @@ pub mod analos_nft_launchpad_core {
     }
 
     // ========================================
+    // CREATOR AIRDROP FUNCTIONS
+    // ========================================
+
+    pub fn create_creator_airdrop_campaign(
+        ctx: Context<CreateCreatorAirdropCampaign>,
+        campaign_id: [u8; 32],
+        name: String,
+        description: String,
+        airdrop_token_mint: Pubkey,
+        total_amount: u64,
+        platform_fee: u64,
+        start_date: i64,
+        end_date: i64,
+        eligibility_type: u8,
+        eligibility_data: [u8; 128],
+    ) -> Result<()> {
+        let campaign = &mut ctx.accounts.campaign;
+        let treasury = &mut ctx.accounts.platform_fee_treasury;
+        
+        // Validate platform fee
+        let expected_fee = total_amount * PLATFORM_FEE_BPS as u64 / 10000;
+        require!(platform_fee >= expected_fee, ErrorCode::InsufficientFee);
+        
+        // Initialize campaign
+        campaign.creator = ctx.accounts.creator.key();
+        campaign.campaign_id = campaign_id;
+        campaign.name = name;
+        campaign.description = description;
+        campaign.airdrop_token_mint = airdrop_token_mint;
+        campaign.total_amount = total_amount;
+        campaign.claimed_amount = 0;
+        campaign.platform_fee = platform_fee;
+        campaign.platform_fee_paid = false;
+        campaign.is_active = false;
+        campaign.start_date = start_date;
+        campaign.end_date = end_date;
+        campaign.eligibility_type = eligibility_type;
+        campaign.eligibility_data = eligibility_data;
+        campaign.total_claims = 0;
+        campaign.unique_claimers = 0;
+        campaign.created_at = Clock::get()?.unix_timestamp;
+        campaign.updated_at = Clock::get()?.unix_timestamp;
+        
+        msg!("Creator airdrop campaign created: {:?}", campaign_id);
+        Ok(())
+    }
+
+    pub fn activate_creator_airdrop_campaign(
+        ctx: Context<ActivateCreatorAirdropCampaign>,
+        token_deposit_amount: u64,
+        fee_payment_amount: u64,
+    ) -> Result<()> {
+        let campaign = &mut ctx.accounts.campaign;
+        let treasury = &mut ctx.accounts.platform_fee_treasury;
+        
+        // Validate creator ownership
+        require!(campaign.creator == ctx.accounts.creator.key(), ErrorCode::Unauthorized);
+        
+        // Validate deposit amount
+        require!(token_deposit_amount >= campaign.total_amount, ErrorCode::InsufficientFunds);
+        
+        // Validate fee payment
+        require!(fee_payment_amount >= campaign.platform_fee, ErrorCode::InsufficientFee);
+        
+        // In production, this would transfer tokens from creator to campaign vault
+        // and transfer platform fee to treasury
+        
+        // Update campaign status
+        campaign.platform_fee_paid = true;
+        campaign.is_active = true;
+        campaign.updated_at = Clock::get()?.unix_timestamp;
+        
+        // Update treasury stats
+        treasury.total_fees_collected += fee_payment_amount;
+        treasury.total_campaigns += 1;
+        treasury.average_fee_per_campaign = treasury.total_fees_collected / treasury.total_campaigns;
+        treasury.last_update = Clock::get()?.unix_timestamp;
+        
+        msg!("Creator airdrop campaign activated: {:?}", campaign.campaign_id);
+        Ok(())
+    }
+
+    pub fn claim_creator_airdrop(
+        ctx: Context<ClaimCreatorAirdrop>,
+        amount: u64,
+    ) -> Result<()> {
+        let campaign = &mut ctx.accounts.campaign;
+        let claim_record = &mut ctx.accounts.claim_record;
+        
+        // Validate campaign is active
+        require!(campaign.is_active, ErrorCode::CampaignInactive);
+        
+        // Check campaign dates
+        let current_time = Clock::get()?.unix_timestamp;
+        require!(current_time >= campaign.start_date, ErrorCode::CampaignNotStarted);
+        require!(current_time <= campaign.end_date, ErrorCode::CampaignEnded);
+        
+        // Check sufficient funds
+        require!(campaign.claimed_amount + amount <= campaign.total_amount, ErrorCode::InsufficientFunds);
+        
+        // Check if user already claimed
+        require!(!claim_record.has_claimed, ErrorCode::AlreadyClaimed);
+        
+        // In production, this would transfer tokens from campaign vault to user
+        
+        // Update campaign stats
+        campaign.claimed_amount += amount;
+        campaign.total_claims += 1;
+        campaign.unique_claimers += 1;
+        campaign.updated_at = current_time;
+        
+        // Mark user as claimed
+        claim_record.has_claimed = true;
+        claim_record.claimed_amount = amount;
+        claim_record.claimed_at = current_time;
+        
+        msg!("Creator airdrop claimed: {} tokens by {}", amount, ctx.accounts.user.key());
+        Ok(())
+    }
+
+    // ========================================
     // TOKEN INTEGRATION
     // ========================================
 
@@ -1056,8 +1189,10 @@ fn verify_merkle_proof(proof: &[[u8; 32]], root: &[u8; 32], leaf: &[u8; 32]) -> 
 
 #[derive(Accounts)]
 pub struct InitializePlatform<'info> {
-    #[account(init, payer = admin, space = 8 + 1000, seeds = [b"platform_config"], bump)]
+    #[account(init, payer = admin, space = 8 + PlatformConfig::INIT_SPACE, seeds = [b"platform_config"], bump)]
     pub platform_config: Account<'info, PlatformConfig>,
+    #[account(init, payer = admin, space = 8 + PlatformFeeTreasury::INIT_SPACE, seeds = [b"platform_fee_treasury"], bump)]
+    pub platform_fee_treasury: Account<'info, PlatformFeeTreasury>,
     #[account(mut)]
     pub admin: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -1255,6 +1390,68 @@ pub struct UpdatePlatformConfig<'info> {
 }
 
 #[derive(Accounts)]
+pub struct CreateCreatorAirdropCampaign<'info> {
+    #[account(
+        init,
+        payer = creator,
+        space = 8 + CreatorAirdropCampaign::INIT_SPACE,
+        seeds = [b"creator_airdrop", campaign_id.as_ref()],
+        bump
+    )]
+    pub campaign: Account<'info, CreatorAirdropCampaign>,
+    #[account(
+        mut,
+        seeds = [b"platform_fee_treasury"],
+        bump
+    )]
+    pub platform_fee_treasury: Account<'info, PlatformFeeTreasury>,
+    #[account(mut)]
+    pub creator: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ActivateCreatorAirdropCampaign<'info> {
+    #[account(
+        mut,
+        seeds = [b"creator_airdrop", campaign.campaign_id.as_ref()],
+        bump,
+        constraint = campaign.creator == creator.key() @ ErrorCode::Unauthorized
+    )]
+    pub campaign: Account<'info, CreatorAirdropCampaign>,
+    #[account(
+        mut,
+        seeds = [b"platform_fee_treasury"],
+        bump
+    )]
+    pub platform_fee_treasury: Account<'info, PlatformFeeTreasury>,
+    #[account(mut)]
+    pub creator: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimCreatorAirdrop<'info> {
+    #[account(
+        mut,
+        seeds = [b"creator_airdrop", campaign.campaign_id.as_ref()],
+        bump
+    )]
+    pub campaign: Account<'info, CreatorAirdropCampaign>,
+    #[account(
+        init_if_needed,
+        payer = user,
+        space = 8 + AirdropClaimRecord::INIT_SPACE,
+        seeds = [b"airdrop_claim", campaign.campaign_id.as_ref(), user.key().as_ref()],
+        bump
+    )]
+    pub claim_record: Account<'info, AirdropClaimRecord>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
 pub struct ConfigureStages<'info> {
     #[account(mut, has_one = authority)]
     pub collection_config: Account<'info, CollectionConfig>,
@@ -1362,6 +1559,52 @@ pub struct PlatformConfig {
     pub emergency_pause_reason: String,
     pub created_at: i64,
     pub last_updated: i64,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct PlatformFeeTreasury {
+    pub admin_authority: Pubkey,
+    pub total_fees_collected: u64,
+    pub total_campaigns: u64,
+    pub average_fee_per_campaign: u64,
+    pub monthly_revenue: [u64; 12], // Last 12 months
+    pub fee_rate_bps: u16, // Platform fee rate in basis points
+    pub treasury_wallet: Pubkey,
+    pub last_update: i64,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct CreatorAirdropCampaign {
+    pub creator: Pubkey,
+    pub campaign_id: [u8; 32],
+    pub name: String,
+    pub description: String,
+    pub airdrop_token_mint: Pubkey,
+    pub total_amount: u64,
+    pub claimed_amount: u64,
+    pub platform_fee: u64,
+    pub platform_fee_paid: bool,
+    pub is_active: bool,
+    pub start_date: i64,
+    pub end_date: i64,
+    pub eligibility_type: u8, // 0=holdings, 1=nft, 2=whitelist, 3=custom
+    pub eligibility_data: [u8; 128], // Serialized eligibility criteria
+    pub total_claims: u64,
+    pub unique_claimers: u64,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct AirdropClaimRecord {
+    pub campaign_id: [u8; 32],
+    pub user: Pubkey,
+    pub has_claimed: bool,
+    pub claimed_amount: u64,
+    pub claimed_at: i64,
 }
 
 #[account]
@@ -1715,5 +1958,15 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Invalid allocation")]
     InvalidAllocation,
+    #[msg("Campaign is not active")]
+    CampaignInactive,
+    #[msg("Campaign has not started yet")]
+    CampaignNotStarted,
+    #[msg("Campaign has ended")]
+    CampaignEnded,
+    #[msg("User has already claimed this airdrop")]
+    AlreadyClaimed,
+    #[msg("Insufficient platform fee paid")]
+    InsufficientFee,
 }
 

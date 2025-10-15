@@ -135,7 +135,7 @@ Each program includes an embedded security.txt following the [securitytxt.org](h
 security_txt! {
     name: "Analos [Program Name]",
     project_url: "https://github.com/Dubie-eth/analos-programs",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    contacts: "email:support@launchonlos.fun,twitter:@EWildn,telegram:t.me/Dubie_420",
     policy: "https://github.com/Dubie-eth/analos-programs/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-programs",
@@ -149,7 +149,7 @@ security_txt! {
 🔒 **Found a vulnerability?**
 
 1. **DO NOT** open a public GitHub issue
-2. Email: security@analos.io
+2. Email: support@launchonlos.fun
 3. Allow 90 days for patch development
 4. Coordinate disclosure timing
 

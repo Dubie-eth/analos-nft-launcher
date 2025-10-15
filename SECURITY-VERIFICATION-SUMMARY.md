@@ -32,7 +32,7 @@ Run the PowerShell script:
 
 Or manually update these in all 9 security.txt files:
 - `yourusername` → Your GitHub username
-- `security@analos.io` → Your security email
+- `support@launchonlos.fun` → Your security email
 - `@analos_io` → Your Twitter handle
 - `analos` → Your Discord server
 - `analos-nft-launchpad` → Your repo name
@@ -57,7 +57,7 @@ use {default_env::default_env, solana_security_txt::security_txt};
 security_txt! {
     name: "Analos NFT Launchpad",
     project_url: "https://github.com/yourusername/analos-nft-launchpad",
-    contacts: "email:security@analos.io,discord:analos,twitter:@analos_io",
+    contacts: "email:support@launchonlos.fun,discord:analos,twitter:@analos_io",
     policy: "https://github.com/yourusername/analos-nft-launchpad/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/yourusername/analos-nft-launchpad",

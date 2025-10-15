@@ -17,7 +17,7 @@
 ```
 **Or manually replace in all security.txt files:**
 - `yourusername` → Your GitHub
-- `security@analos.io` → Your email
+- `support@launchonlos.fun` → Your email
 - `@analos_io` → Your Twitter
 - `analos` → Your Discord
 

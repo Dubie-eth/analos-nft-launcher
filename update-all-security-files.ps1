@@ -7,7 +7,7 @@ Write-Host "====================================================`n" -ForegroundC
 # Your actual contact information
 $GITHUB_USERNAME = "Dubie-eth"
 $GITHUB_REPO = "analos-nft-launchpad-program"
-$SECURITY_EMAIL = "security@analos.io"
+$SECURITY_EMAIL = "support@launchonlos.fun"
 $TWITTER_HANDLE = "@EWildn"
 $TELEGRAM = "t.me/Dubie_420"
 $DISCORD_SERVER = "analos"  # Update this if you have a Discord

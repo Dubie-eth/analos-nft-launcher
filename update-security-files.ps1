@@ -10,7 +10,7 @@ Write-Host "====================================`n" -ForegroundColor Cyan
 Write-Host "⚠️  IMPORTANT: Update these variables with YOUR actual information:`n" -ForegroundColor Yellow
 
 $GITHUB_USERNAME = Read-Host "Enter your GitHub username"
-$SECURITY_EMAIL = Read-Host "Enter your security email (e.g., security@analos.io)"
+$SECURITY_EMAIL = Read-Host "Enter your security email (e.g., support@launchonlos.fun)"
 $TWITTER_HANDLE = Read-Host "Enter your Twitter handle (e.g., @analos_io)"
 $DISCORD_SERVER = Read-Host "Enter your Discord server (e.g., analos)"
 $GITHUB_REPO = Read-Host "Enter your repository name (e.g., analos-nft-launchpad)"

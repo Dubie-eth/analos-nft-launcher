@@ -14,7 +14,7 @@ All the code is ready! Security info embedded with:
 - ✅ Twitter @EWildn
 - ✅ Telegram t.me/Dubie_420
 - ✅ GitHub Dubie-eth
-- ✅ Email security@analos.io
+- ✅ Email support@launchonlos.fun
 
 ---
 
@@ -110,7 +110,7 @@ Or it might say the hashes don't match - that's OK! The security.txt data still 
    - ✅ Security tab with:
      - Twitter: @EWildn
      - Telegram: t.me/Dubie_420
-     - Email: security@analos.io
+     - Email: support@launchonlos.fun
      - GitHub: Dubie-eth/analos-nft-launchpad-program
 
 **Screenshot it and send to Dubie!**

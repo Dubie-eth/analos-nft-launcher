@@ -105,7 +105,7 @@ export const AUTHORIZED_ADMIN_WALLETS = [
  * Emergency contacts for security incidents
  */
 export const SECURITY_CONTACTS = {
-  PRIMARY: 'security@analos.io',
+  PRIMARY: 'support@launchonlos.fun',
   EMERGENCY: '+1-XXX-XXX-XXXX',
   TECHNICAL: 'tech@analos.io'
 } as const;

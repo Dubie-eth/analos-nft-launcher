@@ -65,7 +65,7 @@ solana-verify verify-from-repo \
 See [SECURITY.md](./SECURITY.md) for our security policy.
 
 **Contact:**
-- Email: security@analos.io
+- Email: support@launchonlos.fun
 - Twitter: [@EWildn](https://twitter.com/EWildn)
 - Telegram: [t.me/Dubie_420](https://t.me/Dubie_420)
 

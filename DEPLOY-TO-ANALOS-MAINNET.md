@@ -86,7 +86,7 @@ https://explorer.analos.io/address/BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr
 **Your program now has embedded security.txt:**
 
 ```
-Contact: email:security@analos.io
+Contact: email:support@launchonlos.fun
 Contact: twitter:@EWildn
 Contact: telegram:t.me/Dubie_420
 Policy: https://github.com/Dubie-eth/analos-nft-launcher/blob/master/SECURITY.md

@@ -10,7 +10,7 @@ The Analos team takes security seriously. We appreciate your efforts to responsi
 
 Instead, please report security vulnerabilities through one of these channels:
 
-1. **Email:** security@analos.io
+1. **Email:** support@launchonlos.fun
 2. **Twitter DM:** [@EWildn](https://twitter.com/EWildn)
 3. **Telegram:** [t.me/Dubie_420](https://t.me/Dubie_420)
 
@@ -114,7 +114,7 @@ We are in the process of arranging professional security audits. This section wi
 - **Website:** https://analos.io
 - **Twitter:** [@EWildn](https://twitter.com/EWildn)
 - **Telegram:** [t.me/Dubie_420](https://t.me/Dubie_420)
-- **Security Email:** security@analos.io
+- **Security Email:** support@launchonlos.fun
 
 ## Version History
 

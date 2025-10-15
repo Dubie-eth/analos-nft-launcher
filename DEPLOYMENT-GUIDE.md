@@ -197,7 +197,7 @@ solana program deploy --program-id <PROGRAM_ID> backup/program.so
 
 ### Issues
 - GitHub Issues for bug reports
-- security@analos.io for security issues
+- support@launchonlos.fun for security issues
 
 ### Documentation
 - Program documentation in `/docs`

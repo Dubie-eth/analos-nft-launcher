@@ -25,7 +25,7 @@ You need to replace the placeholder information with your **actual contacts**.
 #### Current Placeholders:
 ```
 project_url: "https://github.com/yourusername/analos-nft-launchpad"
-contacts: "email:security@analos.io,twitter:@analos_io"
+contacts: "email:support@launchonlos.fun,twitter:@analos_io"
 source_code: "https://github.com/yourusername/analos-nft-launchpad"
 ```
 
@@ -74,7 +74,7 @@ Add to each program's `lib.rs` at the top:
 security_txt! {
     name: "Analos NFT Launchpad",
     project_url: "https://github.com/yourusername/analos-nft-launchpad",
-    contacts: "email:security@analos.io,twitter:@analos_io",
+    contacts: "email:support@launchonlos.fun,twitter:@analos_io",
     policy: "https://github.com/yourusername/analos-nft-launchpad/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/yourusername/analos-nft-launchpad",
@@ -134,7 +134,7 @@ Use this script to update all files at once:
 ```powershell
 # Replace these with YOUR actual values
 $GITHUB_USERNAME = "yourusername"
-$EMAIL = "security@analos.io"
+$EMAIL = "support@launchonlos.fun"
 $TWITTER = "@analos_io"
 $DISCORD = "discord.gg/analos"
 $TELEGRAM = "t.me/analos"
@@ -143,7 +143,7 @@ $TELEGRAM = "t.me/analos"
 Get-ChildItem -Path "programs\*\security.txt" -Recurse | ForEach-Object {
     $content = Get-Content $_.FullName -Raw
     $content = $content -replace "yourusername", $GITHUB_USERNAME
-    $content = $content -replace "security@analos.io", $EMAIL
+    $content = $content -replace "support@launchonlos.fun", $EMAIL
     $content = $content -replace "@analos_io", $TWITTER
     $content = $content -replace "discord.gg/analos", $DISCORD
     $content = $content -replace "t.me/analos", $TELEGRAM
@@ -164,7 +164,7 @@ Save as `update-security-txt.ps1` and run:
 
 # Replace these with YOUR actual values
 GITHUB_USERNAME="yourusername"
-EMAIL="security@analos.io"
+EMAIL="support@launchonlos.fun"
 TWITTER="@analos_io"
 DISCORD="discord.gg/analos"
 TELEGRAM="t.me/analos"
@@ -172,7 +172,7 @@ TELEGRAM="t.me/analos"
 # Update all security.txt files
 find programs -name "security.txt" -type f | while read file; do
     sed -i "s/yourusername/$GITHUB_USERNAME/g" "$file"
-    sed -i "s/security@analos.io/$EMAIL/g" "$file"
+    sed -i "s/support@launchonlos.fun/$EMAIL/g" "$file"
     sed -i "s/@analos_io/$TWITTER/g" "$file"
     sed -i "s|discord.gg/analos|$DISCORD|g" "$file"
     sed -i "s|t.me/analos|$TELEGRAM|g" "$file"
@@ -284,7 +284,7 @@ Here's what your actual contact info should look like:
 
 ```markdown
 ## Contact Information
-- **Security Issues:** security@analos.io (or your domain)
+- **Security Issues:** support@launchonlos.fun (or your domain)
 - **Twitter/X:** @YourActualHandle
 - **Discord:** discord.gg/YourServerCode
 - **Telegram:** t.me/YourGroup

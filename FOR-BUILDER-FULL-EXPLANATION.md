@@ -703,7 +703,7 @@ Print this out and check off as you go:
 - Twitter: @EWildn
 - Telegram: t.me/Dubie_420
 - GitHub: Dubie-eth
-- Email: security@analos.io
+- Email: support@launchonlos.fun
 
 **Status:** All code ready ✅ Just needs GitHub upload and verification! 🚀
 

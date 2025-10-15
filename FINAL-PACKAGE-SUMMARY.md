@@ -128,7 +128,7 @@ The builder will need to push to YOUR GitHub (Dubie-eth). You have 3 options:
 ║  Twitter: @EWildn                      ║
 ║  Telegram: t.me/Dubie_420             ║
 ║  GitHub: Dubie-eth/analos-...         ║
-║  Email: security@analos.io            ║
+║  Email: support@launchonlos.fun            ║
 ╚════════════════════════════════════════╝
 ```
 

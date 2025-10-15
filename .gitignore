@@ -12,10 +12,16 @@ test-ledger/
 target/idl/
 target/types/
 
-# Keys
+# Keys - CRITICAL SECURITY
 *.json
 !**/test-keypair.json
 !**/test-keypair.json.example
+
+# Secure Keypair Storage - NEVER COMMIT
+.secure-keypairs/
+**/.secure-keypairs/
+**/*-keypair.json
+**/*-wallet.json
 
 # Logs
 *.log

@@ -203,7 +203,7 @@ All programs now show:
 - **Twitter**: @EWildn
 - **Telegram**: t.me/Dubie_420
 - **GitHub**: Dubie-eth/analos-nft-launchpad-program
-- **Email**: security@analos.io
+- **Email**: support@launchonlos.fun
 
 Security researchers can now easily contact you if they find issues!
 

@@ -14,7 +14,7 @@ I've updated the security.txt files for all 9 programs with YOUR real contact in
 - ✅ GitHub: Dubie-eth/analos-nft-launchpad-program
 - ✅ Twitter: @EWildn
 - ✅ Telegram: t.me/Dubie_420
-- ✅ Email: security@analos.io
+- ✅ Email: support@launchonlos.fun
 
 ---
 
@@ -99,7 +99,7 @@ use {default_env::default_env, solana_security_txt::security_txt};
 security_txt! {
     name: "Analos NFT Launchpad",
     project_url: "https://github.com/Dubie-eth/analos-nft-launchpad-program",
-    contacts: "email:security@analos.io,twitter:@EWildn,telegram:t.me/Dubie_420",
+    contacts: "email:support@launchonlos.fun,twitter:@EWildn,telegram:t.me/Dubie_420",
     policy: "https://github.com/Dubie-eth/analos-nft-launchpad-program/blob/main/SECURITY.md",
     preferred_languages: "en",
     source_code: "https://github.com/Dubie-eth/analos-nft-launchpad-program",
@@ -303,7 +303,7 @@ After verification, on [explorer.analos.io](https://explorer.analos.io/):
    - ✅ Security tab with your info:
      - Twitter: @EWildn
      - Telegram: t.me/Dubie_420
-     - Email: security@analos.io
+     - Email: support@launchonlos.fun
      - GitHub: Dubie-eth/analos-nft-launchpad-program
    - ✅ Link to source code
    - ✅ Commit hash shown
