@@ -26,7 +26,7 @@ import {
   isWalletEligible,
   formatTokenAmount,
   parseTokenAmount 
-} from '@/config/lol-token';
+} from '@/config/airdrop-config';
 import { ANALOS_RPC_URL, ANALOS_PROGRAMS } from '@/config/analos-programs';
 
 export interface AirdropClaim {

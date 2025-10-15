@@ -23,6 +23,7 @@ import MegaNFTLaunchpadCore from '@/components/MegaNFTLaunchpadCore';
 import UserAccessManager from '@/components/UserAccessManager';
 import TestSimulationTab from '@/components/TestSimulationTab';
 import AirdropAdmin from '@/components/AirdropAdmin';
+import CreatorAirdropManager from '@/components/CreatorAirdropManager';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -503,6 +504,7 @@ export default function AdminDashboard() {
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
               { id: 'airdrop-admin', label: 'Airdrop Admin', icon: '🎁' },
+              { id: 'creator-airdrops', label: 'Creator Airdrops', icon: '🎨' },
               { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
@@ -902,13 +904,26 @@ export default function AdminDashboard() {
         {activeTab === 'airdrop-admin' && (
           <div className="space-y-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-4">🎁 Airdrop Campaign Management</h2>
+              <h2 className="text-3xl font-bold text-white mb-4">🎁 Platform Airdrop Management</h2>
               <p className="text-gray-300 max-w-3xl mx-auto">
                 Create and manage LOL token airdrop campaigns with whitelist support.
                 Distribute 1% of total LOL supply to holders based on various criteria.
               </p>
             </div>
             <AirdropAdmin />
+          </div>
+        )}
+
+        {activeTab === 'creator-airdrops' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🎨 Creator Airdrop Management</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Enable creators to set up custom airdrop campaigns for their holders.
+                Support for token/NFT contract address whitelisting and custom eligibility criteria.
+              </p>
+            </div>
+            <CreatorAirdropManager />
           </div>
         )}
 

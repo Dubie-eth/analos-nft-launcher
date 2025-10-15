@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { airdropService } from '@/services/airdrop-service';
-import { AirdropCampaign, UserEligibility } from '@/config/lol-token';
+import { AirdropCampaign, UserEligibility } from '@/config/airdrop-config';
 
 interface AirdropAdminProps {
   className?: string;

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { airdropService } from '@/services/airdrop-service';
-import { AirdropCampaign, UserEligibility } from '@/config/lol-token';
+import { AirdropCampaign, UserEligibility } from '@/config/airdrop-config';
 import { ANALOS_PROGRAMS } from '@/config/analos-programs';
 
 export default function AirdropsPage() {
