@@ -178,7 +178,7 @@ export const ADMIN_WALLETS = [
 export const DEFAULT_ACCESS_LEVEL = 'public';
 
 // Check if user has access to a specific page
-export function hasPageAccess(userWallet: string | null, userAccessLevel: string, pagePath: string): boolean {
+export async function hasPageAccess(userWallet: string | null, userAccessLevel: string, pagePath: string): Promise<boolean> {
   // Admin wallets always have full access
   if (userWallet && ADMIN_WALLETS.includes(userWallet)) {
     return true;
@@ -190,19 +190,29 @@ export function hasPageAccess(userWallet: string | null, userAccessLevel: string
     return false; // Unknown page, deny access
   }
 
-  // Check for updated page configuration in localStorage (for page locking)
-  if (typeof window !== 'undefined') {
+  // Try to get updated page configuration from database
+  try {
+    if (typeof window !== 'undefined') {
+      const response = await fetch(`/api/page-access/${encodeURIComponent(pagePath)}`);
+      if (response.ok) {
+        const dbConfig = await response.json();
+        pageConfig = { ...pageConfig, ...dbConfig }; // Merge with database config
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to fetch page access config from database:', error);
+    // Fallback to localStorage for backward compatibility
     try {
       const storedConfig = localStorage.getItem('page-access-config');
       if (storedConfig) {
         const storedPages = JSON.parse(storedConfig);
         const updatedPage = storedPages.find((page: PageAccess) => page.path === pagePath);
         if (updatedPage) {
-          pageConfig = { ...pageConfig, ...updatedPage }; // Merge with stored config
+          pageConfig = { ...pageConfig, ...updatedPage };
         }
       }
-    } catch (error) {
-      console.warn('Failed to read page access config from localStorage:', error);
+    } catch (localError) {
+      console.warn('Failed to read page access config from localStorage:', localError);
     }
   }
 

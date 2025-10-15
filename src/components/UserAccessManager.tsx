@@ -7,7 +7,8 @@ import {
   LAMPORTS_PER_SOL
 } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '../config/analos-programs';
-import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel, getAllPageConfigs } from '@/config/access-control';
+import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel } from '@/config/access-control';
+import { pageAccessService, PageAccessConfig } from '@/lib/database/page-access-service';
 import { updateAccessLevelCookie } from '@/hooks/useWalletCookies';
 
 interface UserAccess {
@@ -39,6 +40,7 @@ const UserAccessManager: React.FC = () => {
   // User access data
   const [userAccess, setUserAccess] = useState<UserAccess[]>([]);
   const [accessRules, setAccessRules] = useState<AccessRule[]>([]);
+  const [pageConfigs, setPageConfigs] = useState<PageAccessConfig[]>([]);
   
   // Form states
   const [newUserForm, setNewUserForm] = useState({
@@ -75,6 +77,7 @@ const UserAccessManager: React.FC = () => {
     loadUserAccess();
     loadAccessRules();
     loadAnalytics();
+    loadPageConfigs();
   }, []);
 
   const loadUserAccess = async () => {
@@ -150,6 +153,32 @@ const UserAccessManager: React.FC = () => {
       totalAccessRequests: 15, // Mock data
       activeRules: accessRules.filter(r => r.isActive).length
     });
+  };
+
+  const loadPageConfigs = async () => {
+    try {
+      const configs = await pageAccessService.getPageAccessConfigs();
+      setPageConfigs(configs);
+    } catch (error) {
+      console.error('Failed to load page configs:', error);
+      // Fallback to default configs
+      setPageConfigs(PAGE_ACCESS.map(page => ({
+        id: page.path,
+        pagePath: page.path,
+        pageName: page.name,
+        description: page.description,
+        requiredLevel: page.requiredLevel,
+        adminOnly: page.adminOnly || false,
+        publicAccess: page.publicAccess || false,
+        isLocked: page.isLocked || false,
+        customMessage: page.customMessage,
+        allowPublicAccess: page.allowPublicAccess || false,
+        requireVerification: page.requireVerification || false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        updatedBy: 'system'
+      })));
+    }
   };
 
   const grantAccess = async () => {
@@ -352,31 +381,21 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Get current page configs (including any existing localStorage data)
-      const currentConfigs = getAllPageConfigs();
-      
-      // Update page lock status
-      const updatedPages = currentConfigs.map(page => 
-        page.path === pagePath ? { ...page, isLocked: !page.isLocked } : page
-      );
-      
-      // Save to localStorage
-      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
-      
-      // Get the updated page info for feedback
-      const updatedPage = updatedPages.find(p => p.path === pagePath);
-      const pageName = updatedPage?.name || pagePath;
-      const lockStatus = updatedPage?.isLocked ? 'locked' : 'unlocked';
-      
-      alert(`✅ ${pageName} has been ${lockStatus}!\n\nUsers will now be redirected to the beta signup page when trying to access this page.`);
-      
-      // Force a page refresh to apply the changes immediately
-      if (typeof window !== 'undefined') {
-        // Small delay to show the alert first
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+      // Get current page config
+      const currentConfig = pageConfigs.find(p => p.pagePath === pagePath);
+      if (!currentConfig) {
+        alert('❌ Page configuration not found');
+        return;
       }
+      
+      // Update page lock status in database
+      await pageAccessService.updatePageLock(pagePath, !currentConfig.isLocked, '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+      
+      // Reload page configs
+      await loadPageConfigs();
+      
+      const lockStatus = !currentConfig.isLocked ? 'locked' : 'unlocked';
+      alert(`✅ ${currentConfig.pageName} has been ${lockStatus}!\n\nUsers will now be redirected to the beta signup page when trying to access this page.`);
       
     } catch (error) {
       console.error('Failed to toggle page lock:', error);
@@ -390,17 +409,13 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Get current page configs (including any existing localStorage data)
-      const currentConfigs = getAllPageConfigs();
+      // Update page access level in database
+      await pageAccessService.updatePageAccessLevel(pagePath, newLevel, '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
       
-      // Update page access level
-      const updatedPages = currentConfigs.map(page => 
-        page.path === pagePath ? { ...page, requiredLevel: newLevel } : page
-      );
+      // Reload page configs
+      await loadPageConfigs();
       
-      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
-      
-      const pageName = updatedPages.find(p => p.path === pagePath)?.name || pagePath;
+      const pageName = pageConfigs.find(p => p.pagePath === pagePath)?.pageName || pagePath;
       alert(`✅ ${pageName} access level updated to: ${newLevel}`);
       
     } catch (error) {
@@ -415,17 +430,13 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Get current page configs (including any existing localStorage data)
-      const currentConfigs = getAllPageConfigs();
+      // Update page custom message in database
+      await pageAccessService.updatePageCustomMessage(pagePath, message, '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
       
-      // Update page custom message
-      const updatedPages = currentConfigs.map(page => 
-        page.path === pagePath ? { ...page, customMessage: message } : page
-      );
+      // Reload page configs
+      await loadPageConfigs();
       
-      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
-      
-      const pageName = updatedPages.find(p => p.path === pagePath)?.name || pagePath;
+      const pageName = pageConfigs.find(p => p.pagePath === pagePath)?.pageName || pagePath;
       alert(`✅ Custom message updated for ${pageName}`);
       
     } catch (error) {
@@ -484,19 +495,12 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = getAllPageConfigs().map(page => ({
-        ...page,
-        isLocked: page.path !== '/' && page.path !== '/beta-signup' && page.path !== '/how-it-works'
-      }));
+      await pageAccessService.lockAllPages('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
       
-      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      // Reload page configs
+      await loadPageConfigs();
       
       alert('🚨 ALL PAGES LOCKED!\n\nOnly Home, How It Works, and Beta Signup pages remain accessible.');
-      
-      // Force refresh
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
       
     } catch (error) {
       console.error('Failed to lock all pages:', error);
@@ -514,19 +518,12 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = getAllPageConfigs().map(page => ({
-        ...page,
-        isLocked: false
-      }));
+      await pageAccessService.unlockAllPages('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
       
-      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      // Reload page configs
+      await loadPageConfigs();
       
       alert('🔓 ALL PAGES UNLOCKED!\n\nNormal access has been restored to all pages.');
-      
-      // Force refresh
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
       
     } catch (error) {
       console.error('Failed to unlock all pages:', error);
@@ -1046,12 +1043,12 @@ const UserAccessManager: React.FC = () => {
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getAllPageConfigs().map((page) => (
-                <div key={page.path} className="border border-gray-200 rounded-lg p-4">
+              {pageConfigs.map((page) => (
+                <div key={page.pagePath} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">{page.name}</h3>
+                    <h3 className="font-semibold text-gray-900">{page.pageName}</h3>
                     <button
-                      onClick={() => togglePageLock(page.path)}
+                      onClick={() => togglePageLock(page.pagePath)}
                       className={`px-3 py-1 text-sm rounded transition-colors ${
                         page.isLocked
                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -1078,7 +1075,7 @@ const UserAccessManager: React.FC = () => {
             </p>
             
             <div className="space-y-4">
-              {getAllPageConfigs().map((page) => (
+              {pageConfigs.map((page) => (
                 <div key={page.path} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
