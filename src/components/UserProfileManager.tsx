@@ -56,7 +56,14 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({ className = '' 
           description: userProfile.description || '',
           profilePictureUrl: userProfile.profilePictureUrl || '',
           bannerImageUrl: userProfile.bannerImageUrl || '',
-          socials: userProfile.socials,
+          socials: {
+            twitter: userProfile.socials?.twitter || '',
+            telegram: userProfile.socials?.telegram || '',
+            discord: userProfile.socials?.discord || '',
+            website: userProfile.socials?.website || '',
+            github: userProfile.socials?.github || '',
+            ...userProfile.socials
+          },
           favoriteCollections: userProfile.favoriteCollections,
           privacyLevel: userProfile.privacyLevel
         });

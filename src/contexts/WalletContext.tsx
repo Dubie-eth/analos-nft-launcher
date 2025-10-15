@@ -41,23 +41,27 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
 
   // Update wallet state when connection changes
   useEffect(() => {
-    if (connected && publicKey) {
-      const walletAddress = publicKey.toString();
-      setUserWallet(walletAddress);
-      
-      // Get user's access level
-      const accessLevel = getUserAccessLevel(walletAddress);
-      setUserAccessLevelState(accessLevel);
+    const handleWalletChange = async () => {
+      if (connected && publicKey) {
+        const walletAddress = publicKey.toString();
+        setUserWallet(walletAddress);
+        
+        // Get user's access level
+        const accessLevel = await getUserAccessLevel(walletAddress);
+        setUserAccessLevelState(accessLevel);
 
-      // Set user wallet cookie for middleware
-      document.cookie = `user-wallet=${walletAddress}; path=/; max-age=${24 * 60 * 60}; samesite=strict`;
-    } else {
-      setUserWallet(null);
-      setUserAccessLevelState('public');
-      
-      // Clear user wallet cookie
-      document.cookie = 'user-wallet=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    }
+        // Set user wallet cookie for middleware
+        document.cookie = `user-wallet=${walletAddress}; path=/; max-age=${24 * 60 * 60}; samesite=strict`;
+      } else {
+        setUserWallet(null);
+        setUserAccessLevelState('public');
+        
+        // Clear user wallet cookie
+        document.cookie = 'user-wallet=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      }
+    };
+
+    handleWalletChange();
   }, [connected, publicKey]);
 
   // Check if user has access to a specific page

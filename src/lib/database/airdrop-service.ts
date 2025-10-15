@@ -273,14 +273,22 @@ export class DatabaseAirdropService {
 
     if (claimError) throw claimError;
 
-    // Update campaign claimed amount
-    await supabaseAdmin
+    // Update campaign claimed amount - get current amount first, then update
+    const { data: campaign } = await supabaseAdmin
       .from('airdrop_campaigns')
-      .update({
-        claimed_amount: supabase.raw('claimed_amount + ?', [amount]),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', campaignId);
+      .select('claimed_amount')
+      .eq('id', campaignId)
+      .single();
+
+    if (campaign) {
+      await supabaseAdmin
+        .from('airdrop_campaigns')
+        .update({
+          claimed_amount: campaign.claimed_amount + amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', campaignId);
+    }
 
     // Award activity points for claiming
     await supabaseAdmin.rpc('increment_activity_points', {

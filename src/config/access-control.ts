@@ -205,8 +205,13 @@ export async function hasPageAccess(userWallet: string | null, userAccessLevel: 
   }
 
   // Check if page is locked (redirect to beta signup)
-  if (pageConfig.isLocked && pagePath !== '/beta-signup') {
+  if (pageConfig?.isLocked && pagePath !== '/beta-signup') {
     return false; // This will trigger redirect to beta signup
+  }
+
+  // If no page config found, deny access by default
+  if (!pageConfig) {
+    return false;
   }
 
   // Public pages are always accessible
@@ -297,7 +302,7 @@ export async function getPageConfig(pagePath: string): Promise<PageAccess | null
     console.warn('Failed to fetch page config from database:', error);
   }
 
-  return pageConfig;
+  return pageConfig || null;
 }
 
 // Get all page configurations from database

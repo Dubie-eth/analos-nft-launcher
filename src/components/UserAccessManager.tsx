@@ -309,7 +309,7 @@ const UserAccessManager: React.FC = () => {
 
   // Page access management functions
   const loadPageAccessUsers = (pagePath: string) => {
-    const requiredLevel = PAGE_ACCESS.find(page => page.path === pagePath)?.requiredLevel;
+    const requiredLevel = pageConfigs.find(page => page.pagePath === pagePath)?.requiredLevel;
     if (!requiredLevel) return;
 
     const levelHierarchy = ['public', 'beta_user', 'premium_user', 'admin'];
@@ -451,8 +451,8 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = getAllPageConfigs().map(page => 
-        page.path === pagePath ? { ...page, allowPublicAccess: allowPublic } : page
+      const updatedPages = pageConfigs.map(page => 
+        page.pagePath === pagePath ? { ...page, allowPublicAccess: allowPublic } : page
       );
       
       localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
@@ -469,13 +469,13 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = getAllPageConfigs().map(page => 
-        page.path === pagePath ? { ...page, requireVerification: requireVerification } : page
+      const updatedPages = pageConfigs.map(page => 
+        page.pagePath === pagePath ? { ...page, requireVerification: requireVerification } : page
       );
       
       localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
       
-      const pageName = updatedPages.find(p => p.path === pagePath)?.name || pagePath;
+      const pageName = updatedPages.find(p => p.pagePath === pagePath)?.pageName || pagePath;
       alert(`✅ Verification requirement ${requireVerification ? 'enabled' : 'disabled'} for ${pageName}`);
       
     } catch (error) {
@@ -1076,10 +1076,10 @@ const UserAccessManager: React.FC = () => {
             
             <div className="space-y-4">
               {pageConfigs.map((page) => (
-                <div key={page.path} className="border border-gray-200 rounded-lg p-4">
+                <div key={page.pagePath} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{page.name}</h3>
+                      <h3 className="font-semibold text-gray-900">{page.pageName}</h3>
                       <p className="text-sm text-gray-600">{page.description}</p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -1098,7 +1098,7 @@ const UserAccessManager: React.FC = () => {
                       </label>
                       <select
                         value={page.requiredLevel}
-                        onChange={(e) => updatePageAccessLevel(page.path, e.target.value)}
+                        onChange={(e) => updatePageAccessLevel(page.pagePath, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
                       >
                         {ACCESS_LEVELS.map((level) => (
@@ -1116,7 +1116,7 @@ const UserAccessManager: React.FC = () => {
                       <input
                         type="text"
                         value={page.customMessage || ''}
-                        onChange={(e) => updatePageCustomMessage(page.path, e.target.value)}
+                        onChange={(e) => updatePageCustomMessage(page.pagePath, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
                         placeholder="Custom redirect message..."
                       />
@@ -1129,7 +1129,7 @@ const UserAccessManager: React.FC = () => {
                         <input
                           type="checkbox"
                           checked={page.allowPublicAccess || false}
-                          onChange={(e) => updatePagePublicAccess(page.path, e.target.checked)}
+                          onChange={(e) => updatePagePublicAccess(page.pagePath, e.target.checked)}
                           className="mr-2"
                         />
                         <span className="text-sm">Allow Public Access</span>
@@ -1139,7 +1139,7 @@ const UserAccessManager: React.FC = () => {
                         <input
                           type="checkbox"
                           checked={page.requireVerification || false}
-                          onChange={(e) => updatePageVerification(page.path, e.target.checked)}
+                          onChange={(e) => updatePageVerification(page.pagePath, e.target.checked)}
                           className="mr-2"
                         />
                         <span className="text-sm">Require Verification</span>
@@ -1148,7 +1148,7 @@ const UserAccessManager: React.FC = () => {
                     
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => togglePageLock(page.path)}
+                        onClick={() => togglePageLock(page.pagePath)}
                         className={`px-3 py-1 text-sm rounded transition-colors ${
                           page.isLocked
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
@@ -1193,9 +1193,9 @@ const UserAccessManager: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="">Select a page...</option>
-            {PAGE_ACCESS.map((page) => (
-              <option key={page.path} value={page.path}>
-                {page.name} - {page.description}
+            {pageConfigs.map((page) => (
+              <option key={page.pagePath} value={page.pagePath}>
+                {page.pageName} - {page.description}
               </option>
             ))}
           </select>
@@ -1209,14 +1209,14 @@ const UserAccessManager: React.FC = () => {
                 Page Access Details
               </h3>
               {(() => {
-                const page = PAGE_ACCESS.find(p => p.path === selectedPage);
+                const page = pageConfigs.find(p => p.pagePath === selectedPage);
                 if (!page) return null;
                 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Page Name:</p>
-                      <p className="font-medium">{page.name}</p>
+                      <p className="font-medium">{page.pageName}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Required Access Level:</p>

@@ -8,10 +8,11 @@ import { userProfileService } from '@/lib/database/page-access-service';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { walletAddress: string } }
+  { params }: { params: Promise<{ walletAddress: string }> }
 ) {
   try {
-    const walletAddress = params.walletAddress;
+    const resolvedParams = await params;
+    const walletAddress = resolvedParams.walletAddress;
     
     const profile = await userProfileService.getUserProfile(walletAddress);
     
@@ -31,10 +32,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { walletAddress: string } }
+  { params }: { params: Promise<{ walletAddress: string }> }
 ) {
   try {
-    const walletAddress = params.walletAddress;
+    const resolvedParams = await params;
+    const walletAddress = resolvedParams.walletAddress;
     const updates = await request.json();
     
     const updatedProfile = await userProfileService.upsertUserProfile(updates, walletAddress);

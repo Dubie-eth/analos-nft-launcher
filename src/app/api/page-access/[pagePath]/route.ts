@@ -8,10 +8,11 @@ import { pageAccessService } from '@/lib/database/page-access-service';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { pagePath: string } }
+  { params }: { params: Promise<{ pagePath: string }> }
 ) {
   try {
-    const pagePath = decodeURIComponent(params.pagePath);
+    const resolvedParams = await params;
+    const pagePath = decodeURIComponent(resolvedParams.pagePath);
     
     const pageConfig = await pageAccessService.getPageAccessConfig(pagePath);
     
