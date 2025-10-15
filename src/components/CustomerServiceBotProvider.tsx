@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import CustomerServiceBot from './CustomerServiceBot';
+import EnhancedCustomerServiceBot from './EnhancedCustomerServiceBot';
 
 const CustomerServiceBotProvider: React.FC = () => {
   const [isBotOpen, setIsBotOpen] = useState(false);
@@ -25,9 +25,9 @@ const CustomerServiceBotProvider: React.FC = () => {
       )}
 
       {/* Customer Service Bot */}
-      <CustomerServiceBot 
-        isOpen={isBotOpen} 
-        onClose={() => setIsBotOpen(false)} 
+      <EnhancedCustomerServiceBot
+        isOpen={isBotOpen}
+        onClose={() => setIsBotOpen(false)}
       />
     </>
   );
