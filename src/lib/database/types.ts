@@ -49,7 +49,7 @@ export interface BetaApplication {
   reviewedAt?: Date;
   reviewedBy?: string;
   reviewNotes?: string;
-  accessLevel: 'beta_user' | 'premium_user' | 'creator';
+  accessLevel: 'public' | 'beta_user' | 'premium_user' | 'creator' | 'admin';
   rejectionReason?: string;
   customMessage?: string;
   lockedPageRequested?: string;
