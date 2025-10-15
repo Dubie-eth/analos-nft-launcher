@@ -194,19 +194,19 @@ const HowItWorksPage: React.FC = () => {
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold">Legendary</span>
+                      <span className="font-semibold text-gray-800">Legendary</span>
                       <span className="text-yellow-600 font-bold">5x Multiplier</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold">Epic</span>
+                      <span className="font-semibold text-gray-800">Epic</span>
                       <span className="text-purple-600 font-bold">3x Multiplier</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold">Rare</span>
+                      <span className="font-semibold text-gray-800">Rare</span>
                       <span className="text-blue-600 font-bold">2x Multiplier</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold">Common</span>
+                      <span className="font-semibold text-gray-800">Common</span>
                       <span className="text-gray-600 font-bold">1x Multiplier</span>
                     </div>
                   </div>
@@ -282,19 +282,19 @@ const HowItWorksPage: React.FC = () => {
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Legendary NFT</span>
+                      <span className="text-gray-800 font-medium">Legendary NFT</span>
                       <span className="font-bold text-yellow-600">5,000 tokens</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Epic NFT</span>
+                      <span className="text-gray-800 font-medium">Epic NFT</span>
                       <span className="font-bold text-purple-600">3,000 tokens</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Rare NFT</span>
+                      <span className="text-gray-800 font-medium">Rare NFT</span>
                       <span className="font-bold text-blue-600">2,000 tokens</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Common NFT</span>
+                      <span className="text-gray-800 font-medium">Common NFT</span>
                       <span className="font-bold text-gray-600">1,000 tokens</span>
                     </div>
                   </div>
@@ -877,15 +877,15 @@ const HowItWorksPage: React.FC = () => {
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>NFT Mint Fee</span>
+                      <span className="text-gray-800 font-medium">NFT Mint Fee</span>
                       <span className="font-semibold text-purple-600">2.5% (adjustable)</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Token Launch Fee</span>
+                      <span className="text-gray-800 font-medium">Token Launch Fee</span>
                       <span className="font-semibold text-blue-600">5% (adjustable)</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Trading Fee</span>
+                      <span className="text-gray-800 font-medium">Trading Fee</span>
                       <span className="font-semibold text-green-600">1% (adjustable)</span>
                     </div>
                   </div>
@@ -898,19 +898,19 @@ const HowItWorksPage: React.FC = () => {
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span>LOS Holders</span>
+                      <span className="text-gray-800 font-medium">LOS Holders</span>
                       <span className="font-semibold text-green-600">30%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Platform Treasury</span>
+                      <span className="text-gray-800 font-medium">Platform Treasury</span>
                       <span className="font-semibold text-blue-600">40%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Development</span>
+                      <span className="text-gray-800 font-medium">Development</span>
                       <span className="font-semibold text-purple-600">20%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span>Marketing</span>
+                      <span className="text-gray-800 font-medium">Marketing</span>
                       <span className="font-semibold text-orange-600">10%</span>
                     </div>
                   </div>
@@ -1128,28 +1128,28 @@ const HowItWorksPage: React.FC = () => {
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">1</div>
                       <div>
-                        <h4 className="font-semibold">Proposal Creation</h4>
+                        <h4 className="font-semibold text-gray-800">Proposal Creation</h4>
                         <p className="text-sm text-gray-600">Any LOS staker can create a CTO proposal</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">2</div>
                       <div>
-                        <h4 className="font-semibold">Voting Period</h4>
+                        <h4 className="font-semibold text-gray-800">Voting Period</h4>
                         <p className="text-sm text-gray-600">Community votes on the proposal</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">3</div>
                       <div>
-                        <h4 className="font-semibold">Threshold Check</h4>
+                        <h4 className="font-semibold text-gray-800">Threshold Check</h4>
                         <p className="text-sm text-gray-600">Must meet minimum approval threshold</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">4</div>
                       <div>
-                        <h4 className="font-semibold">Execution</h4>
+                        <h4 className="font-semibold text-gray-800">Execution</h4>
                         <p className="text-sm text-gray-600">Admin authority transferred if approved</p>
                       </div>
                     </div>
@@ -1160,19 +1160,19 @@ const HowItWorksPage: React.FC = () => {
                   <h3 className="text-xl font-bold mb-4">⚖️ Voting Requirements</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Minimum Stake to Propose</span>
+                      <span className="text-gray-800 font-medium">Minimum Stake to Propose</span>
                       <span className="font-semibold text-purple-600">1,000 LOS</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Approval Threshold</span>
+                      <span className="text-gray-800 font-medium">Approval Threshold</span>
                       <span className="font-semibold text-green-600">66%</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Voting Duration</span>
+                      <span className="text-gray-800 font-medium">Voting Duration</span>
                       <span className="font-semibold text-blue-600">7 days</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span>Voting Power</span>
+                      <span className="text-gray-800 font-medium">Voting Power</span>
                       <span className="font-semibold text-orange-600">Proportional to stake</span>
                     </div>
                   </div>

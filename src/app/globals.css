@@ -172,3 +172,203 @@ textarea {
     line-height: 1.2 !important;
   }
 }
+
+/* MOBILE TEXT VISIBILITY FIXES */
+/* Fix all text visibility issues on mobile */
+
+/* Ensure all text has proper contrast */
+@media (max-width: 768px) {
+  /* Fix faded text on white backgrounds */
+  .text-gray-300,
+  .text-gray-400,
+  .text-gray-500,
+  .text-slate-300,
+  .text-slate-400,
+  .text-slate-500 {
+    color: #374151 !important; /* Dark gray for better contrast */
+  }
+  
+  /* Fix very light text that's barely visible */
+  .text-gray-200,
+  .text-slate-200 {
+    color: #1f2937 !important; /* Darker gray */
+  }
+  
+  /* Fix text on white cards */
+  .bg-white .text-gray-300,
+  .bg-white .text-gray-400,
+  .bg-white .text-gray-500,
+  .bg-white .text-slate-300,
+  .bg-white .text-slate-400,
+  .bg-white .text-slate-500 {
+    color: #374151 !important;
+  }
+  
+  /* Fix text in white cards specifically */
+  .bg-white h1,
+  .bg-white h2,
+  .bg-white h3,
+  .bg-white h4,
+  .bg-white h5,
+  .bg-white h6,
+  .bg-white p,
+  .bg-white span,
+  .bg-white div {
+    color: #1f2937 !important; /* Ensure dark text on white */
+  }
+  
+  /* Fix list items that are missing text */
+  .bg-white ul li,
+  .bg-white ol li {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Fix numbered lists */
+  .bg-white ol li::marker {
+    color: #8b5cf6 !important; /* Purple for numbers */
+    font-weight: bold !important;
+  }
+  
+  /* Fix card content spacing */
+  .bg-white .space-y-2 > * + *,
+  .bg-white .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  /* Fix text overflow and truncation */
+  .bg-white .truncate,
+  .bg-white .text-ellipsis {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: unset !important;
+  }
+  
+  /* Fix small text visibility */
+  .text-sm,
+  .text-xs {
+    color: #374151 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Fix label text visibility */
+  .bg-white label,
+  .bg-white .label {
+    color: #1f2937 !important;
+    font-weight: 500 !important;
+  }
+  
+  /* Fix percentage and value text */
+  .bg-white .text-green-400,
+  .bg-white .text-blue-400,
+  .bg-white .text-purple-400,
+  .bg-white .text-orange-400 {
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+  }
+}
+
+/* Fix text in gradient cards */
+@media (max-width: 768px) {
+  /* Ensure text on gradient backgrounds is visible */
+  .bg-gradient-to-br,
+  .bg-gradient-to-r,
+  .bg-gradient-to-b {
+    color: #ffffff !important;
+  }
+  
+  .bg-gradient-to-br h1,
+  .bg-gradient-to-br h2,
+  .bg-gradient-to-br h3,
+  .bg-gradient-to-br h4,
+  .bg-gradient-to-br h5,
+  .bg-gradient-to-br h6,
+  .bg-gradient-to-br p,
+  .bg-gradient-to-br span,
+  .bg-gradient-to-br div {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+/* Fix overlapping UI elements */
+@media (max-width: 768px) {
+  /* Prevent text from being covered by floating elements */
+  .fixed,
+  .absolute {
+    z-index: 1000 !important;
+  }
+  
+  /* Fix content being cut off */
+  .container,
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  
+  /* Fix card margins */
+  .bg-white {
+    margin: 0.5rem !important;
+    padding: 1rem !important;
+    border-radius: 0.5rem !important;
+  }
+  
+  /* Fix text alignment in cards */
+  .bg-white .text-center,
+  .bg-white .text-left,
+  .bg-white .text-right {
+    text-align: left !important;
+  }
+}
+
+/* Fix specific component text issues */
+@media (max-width: 768px) {
+  /* Fix checkmark lists */
+  .bg-white .flex.items-center {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .bg-white .flex.items-center svg {
+    margin-right: 0.5rem !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Fix numbered lists with icons */
+  .bg-white .flex.items-start {
+    margin-bottom: 0.75rem !important;
+    align-items: flex-start !important;
+  }
+  
+  /* Fix icon and text combinations */
+  .bg-white .inline-flex.items-center {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Fix bullet point lists */
+  .bg-white ul {
+    padding-left: 1.5rem !important;
+  }
+  
+  .bg-white ul li {
+    list-style-type: disc !important;
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Fix empty space in cards */
+  .bg-white {
+    min-height: auto !important;
+  }
+  
+  /* Fix text in empty cards */
+  .bg-white:empty::before {
+    content: "Content loading..." !important;
+    color: #6b7280 !important;
+    font-style: italic !important;
+  }
+}
