@@ -357,8 +357,8 @@ export class SupabaseDatabaseService {
       walletAddress: row.wallet_address,
       username: row.username,
       bio: decryptedBio || undefined,
-      profilePicture: row.profile_picture_url,
-      bannerImage: row.banner_image_url,
+      profilePicture: row.profile_picture_url || undefined,
+      bannerImage: row.banner_image_url || undefined,
       socials: row.socials,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
@@ -374,19 +374,19 @@ export class SupabaseDatabaseService {
       userId: row.user_id,
       walletAddress: row.wallet_address,
       username: row.username,
-      bio: row.bio,
+      bio: row.bio || undefined,
       socials: row.socials,
-      profilePicture: row.profile_picture_url,
-      bannerImage: row.banner_image_url,
+      profilePicture: row.profile_picture_url || undefined,
+      bannerImage: row.banner_image_url || undefined,
       status: row.status,
       appliedAt: new Date(row.applied_at),
       reviewedAt: row.reviewed_at ? new Date(row.reviewed_at) : undefined,
-      reviewedBy: row.reviewed_by,
-      reviewNotes: row.review_notes,
+      reviewedBy: row.reviewed_by || undefined,
+      reviewNotes: row.review_notes || undefined,
       accessLevel: row.access_level,
-      rejectionReason: row.rejection_reason,
-      customMessage: row.custom_message,
-      lockedPageRequested: row.locked_page_requested
+      rejectionReason: row.rejection_reason || undefined,
+      customMessage: row.custom_message || undefined,
+      lockedPageRequested: row.locked_page_requested || undefined
     };
   }
 
@@ -400,8 +400,8 @@ export class SupabaseDatabaseService {
       grantedAt: new Date(row.granted_at),
       expiresAt: row.expires_at ? new Date(row.expires_at) : undefined,
       isActive: row.is_active,
-      conditions: row.conditions,
-      notes: row.notes
+      conditions: row.conditions || undefined,
+      notes: row.notes || undefined
     };
   }
 
