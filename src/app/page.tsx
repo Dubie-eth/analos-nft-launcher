@@ -267,6 +267,34 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Collection Contract Section */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Official Collection Contract
+          </h2>
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 mb-8">
+            <h3 className="text-xl font-bold text-white mb-4">LaunchOnLos Collection</h3>
+            <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
+              <code className="text-green-400 text-lg font-mono break-all">
+                ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6
+              </code>
+            </div>
+            <p className="text-gray-300 text-sm mb-4">
+              This is the official contract address for the LaunchOnLos NFT collection on Analos.
+            </p>
+            <a
+              href="https://explorer.analos.io/address/ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              View on Explorer →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -320,13 +348,28 @@ const HomePage: React.FC = () => {
               <h3 className="text-lg font-bold text-white mb-4">Support</h3>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li>Security: support@launchonlos.fun</li>
-                <li>Twitter: @EWildn</li>
-                <li>Telegram: t.me/Dubie_420</li>
+                <li><a href="https://x.com/launchonlos" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter: @launchonlos</a></li>
+                <li><a href="https://t.me/launchonlos" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Telegram: t.me/launchonlos</a></li>
+                <li><a href="https://analos.io" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Analos Network: analos.io</a></li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-gray-400">
-            <p>&copy; 2025 Analos NFT Launchpad. All rights reserved.</p>
+          <div className="mt-8 pt-8 border-t border-white/20">
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
+              <h4 className="text-yellow-400 font-semibold mb-2">⚠️ Important Disclaimer</h4>
+              <p className="text-gray-300 text-sm">
+                This platform is for educational and entertainment purposes. Cryptocurrency and NFT investments carry significant risk. 
+                Past performance does not guarantee future results. Always do your own research and never invest more than you can afford to lose. 
+                The Analos NFT Launchpad platform and LaunchOnLos collection are experimental technologies. Use at your own risk.
+              </p>
+            </div>
+            <div className="text-center text-sm text-gray-400">
+              <p>&copy; 2025 Analos NFT Launchpad. All rights reserved.</p>
+              <p className="mt-2">
+                Built on <a href="https://analos.io" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300">Analos Network</a> • 
+                Powered by <a href="https://github.com/Dubie-eth/analos-programs" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300">Open Source</a>
+              </p>
+            </div>
           </div>
         </div>
       </footer>
