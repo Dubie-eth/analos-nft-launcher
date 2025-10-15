@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { databaseService } from '@/lib/database/database-service';
 import { BetaApplication } from '@/lib/database/types';
+import { rateLimiters, getRequestIdentifier } from '@/lib/rate-limiter';
+import { securityMonitor } from '@/lib/security-monitor';
 
 // Helper function to get client info
 function getClientInfo(request: NextRequest) {
@@ -30,12 +32,26 @@ function verifyAdminAccess(request: NextRequest): string | null {
 // GET /api/database/applications - Get applications
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting
+    const identifier = getRequestIdentifier(request);
+    const isAdmin = verifyAdminAccess(request);
+    const limiter = isAdmin ? rateLimiters.admin : rateLimiters.standard;
+    const { allowed, remaining, resetTime } = limiter.check(identifier);
+    
+    if (!allowed) {
+      await securityMonitor.logRateLimit(identifier, '/api/database/applications');
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', resetTime: new Date(resetTime).toISOString() },
+        { status: 429, headers: { 'Retry-After': Math.ceil((resetTime - Date.now()) / 1000).toString() } }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const applicationId = searchParams.get('applicationId');
     const status = searchParams.get('status');
     
     const clientInfo = getClientInfo(request);
-    const accessedBy = verifyAdminAccess(request) || 'user';
+    const accessedBy = isAdmin || 'user';
     
     if (applicationId) {
       // Get specific application
