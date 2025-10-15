@@ -32,6 +32,165 @@ body {
   }
 }
 
+/* CRITICAL TEXT READABILITY FIXES - ENFORCE HIGH CONTRAST EVERYWHERE */
+/* Force high contrast text on all backgrounds */
+* {
+  /* Ensure all text has minimum contrast ratio */
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+/* White backgrounds - use dark text */
+.bg-white *,
+.bg-gray-50 *,
+.bg-blue-50 *,
+.bg-green-50 *,
+.bg-purple-50 *,
+.bg-yellow-50 *,
+.bg-red-50 *,
+.bg-indigo-50 *,
+.bg-pink-50 *,
+.bg-orange-50 *,
+.bg-teal-50 *,
+.bg-cyan-50 *,
+.bg-lime-50 *,
+.bg-emerald-50 *,
+.bg-violet-50 *,
+.bg-fuchsia-50 *,
+.bg-rose-50 *,
+.bg-sky-50 *,
+.bg-amber-50 *,
+.bg-stone-50 *,
+.bg-neutral-50 *,
+.bg-zinc-50 *,
+.bg-slate-50 *,
+[class*="bg-"]:not(.bg-gray-900):not(.bg-gray-800):not(.bg-gray-700):not(.bg-gray-600):not(.bg-purple-900):not(.bg-purple-800):not(.bg-purple-700):not(.bg-purple-600):not(.bg-blue-900):not(.bg-blue-800):not(.bg-blue-700):not(.bg-blue-600):not(.bg-green-900):not(.bg-green-800):not(.bg-green-700):not(.bg-green-600) * {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+}
+
+/* Dark backgrounds - use white text */
+.bg-gray-900 *,
+.bg-gray-800 *,
+.bg-gray-700 *,
+.bg-gray-600 *,
+.bg-purple-900 *,
+.bg-purple-800 *,
+.bg-purple-700 *,
+.bg-purple-600 *,
+.bg-blue-900 *,
+.bg-blue-800 *,
+.bg-blue-700 *,
+.bg-blue-600 *,
+.bg-green-900 *,
+.bg-green-800 *,
+.bg-green-700 *,
+.bg-green-600 *,
+[class*="bg-gray-9"] *,
+[class*="bg-gray-8"] *,
+[class*="bg-gray-7"] *,
+[class*="bg-gray-6"] *,
+[class*="bg-purple-9"] *,
+[class*="bg-purple-8"] *,
+[class*="bg-purple-7"] *,
+[class*="bg-purple-6"] *,
+[class*="bg-blue-9"] *,
+[class*="bg-blue-8"] *,
+[class*="bg-blue-7"] *,
+[class*="bg-blue-6"] *,
+[class*="bg-green-9"] *,
+[class*="bg-green-8"] *,
+[class*="bg-green-7"] *,
+[class*="bg-green-6"] * {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Gradient backgrounds - use white text with shadow */
+.bg-gradient-to-r *,
+.bg-gradient-to-l *,
+.bg-gradient-to-t *,
+.bg-gradient-to-b *,
+.bg-gradient-to-tr *,
+.bg-gradient-to-tl *,
+.bg-gradient-to-br *,
+.bg-gradient-to-bl * {
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 600 !important;
+}
+
+/* Specific element fixes */
+h1, h2, h3, h4, h5, h6 {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+p, span, div, li, td, th {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+}
+
+/* Override any white text on white backgrounds */
+.text-white {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+.text-gray-300,
+.text-gray-400,
+.text-gray-500,
+.text-slate-300,
+.text-slate-400,
+.text-slate-500,
+.text-gray-200,
+.text-slate-200 {
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* Card-specific fixes for the bonding curve and token claims sections */
+.bg-white h1,
+.bg-white h2,
+.bg-white h3,
+.bg-white h4,
+.bg-white h5,
+.bg-white h6,
+.bg-white .text-white {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+.bg-white p,
+.bg-white span,
+.bg-white div {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+}
+
+/* Pastel background fixes */
+.bg-blue-50 h3,
+.bg-blue-50 h4,
+.bg-blue-50 p,
+.bg-blue-50 span,
+.bg-green-50 h3,
+.bg-green-50 h4,
+.bg-green-50 p,
+.bg-green-50 span,
+.bg-purple-50 h3,
+.bg-purple-50 h4,
+.bg-purple-50 p,
+.bg-purple-50 span {
+  color: #000000 !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
 /* Mobile responsive improvements */
 @media (max-width: 768px) {
   body {

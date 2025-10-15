@@ -201,19 +201,7 @@ export async function hasPageAccess(userWallet: string | null, userAccessLevel: 
     }
   } catch (error) {
     console.warn('Failed to fetch page access config from database:', error);
-    // Fallback to localStorage for backward compatibility
-    try {
-      const storedConfig = localStorage.getItem('page-access-config');
-      if (storedConfig) {
-        const storedPages = JSON.parse(storedConfig);
-        const updatedPage = storedPages.find((page: PageAccess) => page.path === pagePath);
-        if (updatedPage) {
-          pageConfig = { ...pageConfig, ...updatedPage };
-        }
-      }
-    } catch (localError) {
-      console.warn('Failed to read page access config from localStorage:', localError);
-    }
+    // No localStorage fallback - use database only for security
   }
 
   // Check if page is locked (redirect to beta signup)
@@ -247,26 +235,36 @@ export async function hasPageAccess(userWallet: string | null, userAccessLevel: 
   return userLevelIndex >= requiredLevelIndex;
 }
 
-// Get user's access level from stored data
-export function getUserAccessLevel(userWallet: string): string {
+// Get user's access level from database
+export async function getUserAccessLevel(userWallet: string): Promise<string> {
   if (ADMIN_WALLETS.includes(userWallet)) {
     return 'admin';
   }
 
-  // In a real implementation, this would check a database or blockchain
-  // For now, we'll use localStorage as a fallback
-  if (typeof window !== 'undefined') {
-    const storedLevel = localStorage.getItem(`access_level_${userWallet}`);
-    return storedLevel || DEFAULT_ACCESS_LEVEL;
+  // Check database for user access level
+  try {
+    const response = await fetch(`/api/user-profiles/${userWallet}`);
+    if (response.ok) {
+      const profile = await response.json();
+      return profile.accessLevel || DEFAULT_ACCESS_LEVEL;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch user access level from database:', error);
   }
 
   return DEFAULT_ACCESS_LEVEL;
 }
 
-// Set user's access level
-export function setUserAccessLevel(userWallet: string, accessLevel: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(`access_level_${userWallet}`, accessLevel);
+// Set user's access level in database
+export async function setUserAccessLevel(userWallet: string, accessLevel: string): Promise<void> {
+  try {
+    await fetch(`/api/user-profiles/${userWallet}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessLevel })
+    });
+  } catch (error) {
+    console.error('Failed to update user access level in database:', error);
   }
 }
 
@@ -281,50 +279,36 @@ export function getAccessiblePages(userWallet: string | null, userAccessLevel: s
   return PAGE_ACCESS.filter(page => hasPageAccess(userWallet, userAccessLevel, page.path));
 }
 
-// Get current page configuration (including any localStorage updates)
-export function getPageConfig(pagePath: string): PageAccess | null {
+// Get current page configuration from database
+export async function getPageConfig(pagePath: string): Promise<PageAccess | null> {
   let pageConfig = PAGE_ACCESS.find(page => page.path === pagePath);
   if (!pageConfig) {
     return null;
   }
 
-  // Check for updated page configuration in localStorage (for page locking)
-  if (typeof window !== 'undefined') {
-    try {
-      const storedConfig = localStorage.getItem('page-access-config');
-      if (storedConfig) {
-        const storedPages = JSON.parse(storedConfig);
-        const updatedPage = storedPages.find((page: PageAccess) => page.path === pagePath);
-        if (updatedPage) {
-          pageConfig = { ...pageConfig, ...updatedPage }; // Merge with stored config
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to read page access config from localStorage:', error);
+  // Fetch updated page configuration from database
+  try {
+    const response = await fetch(`/api/page-access/${encodeURIComponent(pagePath)}`);
+    if (response.ok) {
+      const dbConfig = await response.json();
+      pageConfig = { ...pageConfig, ...dbConfig }; // Merge with database config
     }
+  } catch (error) {
+    console.warn('Failed to fetch page config from database:', error);
   }
 
   return pageConfig;
 }
 
-// Get all page configurations with current lock status
-export function getAllPageConfigs(): PageAccess[] {
-  if (typeof window === 'undefined') {
-    return PAGE_ACCESS;
-  }
-
+// Get all page configurations from database
+export async function getAllPageConfigs(): Promise<PageAccess[]> {
   try {
-    const storedConfig = localStorage.getItem('page-access-config');
-    if (storedConfig) {
-      const storedPages = JSON.parse(storedConfig);
-      // Merge stored pages with default config
-      return PAGE_ACCESS.map(page => {
-        const storedPage = storedPages.find((sp: PageAccess) => sp.path === page.path);
-        return storedPage ? { ...page, ...storedPage } : page;
-      });
+    const response = await fetch('/api/page-access');
+    if (response.ok) {
+      return await response.json();
     }
   } catch (error) {
-    console.warn('Failed to read page access config from localStorage:', error);
+    console.warn('Failed to fetch page configs from database:', error);
   }
 
   return PAGE_ACCESS;
