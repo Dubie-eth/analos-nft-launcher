@@ -31,8 +31,8 @@ export const ANALOS_PROGRAMS = {
   TOKEN_LAUNCH: new PublicKey('Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw'),
 
   /**
-   * NFT Launchpad Core (MEGA PROGRAM)
-   * Complete NFT launchpad with all features:
+   * NFT Launchpad Core (MEGA PROGRAM) - v2.0
+   * Complete NFT launchpad with ALL features:
    * - Collection management (NFT-Only or NFT-to-Token)
    * - Whitelist stages (3 tiers + public) with incremental pricing
    * - Rarity system (merged from Rarity Oracle)
@@ -43,10 +43,21 @@ export const ANALOS_PROGRAMS = {
    * - Holder rewards distribution
    * - CTO voting (democratic governance)
    * - Referral system (viral growth)
+   * - Creator Airdrops ✨ (NEW!)
+   * - Platform fee collection (2.5% on airdrops)
    * - Blockchain-enforced fees
    * Admin: 86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW
+   * 
+   * Deployed: October 15, 2025
+   * Size: 788,496 bytes (all features included)
    */
-  NFT_LAUNCHPAD_CORE: new PublicKey('BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr'),
+  NFT_LAUNCHPAD_CORE: new PublicKey('H423wLPdU2ut7JBJmq7Y9V6whXVTtHyRY3wvqypwfgfm'),
+  
+  /**
+   * NFT Launchpad Core OLD (Deprecated)
+   * Previous version - replaced by v2.0
+   */
+  NFT_LAUNCHPAD_CORE_OLD: new PublicKey('BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr'),
   
   /**
    * NFT Launchpad (DEPRECATED - Use NFT_LAUNCHPAD_CORE)
@@ -124,7 +135,8 @@ export const ANALOS_PROGRAM_IDS = {
   PRICE_ORACLE: 'B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
   RARITY_ORACLE: 'C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5',
   TOKEN_LAUNCH: 'Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw',
-  NFT_LAUNCHPAD_CORE: 'BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr',
+  NFT_LAUNCHPAD_CORE: 'H423wLPdU2ut7JBJmq7Y9V6whXVTtHyRY3wvqypwfgfm', // NEW v2.0
+  NFT_LAUNCHPAD_CORE_OLD: 'BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr', // OLD
   NFT_LAUNCHPAD: '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: '7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
   AIRDROP_ENHANCED: 'J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
@@ -140,7 +152,8 @@ export const ANALOS_EXPLORER_URLS = {
   PRICE_ORACLE: 'https://explorer.analos.io/address/B26WiDKnjeQtZTGB6BqSyFMaejXJfkxm1CKu1CYQF1D',
   RARITY_ORACLE: 'https://explorer.analos.io/address/C2YCPD3ZR5mWC7q1TMh2KqN43XWzCsdnbPgswGsFTDr5',
   TOKEN_LAUNCH: 'https://explorer.analos.io/address/Eydws6TzESGgBZyEHy5BYF8sSDcsRXC4tBF9JaVqWCRw',
-  NFT_LAUNCHPAD_CORE: 'https://explorer.analos.io/address/BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr',
+  NFT_LAUNCHPAD_CORE: 'https://explorer.analos.io/address/H423wLPdU2ut7JBJmq7Y9V6whXVTtHyRY3wvqypwfgfm', // NEW v2.0
+  NFT_LAUNCHPAD_CORE_OLD: 'https://explorer.analos.io/address/BioNVjtSmBSvsVG3Yqn5VHWGDrLD56AvqYhz1LZbWhdr', // OLD
   NFT_LAUNCHPAD: 'https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT',
   OTC_ENHANCED: 'https://explorer.analos.io/address/7hnWVgRxu2dNWiNAzNB2jWoubzMcdY6HNysjhLiawXPY',
   AIRDROP_ENHANCED: 'https://explorer.analos.io/address/J2D1LiSGxj9vTN7vc3CUD1LkrnqanAeAoAhE2nvvyXHC',
