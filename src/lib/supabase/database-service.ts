@@ -356,7 +356,7 @@ export class SupabaseDatabaseService {
       id: row.id,
       walletAddress: row.wallet_address,
       username: row.username,
-      bio: decryptedBio,
+      bio: decryptedBio || undefined,
       profilePicture: row.profile_picture_url,
       bannerImage: row.banner_image_url,
       socials: row.socials,
