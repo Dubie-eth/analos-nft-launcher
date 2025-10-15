@@ -34,7 +34,7 @@ interface AccessRule {
 const UserAccessManager: React.FC = () => {
   const [connection] = useState(() => new Connection(ANALOS_RPC_URL, 'confirmed'));
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'rules' | 'analytics'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'rules' | 'pages' | 'analytics'>('users');
   
   // User access data
   const [userAccess, setUserAccess] = useState<UserAccess[]>([]);
@@ -347,6 +347,100 @@ const UserAccessManager: React.FC = () => {
     }
   };
 
+  // Page management functions
+  const togglePageLock = async (pagePath: string) => {
+    try {
+      setLoading(true);
+      
+      // Update page lock status in localStorage
+      const updatedPages = PAGE_ACCESS.map(page => 
+        page.path === pagePath ? { ...page, isLocked: !page.isLocked } : page
+      );
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+      alert(`Page ${pagePath} has been ${updatedPages.find(p => p.path === pagePath)?.isLocked ? 'locked' : 'unlocked'}`);
+      
+    } catch (error) {
+      console.error('Failed to toggle page lock:', error);
+      alert('Failed to update page lock status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePageAccessLevel = async (pagePath: string, newLevel: string) => {
+    try {
+      setLoading(true);
+      
+      const updatedPages = PAGE_ACCESS.map(page => 
+        page.path === pagePath ? { ...page, requiredLevel: newLevel } : page
+      );
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+    } catch (error) {
+      console.error('Failed to update page access level:', error);
+      alert('Failed to update page access level');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePageCustomMessage = async (pagePath: string, message: string) => {
+    try {
+      setLoading(true);
+      
+      const updatedPages = PAGE_ACCESS.map(page => 
+        page.path === pagePath ? { ...page, customMessage: message } : page
+      );
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+    } catch (error) {
+      console.error('Failed to update custom message:', error);
+      alert('Failed to update custom message');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePagePublicAccess = async (pagePath: string, allowPublic: boolean) => {
+    try {
+      setLoading(true);
+      
+      const updatedPages = PAGE_ACCESS.map(page => 
+        page.path === pagePath ? { ...page, allowPublicAccess: allowPublic } : page
+      );
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+    } catch (error) {
+      console.error('Failed to update public access:', error);
+      alert('Failed to update public access setting');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePageVerification = async (pagePath: string, requireVerification: boolean) => {
+    try {
+      setLoading(true);
+      
+      const updatedPages = PAGE_ACCESS.map(page => 
+        page.path === pagePath ? { ...page, requireVerification: requireVerification } : page
+      );
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+    } catch (error) {
+      console.error('Failed to update verification requirement:', error);
+      alert('Failed to update verification requirement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -362,6 +456,7 @@ const UserAccessManager: React.FC = () => {
         {[
           { id: 'users', label: 'User Access', icon: '👥' },
           { id: 'rules', label: 'Access Rules', icon: '📋' },
+          { id: 'pages', label: 'Page Management', icon: '📄' },
           { id: 'analytics', label: 'Analytics', icon: '📊' }
         ].map((tab) => (
           <button
@@ -811,6 +906,140 @@ const UserAccessManager: React.FC = () => {
                         }`}
                       >
                         {rule.isActive ? 'Disable' : 'Enable'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Page Management Tab */}
+      {activeTab === 'pages' && (
+        <div className="space-y-6">
+          {/* Quick Lock Controls */}
+          <div className="bg-white p-6 rounded-lg border">
+            <h2 className="text-xl font-bold mb-4">🔒 Quick Lock Controls</h2>
+            <p className="text-gray-600 mb-6">
+              Instantly lock down any page to redirect users to the beta access signup page.
+            </p>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {PAGE_ACCESS.map((page) => (
+                <div key={page.path} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-900">{page.name}</h3>
+                    <button
+                      onClick={() => togglePageLock(page.path)}
+                      className={`px-3 py-1 text-sm rounded transition-colors ${
+                        page.isLocked
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
+                    >
+                      {page.isLocked ? '🔒 Locked' : '🔓 Unlocked'}
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">{page.description}</p>
+                  <div className="text-xs text-gray-500">
+                    <span className="font-medium">Required Level:</span> {page.requiredLevel}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Per-Page Customization */}
+          <div className="bg-white p-6 rounded-lg border">
+            <h2 className="text-xl font-bold mb-4">⚙️ Per-Page Customization</h2>
+            <p className="text-gray-600 mb-6">
+              Customize access requirements and settings for individual pages.
+            </p>
+            
+            <div className="space-y-4">
+              {PAGE_ACCESS.map((page) => (
+                <div key={page.path} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{page.name}</h3>
+                      <p className="text-sm text-gray-600">{page.description}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 text-xs rounded ${
+                        page.isLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {page.isLocked ? 'Locked' : 'Unlocked'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Required Access Level
+                      </label>
+                      <select
+                        value={page.requiredLevel}
+                        onChange={(e) => updatePageAccessLevel(page.path, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                      >
+                        {ACCESS_LEVELS.map((level) => (
+                          <option key={level.id} value={level.id}>
+                            {level.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Custom Message (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={page.customMessage || ''}
+                        onChange={(e) => updatePageCustomMessage(page.path, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                        placeholder="Custom redirect message..."
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={page.allowPublicAccess || false}
+                          onChange={(e) => updatePagePublicAccess(page.path, e.target.checked)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">Allow Public Access</span>
+                      </label>
+                      
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={page.requireVerification || false}
+                          onChange={(e) => updatePageVerification(page.path, e.target.checked)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">Require Verification</span>
+                      </label>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => togglePageLock(page.path)}
+                        className={`px-3 py-1 text-sm rounded transition-colors ${
+                          page.isLocked
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-red-100 text-red-700 hover:bg-red-200'
+                        }`}
+                      >
+                        {page.isLocked ? 'Unlock Page' : 'Lock Page'}
                       </button>
                     </div>
                   </div>

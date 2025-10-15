@@ -65,6 +65,16 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     
+    // Check if page is locked - redirect to beta signup
+    if (pageConfig?.isLocked) {
+      const signupUrl = new URL('/beta-signup', request.url);
+      signupUrl.searchParams.set('locked_page', pathname);
+      if (pageConfig.customMessage) {
+        signupUrl.searchParams.set('message', pageConfig.customMessage);
+      }
+      return NextResponse.redirect(signupUrl);
+    }
+    
     // Other restricted pages redirect to home with access denied message
     const homeUrl = new URL('/', request.url);
     homeUrl.searchParams.set('access_denied', 'true');

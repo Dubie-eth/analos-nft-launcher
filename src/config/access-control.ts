@@ -17,6 +17,10 @@ export interface PageAccess {
   requiredLevel: string;
   adminOnly?: boolean;
   publicAccess?: boolean;
+  isLocked?: boolean;
+  customMessage?: string;
+  allowPublicAccess?: boolean;
+  requireVerification?: boolean;
 }
 
 // Access Levels
@@ -154,6 +158,13 @@ export const PAGE_ACCESS: PageAccess[] = [
     name: 'Airdrops',
     description: 'Claim airdrops',
     requiredLevel: 'beta_user'
+  },
+  {
+    path: '/beta-signup',
+    name: 'Beta Signup',
+    description: 'Apply for beta access',
+    requiredLevel: 'public',
+    publicAccess: true
   }
 ];
 
@@ -177,6 +188,11 @@ export function hasPageAccess(userWallet: string | null, userAccessLevel: string
   const pageConfig = PAGE_ACCESS.find(page => page.path === pagePath);
   if (!pageConfig) {
     return false; // Unknown page, deny access
+  }
+
+  // Check if page is locked (redirect to beta signup)
+  if (pageConfig.isLocked && pagePath !== '/beta-signup') {
+    return false; // This will trigger redirect to beta signup
   }
 
   // Public pages are always accessible
