@@ -140,24 +140,6 @@ function SecureWalletConnectionComponent({ className = '' }: SecureWalletConnect
         }}
       />
 
-      {/* Warning for non-burner wallets - positioned away from navigation */}
-      {showWarning && connected && !isBurnerWallet && (
-        <div className="fixed top-20 right-4 z-50 max-w-sm p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-sm text-yellow-200 shadow-lg">
-          <div className="flex items-center space-x-2">
-            <span className="text-yellow-400 text-lg">⚠️</span>
-            <span className="font-semibold">Please use a burner wallet for safety</span>
-          </div>
-          <p className="text-xs text-yellow-300 mt-1">
-            This platform is in BETA. Use a wallet with minimal funds only.
-          </p>
-          <button 
-            onClick={() => setShowWarning(false)}
-            className="absolute top-1 right-1 text-yellow-300 hover:text-yellow-100 text-xs"
-          >
-            ×
-          </button>
-        </div>
-      )}
 
       <style jsx global>{`
         .wallet-adapter-button-custom {

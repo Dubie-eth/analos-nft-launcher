@@ -7,6 +7,14 @@ import { useWallet } from '@solana/wallet-adapter-react';
 export default function EnhancedLandingPage() {
   const { publicKey, connected } = useWallet();
   
+  // Admin wallet addresses - only these wallets can see admin links
+  const ADMIN_WALLETS = [
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+    '89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m',
+  ];
+  
+  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+  
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [currentRoadmapItem, setCurrentRoadmapItem] = useState(0);
@@ -434,12 +442,14 @@ export default function EnhancedLandingPage() {
               >
                 🔍 View All Programs
               </Link>
-              <Link
-                href="/admin"
-                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border border-white/20"
-              >
-                🎛️ Admin Dashboard
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin-login"
+                  className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border border-white/20"
+                >
+                  🎛️ Admin Dashboard
+                </Link>
+              )}
             </div>
           </div>
         </div>

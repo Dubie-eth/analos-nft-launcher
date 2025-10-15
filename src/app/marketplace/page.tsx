@@ -498,20 +498,6 @@ export default function MarketplacePage() {
           </div>
         )}
 
-        {/* Wallet Connection Notice */}
-        {!connected && (
-          <div className="fixed bottom-6 right-6 bg-yellow-900/90 backdrop-blur-sm border border-yellow-500 rounded-xl p-4 max-w-sm">
-            <div className="flex items-start">
-              <span className="text-xl mr-3">⚠️</span>
-              <div>
-                <p className="font-semibold text-yellow-300">Connect Your Wallet</p>
-                <p className="text-yellow-200 text-sm mt-1">
-                  Connect your wallet to mint NFTs and access all marketplace features.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

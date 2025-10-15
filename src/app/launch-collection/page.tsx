@@ -405,20 +405,6 @@ export default function LaunchCollectionPage() {
             </div>
           )}
 
-          {/* Wallet Connection Warning */}
-          {!connected && (
-            <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500 rounded-lg">
-              <div className="flex items-start">
-                <span className="text-xl mr-3">⚠️</span>
-                <div>
-                  <p className="font-semibold text-yellow-300">Wallet Not Connected</p>
-                  <p className="text-yellow-200 text-sm mt-1">
-                    Please connect your wallet to launch a collection. You'll need to sign transactions to deploy your collection to the blockchain.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

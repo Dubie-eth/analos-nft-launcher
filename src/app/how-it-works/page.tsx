@@ -2,9 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { ANALOS_PROGRAMS, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 
 const HowItWorksPage: React.FC = () => {
+  const { publicKey, connected } = useWallet();
+  
+  // Admin wallet addresses - only these wallets can see admin links
+  const ADMIN_WALLETS = [
+    '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+    '89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m',
+  ];
+  
+  const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+  
   const [activeSection, setActiveSection] = useState('overview');
 
   const sections = [
@@ -1139,12 +1150,14 @@ const HowItWorksPage: React.FC = () => {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <Link 
-                href="/admin" 
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Admin Dashboard
-              </Link>
+              {isAdmin && (
+                <Link 
+                  href="/admin-login" 
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
             </div>
           </div>
         </div>

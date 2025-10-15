@@ -4,6 +4,7 @@ import './globals.css'
 import SecureWalletProvider from '@/components/SecureWalletProvider'
 import ClientNavigation from '@/components/ClientNavigation'
 import { WalletProvider } from '@/contexts/WalletContext'
+import AccessControlManager from '@/components/AccessControlManager'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -34,17 +35,8 @@ export default function RootLayout({
       <body className={inter.className}>
         <SecureWalletProvider>
           <WalletProvider>
-            {/* Global Warning Banner - positioned above navigation */}
-            <div className="bg-yellow-500/90 border-b border-yellow-400/50 shadow-lg warning-banner">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-                <div className="flex items-center justify-center space-x-2 text-yellow-900">
-                  <span className="text-lg">⚠️</span>
-                  <span className="font-semibold text-sm">
-                    Please use a burner wallet for safety - This platform is in BETA
-                  </span>
-                </div>
-              </div>
-            </div>
+            {/* Access Control Manager - syncs wallet state with cookies */}
+            <AccessControlManager />
             
             <div className="navigation-container">
               <ClientNavigation />

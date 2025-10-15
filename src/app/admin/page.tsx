@@ -21,6 +21,7 @@ import EnhancedProgramsVerifier from '@/components/EnhancedProgramsVerifier';
 import EnhancedProgramsInitializer from '@/components/EnhancedProgramsInitializer';
 import MegaNFTLaunchpadCore from '@/components/MegaNFTLaunchpadCore';
 import UserAccessManager from '@/components/UserAccessManager';
+import TestSimulationTab from '@/components/TestSimulationTab';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'deployed-programs' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -500,6 +501,7 @@ export default function AdminDashboard() {
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
+              { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'health-check', label: 'Health Check', icon: '🏥' },
@@ -892,6 +894,19 @@ export default function AdminDashboard() {
               </p>
             </div>
             <UserAccessManager />
+          </div>
+        )}
+
+        {activeTab === 'test-simulation' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🧪 Test & Simulation Environment</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Test all platform features without affecting the live blockchain. 
+                Perfect for users to experiment with collections, NFTs, and staking before going live.
+              </p>
+            </div>
+            <TestSimulationTab />
           </div>
         )}
 

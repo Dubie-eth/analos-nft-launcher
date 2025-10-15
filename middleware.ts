@@ -25,13 +25,35 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get user wallet from cookies or headers (you may need to adjust this based on your auth system)
-  const userWallet = request.cookies.get('user-wallet')?.value || 
-                    request.headers.get('x-user-wallet') || 
-                    null;
+  // Check if this page is in the PAGE_ACCESS configuration
+  const pageConfig = PAGE_ACCESS.find(page => page.path === pathname);
   
-  // Get user access level
-  const userAccessLevel = userWallet ? getUserAccessLevel(userWallet) : DEFAULT_ACCESS_LEVEL;
+  // If page is not in configuration, block access by default (whitelist approach)
+  if (!pageConfig) {
+    // Allow access to unmapped pages for now (like /marketplace, /explorer, etc.)
+    // You can change this to block all unmapped pages for maximum security
+    // return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.next();
+  }
+  
+  // Public pages are always accessible
+  if (pageConfig.publicAccess) {
+    return NextResponse.next();
+  }
+  
+  // Get user wallet from cookies (set by client after wallet connection)
+  const userWallet = request.cookies.get('connected-wallet')?.value || null;
+  
+  // If page requires authentication but no wallet is connected, redirect to home
+  if (!userWallet && pageConfig.requiredLevel !== 'public') {
+    const homeUrl = new URL('/', request.url);
+    homeUrl.searchParams.set('access_denied', 'true');
+    homeUrl.searchParams.set('required_page', pathname);
+    return NextResponse.redirect(homeUrl);
+  }
+  
+  // Get user access level from cookies (set by admin via UserAccessManager)
+  const userAccessLevel = request.cookies.get(`access-level-${userWallet}`)?.value || DEFAULT_ACCESS_LEVEL;
   
   // Check if user has access to the requested page
   const hasAccess = hasPageAccess(userWallet, userAccessLevel, pathname);
@@ -97,7 +119,7 @@ export function middleware(request: NextRequest) {
     }
   }
   
-  // For all other routes, allow access
+  // If we reached here, user has access
   return NextResponse.next();
 }
 

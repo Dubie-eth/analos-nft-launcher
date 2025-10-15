@@ -8,6 +8,7 @@ import {
 } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '../config/analos-programs';
 import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel } from '@/config/access-control';
+import { updateAccessLevelCookie } from '@/hooks/useWalletCookies';
 
 interface UserAccess {
   address: string;
@@ -308,6 +309,9 @@ const UserAccessManager: React.FC = () => {
       
       // Update in access control system
       setUserAccessLevel(address, newLevel);
+      
+      // Update cookie for server-side middleware enforcement
+      updateAccessLevelCookie(address, newLevel);
       
       // Reload page access if a page is selected
       if (selectedPage) {

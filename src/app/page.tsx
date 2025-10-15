@@ -1,41 +1,12 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useSearchParams } from 'next/navigation';
 import { ANALOS_PROGRAMS, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic';
-
-// Component that handles search params
-const SearchParamsHandler: React.FC = () => {
-  const searchParams = useSearchParams();
-  
-  // Check for access denied messages from middleware
-  const accessDenied = searchParams.get('access_denied') === 'true';
-  const requiredPage = searchParams.get('required_page');
-
-  if (accessDenied) {
-    return (
-      <div className="bg-red-500/20 border border-red-500/50 backdrop-blur-sm p-4 mx-4 mt-4 rounded-lg">
-        <div className="flex items-center space-x-3">
-          <div className="text-red-400 text-2xl">🔒</div>
-          <div>
-            <h3 className="text-red-200 font-semibold">Access Restricted</h3>
-            <p className="text-red-300 text-sm">
-              You don't have permission to access {requiredPage}. 
-              Contact an admin to request access.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
-};
 
 const HomePage: React.FC = () => {
   const { publicKey, connected } = useWallet();
@@ -129,11 +100,6 @@ const HomePage: React.FC = () => {
         </div>
       </header>
 
-      {/* Access Denied Banner */}
-      <Suspense fallback={null}>
-        <SearchParamsHandler />
-      </Suspense>
-
       {/* Hero Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -154,19 +120,12 @@ const HomePage: React.FC = () => {
             >
               Learn How It Works
             </Link>
-            {isAdmin ? (
+            {isAdmin && (
               <Link 
                 href="/admin-login" 
                 className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-colors"
               >
                 Admin Dashboard
-              </Link>
-            ) : (
-              <Link 
-                href="/how-it-works" 
-                className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-colors"
-              >
-                Learn How It Works
               </Link>
             )}
           </div>
@@ -318,27 +277,20 @@ const HomePage: React.FC = () => {
             Join the future of NFT launches on the Analos blockchain with our complete platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {isAdmin ? (
-              <Link 
-                href="/admin-login" 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105"
-              >
-                Access Admin Dashboard
-              </Link>
-            ) : (
-              <Link 
-                href="/how-it-works" 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105"
-              >
-                Learn How It Works
-              </Link>
-            )}
             <Link 
               href="/how-it-works" 
-              className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg font-semibold transition-colors border border-white/20"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105"
             >
-              Learn More
+              Learn How It Works
             </Link>
+            {isAdmin && (
+              <Link 
+                href="/admin-login" 
+                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg font-semibold transition-colors border border-white/20"
+              >
+                Admin Dashboard
+              </Link>
+            )}
           </div>
         </div>
       </section>

@@ -104,8 +104,56 @@ export const PAGE_ACCESS: PageAccess[] = [
     path: '/admin-login',
     name: 'Admin Login',
     description: 'Admin authentication page',
-    requiredLevel: 'admin',
-    adminOnly: true
+    requiredLevel: 'public', // Allow anyone to access login page
+    publicAccess: true
+  },
+  {
+    path: '/marketplace',
+    name: 'NFT Marketplace',
+    description: 'Buy and sell NFTs',
+    requiredLevel: 'beta_user'
+  },
+  {
+    path: '/launch-collection',
+    name: 'Launch Collection',
+    description: 'Launch new NFT collection',
+    requiredLevel: 'beta_user'
+  },
+  {
+    path: '/explorer',
+    name: 'Explorer',
+    description: 'Explore collections and NFTs',
+    requiredLevel: 'beta_user'
+  },
+  {
+    path: '/swap',
+    name: 'Token Swap',
+    description: 'Swap tokens',
+    requiredLevel: 'premium_user'
+  },
+  {
+    path: '/vesting',
+    name: 'Token Vesting',
+    description: 'Manage token vesting',
+    requiredLevel: 'premium_user'
+  },
+  {
+    path: '/token-lock',
+    name: 'Token Lock',
+    description: 'Lock tokens for security',
+    requiredLevel: 'premium_user'
+  },
+  {
+    path: '/otc-marketplace',
+    name: 'OTC Marketplace',
+    description: 'Over-the-counter trading',
+    requiredLevel: 'premium_user'
+  },
+  {
+    path: '/airdrops',
+    name: 'Airdrops',
+    description: 'Claim airdrops',
+    requiredLevel: 'beta_user'
   }
 ];
 
