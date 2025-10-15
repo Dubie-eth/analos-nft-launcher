@@ -23,6 +23,9 @@ export interface UserProfile {
   lastLoginAt?: Date;
   isVerified: boolean;
   verificationLevel: 'none' | 'basic' | 'enhanced' | 'verified';
+  // Social verification data
+  verificationScore?: number;
+  verifiedSocialAccounts?: SocialAccount[];
 }
 
 export interface BetaApplication {
@@ -151,4 +154,65 @@ export interface AdminUser {
   lastLoginAt?: Date;
   isActive: boolean;
   createdBy?: string;
+}
+
+// Social Verification Types
+export interface SocialAccount {
+  id: string;
+  userId: string;
+  walletAddress: string;
+  platform: 'twitter' | 'telegram' | 'discord' | 'instagram' | 'youtube' | 'tiktok' | 'github';
+  username: string;
+  userIdPlatform?: string;
+  displayName?: string;
+  followerCount: number;
+  isVerifiedPlatform: boolean;
+  profilePictureUrl?: string;
+  verificationStatus: 'pending' | 'verified' | 'failed' | 'expired' | 'revoked';
+  verificationMethod: 'webhook' | 'manual' | 'api' | 'oracle' | 'signature';
+  verificationCode?: string;
+  verificationHash?: string;
+  verificationSignature?: string;
+  verifiedAt?: Date;
+  expiresAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SocialVerificationRequest {
+  id: string;
+  walletAddress: string;
+  status: 'pending' | 'completed' | 'failed' | 'expired';
+  totalScore: number;
+  requiredScore: number;
+  verificationCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+  socialAccounts: SocialAccount[];
+}
+
+export interface SocialVerificationConfig {
+  id: string;
+  collectionId: string;
+  platform: 'twitter' | 'telegram' | 'discord' | 'instagram' | 'youtube' | 'tiktok' | 'github';
+  officialHandle: string;
+  verificationMethod: 'webhook' | 'manual' | 'api' | 'oracle' | 'signature';
+  oracleAuthority?: string;
+  verificationCodePrefix: string;
+  expirationDays: number;
+  isActive: boolean;
+  minimumFollowers: number;
+  requiredScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface VerificationEligibility {
+  eligible: boolean;
+  currentScore: number;
+  requiredScore: number;
+  verifiedAccounts: number;
+  totalAccounts: number;
+  missingRequirements: string[];
 }

@@ -19,12 +19,32 @@ type AccessGrantInsert = Database['public']['Tables']['access_grants']['Insert']
 type AccessGrantUpdate = Database['public']['Tables']['access_grants']['Update'];
 
 export class SupabaseDatabaseService {
+  // Encryption helpers
+  private async encryptData(data: string): Promise<string> {
+    const { data: result, error } = await supabaseAdmin
+      .rpc('encrypt_sensitive_data', { data });
+    
+    if (error) throw error;
+    return result;
+  }
+
+  private async decryptData(encryptedData: string): Promise<string> {
+    const { data: result, error } = await supabaseAdmin
+      .rpc('decrypt_sensitive_data', { encrypted_data: encryptedData });
+    
+    if (error) throw error;
+    return result;
+  }
+
   // User Profile Operations
   async createUserProfile(profile: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>, accessedBy: string): Promise<UserProfile> {
+    // Encrypt sensitive data before storing
+    const encryptedBio = profile.bio ? await this.encryptData(profile.bio) : null;
+    
     const userInsert: UserInsert = {
       wallet_address: profile.walletAddress,
       username: profile.username,
-      bio: profile.bio,
+      bio: encryptedBio,
       profile_picture_url: profile.profilePicture,
       banner_image_url: profile.bannerImage,
       socials: profile.socials,
@@ -44,7 +64,7 @@ export class SupabaseDatabaseService {
     // Log data access
     await this.logDataAccess(accessedBy, 'write', 'user_profile', data.id, 'Creating new user profile');
 
-    return this.mapUserRowToProfile(data);
+    return await this.mapUserRowToProfile(data);
   }
 
   async getUserProfile(userId: string, accessedBy: string): Promise<UserProfile | null> {
@@ -59,7 +79,7 @@ export class SupabaseDatabaseService {
 
     await this.logDataAccess(accessedBy, 'read', 'user_profile', userId, 'Retrieving user profile');
 
-    return this.mapUserRowToProfile(data);
+    return await this.mapUserRowToProfile(data);
   }
 
   async getUserProfileByWallet(walletAddress: string, accessedBy: string): Promise<UserProfile | null> {
@@ -74,7 +94,7 @@ export class SupabaseDatabaseService {
 
     await this.logDataAccess(accessedBy, 'read', 'user_profile', data.id, 'Retrieving user profile by wallet');
 
-    return this.mapUserRowToProfile(data);
+    return await this.mapUserRowToProfile(data);
   }
 
   async updateUserProfile(userId: string, updates: Partial<UserProfile>, accessedBy: string): Promise<UserProfile | null> {
@@ -102,7 +122,7 @@ export class SupabaseDatabaseService {
 
     await this.logDataAccess(accessedBy, 'write', 'user_profile', userId, 'Updating user profile');
 
-    return this.mapUserRowToProfile(data);
+    return await this.mapUserRowToProfile(data);
   }
 
   // Beta Application Operations
@@ -320,12 +340,23 @@ export class SupabaseDatabaseService {
   }
 
   // Mapping functions
-  private mapUserRowToProfile(row: UserRow): UserProfile {
+  private async mapUserRowToProfile(row: UserRow): Promise<UserProfile> {
+    // Decrypt sensitive data when reading
+    let decryptedBio = row.bio;
+    if (row.bio) {
+      try {
+        decryptedBio = await this.decryptData(row.bio);
+      } catch (error) {
+        // If decryption fails, it might be unencrypted data (for backward compatibility)
+        decryptedBio = row.bio;
+      }
+    }
+
     return {
       id: row.id,
       walletAddress: row.wallet_address,
       username: row.username,
-      bio: row.bio,
+      bio: decryptedBio,
       profilePicture: row.profile_picture_url,
       bannerImage: row.banner_image_url,
       socials: row.socials,

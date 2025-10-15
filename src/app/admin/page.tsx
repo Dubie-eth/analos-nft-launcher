@@ -26,6 +26,7 @@ import AirdropAdmin from '@/components/AirdropAdmin';
 import CreatorAirdropManager from '@/components/CreatorAirdropManager';
 import PlatformFeeAnalytics from '@/components/PlatformFeeAnalytics';
 import DatabaseManager from '@/components/DatabaseManager';
+import SocialVerificationManager from '@/components/SocialVerificationManager';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -78,7 +79,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -509,6 +510,7 @@ export default function AdminDashboard() {
               { id: 'creator-airdrops', label: 'Creator Airdrops', icon: '🎨' },
               { id: 'platform-fees', label: 'Platform Fees', icon: '💰' },
               { id: 'database-manager', label: 'Database Manager', icon: '🗄️' },
+              { id: 'social-verification', label: 'Social Verification', icon: '🔐' },
               { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
@@ -954,6 +956,19 @@ export default function AdminDashboard() {
               </p>
             </div>
             <DatabaseManager />
+          </div>
+        )}
+
+        {activeTab === 'social-verification' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🔐 Social Verification Manager</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Manage social media verification and whitelist eligibility. Verify user social accounts,
+                configure verification settings, and monitor verification requests.
+              </p>
+            </div>
+            <SocialVerificationManager />
           </div>
         )}
 
