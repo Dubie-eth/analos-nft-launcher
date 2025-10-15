@@ -7,7 +7,7 @@ import {
   LAMPORTS_PER_SOL
 } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '../config/analos-programs';
-import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel } from '@/config/access-control';
+import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel, getAllPageConfigs } from '@/config/access-control';
 import { updateAccessLevelCookie } from '@/hooks/useWalletCookies';
 
 interface UserAccess {
@@ -352,18 +352,35 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      // Update page lock status in localStorage
-      const updatedPages = PAGE_ACCESS.map(page => 
+      // Get current page configs (including any existing localStorage data)
+      const currentConfigs = getAllPageConfigs();
+      
+      // Update page lock status
+      const updatedPages = currentConfigs.map(page => 
         page.path === pagePath ? { ...page, isLocked: !page.isLocked } : page
       );
       
+      // Save to localStorage
       localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
       
-      alert(`Page ${pagePath} has been ${updatedPages.find(p => p.path === pagePath)?.isLocked ? 'locked' : 'unlocked'}`);
+      // Get the updated page info for feedback
+      const updatedPage = updatedPages.find(p => p.path === pagePath);
+      const pageName = updatedPage?.name || pagePath;
+      const lockStatus = updatedPage?.isLocked ? 'locked' : 'unlocked';
+      
+      alert(`✅ ${pageName} has been ${lockStatus}!\n\nUsers will now be redirected to the beta signup page when trying to access this page.`);
+      
+      // Force a page refresh to apply the changes immediately
+      if (typeof window !== 'undefined') {
+        // Small delay to show the alert first
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
       
     } catch (error) {
       console.error('Failed to toggle page lock:', error);
-      alert('Failed to update page lock status');
+      alert('❌ Failed to update page lock status. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -373,15 +390,22 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = PAGE_ACCESS.map(page => 
+      // Get current page configs (including any existing localStorage data)
+      const currentConfigs = getAllPageConfigs();
+      
+      // Update page access level
+      const updatedPages = currentConfigs.map(page => 
         page.path === pagePath ? { ...page, requiredLevel: newLevel } : page
       );
       
       localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
       
+      const pageName = updatedPages.find(p => p.path === pagePath)?.name || pagePath;
+      alert(`✅ ${pageName} access level updated to: ${newLevel}`);
+      
     } catch (error) {
       console.error('Failed to update page access level:', error);
-      alert('Failed to update page access level');
+      alert('❌ Failed to update page access level');
     } finally {
       setLoading(false);
     }
@@ -391,15 +415,22 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = PAGE_ACCESS.map(page => 
+      // Get current page configs (including any existing localStorage data)
+      const currentConfigs = getAllPageConfigs();
+      
+      // Update page custom message
+      const updatedPages = currentConfigs.map(page => 
         page.path === pagePath ? { ...page, customMessage: message } : page
       );
       
       localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
       
+      const pageName = updatedPages.find(p => p.path === pagePath)?.name || pagePath;
+      alert(`✅ Custom message updated for ${pageName}`);
+      
     } catch (error) {
       console.error('Failed to update custom message:', error);
-      alert('Failed to update custom message');
+      alert('❌ Failed to update custom message');
     } finally {
       setLoading(false);
     }
@@ -409,7 +440,7 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = PAGE_ACCESS.map(page => 
+      const updatedPages = getAllPageConfigs().map(page => 
         page.path === pagePath ? { ...page, allowPublicAccess: allowPublic } : page
       );
       
@@ -427,15 +458,79 @@ const UserAccessManager: React.FC = () => {
     try {
       setLoading(true);
       
-      const updatedPages = PAGE_ACCESS.map(page => 
+      const updatedPages = getAllPageConfigs().map(page => 
         page.path === pagePath ? { ...page, requireVerification: requireVerification } : page
       );
       
       localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
       
+      const pageName = updatedPages.find(p => p.path === pagePath)?.name || pagePath;
+      alert(`✅ Verification requirement ${requireVerification ? 'enabled' : 'disabled'} for ${pageName}`);
+      
     } catch (error) {
       console.error('Failed to update verification requirement:', error);
-      alert('Failed to update verification requirement');
+      alert('❌ Failed to update verification requirement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Emergency functions
+  const lockAllPages = async () => {
+    if (!confirm('🚨 EMERGENCY LOCK ALL PAGES?\n\nThis will lock ALL pages except Home and Beta Signup. Are you sure?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const updatedPages = getAllPageConfigs().map(page => ({
+        ...page,
+        isLocked: page.path !== '/' && page.path !== '/beta-signup' && page.path !== '/how-it-works'
+      }));
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+      alert('🚨 ALL PAGES LOCKED!\n\nOnly Home, How It Works, and Beta Signup pages remain accessible.');
+      
+      // Force refresh
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Failed to lock all pages:', error);
+      alert('❌ Failed to lock all pages');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const unlockAllPages = async () => {
+    if (!confirm('🔓 UNLOCK ALL PAGES?\n\nThis will unlock all pages and restore normal access. Are you sure?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const updatedPages = getAllPageConfigs().map(page => ({
+        ...page,
+        isLocked: false
+      }));
+      
+      localStorage.setItem('page-access-config', JSON.stringify(updatedPages));
+      
+      alert('🔓 ALL PAGES UNLOCKED!\n\nNormal access has been restored to all pages.');
+      
+      // Force refresh
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Failed to unlock all pages:', error);
+      alert('❌ Failed to unlock all pages');
     } finally {
       setLoading(false);
     }
@@ -926,8 +1021,32 @@ const UserAccessManager: React.FC = () => {
               Instantly lock down any page to redirect users to the beta access signup page.
             </p>
             
+            {/* Emergency Controls */}
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <h3 className="text-lg font-semibold text-red-800 mb-3">🚨 Emergency Controls</h3>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={lockAllPages}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  🔒 Lock All Pages
+                </button>
+                <button
+                  onClick={unlockAllPages}
+                  disabled={loading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  🔓 Unlock All Pages
+                </button>
+              </div>
+              <p className="text-sm text-red-700 mt-2">
+                Use these buttons for emergency situations. Lock All Pages will lock everything except Home, How It Works, and Beta Signup.
+              </p>
+            </div>
+            
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PAGE_ACCESS.map((page) => (
+              {getAllPageConfigs().map((page) => (
                 <div key={page.path} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">{page.name}</h3>
@@ -959,7 +1078,7 @@ const UserAccessManager: React.FC = () => {
             </p>
             
             <div className="space-y-4">
-              {PAGE_ACCESS.map((page) => (
+              {getAllPageConfigs().map((page) => (
                 <div key={page.path} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>

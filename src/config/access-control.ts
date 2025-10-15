@@ -185,9 +185,25 @@ export function hasPageAccess(userWallet: string | null, userAccessLevel: string
   }
 
   // Find the page configuration
-  const pageConfig = PAGE_ACCESS.find(page => page.path === pagePath);
+  let pageConfig = PAGE_ACCESS.find(page => page.path === pagePath);
   if (!pageConfig) {
     return false; // Unknown page, deny access
+  }
+
+  // Check for updated page configuration in localStorage (for page locking)
+  if (typeof window !== 'undefined') {
+    try {
+      const storedConfig = localStorage.getItem('page-access-config');
+      if (storedConfig) {
+        const storedPages = JSON.parse(storedConfig);
+        const updatedPage = storedPages.find((page: PageAccess) => page.path === pagePath);
+        if (updatedPage) {
+          pageConfig = { ...pageConfig, ...updatedPage }; // Merge with stored config
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to read page access config from localStorage:', error);
+    }
   }
 
   // Check if page is locked (redirect to beta signup)
@@ -253,4 +269,53 @@ export function isAdminOnlyPage(pagePath: string): boolean {
 // Get all pages accessible to a user
 export function getAccessiblePages(userWallet: string | null, userAccessLevel: string): PageAccess[] {
   return PAGE_ACCESS.filter(page => hasPageAccess(userWallet, userAccessLevel, page.path));
+}
+
+// Get current page configuration (including any localStorage updates)
+export function getPageConfig(pagePath: string): PageAccess | null {
+  let pageConfig = PAGE_ACCESS.find(page => page.path === pagePath);
+  if (!pageConfig) {
+    return null;
+  }
+
+  // Check for updated page configuration in localStorage (for page locking)
+  if (typeof window !== 'undefined') {
+    try {
+      const storedConfig = localStorage.getItem('page-access-config');
+      if (storedConfig) {
+        const storedPages = JSON.parse(storedConfig);
+        const updatedPage = storedPages.find((page: PageAccess) => page.path === pagePath);
+        if (updatedPage) {
+          pageConfig = { ...pageConfig, ...updatedPage }; // Merge with stored config
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to read page access config from localStorage:', error);
+    }
+  }
+
+  return pageConfig;
+}
+
+// Get all page configurations with current lock status
+export function getAllPageConfigs(): PageAccess[] {
+  if (typeof window === 'undefined') {
+    return PAGE_ACCESS;
+  }
+
+  try {
+    const storedConfig = localStorage.getItem('page-access-config');
+    if (storedConfig) {
+      const storedPages = JSON.parse(storedConfig);
+      // Merge stored pages with default config
+      return PAGE_ACCESS.map(page => {
+        const storedPage = storedPages.find((sp: PageAccess) => sp.path === page.path);
+        return storedPage ? { ...page, ...storedPage } : page;
+      });
+    }
+  } catch (error) {
+    console.warn('Failed to read page access config from localStorage:', error);
+  }
+
+  return PAGE_ACCESS;
 }
