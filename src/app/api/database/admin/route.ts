@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/database/admin/backup - Create database backup
+// POST /api/database/admin - Handle admin operations (backup, export, etc.)
 export async function POST(request: NextRequest) {
   try {
     const adminAccess = verifyAdminAccess(request);
@@ -45,41 +45,36 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json();
-    const { backupType = 'full' } = body;
+    const { operation, ...params } = body;
     
-    const backup = await databaseService.createBackup(backupType, adminAccess);
-    
-    return NextResponse.json({ backup }, { status: 201 });
+    switch (operation) {
+      case 'backup': {
+        const { backupType = 'full' } = params;
+        const backup = await databaseService.createBackup(backupType, adminAccess);
+        return NextResponse.json({ backup }, { status: 201 });
+      }
+      
+      case 'export': {
+        const { userId, exportType = 'profile_only' } = params;
+        
+        if (!userId) {
+          return NextResponse.json({ error: 'userId required' }, { status: 400 });
+        }
+        
+        const exportData = await databaseService.exportUserData(userId, adminAccess, exportType);
+        
+        if (!exportData) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        
+        return NextResponse.json({ exportData });
+      }
+      
+      default:
+        return NextResponse.json({ error: 'Invalid operation' }, { status: 400 });
+    }
   } catch (error) {
-    console.error('Error creating backup:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-// POST /api/database/admin/export - Export user data
-export async function POST(request: NextRequest) {
-  try {
-    const adminAccess = verifyAdminAccess(request);
-    if (!adminAccess) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-    
-    const body = await request.json();
-    const { userId, exportType = 'profile_only' } = body;
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'userId required' }, { status: 400 });
-    }
-    
-    const exportData = await databaseService.exportUserData(userId, adminAccess, exportType);
-    
-    if (!exportData) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    
-    return NextResponse.json({ exportData });
-  } catch (error) {
-    console.error('Error exporting user data:', error);
+    console.error('Error in admin operation:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

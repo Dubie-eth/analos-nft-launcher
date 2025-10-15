@@ -105,13 +105,14 @@ const DatabaseManager: React.FC<DatabaseManagerProps> = () => {
     try {
       setLoading(true);
       
-      const response = await fetch('/api/database/admin/backup', {
+      const response = await fetch('/api/database/admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-admin-wallet': publicKey?.toString() || '',
         },
         body: JSON.stringify({
+          operation: 'backup',
           backupType
         }),
       });
@@ -136,13 +137,14 @@ const DatabaseManager: React.FC<DatabaseManagerProps> = () => {
     try {
       setLoading(true);
       
-      const response = await fetch('/api/database/admin/export', {
+      const response = await fetch('/api/database/admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-admin-wallet': publicKey?.toString() || '',
         },
         body: JSON.stringify({
+          operation: 'export',
           userId,
           exportType
         }),
