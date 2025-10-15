@@ -3,7 +3,7 @@
  * Integrates with Supabase database for social media verification
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase, isSupabaseConfigured } from './supabase/client';
 import { 
   SocialAccount, 
   SocialVerificationRequest, 
@@ -11,10 +11,6 @@ import {
   VerificationEligibility,
   UserProfile 
 } from './database/types';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export class SocialVerificationService {
   
@@ -25,6 +21,11 @@ export class SocialVerificationService {
     walletAddress: string, 
     socialAccounts: Omit<SocialAccount, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[]
   ): Promise<SocialVerificationRequest> {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured. Please check your environment variables.');
+    }
+
     try {
       // Create verification request
       const { data: request, error: requestError } = await supabase

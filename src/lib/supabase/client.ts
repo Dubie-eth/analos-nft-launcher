@@ -5,14 +5,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Supabase configuration with fallbacks for build time
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+// Check if we're in a build environment or missing real environment variables
+const isBuildTime = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Client for user operations (with RLS)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -36,6 +35,9 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     schema: 'public'
   }
 });
+
+// Export a flag to check if we have real environment variables
+export const isSupabaseConfigured = !isBuildTime;
 
 // Database types (generated from Supabase)
 export interface Database {

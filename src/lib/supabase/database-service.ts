@@ -3,7 +3,7 @@
  * Secure database operations with encryption and privacy controls
  */
 
-import { supabase, supabaseAdmin, Database } from './client';
+import { supabase, supabaseAdmin, Database, isSupabaseConfigured } from './client';
 import { UserProfile, BetaApplication, AccessGrant, DatabaseStats } from '@/lib/database/types';
 
 type UserRow = Database['public']['Tables']['users']['Row'];
@@ -38,6 +38,11 @@ export class SupabaseDatabaseService {
 
   // User Profile Operations
   async createUserProfile(profile: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>, accessedBy: string): Promise<UserProfile> {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured. Please check your environment variables.');
+    }
+
     // Encrypt sensitive data before storing
     const encryptedBio = profile.bio ? await this.encryptData(profile.bio) : null;
     
