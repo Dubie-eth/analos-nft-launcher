@@ -25,6 +25,7 @@ import TestSimulationTab from '@/components/TestSimulationTab';
 import AirdropAdmin from '@/components/AirdropAdmin';
 import CreatorAirdropManager from '@/components/CreatorAirdropManager';
 import PlatformFeeAnalytics from '@/components/PlatformFeeAnalytics';
+import DatabaseManager from '@/components/DatabaseManager';
 import SecureWalletConnection from '@/components/SecureWalletConnection';
 
 interface CollectionStats {
@@ -77,7 +78,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -507,6 +508,7 @@ export default function AdminDashboard() {
               { id: 'airdrop-admin', label: 'Airdrop Admin', icon: '🎁' },
               { id: 'creator-airdrops', label: 'Creator Airdrops', icon: '🎨' },
               { id: 'platform-fees', label: 'Platform Fees', icon: '💰' },
+              { id: 'database-manager', label: 'Database Manager', icon: '🗄️' },
               { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
@@ -939,6 +941,19 @@ export default function AdminDashboard() {
               </p>
             </div>
             <PlatformFeeAnalytics />
+          </div>
+        )}
+
+        {activeTab === 'database-manager' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🗄️ Database Manager</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Secure user profile and application management with encryption and privacy controls.
+                Monitor database statistics, review applications, and manage user data.
+              </p>
+            </div>
+            <DatabaseManager />
           </div>
         )}
 

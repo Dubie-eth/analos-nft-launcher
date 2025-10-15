@@ -132,19 +132,31 @@ const BetaSignupPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // In a real implementation, this would submit to your backend
-      const applicationData = {
-        ...profile,
-        submittedAt: new Date().toISOString(),
-        status: 'pending'
-      };
+      // Submit to Supabase database
+      const response = await fetch('/api/database/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: profile.walletAddress,
+          username: profile.username,
+          bio: profile.bio,
+          socials: profile.socials,
+          profilePicture: profile.profilePicture,
+          bannerImage: profile.bannerImage,
+          customMessage: customMessage,
+          lockedPageRequested: lockedPage,
+          accessLevel: 'beta_user'
+        }),
+      });
 
-      // Store in localStorage for demo purposes
-      const existingApplications = JSON.parse(localStorage.getItem('beta-applications') || '[]');
-      existingApplications.push(applicationData);
-      localStorage.setItem('beta-applications', JSON.stringify(existingApplications));
-
-      setStep('complete');
+      if (response.ok) {
+        setStep('complete');
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to submit application: ${errorData.error || 'Unknown error'}`);
+      }
       
     } catch (error) {
       console.error('Failed to submit application:', error);
