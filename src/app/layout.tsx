@@ -5,6 +5,7 @@ import SecureWalletProvider from '@/components/SecureWalletProvider'
 import ClientNavigation from '@/components/ClientNavigation'
 import { WalletProvider } from '@/contexts/WalletContext'
 import AccessControlManager from '@/components/AccessControlManager'
+import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -45,6 +46,9 @@ export default function RootLayout({
             <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
               {children}
             </div>
+            
+            {/* Customer Service Bot */}
+            <CustomerServiceBotProvider />
           </WalletProvider>
         </SecureWalletProvider>
       </body>

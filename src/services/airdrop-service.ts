@@ -119,44 +119,113 @@ export class AirdropService {
     walletAddress: string,
     campaign: AirdropCampaign
   ): Promise<UserEligibility> {
-    const lolBalance = await this.getLOLBalance(walletAddress);
-    const nftCollections = await this.getWalletNFTs(walletAddress);
+    // Get required mint addresses and collection addresses
+    const requiredMints = campaign.eligibility.tokenHoldings?.map(t => t.mintAddress) || [];
+    const requiredCollections = campaign.eligibility.nftOwnership?.map(n => n.collectionAddress) || [];
+
+    // Get user holdings
+    const userTokenHoldings: { [mintAddress: string]: number } = {};
+    const userNFTHoldings: { [collectionAddress: string]: number } = {};
+
+    // Get LOL balance for platform campaigns
+    if (campaign.type !== 'creator_defined') {
+      const lolBalance = await this.getLOLBalance(walletAddress);
+      userTokenHoldings[LOL_TOKEN.MINT_ADDRESS.toString()] = lolBalance;
+    }
+
+    // Get token holdings for required mints
+    for (const mintAddress of requiredMints) {
+      try {
+        const publicKey = new PublicKey(walletAddress);
+        const tokenAccount = await getAssociatedTokenAddress(
+          new PublicKey(mintAddress),
+          publicKey
+        );
+        const accountInfo = await this.connection.getTokenAccountBalance(tokenAccount);
+        userTokenHoldings[mintAddress] = accountInfo.value.amount ? parseInt(accountInfo.value.amount) : 0;
+      } catch (error) {
+        userTokenHoldings[mintAddress] = 0;
+      }
+    }
+
+    // Get NFT holdings for required collections
+    for (const collectionAddress of requiredCollections) {
+      userNFTHoldings[collectionAddress] = 1; // Simplified - would need proper NFT collection verification
+    }
+
+    // Check eligibility
+    const isEligible = isWalletEligible(walletAddress, campaign, userTokenHoldings, userNFTHoldings);
     
-    const isEligible = isWalletEligible(walletAddress, campaign, lolBalance, nftCollections);
-    
-    let eligibleAmount = 0;
-    if (isEligible) {
-      eligibleAmount = calculateAirdropAmount(
-        lolBalance,
-        campaign.type,
-        campaign.totalAmount, // Simplified calculation
-        campaign.totalAmount
-      );
+    // Calculate eligible amount
+    const eligibleAmount = isEligible ? 
+      calculateAirdropAmount(campaign, userTokenHoldings, userNFTHoldings) : 0;
+
+    // Build requirements object
+    const requirements = {
+      tokenHoldings: campaign.eligibility.tokenHoldings?.map(requirement => ({
+        mintAddress: requirement.mintAddress,
+        amount: userTokenHoldings[requirement.mintAddress] || 0,
+        meetsRequirement: (userTokenHoldings[requirement.mintAddress] || 0) >= requirement.minAmount,
+      })) || [],
+      nftOwnership: campaign.eligibility.nftOwnership?.map(requirement => ({
+        collectionAddress: requirement.collectionAddress,
+        count: userNFTHoldings[requirement.collectionAddress] || 0,
+        meetsRequirement: (userNFTHoldings[requirement.collectionAddress] || 0) >= requirement.minCount,
+      })) || [],
+      isWhitelisted: campaign.eligibility.whitelist?.includes(walletAddress) || false,
+      platformRequirements: {
+        hasMinLOLHolding: true, // Simplified
+        hasCreatedCollection: false, // Would need platform data
+        hasStakedNFTs: false, // Would need platform data
+      },
+    };
+
+    // Build eligibility details
+    const passedChecks: string[] = [];
+    const failedChecks: string[] = [];
+
+    requirements.tokenHoldings.forEach((req, index) => {
+      if (req.meetsRequirement) {
+        passedChecks.push(`Token requirement ${index + 1}: ${req.amount} >= ${campaign.eligibility.tokenHoldings![index].minAmount}`);
+      } else {
+        failedChecks.push(`Token requirement ${index + 1}: ${req.amount} < ${campaign.eligibility.tokenHoldings![index].minAmount}`);
+      }
+    });
+
+    requirements.nftOwnership.forEach((req, index) => {
+      if (req.meetsRequirement) {
+        passedChecks.push(`NFT requirement ${index + 1}: ${req.count} >= ${campaign.eligibility.nftOwnership![index].minCount}`);
+      } else {
+        failedChecks.push(`NFT requirement ${index + 1}: ${req.count} < ${campaign.eligibility.nftOwnership![index].minCount}`);
+      }
+    });
+
+    if (requirements.isWhitelisted) {
+      passedChecks.push('Whitelist requirement: User is whitelisted');
+    } else if (campaign.eligibility.whitelist) {
+      failedChecks.push('Whitelist requirement: User is not whitelisted');
     }
 
     return {
       walletAddress,
+      campaignId: campaign.id,
       isEligible,
       eligibleAmount,
       claimedAmount: 0, // Would be fetched from blockchain
       remainingAmount: eligibleAmount,
-      requirements: {
-        holdingAmount: lolBalance,
-        hasRequiredNFTs: campaign.requirements.nftCollections ? 
-          campaign.requirements.nftCollections.some(collection => 
-            nftCollections.includes(collection)
-          ) : true,
-        isWhitelisted: campaign.whitelist ? 
-          campaign.whitelist.includes(walletAddress) : true,
+      requirements,
+      eligibilityDetails: {
+        passedChecks,
+        failedChecks,
+        reason: isEligible ? undefined : failedChecks.join('; '),
       },
-      campaignIds: [campaign.id],
     };
   }
 
   /**
    * Create a new airdrop campaign (admin only)
    */
-  async createCampaign(campaign: Omit<AirdropCampaign, 'id' | 'createdAt' | 'createdBy'>): Promise<string> {
+  async createCampaign(campaign: Omit<AirdropCampaign, 'id' | 'createdAt' | 'creator'>): Promise<string> {
     if (!this.adminWallet) {
       throw new Error('Admin wallet not set');
     }
@@ -167,7 +236,11 @@ export class AirdropService {
       ...campaign,
       id: campaignId,
       createdAt: new Date(),
-      createdBy: this.adminWallet.publicKey.toString(),
+      creator: {
+        walletAddress: this.adminWallet.publicKey.toString(),
+        name: 'Analos Platform',
+        verified: true,
+      },
     };
 
     // Store campaign in localStorage (in production, this would be on-chain)
@@ -194,7 +267,7 @@ export class AirdropService {
       throw new Error('Campaign not found');
     }
 
-    campaigns[campaignIndex].whitelist = whitelist;
+    campaigns[campaignIndex].eligibility.whitelist = whitelist;
     localStorage.setItem('airdrop_campaigns', JSON.stringify(campaigns));
 
     console.log('Updated whitelist for campaign:', campaignId, whitelist);
@@ -245,7 +318,8 @@ export class AirdropService {
       const campaigns = this.getStoredCampaigns();
       const campaignIndex = campaigns.findIndex(c => c.id === campaignId);
       if (campaignIndex !== -1) {
-        campaigns[campaignIndex].claimedAmount += amount;
+        campaigns[campaignIndex].airdropToken.claimedAmount += amount;
+        campaigns[campaignIndex].totalClaims += 1;
         localStorage.setItem('airdrop_campaigns', JSON.stringify(campaigns));
       }
 
@@ -289,8 +363,8 @@ export class AirdropService {
 
     const totalCampaigns = campaigns.length;
     const activeCampaigns = campaigns.filter(c => c.isActive).length;
-    const totalAirdropAmount = campaigns.reduce((sum, c) => sum + c.totalAmount, 0);
-    const totalClaimedAmount = campaigns.reduce((sum, c) => sum + c.claimedAmount, 0);
+    const totalAirdropAmount = campaigns.reduce((sum, c) => sum + c.airdropToken.totalAmount, 0);
+    const totalClaimedAmount = campaigns.reduce((sum, c) => sum + c.airdropToken.claimedAmount, 0);
     
     const uniqueWallets = new Set(claims.map(c => c.walletAddress));
     const totalClaimedWallets = uniqueWallets.size;
@@ -313,7 +387,7 @@ export class AirdropService {
       const stored = localStorage.getItem('airdrop_campaigns');
       if (!stored) {
         // Initialize with default campaigns
-        const defaultCampaigns = require('@/config/lol-token').DEFAULT_CAMPAIGNS;
+        const defaultCampaigns = require('@/config/airdrop-config').DEFAULT_CAMPAIGNS;
         localStorage.setItem('airdrop_campaigns', JSON.stringify(defaultCampaigns));
         return defaultCampaigns;
       }
@@ -343,7 +417,7 @@ export class AirdropService {
   initializeDefaultCampaigns(): void {
     const campaigns = this.getStoredCampaigns();
     if (campaigns.length === 0) {
-      const defaultCampaigns = require('@/config/lol-token').DEFAULT_CAMPAIGNS;
+      const defaultCampaigns = require('@/config/airdrop-config').DEFAULT_CAMPAIGNS;
       localStorage.setItem('airdrop_campaigns', JSON.stringify(defaultCampaigns));
     }
   }

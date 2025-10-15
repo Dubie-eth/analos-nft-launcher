@@ -42,7 +42,7 @@ const AirdropAdmin: React.FC<AirdropAdminProps> = ({ className = '' }) => {
       
       if (campaignList.length > 0 && !selectedCampaign) {
         setSelectedCampaign(campaignList[0].id);
-        setWhitelist(campaignList[0].whitelist || []);
+        setWhitelist(campaignList[0].eligibility.whitelist || []);
       }
     } catch (error) {
       console.error('Error loading campaigns:', error);
@@ -110,7 +110,7 @@ const AirdropAdmin: React.FC<AirdropAdminProps> = ({ className = '' }) => {
     setSelectedCampaign(campaignId);
     const campaign = campaigns.find(c => c.id === campaignId);
     if (campaign) {
-      setWhitelist(campaign.whitelist || []);
+      setWhitelist(campaign.eligibility.whitelist || []);
     }
   };
 
@@ -210,7 +210,7 @@ const AirdropAdmin: React.FC<AirdropAdminProps> = ({ className = '' }) => {
                             {campaign.isActive ? 'Active' : 'Inactive'}
                           </span>
                           <span className="text-sm text-gray-500">
-                            {(campaign.totalAmount / 1_000_000).toFixed(1)}M LOL
+                            {(campaign.airdropToken.totalAmount / 1_000_000).toFixed(1)}M {campaign.airdropToken.symbol}
                           </span>
                         </div>
                       </div>
@@ -283,8 +283,8 @@ const AirdropAdmin: React.FC<AirdropAdminProps> = ({ className = '' }) => {
                   <div className="space-y-2 text-sm">
                     <div><span className="font-medium">Name:</span> {campaign.name}</div>
                     <div><span className="font-medium">Type:</span> {campaign.type}</div>
-                    <div><span className="font-medium">Total Amount:</span> {(campaign.totalAmount / 1_000_000).toFixed(1)}M LOL</div>
-                    <div><span className="font-medium">Claimed:</span> {(campaign.claimedAmount / 1_000_000).toFixed(1)}M LOL</div>
+                    <div><span className="font-medium">Total Amount:</span> {(campaign.airdropToken.totalAmount / 1_000_000).toFixed(1)}M {campaign.airdropToken.symbol}</div>
+                    <div><span className="font-medium">Claimed:</span> {(campaign.airdropToken.claimedAmount / 1_000_000).toFixed(1)}M {campaign.airdropToken.symbol}</div>
                     <div><span className="font-medium">Status:</span> 
                       <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                         campaign.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
@@ -298,14 +298,32 @@ const AirdropAdmin: React.FC<AirdropAdminProps> = ({ className = '' }) => {
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2">Requirements</h4>
                   <div className="space-y-2 text-sm">
-                    {campaign.requirements.minHolding && (
-                      <div><span className="font-medium">Min Holding:</span> {campaign.requirements.minHolding.toLocaleString()} LOL</div>
+                    {campaign.eligibility.tokenHoldings && campaign.eligibility.tokenHoldings.length > 0 && (
+                      <div>
+                        <span className="font-medium">Token Holdings:</span>
+                        <ul className="ml-4 mt-1">
+                          {campaign.eligibility.tokenHoldings.map((req, index) => (
+                            <li key={index}>
+                              • {req.symbol || 'Token'}: {req.minAmount.toLocaleString()} minimum
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
-                    {campaign.requirements.whitelistType && (
-                      <div><span className="font-medium">Whitelist Type:</span> {campaign.requirements.whitelistType}</div>
+                    {campaign.eligibility.nftOwnership && campaign.eligibility.nftOwnership.length > 0 && (
+                      <div>
+                        <span className="font-medium">NFT Ownership:</span>
+                        <ul className="ml-4 mt-1">
+                          {campaign.eligibility.nftOwnership.map((req, index) => (
+                            <li key={index}>
+                              • {req.collectionName || 'Collection'}: {req.minCount} minimum
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
-                    {campaign.requirements.nftCollections && (
-                      <div><span className="font-medium">NFT Collections:</span> {campaign.requirements.nftCollections.length}</div>
+                    {campaign.eligibility.whitelist && campaign.eligibility.whitelist.length > 0 && (
+                      <div><span className="font-medium">Whitelist:</span> {campaign.eligibility.whitelist.length} addresses</div>
                     )}
                     <div><span className="font-medium">Start Date:</span> {campaign.startDate.toLocaleDateString()}</div>
                     <div><span className="font-medium">End Date:</span> {campaign.endDate.toLocaleDateString()}</div>

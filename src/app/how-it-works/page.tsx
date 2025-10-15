@@ -23,6 +23,8 @@ const HowItWorksPage: React.FC = () => {
     { id: 'nft-collections', title: 'NFT Collections', icon: '🎨' },
     { id: 'token-integration', title: 'Token Integration', icon: '🚀' },
     { id: 'staking-rewards', title: 'Staking & Rewards', icon: '💰' },
+    { id: 'creator-airdrops', title: 'Creator Airdrops', icon: '🎁' },
+    { id: 'platform-fees', title: 'Platform Fees', icon: '💳' },
     { id: 'whitelist-system', title: 'Whitelist System', icon: '📝' },
     { id: 'admin-controls', title: 'Admin Controls', icon: '⚙️' },
     { id: 'revenue-model', title: 'Revenue Model', icon: '💎' },
@@ -443,6 +445,271 @@ const HowItWorksPage: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <span>Distribution Frequency</span>
                       <span className="font-semibold text-blue-600">Daily</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'creator-airdrops':
+        return (
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg p-8 text-white">
+              <h2 className="text-3xl font-bold mb-4">🎁 Creator Airdrops</h2>
+              <p className="text-lg text-pink-100">
+                Enable creators to set up custom airdrop campaigns for their holders with flexible eligibility criteria.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">🎨 Creator Campaign Setup</h3>
+                  <p className="text-gray-600 mb-4">
+                    Creators can define custom airdrop campaigns with their own tokens and eligibility criteria.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-pink-50 rounded-lg">
+                      <h4 className="font-semibold text-pink-800 mb-2">Campaign Configuration</h4>
+                      <ul className="text-sm text-pink-700 space-y-1">
+                        <li>• Custom airdrop token selection</li>
+                        <li>• Total amount and distribution rules</li>
+                        <li>• Start and end dates</li>
+                        <li>• Campaign name and description</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <h4 className="font-semibold text-purple-800 mb-2">Eligibility Types</h4>
+                      <ul className="text-sm text-purple-700 space-y-1">
+                        <li>• Token Holdings (minimum balance)</li>
+                        <li>• NFT Ownership (specific collections)</li>
+                        <li>• Whitelist (custom address list)</li>
+                        <li>• Custom criteria (creator-defined)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">💰 Platform Fee System</h3>
+                  <p className="text-gray-600 mb-4">
+                    All creator airdrops require a platform fee to ensure sustainability and quality.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <h4 className="font-semibold text-green-800 mb-2">Fee Structure</h4>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li>• 2.5% platform fee on total airdrop amount</li>
+                        <li>• Fee must be paid before campaign activation</li>
+                        <li>• Transparent fee calculation and display</li>
+                        <li>• Automatic treasury collection</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2">Payment Process</h4>
+                      <ol className="text-sm text-blue-700 space-y-1">
+                        <li>1. Creator deposits airdrop tokens</li>
+                        <li>2. Creator pays platform fee</li>
+                        <li>3. Campaign becomes active</li>
+                        <li>4. Users can claim based on eligibility</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">🎯 User Experience</h3>
+                  <p className="text-gray-600 mb-4">
+                    Seamless claiming experience with real-time eligibility checking and automatic distribution.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-2">Eligibility Checking</h4>
+                      <ul className="text-sm text-yellow-700 space-y-1">
+                        <li>• Real-time token balance verification</li>
+                        <li>• NFT ownership validation</li>
+                        <li>• Merkle proof whitelist verification</li>
+                        <li>• Custom criteria evaluation</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-indigo-50 rounded-lg">
+                      <h4 className="font-semibold text-indigo-800 mb-2">Claiming Process</h4>
+                      <ol className="text-sm text-indigo-700 space-y-1">
+                        <li>1. User connects wallet</li>
+                        <li>2. System checks eligibility</li>
+                        <li>3. User sees claimable amount</li>
+                        <li>4. One-click claim execution</li>
+                        <li>5. Tokens transferred to wallet</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">📊 Analytics & Tracking</h3>
+                  <p className="text-gray-600 mb-4">
+                    Comprehensive tracking and analytics for both creators and platform administrators.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-semibold text-gray-800 mb-2">Creator Dashboard</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        <li>• Campaign performance metrics</li>
+                        <li>• Claim statistics and trends</li>
+                        <li>• Eligible vs. claimed amounts</li>
+                        <li>• User engagement data</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-semibold text-gray-800 mb-2">Platform Analytics</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        <li>• Total fees collected</li>
+                        <li>• Campaign success rates</li>
+                        <li>• Revenue trends and forecasting</li>
+                        <li>• User adoption metrics</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'platform-fees':
+        return (
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg p-8 text-white">
+              <h2 className="text-3xl font-bold mb-4">💳 Platform Fee System</h2>
+              <p className="text-lg text-emerald-100">
+                Transparent and fair fee structure that ensures platform sustainability while providing value to creators and users.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">💰 Fee Structure Overview</h3>
+                  <p className="text-gray-600 mb-4">
+                    Our fee system is designed to be fair, transparent, and sustainable for all participants.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <h4 className="font-semibold text-green-800 mb-2">NFT Minting Fees</h4>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li>• 2.5% on all NFT mints</li>
+                        <li>• Applied to mint price</li>
+                        <li>• Distributed across platform operations</li>
+                        <li>• 30% goes to LOS stakers</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2">Token Launch Fees</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• 5% on token launches</li>
+                        <li>• Covers bonding curve setup</li>
+                        <li>• Includes liquidity provision</li>
+                        <li>• Platform infrastructure costs</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <h4 className="font-semibold text-purple-800 mb-2">Creator Airdrop Fees</h4>
+                      <ul className="text-sm text-purple-700 space-y-1">
+                        <li>• 2.5% on total airdrop amount</li>
+                        <li>• Paid before campaign activation</li>
+                        <li>• Covers platform maintenance</li>
+                        <li>• Ensures campaign quality</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">🎯 Fee Distribution</h3>
+                  <p className="text-gray-600 mb-4">
+                    All collected fees are distributed transparently across platform operations and stakeholder rewards.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-2">Revenue Allocation</h4>
+                      <ul className="text-sm text-yellow-700 space-y-1">
+                        <li>• 40% - Treasury (platform development)</li>
+                        <li>• 30% - LOS Staker Rewards</li>
+                        <li>• 15% - Development Fund</li>
+                        <li>• 10% - Marketing & Growth</li>
+                        <li>• 5% - Token Buyback Program</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-indigo-50 rounded-lg">
+                      <h4 className="font-semibold text-indigo-800 mb-2">Transparency Features</h4>
+                      <ul className="text-sm text-indigo-700 space-y-1">
+                        <li>• Public fee collection records</li>
+                        <li>• Monthly revenue reports</li>
+                        <li>• Real-time fee analytics</li>
+                        <li>• On-chain fee verification</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">💎 Value Proposition</h3>
+                  <p className="text-gray-600 mb-4">
+                    Our fees provide significant value to all platform participants through comprehensive services and rewards.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-pink-50 rounded-lg">
+                      <h4 className="font-semibold text-pink-800 mb-2">For Creators</h4>
+                      <ul className="text-sm text-pink-700 space-y-1">
+                        <li>• Professional launch platform</li>
+                        <li>• Built-in marketing tools</li>
+                        <li>• Community management features</li>
+                        <li>• Analytics and insights</li>
+                        <li>• Technical infrastructure</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-cyan-50 rounded-lg">
+                      <h4 className="font-semibold text-cyan-800 mb-2">For Users</h4>
+                      <ul className="text-sm text-cyan-700 space-y-1">
+                        <li>• Staking rewards (30% of fees)</li>
+                        <li>• Access to quality projects</li>
+                        <li>• Fair launch mechanisms</li>
+                        <li>• Community governance rights</li>
+                        <li>• Platform stability</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg border">
+                  <h3 className="text-xl font-bold mb-4">🔄 Fee Optimization</h3>
+                  <p className="text-gray-600 mb-4">
+                    Dynamic fee adjustment based on platform performance and community governance.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg">
+                      <h4 className="font-semibold text-orange-800 mb-2">Governance Control</h4>
+                      <ul className="text-sm text-orange-700 space-y-1">
+                        <li>• CTO voting on fee adjustments</li>
+                        <li>• Community proposal system</li>
+                        <li>• Transparent decision making</li>
+                        <li>• Implementation delays for safety</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-teal-50 rounded-lg">
+                      <h4 className="font-semibold text-teal-800 mb-2">Performance Metrics</h4>
+                      <ul className="text-sm text-teal-700 space-y-1">
+                        <li>• Platform adoption rates</li>
+                        <li>• Creator success metrics</li>
+                        <li>• User satisfaction scores</li>
+                        <li>• Revenue sustainability</li>
+                      </ul>
                     </div>
                   </div>
                 </div>

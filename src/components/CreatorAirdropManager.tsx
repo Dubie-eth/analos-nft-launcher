@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { creatorAirdropService } from '@/services/creator-airdrop-service';
-import { AirdropCampaign, TokenMetadata, NFTCollectionMetadata, EligibilityCriteria } from '@/config/airdrop-config';
+import { AirdropCampaign, TokenMetadata, NFTCollectionMetadata, EligibilityCriteria, CREATOR_AIRDROP_CONFIG } from '@/config/airdrop-config';
 
 interface CreatorAirdropManagerProps {
   className?: string;
@@ -17,6 +17,8 @@ const CreatorAirdropManager: React.FC<CreatorAirdropManagerProps> = ({ className
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<AirdropCampaign | null>(null);
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [activatingCampaign, setActivatingCampaign] = useState(false);
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -46,12 +48,35 @@ const CreatorAirdropManager: React.FC<CreatorAirdropManagerProps> = ({ className
       await creatorAirdropService.createCreatorCampaign(campaignData, publicKey.toString());
       await loadData();
       setShowCreateForm(false);
-      alert('Campaign created successfully!');
+      alert('Campaign created successfully! You can now activate it by depositing tokens and paying the platform fee.');
     } catch (error) {
       console.error('Error creating campaign:', error);
       alert('Failed to create campaign: ' + (error as Error).message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleActivateCampaign = async (campaign: AirdropCampaign, tokenDeposit: number, feePayment: number) => {
+    if (!publicKey) return;
+
+    setActivatingCampaign(true);
+    try {
+      const txSignature = await creatorAirdropService.activateCampaign(
+        campaign.id,
+        publicKey.toString(),
+        tokenDeposit,
+        feePayment
+      );
+      
+      await loadData();
+      setShowActivationModal(false);
+      alert(`Campaign activated successfully! Transaction: ${txSignature}`);
+    } catch (error) {
+      console.error('Error activating campaign:', error);
+      alert('Failed to activate campaign: ' + (error as Error).message);
+    } finally {
+      setActivatingCampaign(false);
     }
   };
 
@@ -214,6 +239,27 @@ const CreatorAirdropManager: React.FC<CreatorAirdropManagerProps> = ({ className
                           <p className="font-semibold">{getTimeRemaining(new Date(campaign.endDate))}</p>
                         </div>
                       </div>
+                      
+                      {/* Campaign Actions */}
+                      <div className="mt-4 flex space-x-2">
+                        {!campaign.isActive && campaign.creator.walletAddress === publicKey?.toString() && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCampaign(campaign);
+                              setShowActivationModal(true);
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg transition-colors"
+                          >
+                            Activate Campaign
+                          </button>
+                        )}
+                        {campaign.platformFee && (
+                          <div className="text-xs text-gray-500 mt-2">
+                            Platform Fee: {formatTokenAmount(campaign.platformFee)} tokens ({CREATOR_AIRDROP_CONFIG.PLATFORM_FEE_PERCENTAGE}%)
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -288,6 +334,128 @@ const CreatorAirdropManager: React.FC<CreatorAirdropManagerProps> = ({ className
           </div>
         </div>
       )}
+
+      {/* Campaign Activation Modal */}
+      {showActivationModal && selectedCampaign && (
+        <CampaignActivationModal
+          campaign={selectedCampaign}
+          onActivate={handleActivateCampaign}
+          onClose={() => setShowActivationModal(false)}
+          loading={activatingCampaign}
+        />
+      )}
+    </div>
+  );
+};
+
+// Campaign Activation Modal Component
+const CampaignActivationModal: React.FC<{
+  campaign: AirdropCampaign;
+  onActivate: (campaign: AirdropCampaign, tokenDeposit: number, feePayment: number) => void;
+  onClose: () => void;
+  loading: boolean;
+}> = ({ campaign, onActivate, onClose, loading }) => {
+  const [tokenDeposit, setTokenDeposit] = useState(campaign.airdropToken.totalAmount);
+  const [feePayment, setFeePayment] = useState(campaign.platformFee || 0);
+
+  const formatTokenAmount = (amount: number, decimals: number = 9) => {
+    return (amount / Math.pow(10, decimals)).toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onActivate(campaign, tokenDeposit, feePayment);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg p-8 w-full max-w-2xl border border-gray-200">
+        <h2 className="text-2xl font-bold mb-6">Activate Campaign: {campaign.name}</h2>
+        
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-yellow-800 mb-2">💰 Platform Fee Required</h3>
+          <p className="text-yellow-700 text-sm">
+            To activate this campaign, you must deposit the airdrop tokens and pay the platform fee of{' '}
+            <strong>{formatTokenAmount(campaign.platformFee || 0)} tokens ({CREATOR_AIRDROP_CONFIG.PLATFORM_FEE_PERCENTAGE}%)</strong>.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Token Deposit Amount ({campaign.airdropToken.symbol})
+              </label>
+              <input
+                type="number"
+                value={tokenDeposit / Math.pow(10, campaign.airdropToken.decimals)}
+                onChange={(e) => setTokenDeposit(parseFloat(e.target.value) * Math.pow(10, campaign.airdropToken.decimals))}
+                min={campaign.airdropToken.totalAmount / Math.pow(10, campaign.airdropToken.decimals)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Minimum: {formatTokenAmount(campaign.airdropToken.totalAmount, campaign.airdropToken.decimals)} {campaign.airdropToken.symbol}
+              </p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Platform Fee Payment (Tokens)
+              </label>
+              <input
+                type="number"
+                value={feePayment / Math.pow(10, campaign.airdropToken.decimals)}
+                onChange={(e) => setFeePayment(parseFloat(e.target.value) * Math.pow(10, campaign.airdropToken.decimals))}
+                min={(campaign.platformFee || 0) / Math.pow(10, campaign.airdropToken.decimals)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Minimum: {formatTokenAmount(campaign.platformFee || 0, campaign.airdropToken.decimals)} tokens
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-3">Transaction Summary</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Token Deposit:</span>
+                <span className="font-medium">{formatTokenAmount(tokenDeposit, campaign.airdropToken.decimals)} {campaign.airdropToken.symbol}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Platform Fee:</span>
+                <span className="font-medium">{formatTokenAmount(feePayment, campaign.airdropToken.decimals)} tokens</span>
+              </div>
+              <div className="flex justify-between border-t pt-2 font-semibold">
+                <span>Total Cost:</span>
+                <span>{formatTokenAmount(tokenDeposit + feePayment, campaign.airdropToken.decimals)} tokens</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading || tokenDeposit < campaign.airdropToken.totalAmount || feePayment < (campaign.platformFee || 0)}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            >
+              {loading ? 'Activating...' : 'Activate Campaign'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

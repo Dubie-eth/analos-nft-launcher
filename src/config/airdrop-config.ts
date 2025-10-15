@@ -6,6 +6,28 @@
 import { PublicKey } from '@solana/web3.js';
 
 /**
+ * Token Metadata Interface
+ */
+export interface TokenMetadata {
+  mintAddress: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  supply?: number;
+  verified?: boolean;
+}
+
+/**
+ * NFT Collection Metadata Interface
+ */
+export interface NFTCollectionMetadata {
+  collectionAddress: string;
+  name: string;
+  verified?: boolean;
+  totalSupply?: number;
+}
+
+/**
  * $LOL Token Configuration (Platform Token)
  */
 export const LOL_TOKEN = {

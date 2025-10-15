@@ -319,7 +319,7 @@ const HomePage: React.FC = () => {
             <div>
               <h3 className="text-lg font-bold text-white mb-4">Support</h3>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li>Security: security@analos.io</li>
+                <li>Security: support@launchonlos.fun</li>
                 <li>Twitter: @EWildn</li>
                 <li>Telegram: t.me/Dubie_420</li>
               </ul>

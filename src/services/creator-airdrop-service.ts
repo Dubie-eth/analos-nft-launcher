@@ -22,6 +22,8 @@ import {
   AirdropCampaign, 
   UserEligibility,
   EligibilityCriteria,
+  TokenMetadata,
+  NFTCollectionMetadata,
   CREATOR_AIRDROP_CONFIG,
   calculateAirdropAmount,
   isWalletEligible,
@@ -43,21 +45,6 @@ export interface CreatorAirdropStats {
   }[];
 }
 
-export interface TokenMetadata {
-  mintAddress: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  supply?: number;
-  verified?: boolean;
-}
-
-export interface NFTCollectionMetadata {
-  collectionAddress: string;
-  name: string;
-  verified?: boolean;
-  totalSupply?: number;
-}
 
 export class CreatorAirdropService {
   private connection: Connection;
@@ -203,6 +190,13 @@ export class CreatorAirdropService {
   }
 
   /**
+   * Calculate platform fee for a campaign
+   */
+  calculatePlatformFee(totalAmount: number): number {
+    return Math.floor(totalAmount * (CREATOR_AIRDROP_CONFIG.PLATFORM_FEE_PERCENTAGE / 100));
+  }
+
+  /**
    * Create a new creator airdrop campaign
    */
   async createCreatorCampaign(
@@ -236,6 +230,7 @@ export class CreatorAirdropService {
       }
 
       const campaignId = `creator_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const platformFee = this.calculatePlatformFee(campaignData.totalAmount);
       
       const newCampaign: AirdropCampaign = {
         id: campaignId,
@@ -257,10 +252,10 @@ export class CreatorAirdropService {
         eligibility: campaignData.eligibility,
         startDate: campaignData.startDate,
         endDate: campaignData.endDate,
-        isActive: false, // Will be activated after deposit
+        isActive: false, // Will be activated after deposit and fee payment
         requiresDeposit: true,
         depositedAmount: 0,
-        platformFee: campaignData.totalAmount * (CREATOR_AIRDROP_CONFIG.PLATFORM_FEE_PERCENTAGE / 100),
+        platformFee: platformFee,
         eligibleWallets: [],
         totalClaims: 0,
         uniqueClaimers: 0,
@@ -424,6 +419,131 @@ export class CreatorAirdropService {
   }
 
   /**
+   * Process platform fee payment and activate campaign
+   */
+  async activateCampaign(
+    campaignId: string, 
+    creatorWallet: string,
+    tokenDepositAmount: number,
+    feePaymentAmount: number
+  ): Promise<string> {
+    try {
+      const campaigns = this.getStoredCreatorCampaigns();
+      const campaignIndex = campaigns.findIndex(c => c.id === campaignId);
+      
+      if (campaignIndex === -1) {
+        throw new Error('Campaign not found');
+      }
+
+      const campaign = campaigns[campaignIndex];
+      
+      // Validate creator ownership
+      if (campaign.creator.walletAddress !== creatorWallet) {
+        throw new Error('Only the campaign creator can activate this campaign');
+      }
+
+      // Validate deposit amount
+      if (tokenDepositAmount < campaign.airdropToken.totalAmount) {
+        throw new Error(`Deposit amount must be at least ${campaign.airdropToken.totalAmount} ${campaign.airdropToken.symbol}`);
+      }
+
+      // Validate fee payment
+      if (feePaymentAmount < (campaign.platformFee || 0)) {
+        throw new Error(`Platform fee must be at least ${campaign.platformFee || 0} tokens`);
+      }
+
+      // In production, this would involve actual blockchain transactions:
+      // 1. Transfer tokens from creator to campaign vault
+      // 2. Transfer platform fee to platform treasury
+      // 3. Activate campaign on-chain
+
+      console.log(`Activating campaign ${campaignId}:`);
+      console.log(`- Token deposit: ${tokenDepositAmount} ${campaign.airdropToken.symbol}`);
+      console.log(`- Platform fee: ${feePaymentAmount} tokens`);
+      console.log(`- Campaign vault: ${campaign.airdropToken.totalAmount} ${campaign.airdropToken.symbol}`);
+
+      // Update campaign status
+      campaigns[campaignIndex].isActive = true;
+      campaigns[campaignIndex].depositedAmount = tokenDepositAmount;
+      campaigns[campaignIndex].updatedAt = new Date();
+
+      // Store updated campaigns
+      localStorage.setItem('creator_airdrop_campaigns', JSON.stringify(campaigns));
+
+      // Record fee collection (in production, this would be on-chain)
+      this.recordFeeCollection(campaignId, feePaymentAmount, creatorWallet);
+
+      console.log('Campaign activated successfully:', campaignId);
+      return `activation_tx_${Date.now()}`;
+    } catch (error) {
+      console.error('Error activating campaign:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Record platform fee collection
+   */
+  private recordFeeCollection(campaignId: string, amount: number, creatorWallet: string): void {
+    try {
+      const feeRecords = this.getStoredFeeRecords();
+      const feeRecord = {
+        id: `fee_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        campaignId,
+        amount,
+        creatorWallet,
+        timestamp: new Date(),
+        status: 'collected',
+      };
+      
+      feeRecords.push(feeRecord);
+      localStorage.setItem('platform_fee_records', JSON.stringify(feeRecords));
+      
+      console.log('Platform fee recorded:', feeRecord);
+    } catch (error) {
+      console.error('Error recording fee collection:', error);
+    }
+  }
+
+  /**
+   * Get platform fee collection records
+   */
+  getFeeRecords(): any[] {
+    return this.getStoredFeeRecords();
+  }
+
+  /**
+   * Get platform fee statistics
+   */
+  getPlatformFeeStats(): {
+    totalFeesCollected: number;
+    totalCampaigns: number;
+    averageFeePerCampaign: number;
+    monthlyRevenue: { [month: string]: number };
+  } {
+    const feeRecords = this.getStoredFeeRecords();
+    const campaigns = this.getStoredCreatorCampaigns();
+    
+    const totalFeesCollected = feeRecords.reduce((sum, record) => sum + record.amount, 0);
+    const totalCampaigns = campaigns.filter(c => c.isActive).length;
+    const averageFeePerCampaign = totalCampaigns > 0 ? totalFeesCollected / totalCampaigns : 0;
+    
+    // Calculate monthly revenue
+    const monthlyRevenue: { [month: string]: number } = {};
+    feeRecords.forEach(record => {
+      const month = record.timestamp.toISOString().substring(0, 7); // YYYY-MM format
+      monthlyRevenue[month] = (monthlyRevenue[month] || 0) + record.amount;
+    });
+
+    return {
+      totalFeesCollected,
+      totalCampaigns,
+      averageFeePerCampaign,
+      monthlyRevenue,
+    };
+  }
+
+  /**
    * Get stored creator campaigns from localStorage
    */
   private getStoredCreatorCampaigns(): AirdropCampaign[] {
@@ -432,6 +552,22 @@ export class CreatorAirdropService {
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.error('Error loading creator campaigns:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get stored fee records from localStorage
+   */
+  private getStoredFeeRecords(): any[] {
+    try {
+      const stored = localStorage.getItem('platform_fee_records');
+      return stored ? JSON.parse(stored).map((record: any) => ({
+        ...record,
+        timestamp: new Date(record.timestamp),
+      })) : [];
+    } catch (error) {
+      console.error('Error loading fee records:', error);
       return [];
     }
   }

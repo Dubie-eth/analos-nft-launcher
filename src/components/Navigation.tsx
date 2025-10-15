@@ -27,6 +27,8 @@ export default function Navigation() {
   // Base navigation items (always visible)
     const baseNavItems = [
         { href: '/', label: 'Home', icon: '🏠' },
+        { href: '/how-it-works', label: 'How It Works', icon: '📖' },
+        { href: '/faq', label: 'FAQ', icon: '❓' },
         { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
         { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
         { href: '/swap', label: 'Swap', icon: '🔄' },

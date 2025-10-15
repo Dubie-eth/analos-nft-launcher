@@ -166,9 +166,12 @@ export default function AirdropsPage() {
                 <h3 className="text-xl font-bold mb-4">Your Eligibility Status</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-gray-400 text-sm mb-1">LOL Holdings</p>
+                    <p className="text-gray-400 text-sm mb-1">Token Holdings</p>
                     <p className="text-2xl font-bold text-green-400">
-                      {(userEligibility.requirements.holdingAmount / 1_000_000).toFixed(2)}M
+                      {userEligibility.requirements.tokenHoldings.length > 0 ? 
+                        `${userEligibility.requirements.tokenHoldings.reduce((sum, t) => sum + t.amount, 0) / 1_000_000}M` : 
+                        '0'
+                      }
                     </p>
                   </div>
                   <div>
@@ -184,6 +187,29 @@ export default function AirdropsPage() {
                     </p>
                   </div>
                 </div>
+                
+                {/* Eligibility Details */}
+                {userEligibility.eligibilityDetails.failedChecks.length > 0 && (
+                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded">
+                    <p className="text-red-300 text-sm font-medium mb-2">Requirements not met:</p>
+                    <ul className="text-red-200 text-xs space-y-1">
+                      {userEligibility.eligibilityDetails.failedChecks.map((check, index) => (
+                        <li key={index}>• {check}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {userEligibility.eligibilityDetails.passedChecks.length > 0 && (
+                  <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded">
+                    <p className="text-green-300 text-sm font-medium mb-2">Requirements met:</p>
+                    <ul className="text-green-200 text-xs space-y-1">
+                      {userEligibility.eligibilityDetails.passedChecks.map((check, index) => (
+                        <li key={index}>• {check}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
@@ -238,11 +264,11 @@ export default function AirdropsPage() {
                           <div className="grid grid-cols-3 gap-4 mb-4">
                             <div>
                               <p className="text-sm text-gray-400">Total Amount</p>
-                              <p className="text-lg font-bold text-green-400">{formatTokenAmount(campaign.totalAmount)}M</p>
+                              <p className="text-lg font-bold text-green-400">{formatTokenAmount(campaign.airdropToken.totalAmount)}M</p>
                             </div>
                             <div>
                               <p className="text-sm text-gray-400">Claimed</p>
-                              <p className="text-lg font-bold text-blue-400">{formatTokenAmount(campaign.claimedAmount)}M</p>
+                              <p className="text-lg font-bold text-blue-400">{formatTokenAmount(campaign.airdropToken.claimedAmount)}M</p>
                             </div>
                             <div>
                               <p className="text-sm text-gray-400">Ends</p>
