@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
+import CompleteProfileManager from '@/components/CompleteProfileManager';
 
 interface UserNFT {
   mint: string;
@@ -51,7 +52,7 @@ export default function ProfilePage() {
     joinDate: ''
   });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'activity'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'activity' | 'profile'>('overview');
 
   // Load user data
   useEffect(() => {
@@ -244,6 +245,7 @@ export default function ProfilePage() {
           <div className="flex space-x-2 nav-tabs">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
+              { id: 'profile', label: 'Profile', icon: '👤' },
               { id: 'nfts', label: 'My NFTs', icon: '🎨' },
               { id: 'collections', label: 'My Collections', icon: '📦' },
               { id: 'activity', label: 'Activity', icon: '📈' }
@@ -265,6 +267,13 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab Content */}
+        {activeTab === 'profile' && (
+          <CompleteProfileManager
+            userWallet={publicKey?.toString() || ''}
+            className="profile-manager"
+          />
+        )}
+
         {activeTab === 'overview' && (
           <div className="space-y-8">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
