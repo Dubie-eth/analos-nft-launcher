@@ -30,7 +30,7 @@ export interface UserProfile {
 
 export interface BetaApplication {
   id: string;
-  userId: string;
+  userId?: string;
   walletAddress: string;
   username: string;
   bio?: string;
@@ -57,7 +57,7 @@ export interface BetaApplication {
 
 export interface AccessGrant {
   id: string;
-  userId: string;
+  userId?: string;
   walletAddress: string;
   accessLevel: string;
   grantedBy: string;
@@ -74,7 +74,7 @@ export interface AccessGrant {
 
 export interface UserActivity {
   id: string;
-  userId: string;
+  userId?: string;
   walletAddress: string;
   activity: string;
   details?: Record<string, any>;

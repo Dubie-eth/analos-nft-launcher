@@ -371,7 +371,7 @@ export class SupabaseDatabaseService {
   private mapApplicationRowToApplication(row: ApplicationRow): BetaApplication {
     return {
       id: row.id,
-      userId: row.user_id,
+      userId: row.user_id || undefined,
       walletAddress: row.wallet_address,
       username: row.username,
       bio: row.bio || undefined,
@@ -393,7 +393,7 @@ export class SupabaseDatabaseService {
   private mapAccessGrantRowToAccessGrant(row: AccessGrantRow): AccessGrant {
     return {
       id: row.id,
-      userId: row.user_id,
+      userId: row.user_id || undefined,
       walletAddress: row.wallet_address,
       accessLevel: row.access_level,
       grantedBy: row.granted_by,
