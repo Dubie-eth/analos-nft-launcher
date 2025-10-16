@@ -4,7 +4,6 @@
  */
 
 import { useState } from 'react';
-import { create } from 'ipfs-http-client';
 
 // IPFS configuration
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud';
@@ -28,19 +27,8 @@ export interface UploadProgress {
 }
 
 class IPFSService {
-  private client: any;
-
   constructor() {
-    // Initialize IPFS client if keys are available
-    if (PINATA_API_KEY && PINATA_SECRET_KEY) {
-      this.client = create({
-        url: IPFS_API_URL,
-        headers: {
-          'pinata_api_key': PINATA_API_KEY,
-          'pinata_secret_api_key': PINATA_SECRET_KEY,
-        }
-      });
-    }
+    // No client initialization needed - we'll use direct API calls
   }
 
   /**

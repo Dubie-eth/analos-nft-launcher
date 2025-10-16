@@ -60,7 +60,7 @@ export default function CompleteProfileManager({
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
-    privacyLevel: 'public' as const,
+    privacyLevel: 'public' as 'public' | 'friends' | 'private',
     allowDataExport: true,
     allowAnalytics: true
   });
