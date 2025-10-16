@@ -256,6 +256,47 @@ export interface Database {
           locked_until?: string | null;
         };
       };
+      referrals: {
+        Row: {
+          id: string;
+          referrer_wallet: string;
+          referral_code: string;
+          referred_wallet: string | null;
+          points_earned: number;
+          status: 'pending' | 'completed' | 'expired';
+          created_at: string;
+          completed_at: string | null;
+          expires_at: string;
+          ip_address: string | null;
+          user_agent: string | null;
+        };
+        Insert: {
+          id?: string;
+          referrer_wallet: string;
+          referral_code: string;
+          referred_wallet?: string | null;
+          points_earned?: number;
+          status?: 'pending' | 'completed' | 'expired';
+          created_at?: string;
+          completed_at?: string | null;
+          expires_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+        };
+        Update: {
+          id?: string;
+          referrer_wallet?: string;
+          referral_code?: string;
+          referred_wallet?: string | null;
+          points_earned?: number;
+          status?: 'pending' | 'completed' | 'expired';
+          created_at?: string;
+          completed_at?: string | null;
+          expires_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+        };
+      };
     };
     Views: {
       application_stats: {

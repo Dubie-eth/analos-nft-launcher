@@ -84,6 +84,13 @@ export class BlockchainService {
    */
   async getAllCollections(): Promise<CollectionOnChain[]> {
     try {
+      // Check cache first
+      if (this.collectionsCache &&
+          Date.now() - this.collectionsCache.timestamp < this.COLLECTION_CACHE_DURATION) {
+        console.log('📦 Using cached collections data');
+        return this.collectionsCache.data;
+      }
+
       console.log('📦 Loading collections from blockchain...');
       console.log('🔗 NFT Launchpad Program:', this.programIds.NFT_LAUNCHPAD.toString());
 
@@ -175,6 +182,13 @@ export class BlockchainService {
       }
 
       console.log(`✅ Loaded ${collections.length} collections from blockchain`);
+      
+      // Cache the results
+      this.collectionsCache = {
+        data: collections,
+        timestamp: Date.now()
+      };
+      
       return collections;
     } catch (error) {
       console.error('❌ Error loading collections:', error);
@@ -266,6 +280,12 @@ export class BlockchainService {
    */
   private losPriceCache: { price: number; timestamp: number } | null = null;
   private readonly PRICE_CACHE_DURATION = 60000; // 1 minute
+  
+  // Collection and NFT caching to prevent excessive API calls
+  private collectionsCache: { data: CollectionOnChain[]; timestamp: number } | null = null;
+  private userNFTsCache: Map<string, { data: NFTMetadata[]; timestamp: number }> = new Map();
+  private readonly COLLECTION_CACHE_DURATION = 300000; // 5 minutes - collections don't change often
+  private readonly NFT_CACHE_DURATION = 120000; // 2 minutes - NFTs change more frequently
 
   async getCurrentLOSPrice(): Promise<number> {
     // Check cache
@@ -340,6 +360,13 @@ export class BlockchainService {
    */
   async getUserNFTs(walletAddress: string): Promise<NFTMetadata[]> {
     try {
+      // Check cache first
+      const cachedData = this.userNFTsCache.get(walletAddress);
+      if (cachedData && Date.now() - cachedData.timestamp < this.NFT_CACHE_DURATION) {
+        console.log('🎨 Using cached NFT data for:', walletAddress);
+        return cachedData.data;
+      }
+
       console.log('🎨 Loading user NFTs for:', walletAddress);
 
       // Get all token accounts owned by the user
@@ -403,6 +430,13 @@ export class BlockchainService {
       }
 
       console.log(`✅ Processed ${userNFTs.length} NFTs from our program`);
+      
+      // Cache the results
+      this.userNFTsCache.set(walletAddress, {
+        data: userNFTs,
+        timestamp: Date.now()
+      });
+      
       return userNFTs;
     } catch (error) {
       console.error('❌ Error loading user NFTs:', error);
