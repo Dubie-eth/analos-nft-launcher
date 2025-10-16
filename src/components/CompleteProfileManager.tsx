@@ -199,7 +199,7 @@ export default function CompleteProfileManager({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 profile-manager ${className}`}>
       {/* Header with Banner */}
       <div className="relative bg-white rounded-lg shadow overflow-hidden">
         {/* Banner Image */}
@@ -224,11 +224,11 @@ export default function CompleteProfileManager({
           </div>
         </div>
 
-        {/* Profile Info */}
-        <div className="relative px-6 pb-6">
-          <div className="flex items-end space-x-4 -mt-16">
+        {/* Profile Info - Fixed Mobile Layout */}
+        <div className="relative px-4 pb-4 profile-header">
+          <div className="flex flex-col md:flex-row md:items-end md:space-x-4 -mt-16 profile-info">
             {/* Profile Picture */}
-            <div className="relative">
+            <div className="relative mx-auto md:mx-0">
               <ProfilePictureUpload
                 currentImage={profile.profilePictureUrl}
                 type="profile"
@@ -237,14 +237,14 @@ export default function CompleteProfileManager({
               />
             </div>
 
-            {/* User Info */}
-            <div className="flex-1 pt-16">
-              <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
-              <p className="text-gray-600 mb-2">{profile.bio}</p>
-              <div className="flex items-center space-x-6 text-sm text-gray-500">
-                <span>Rank #{profile.rank}</span>
-                <span>{profile.totalPoints.toLocaleString()} points</span>
-                <span>{profile.totalReferrals} referrals</span>
+            {/* User Info - Fixed Text Layout */}
+            <div className="flex-1 pt-16 text-center md:text-left profile-text">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2 text-no-overlap">{profile.username}</h1>
+              <p className="text-gray-600 mb-4 text-sm md:text-base text-no-overlap">{profile.bio}</p>
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-2 md:space-y-0 text-sm text-gray-500">
+                <span className="font-semibold text-no-overlap">Rank #{profile.rank}</span>
+                <span className="font-semibold text-no-overlap">{profile.totalPoints.toLocaleString()} points</span>
+                <span className="font-semibold text-no-overlap">{profile.totalReferrals} referrals</span>
               </div>
             </div>
           </div>
@@ -252,9 +252,9 @@ export default function CompleteProfileManager({
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow tabs-container">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+          <nav className="flex space-x-8 px-6 overflow-x-auto">
             {[
               { key: 'profile', label: 'Profile', icon: '👤' },
               { key: 'social', label: 'Social Links', icon: '🔗' },
@@ -265,7 +265,7 @@ export default function CompleteProfileManager({
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
                 className={`
-                  py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                  py-4 px-1 border-b-2 font-medium text-sm transition-colors flex-shrink-0 whitespace-nowrap
                   ${activeTab === tab.key
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -279,12 +279,12 @@ export default function CompleteProfileManager({
           </nav>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 tab-content">
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+              <div className="grid grid-cols-1 gap-6 form-grid">
+                <div className="form-field">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Username
                   </label>
@@ -304,7 +304,7 @@ export default function CompleteProfileManager({
                   )}
                 </div>
 
-                <div>
+                <div className="form-field">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Referral Code
                   </label>
@@ -325,7 +325,7 @@ export default function CompleteProfileManager({
                 </div>
               </div>
 
-              <div>
+              <div className="form-field">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Bio
                 </label>
@@ -350,7 +350,7 @@ export default function CompleteProfileManager({
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end button-group">
                 <button
                   onClick={updateProfile}
                   disabled={saving}

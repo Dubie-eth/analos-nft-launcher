@@ -847,4 +847,189 @@ textarea {
     font-size: 0.75rem !important;
     text-align: center !important;
   }
+  
+  /* PROFILE PAGE SPECIFIC FIXES */
+  /* Fix profile page layout issues */
+  .profile-manager {
+    padding: 0.5rem !important;
+  }
+  
+  .profile-manager .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Fix profile header layout */
+  .profile-header {
+    margin-bottom: 1rem !important;
+  }
+  
+  .profile-header .relative {
+    margin: 0 !important;
+    padding: 0.5rem !important;
+  }
+  
+  /* Fix profile info layout */
+  .profile-info {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 1rem !important;
+  }
+  
+  .profile-info .flex-1 {
+    width: 100% !important;
+    margin-top: 1rem !important;
+  }
+  
+  .profile-info h1 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+    word-wrap: break-word !important;
+  }
+  
+  .profile-info p {
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+    margin-bottom: 1rem !important;
+    word-wrap: break-word !important;
+    white-space: normal !important;
+  }
+  
+  .profile-info .flex {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  .profile-info span {
+    font-size: 0.875rem !important;
+    padding: 0.25rem 0.5rem !important;
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 0.25rem !important;
+    display: inline-block !important;
+    margin: 0.125rem !important;
+  }
+  
+  /* Fix profile upload areas */
+  .profile-upload-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .profile-upload-container .relative {
+    margin: 0 auto !important;
+  }
+  
+  /* Fix tabs container */
+  .tabs-container {
+    margin: 1rem 0 !important;
+  }
+  
+  .tabs-container nav {
+    padding: 0 1rem !important;
+  }
+  
+  .tabs-container button {
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  /* Fix tab content */
+  .tab-content {
+    padding: 1rem !important;
+  }
+  
+  .tab-content .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Fix form layouts */
+  .form-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  
+  .form-field {
+    width: 100% !important;
+  }
+  
+  .form-field label {
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 500 !important;
+  }
+  
+  .form-field input,
+  .form-field textarea {
+    width: 100% !important;
+    padding: 0.75rem !important;
+    border-radius: 0.5rem !important;
+    border: 1px solid #d1d5db !important;
+    font-size: 1rem !important;
+  }
+  
+  /* Fix button layouts */
+  .button-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    margin-top: 1rem !important;
+  }
+  
+  .button-group button {
+    width: 100% !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    border-radius: 0.5rem !important;
+  }
+  
+  /* Fix social links layout */
+  .social-links-tab {
+    padding: 1rem !important;
+  }
+  
+  .social-links-tab .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Fix leaderboard layout */
+  .leaderboard-tab {
+    padding: 1rem !important;
+  }
+  
+  .leaderboard-tab .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Fix settings layout */
+  .settings-tab {
+    padding: 1rem !important;
+  }
+  
+  .settings-tab .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  /* Fix text overflow in profile sections */
+  .profile-text {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Fix overlapping text specifically */
+  .text-no-overlap {
+    position: relative !important;
+    z-index: 1 !important;
+    display: block !important;
+    clear: both !important;
+    margin-bottom: 0.5rem !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
 }
