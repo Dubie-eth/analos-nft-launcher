@@ -71,52 +71,105 @@ export default function CompleteProfileManager({
     const loadProfile = async () => {
       setLoading(true);
       try {
-        // TODO: Replace with actual API call
-        const mockProfile: UserProfile = {
+        // Load profile from database
+        const response = await fetch(`/api/user-profiles/${userWallet}`);
+        
+        if (response.ok) {
+          const userProfile = await response.json();
+          setProfile(userProfile);
+          setFormData({
+            username: userProfile.username || '',
+            bio: userProfile.bio || '',
+            privacyLevel: userProfile.privacyLevel || 'public',
+            allowDataExport: userProfile.allowDataExport ?? true,
+            allowAnalytics: userProfile.allowAnalytics ?? true
+          });
+          logger.log('Profile loaded from database:', userProfile.username);
+        } else {
+          // Create new profile if none exists
+          const newProfile: UserProfile = {
+            id: '1',
+            walletAddress: userWallet,
+            username: userWallet.slice(0, 8) + '...',
+            bio: '',
+            profilePictureUrl: '',
+            bannerImageUrl: '',
+            socials: {
+              twitter: '',
+              telegram: '',
+              discord: '',
+              website: '',
+              github: '',
+              instagram: '',
+              linkedin: '',
+              youtube: ''
+            },
+            favoriteCollections: [],
+            referralCode: userWallet.slice(0, 8).toUpperCase(),
+            totalReferrals: 0,
+            totalPoints: 0,
+            rank: 999,
+            privacyLevel: 'public',
+            allowDataExport: true,
+            allowAnalytics: true
+          };
+
+          setProfile(newProfile);
+          setFormData({
+            username: newProfile.username,
+            bio: newProfile.bio,
+            privacyLevel: newProfile.privacyLevel,
+            allowDataExport: newProfile.allowDataExport,
+            allowAnalytics: newProfile.allowAnalytics
+          });
+          logger.log('New profile created:', newProfile.username);
+        }
+      } catch (error) {
+        logger.error('Failed to load profile:', error);
+        // Fallback to empty profile
+        const emptyProfile: UserProfile = {
           id: '1',
           walletAddress: userWallet,
-          username: 'NFTCollector',
-          bio: 'Passionate NFT collector and blockchain enthusiast. Always looking for the next great project!',
-          profilePictureUrl: 'https://via.placeholder.com/150',
-          bannerImageUrl: 'https://via.placeholder.com/800x200',
+          username: '',
+          bio: '',
+          profilePictureUrl: '',
+          bannerImageUrl: '',
           socials: {
-            twitter: 'https://twitter.com/nftcollector',
-            telegram: 'https://t.me/nftcollector',
-            discord: 'NFTCollector#1234',
-            website: 'https://nftcollector.com',
-            github: 'https://github.com/nftcollector',
-            instagram: 'https://instagram.com/nftcollector',
-            linkedin: 'https://linkedin.com/in/nftcollector',
-            youtube: 'https://youtube.com/@nftcollector'
+            twitter: '',
+            telegram: '',
+            discord: '',
+            website: '',
+            github: '',
+            instagram: '',
+            linkedin: '',
+            youtube: ''
           },
-          favoriteCollections: ['Analos Punks', 'Crypto Kitties', 'Bored Apes'],
-          referralCode: 'NFT2024',
-          totalReferrals: 12,
-          totalPoints: 8500,
-          rank: 15,
+          favoriteCollections: [],
+          referralCode: userWallet.slice(0, 8).toUpperCase(),
+          totalReferrals: 0,
+          totalPoints: 0,
+          rank: 999,
           privacyLevel: 'public',
           allowDataExport: true,
           allowAnalytics: true
         };
 
-        setProfile(mockProfile);
+        setProfile(emptyProfile);
         setFormData({
-          username: mockProfile.username,
-          bio: mockProfile.bio,
-          privacyLevel: mockProfile.privacyLevel,
-          allowDataExport: mockProfile.allowDataExport,
-          allowAnalytics: mockProfile.allowAnalytics
+          username: '',
+          bio: '',
+          privacyLevel: 'public',
+          allowDataExport: true,
+          allowAnalytics: true
         });
-
-        logger.log('Profile loaded:', mockProfile.username);
-      } catch (error) {
-        logger.error('Failed to load profile:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfile();
+    if (userWallet) {
+      loadProfile();
+    }
   }, [userWallet]);
 
   const updateProfile = async () => {
@@ -131,6 +184,8 @@ export default function CompleteProfileManager({
         newErrors.username = 'Username is required';
       } else if (formData.username.length < 3) {
         newErrors.username = 'Username must be at least 3 characters';
+      } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+        newErrors.username = 'Username can only contain letters, numbers, and underscores';
       }
 
       if (formData.bio.length > 500) {
@@ -143,13 +198,79 @@ export default function CompleteProfileManager({
         return;
       }
 
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Check username uniqueness if username has changed
+      if (formData.username !== profile?.username) {
+        const usernameCheckResponse = await fetch(`/api/user-profiles/check-username/${formData.username}`);
+        if (usernameCheckResponse.ok) {
+          const { available } = await usernameCheckResponse.json();
+          if (!available) {
+            newErrors.username = 'Username is already taken';
+            setErrors(newErrors);
+            setSaving(false);
+            return;
+          }
+        }
+      }
+
+      // Generate personalized referral code based on username
+      const personalizedReferralCode = formData.username.toUpperCase();
+
+      // Save profile to database
+      const response = await fetch(`/api/user-profiles/${userWallet}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          bio: formData.bio,
+          profilePictureUrl: profile?.profilePictureUrl,
+          bannerImageUrl: profile?.bannerImageUrl,
+          socials: profile?.socials,
+          referralCode: personalizedReferralCode,
+          privacyLevel: formData.privacyLevel,
+          allowDataExport: formData.allowDataExport,
+          allowAnalytics: formData.allowAnalytics
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.error?.includes('username')) {
+          setErrors({ username: 'Username is already taken' });
+          setSaving(false);
+          return;
+        }
+        throw new Error(errorData.error || 'Failed to save profile');
+      }
+
+      const updatedProfile = await response.json();
+      
+      // Update local state with saved data
+      if (profile) {
+        setProfile({
+          ...profile,
+          username: updatedProfile.username,
+          bio: updatedProfile.bio,
+          profilePictureUrl: updatedProfile.profilePictureUrl,
+          bannerImageUrl: updatedProfile.bannerImageUrl,
+          socials: updatedProfile.socials,
+          referralCode: updatedProfile.referralCode,
+          privacyLevel: updatedProfile.privacyLevel,
+          allowDataExport: updatedProfile.allowDataExport,
+          allowAnalytics: updatedProfile.allowAnalytics
+        });
+      }
 
       logger.log('Profile updated successfully');
-      // Show success message
+      
+      // Show success message with referral link
+      const referralLink = `${window.location.origin}/?ref=${personalizedReferralCode}`;
+      alert(`Profile saved successfully!\n\nYour personalized referral link:\n${referralLink}`);
+      
     } catch (error) {
       logger.error('Failed to update profile:', error);
+      alert('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }

@@ -39,6 +39,25 @@ export async function PUT(
     const walletAddress = resolvedParams.walletAddress;
     const updates = await request.json();
     
+    // Check username uniqueness if username is being updated
+    if (updates.username) {
+      const existingProfile = await userProfileService.getUserProfile(walletAddress);
+      
+      // Only check uniqueness if username is actually changing
+      if (!existingProfile || existingProfile.username !== updates.username.toLowerCase()) {
+        const usernameCheck = await userProfileService.checkUsernameAvailability(updates.username);
+        if (!usernameCheck.available) {
+          return NextResponse.json(
+            { error: 'Username is already taken' },
+            { status: 409 }
+          );
+        }
+      }
+      
+      // Convert username to lowercase for consistency
+      updates.username = updates.username.toLowerCase();
+    }
+    
     const updatedProfile = await userProfileService.upsertUserProfile(updates, walletAddress);
     
     return NextResponse.json(updatedProfile);

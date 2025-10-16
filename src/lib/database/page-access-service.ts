@@ -452,6 +452,35 @@ export class UserProfileService {
     const profile = await this.getUserProfile(walletAddress);
     return profile?.referralCode || this.generateReferralCode();
   }
+
+  async checkUsernameAvailability(username: string): Promise<{ available: boolean; error?: string }> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Database not configured');
+    }
+
+    // Validate username format
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return { available: false, error: 'Username can only contain letters, numbers, and underscores' };
+    }
+
+    if (username.length < 3 || username.length > 20) {
+      return { available: false, error: 'Username must be between 3 and 20 characters' };
+    }
+
+    // Check if username exists in database
+    const { data, error } = await supabaseAdmin
+      .from('user_profiles')
+      .select('username')
+      .eq('username', username.toLowerCase())
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+      throw new Error(`Failed to check username availability: ${error.message}`);
+    }
+
+    const available = !data; // Username is available if no data is returned
+    return { available };
+  }
 }
 
 // Export singleton instances

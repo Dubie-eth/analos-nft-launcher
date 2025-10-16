@@ -26,6 +26,7 @@ const HowItWorksPage: React.FC = () => {
     { id: 'creator-airdrops', title: 'Creator Airdrops', icon: '🎁' },
     { id: 'platform-fees', title: 'Platform Fees', icon: '💳' },
     { id: 'whitelist-system', title: 'Whitelist System', icon: '📝' },
+    { id: 'profile-customization', title: 'Profile Customization', icon: '👤' },
     { id: 'admin-controls', title: 'Admin Controls', icon: '⚙️' },
     { id: 'revenue-model', title: 'Revenue Model', icon: '💎' },
     { id: 'governance', title: 'Governance', icon: '🗳️' },
@@ -854,6 +855,115 @@ const HowItWorksPage: React.FC = () => {
                   </ul>
                 </div>
               </div>
+            </div>
+          </div>
+        );
+
+      case 'profile-customization':
+        return (
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-8 text-white">
+              <h2 className="text-3xl font-bold mb-4">👤 Profile Customization</h2>
+              <p className="text-lg text-purple-100">
+                Create your unique profile with custom images, username, and personalized referral links.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  🖼️ Image Upload Guidelines
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Profile Picture Requirements:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• <strong>Format:</strong> JPEG, PNG, GIF, or WebP</li>
+                      <li>• <strong>Size:</strong> Maximum 5MB</li>
+                      <li>• <strong>Dimensions:</strong> 800x800px recommended (square)</li>
+                      <li>• <strong>Quality:</strong> High resolution for best results</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Banner Image Requirements:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• <strong>Format:</strong> JPEG, PNG, GIF, or WebP</li>
+                      <li>• <strong>Size:</strong> Maximum 10MB</li>
+                      <li>• <strong>Dimensions:</strong> 1920x1080px recommended (wide)</li>
+                      <li>• <strong>Ratio:</strong> 16:9 aspect ratio works best</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                  🏷️ Username & Referral System
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Username Rules:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• <strong>Uniqueness:</strong> Each username can only be used once</li>
+                      <li>• <strong>Length:</strong> 3-20 characters</li>
+                      <li>• <strong>Characters:</strong> Letters, numbers, and underscores only</li>
+                      <li>• <strong>Case:</strong> Automatically converted to lowercase</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">Personalized Referral Links:</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• <strong>Format:</strong> yoursite.com/?ref=YOURUSERNAME</li>
+                      <li>• <strong>Automatic:</strong> Generated when you set your username</li>
+                      <li>• <strong>Sharing:</strong> Share to earn referral rewards</li>
+                      <li>• <strong>Tracking:</strong> All referrals are tracked and rewarded</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                💾 Profile Persistence
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">What Gets Saved:</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• Profile pictures and banner images</li>
+                    <li>• Username and bio information</li>
+                    <li>• Social media links</li>
+                    <li>• Privacy settings and preferences</li>
+                    <li>• Referral codes and statistics</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Benefits:</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• No need to re-upload images</li>
+                    <li>• Consistent profile across sessions</li>
+                    <li>• Personalized referral tracking</li>
+                    <li>• Secure data storage</li>
+                    <li>• Cross-device synchronization</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
+              <h3 className="text-xl font-bold mb-3">🚀 Getting Started</h3>
+              <p className="text-blue-100 mb-4">
+                Ready to create your personalized profile? Here's how to get started:
+              </p>
+              <ol className="text-sm text-blue-100 space-y-2">
+                <li>1. <strong>Connect your wallet</strong> to access the profile page</li>
+                <li>2. <strong>Upload your images</strong> following the guidelines above</li>
+                <li>3. <strong>Set your unique username</strong> (check availability first)</li>
+                <li>4. <strong>Write your bio</strong> to tell the community about yourself</li>
+                <li>5. <strong>Add social links</strong> to connect with others</li>
+                <li>6. <strong>Save your profile</strong> to generate your referral link</li>
+              </ol>
             </div>
           </div>
         );
