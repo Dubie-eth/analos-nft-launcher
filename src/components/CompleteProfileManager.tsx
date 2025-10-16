@@ -248,13 +248,27 @@ export default function CompleteProfileManager({
 
       const updatedProfile = await response.json();
       
-      // Update local state with saved data
-      if (profile) {
-        setProfile({
-          ...profile,
-          username: updatedProfile.username,
-          bio: updatedProfile.bio,
-          profilePictureUrl: updatedProfile.profilePictureUrl,
+      // RELOAD the profile from API to ensure we have the latest data
+      const reloadResponse = await fetch(`/api/user-profiles/${userWallet}`);
+      if (reloadResponse.ok) {
+        const freshProfile = await reloadResponse.json();
+        setProfile(freshProfile);
+        setFormData({
+          username: freshProfile.username || '',
+          bio: freshProfile.bio || '',
+          privacyLevel: freshProfile.privacyLevel || 'public',
+          allowDataExport: freshProfile.allowDataExport ?? true,
+          allowAnalytics: freshProfile.allowAnalytics ?? true
+        });
+        logger.log('✅ Profile reloaded after save:', freshProfile.username);
+      } else {
+        // Fallback: Update local state with saved data
+        if (profile) {
+          setProfile({
+            ...profile,
+            username: updatedProfile.username,
+            bio: updatedProfile.bio,
+            profilePictureUrl: updatedProfile.profilePictureUrl,
           bannerImageUrl: updatedProfile.bannerImageUrl,
           socials: updatedProfile.socials,
           referralCode: updatedProfile.referralCode,
@@ -262,16 +276,19 @@ export default function CompleteProfileManager({
           allowDataExport: updatedProfile.allowDataExport,
           allowAnalytics: updatedProfile.allowAnalytics
         });
+        }
       }
 
-      // Update form data to match saved data
-      setFormData({
-        username: updatedProfile.username,
-        bio: updatedProfile.bio,
-        privacyLevel: updatedProfile.privacyLevel,
-        allowDataExport: updatedProfile.allowDataExport,
-        allowAnalytics: updatedProfile.allowAnalytics
-      });
+      // Update form data to match saved data (only if reload failed)
+      if (reloadResponse && !reloadResponse.ok) {
+        setFormData({
+          username: updatedProfile.username,
+          bio: updatedProfile.bio,
+          privacyLevel: updatedProfile.privacyLevel,
+          allowDataExport: updatedProfile.allowDataExport,
+          allowAnalytics: updatedProfile.allowAnalytics
+        });
+      }
 
       logger.log('Profile updated successfully');
       
