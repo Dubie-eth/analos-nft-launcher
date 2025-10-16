@@ -1,0 +1,46 @@
+/* Profile Manager Specific Styles - Isolated from Global CSS */
+
+.profileManager {
+  padding: 1rem;
+}
+
+.profileManager input,
+.profileManager textarea {
+  font-size: 1rem;
+  padding: 0.75rem;
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #d1d5db;
+}
+
+/* Auto-resize textarea - Profile specific */
+.profileManager textarea {
+  resize: none;
+  overflow: hidden;
+  transition: height 0.1s ease-out;
+}
+
+.profileManager textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile-specific profile fixes */
+@media (max-width: 768px) {
+  .profileManager {
+    padding: 0.5rem;
+  }
+  
+  .profileManager button,
+  .profileManager [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .profileManager input,
+  .profileManager textarea {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}

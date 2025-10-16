@@ -10,6 +10,7 @@ import ProfilePictureUpload from './ProfilePictureUpload';
 import SocialLinksManager from './SocialLinksManager';
 import Leaderboard from './Leaderboard';
 import { logger } from '@/lib/logger';
+import styles from './CompleteProfileManager.module.css';
 
 interface UserProfile {
   id: string;
@@ -320,7 +321,7 @@ export default function CompleteProfileManager({
   }
 
   return (
-    <div className={`w-full max-w-4xl mx-auto px-4 py-6 ${className}`}>
+        <div className={`w-full max-w-4xl mx-auto px-4 py-6 ${styles.profileManager} ${className}`}>
       {/* Mobile-First Profile Header */}
       <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
         {/* Banner Section */}
