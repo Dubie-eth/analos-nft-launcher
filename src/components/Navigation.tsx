@@ -1,6 +1,7 @@
 'use client';
 
 import SecureWalletConnection from './SecureWalletConnection';
+import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -130,8 +131,9 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* Secure Wallet Connection */}
+          {/* Theme Toggle and Wallet Connection */}
           <div className="flex items-center space-x-4 wallet-connection-container">
+            <ThemeToggle />
             <SecureWalletConnection className="mobile-btn-fix" />
           </div>
         </div>

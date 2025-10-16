@@ -6,6 +6,7 @@ import ClientNavigation from '@/components/ClientNavigation'
 import { WalletProvider } from '@/contexts/WalletContext'
 import AccessControlManager from '@/components/AccessControlManager'
 import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -34,23 +35,25 @@ export default function RootLayout({
         <meta httpEquiv="Expires" content="0" />
       </head>
       <body className={inter.className}>
-        <SecureWalletProvider>
-          <WalletProvider>
-            {/* Access Control Manager - syncs wallet state with cookies */}
-            <AccessControlManager />
-            
-            <div className="navigation-container">
-              <ClientNavigation />
-            </div>
-            
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-              {children}
-            </div>
-            
-            {/* Customer Service Bot */}
-            <CustomerServiceBotProvider />
-          </WalletProvider>
-        </SecureWalletProvider>
+        <ThemeProvider>
+          <SecureWalletProvider>
+            <WalletProvider>
+              {/* Access Control Manager - syncs wallet state with cookies */}
+              <AccessControlManager />
+              
+              <div className="navigation-container">
+                <ClientNavigation />
+              </div>
+              
+              <div className="min-h-screen theme-bg">
+                {children}
+              </div>
+              
+              {/* Customer Service Bot */}
+              <CustomerServiceBotProvider />
+            </WalletProvider>
+          </SecureWalletProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

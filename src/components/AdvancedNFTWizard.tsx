@@ -229,14 +229,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       case 2:
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload Trait Images</h3>
-              <p className="text-gray-600 mb-4">Upload your trait images using either method below:</p>
+                <div>
+                  <h3 className="text-2xl font-bold theme-text-primary mb-2">Upload Trait Images</h3>
+                  <p className="theme-text-secondary mb-4">Upload your trait images using either method below:</p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">📁 Method 1: Folder Upload</h4>
-                  <div className="text-sm text-blue-700 space-y-1">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">📁 Method 1: Folder Upload</h4>
+                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                     <div><strong>LosBros/Background/blue.png</strong></div>
                     <div><strong>LosBros/Eyes/red.png</strong></div>
                     <div><strong>LosBros/Hat/cap.png</strong></div>
@@ -244,9 +244,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   </div>
                 </div>
                 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <h4 className="font-medium text-purple-800 mb-2">📦 Method 2: ZIP Upload</h4>
-                  <div className="text-sm text-purple-700 space-y-1">
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                  <h4 className="font-medium text-purple-800 dark:text-purple-300 mb-2">📦 Method 2: ZIP Upload</h4>
+                  <div className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
                     <div><strong>LosBros.zip</strong> containing:</div>
                     <div>• Background/ folder</div>
                     <div>• Eyes/ folder</div>
@@ -255,9 +255,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   </div>
                 </div>
                 
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-medium text-green-800 mb-2">📝 Method 3: File Naming</h4>
-                  <div className="text-sm text-green-700 space-y-1">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">📝 Method 3: File Naming</h4>
+                  <div className="text-sm text-green-700 dark:text-green-300 space-y-1">
                     <div><strong>Background_blue.png</strong></div>
                     <div><strong>Eyes_red.png</strong></div>
                     <div><strong>Hat_cap.png</strong></div>
@@ -268,18 +268,18 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
             </div>
             
             <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors"
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
-              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">
+              <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <p className="text-lg font-medium theme-text-primary mb-2">
                 Drag and drop your trait folders, ZIP files, or images here
               </p>
-              <p className="text-gray-500 mb-4">or</p>
+              <p className="theme-text-secondary mb-4">or</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
                 disabled={uploading}
               >
                 {uploading ? 'Uploading...' : 'Choose Folders/ZIP/Files'}
@@ -293,19 +293,19 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 onChange={handleFileInputChange}
                 className="hidden"
               />
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm theme-text-muted mt-4">
                 Supported formats: PNG, JPG, GIF, ZIP. Max 10MB per file.
               </p>
             </div>
             
             {layers.length > 0 && (
               <div className="mt-6">
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Uploaded Layers:</h4>
+                <h4 className="text-lg font-medium theme-text-primary mb-4">Uploaded Layers:</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {layers.map(layer => (
-                    <div key={layer.id} className="bg-gray-50 rounded-lg p-4">
-                      <h5 className="font-medium text-gray-800">{layer.name}</h5>
-                      <p className="text-sm text-gray-500">{layer.traits.length} traits</p>
+                    <div key={layer.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <h5 className="font-medium theme-text-primary">{layer.name}</h5>
+                      <p className="text-sm theme-text-secondary">{layer.traits.length} traits</p>
                     </div>
                   ))}
                 </div>
@@ -538,11 +538,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="theme-card rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <div className="theme-accent px-6 py-4 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">NFT Collection Wizard</h2>
+            <h2 className="text-xl font-bold theme-text-primary">NFT Collection Wizard</h2>
             <button
               onClick={onCancel}
               className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -551,11 +551,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
             </button>
           </div>
           <div className="mt-2">
-            <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center justify-between text-sm theme-text-secondary">
               <span>Step {currentStep} of {totalSteps}</span>
               <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
             </div>
-            <div className="mt-1 bg-gray-200 rounded-full h-2">
+            <div className="mt-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(currentStep / totalSteps) * 100}%` }}
@@ -570,11 +570,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between">
+        <div className="theme-accent px-6 py-4 border-t border-gray-200 dark:border-gray-600 flex justify-between">
           <button
             onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
             disabled={currentStep === 1}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 theme-text-secondary border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
@@ -582,7 +582,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           <div className="flex gap-2">
             <button
               onClick={onCancel}
-              className="px-4 py-2 text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              className="px-4 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               Cancel
             </button>

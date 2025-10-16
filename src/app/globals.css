@@ -2,18 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme Variables */
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* Light Theme */
+.light {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 248, 250, 252;
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-border: rgba(0, 0, 0, 0.1);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent-bg: rgba(99, 102, 241, 0.1);
+  --accent-border: rgba(99, 102, 241, 0.2);
+}
+
+/* Dark Theme */
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+  --card-bg: rgba(255, 255, 255, 0.1);
+  --card-border: rgba(255, 255, 255, 0.2);
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --accent-bg: rgba(99, 102, 241, 0.2);
+  --accent-border: rgba(99, 102, 241, 0.3);
 }
 
 body {
@@ -37,6 +58,40 @@ body {
   .break-anywhere {
     overflow-wrap: anywhere;
     word-break: break-word;
+  }
+  
+  /* Theme-aware utility classes */
+  .theme-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(8px);
+  }
+  
+  .theme-text-primary {
+    color: var(--text-primary);
+  }
+  
+  .theme-text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .theme-text-muted {
+    color: var(--text-muted);
+  }
+  
+  .theme-accent {
+    background-color: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+  }
+  
+  /* Light theme specific backgrounds */
+  .light .theme-bg {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  /* Dark theme specific backgrounds */
+  .dark .theme-bg {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e3a8a 100%);
   }
 }
 
