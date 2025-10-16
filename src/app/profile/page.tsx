@@ -5,6 +5,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import CompleteProfileManager from '@/components/CompleteProfileManager';
+import PublicProfileDisplay from '@/components/PublicProfileDisplay';
 import { getFreshExample } from '@/lib/wallet-examples';
 
 interface UserNFT {
@@ -54,6 +55,7 @@ export default function ProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'activity' | 'profile'>('overview');
+  const [viewMode, setViewMode] = useState<'edit' | 'view'>('view');
   const [exampleData, setExampleData] = useState<any>(null);
 
   // Load user data
@@ -273,13 +275,49 @@ export default function ProfilePage() {
 
         {/* Tab Content */}
         {activeTab === 'profile' && (
-          <>
-            {console.log('🔍 Profile page rendering CompleteProfileManager with wallet:', publicKey?.toString() || '')}
-            <CompleteProfileManager
-              userWallet={publicKey?.toString() || ''}
-              className="profile-manager"
-            />
-          </>
+          <div className="space-y-6">
+            {/* View/Edit Toggle */}
+            <div className="flex justify-center">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
+                <button
+                  onClick={() => setViewMode('view')}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    viewMode === 'view' 
+                      ? 'bg-white text-gray-900' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  👁️ View Profile
+                </button>
+                <button
+                  onClick={() => setViewMode('edit')}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    viewMode === 'edit' 
+                      ? 'bg-white text-gray-900' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  ✏️ Edit Profile
+                </button>
+              </div>
+            </div>
+
+            {/* Profile Content */}
+            {viewMode === 'view' ? (
+              <PublicProfileDisplay
+                userWallet={publicKey?.toString() || ''}
+                className="profile-display"
+              />
+            ) : (
+              <>
+                {console.log('🔍 Profile page rendering CompleteProfileManager with wallet:', publicKey?.toString() || '')}
+                <CompleteProfileManager
+                  userWallet={publicKey?.toString() || ''}
+                  className="profile-manager"
+                />
+              </>
+            )}
+          </div>
         )}
 
         {activeTab === 'overview' && (
