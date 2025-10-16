@@ -101,14 +101,14 @@ export default function ProfilePictureUpload({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-2 ${className}`}>
       {/* Upload Area */}
       <div
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center transition-colors
+          relative border-2 border-dashed rounded-lg p-4 text-center transition-colors
           ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
-          ${isProfile ? 'profile-upload-area w-48 h-48 mx-auto' : 'banner-upload-area w-full h-32'}
+          ${isProfile ? 'w-full h-full' : 'w-full h-full'}
         `}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -149,7 +149,7 @@ export default function ProfilePictureUpload({
         ) : (
           <div className="flex flex-col items-center justify-center h-full">
             <svg
-              className="w-12 h-12 text-gray-400 mb-4"
+              className="w-8 h-8 text-gray-400 mb-2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -161,14 +161,11 @@ export default function ProfilePictureUpload({
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
               />
             </svg>
-            <p className="text-sm text-gray-600 mb-2">
-              {isProfile ? 'Upload Profile Picture' : 'Upload Banner Image'}
+            <p className="text-xs text-gray-600 mb-1">
+              {isProfile ? 'Upload Picture' : 'Upload Banner'}
             </p>
             <p className="text-xs text-gray-500">
-              Drag & drop or click to browse
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Max {Math.round(maxSize / (1024 * 1024))}MB, {maxDimensions}
+              Tap to browse
             </p>
           </div>
         )}

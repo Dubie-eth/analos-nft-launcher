@@ -199,11 +199,11 @@ export default function CompleteProfileManager({
   }
 
   return (
-    <div className={`space-y-6 profile-manager ${className}`}>
-      {/* Header with Banner */}
-      <div className="relative bg-white rounded-lg shadow overflow-hidden">
-        {/* Banner Image */}
-        <div className="h-48 bg-gradient-to-r from-blue-500 to-purple-600 relative">
+    <div className={`w-full max-w-4xl mx-auto px-4 py-6 ${className}`}>
+      {/* Mobile-First Profile Header */}
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        {/* Banner Section */}
+        <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
           {profile.bannerImageUrl && (
             <img
               src={profile.bannerImageUrl}
@@ -213,38 +213,51 @@ export default function CompleteProfileManager({
           )}
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>
           
-          {/* Banner Upload */}
-          <div className="absolute top-4 right-4">
-            <ProfilePictureUpload
-              currentImage={profile.bannerImageUrl}
-              type="banner"
-              onUploadComplete={handleBannerUpload}
-              className="w-32 h-20"
-            />
+          {/* Banner Upload - Mobile Optimized */}
+          <div className="absolute top-2 right-2">
+            <div className="bg-white bg-opacity-90 rounded-lg p-2">
+              <ProfilePictureUpload
+                currentImage={profile.bannerImageUrl}
+                type="banner"
+                onUploadComplete={handleBannerUpload}
+                className="w-20 h-12"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Profile Info - Fixed Mobile Layout */}
-        <div className="relative px-4 pb-4 profile-header">
-          <div className="flex flex-col md:flex-row md:items-end md:space-x-4 -mt-16 profile-info">
-            {/* Profile Picture */}
-            <div className="relative mx-auto md:mx-0">
+        {/* Profile Picture and Info - Mobile Stack */}
+        <div className="px-4 pb-4">
+          {/* Profile Picture - Centered */}
+          <div className="flex justify-center -mt-12 mb-4">
+            <div className="bg-white rounded-full p-2 shadow-lg">
               <ProfilePictureUpload
                 currentImage={profile.profilePictureUrl}
                 type="profile"
                 onUploadComplete={handleProfilePictureUpload}
-                className="w-32 h-32"
+                className="w-24 h-24"
               />
             </div>
+          </div>
 
-            {/* User Info - Fixed Text Layout */}
-            <div className="flex-1 pt-16 text-center md:text-left profile-text">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2 text-no-overlap">{profile.username}</h1>
-              <p className="text-gray-600 mb-4 text-sm md:text-base text-no-overlap">{profile.bio}</p>
-              <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-2 md:space-y-0 text-sm text-gray-500">
-                <span className="font-semibold text-no-overlap">Rank #{profile.rank}</span>
-                <span className="font-semibold text-no-overlap">{profile.totalPoints.toLocaleString()} points</span>
-                <span className="font-semibold text-no-overlap">{profile.totalReferrals} referrals</span>
+          {/* User Info - Clean Layout */}
+          <div className="text-center space-y-3">
+            <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
+            <p className="text-gray-600 text-sm leading-relaxed px-4">{profile.bio}</p>
+            
+            {/* Stats - Horizontal Layout */}
+            <div className="flex justify-center space-x-6 text-sm">
+              <div className="text-center">
+                <div className="font-bold text-gray-900">#{profile.rank}</div>
+                <div className="text-gray-500">Rank</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-gray-900">{profile.totalPoints.toLocaleString()}</div>
+                <div className="text-gray-500">Points</div>
+              </div>
+              <div className="text-center">
+                <div className="font-bold text-gray-900">{profile.totalReferrals}</div>
+                <div className="text-gray-500">Referrals</div>
               </div>
             </div>
           </div>
@@ -252,9 +265,9 @@ export default function CompleteProfileManager({
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow tabs-container">
+      <div className="bg-white rounded-lg shadow">
         <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6 overflow-x-auto">
+          <nav className="flex px-4 overflow-x-auto">
             {[
               { key: 'profile', label: 'Profile', icon: '👤' },
               { key: 'social', label: 'Social Links', icon: '🔗' },
@@ -265,7 +278,7 @@ export default function CompleteProfileManager({
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
                 className={`
-                  py-4 px-1 border-b-2 font-medium text-sm transition-colors flex-shrink-0 whitespace-nowrap
+                  py-3 px-4 border-b-2 font-medium text-sm transition-colors flex-shrink-0 whitespace-nowrap mr-2
                   ${activeTab === tab.key
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -279,12 +292,12 @@ export default function CompleteProfileManager({
           </nav>
         </div>
 
-        <div className="p-6 tab-content">
+        <div className="p-6">
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 gap-6 form-grid">
-                <div className="form-field">
+              <div className="space-y-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Username
                   </label>
@@ -304,7 +317,7 @@ export default function CompleteProfileManager({
                   )}
                 </div>
 
-                <div className="form-field">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Referral Code
                   </label>
@@ -317,40 +330,40 @@ export default function CompleteProfileManager({
                     />
                     <button
                       onClick={() => navigator.clipboard.writeText(profile.referralCode)}
-                      className="px-3 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600"
+                      className="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600"
                     >
                       Copy
                     </button>
                   </div>
                 </div>
-              </div>
 
-              <div className="form-field">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Bio
-                </label>
-                <textarea
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  rows={4}
-                  className={`
-                    w-full px-3 py-2 border rounded-md
-                    ${errors.bio ? 'border-red-300' : 'border-gray-300'}
-                    focus:border-blue-500 focus:ring-blue-500
-                  `}
-                  placeholder="Tell the community about yourself..."
-                />
-                <div className="flex justify-between mt-1">
-                  {errors.bio && (
-                    <p className="text-sm text-red-600">{errors.bio}</p>
-                  )}
-                  <p className="text-sm text-gray-500 ml-auto">
-                    {formData.bio.length}/500 characters
-                  </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bio
+                  </label>
+                  <textarea
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    rows={4}
+                    className={`
+                      w-full px-3 py-2 border rounded-md
+                      ${errors.bio ? 'border-red-300' : 'border-gray-300'}
+                      focus:border-blue-500 focus:ring-blue-500
+                    `}
+                    placeholder="Tell the community about yourself..."
+                  />
+                  <div className="flex justify-between mt-1">
+                    {errors.bio && (
+                      <p className="text-sm text-red-600">{errors.bio}</p>
+                    )}
+                    <p className="text-sm text-gray-500 ml-auto">
+                      {formData.bio.length}/500 characters
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end button-group">
+              <div className="flex justify-end">
                 <button
                   onClick={updateProfile}
                   disabled={saving}
