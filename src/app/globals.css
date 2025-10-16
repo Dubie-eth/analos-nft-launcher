@@ -848,32 +848,91 @@ textarea {
     text-align: center !important;
   }
   
-  /* SIMPLE MOBILE PROFILE FIXES */
-  /* Ensure all text is readable on mobile */
-  .profile-manager {
-    padding: 1rem !important;
-  }
-  
-  .profile-manager h1 {
-    font-size: 1.5rem !important;
-    line-height: 1.3 !important;
-    margin-bottom: 0.5rem !important;
-  }
-  
-  .profile-manager p {
-    font-size: 0.875rem !important;
-    line-height: 1.4 !important;
-    margin-bottom: 0.75rem !important;
-  }
-  
-  .profile-manager button {
-    min-height: 44px !important;
-    font-size: 0.875rem !important;
-  }
-  
-  .profile-manager input,
-  .profile-manager textarea {
-    font-size: 1rem !important;
-    padding: 0.75rem !important;
-  }
+/* SIMPLE MOBILE PROFILE FIXES */
+/* Ensure all text is readable on mobile */
+.profile-manager {
+  padding: 1rem !important;
+}
+
+.profile-manager h1 {
+  font-size: 1.5rem !important;
+  line-height: 1.3 !important;
+  margin-bottom: 0.5rem !important;
+  color: #ffffff !important;
+}
+
+.profile-manager p {
+  font-size: 0.875rem !important;
+  line-height: 1.4 !important;
+  margin-bottom: 0.75rem !important;
+  color: #ffffff !important;
+}
+
+.profile-manager button {
+  min-height: 44px !important;
+  font-size: 0.875rem !important;
+}
+
+.profile-manager input,
+.profile-manager textarea {
+  font-size: 1rem !important;
+  padding: 0.75rem !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #e5e7eb !important;
+}
+
+/* COMPREHENSIVE DARK BACKGROUND TEXT READABILITY */
+/* Force white text on dark backgrounds */
+.bg-gradient-to-br *,
+.bg-gradient-to-r *,
+.bg-purple-900 *,
+.bg-blue-900 *,
+.bg-indigo-900 *,
+.bg-gray-900 *,
+.bg-black *,
+.bg-gray-800 *,
+.bg-gray-700 *,
+.bg-purple-800 *,
+.bg-blue-800 *,
+.bg-indigo-800 *,
+.dark * {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Ensure contrast on semi-transparent backgrounds */
+.bg-white\/10 *,
+.bg-white\/20 *,
+.bg-black\/10 *,
+.bg-black\/20 * {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Fix specific dark text issues */
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-gray-300 {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Ensure buttons and interactive elements are visible */
+button,
+.btn,
+[role="button"] {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+  border: 2px solid #1d4ed8 !important;
+  text-shadow: none !important;
+}
+
+button:hover,
+.btn:hover,
+[role="button"]:hover {
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
 }

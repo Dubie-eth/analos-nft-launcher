@@ -35,8 +35,8 @@ BEGIN
     END IF;
 END $$;
 
--- Create profiles table
-CREATE TABLE IF NOT EXISTS profiles (
+-- Create user_profiles table
+CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   wallet_address TEXT NOT NULL UNIQUE,
   wallet_address_hash TEXT NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Create beta_applications table
 CREATE TABLE IF NOT EXISTS beta_applications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
   wallet_address TEXT NOT NULL,
   username TEXT NOT NULL,
   bio TEXT,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS beta_applications (
 -- Create access_grants table
 CREATE TABLE IF NOT EXISTS access_grants (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
   wallet_address TEXT NOT NULL,
   access_level access_level NOT NULL,
   granted_by TEXT NOT NULL,
@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS access_grants (
 -- Create activity_logs table
 CREATE TABLE IF NOT EXISTS activity_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  user_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
   wallet_address TEXT NOT NULL,
   activity_type activity_type NOT NULL,
   description TEXT,
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 CREATE TABLE IF NOT EXISTS data_access_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   accessed_by TEXT NOT NULL,
-  target_user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  target_user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE,
   access_type TEXT NOT NULL,
   data_accessed JSONB DEFAULT '{}',
   ip_address INET,
@@ -156,10 +156,10 @@ CREATE TABLE IF NOT EXISTS admin_users (
 );
 
 -- Create indexes
-CREATE INDEX IF NOT EXISTS idx_profiles_wallet_address ON profiles(wallet_address);
-CREATE INDEX IF NOT EXISTS idx_profiles_wallet_hash ON profiles(wallet_address_hash);
-CREATE INDEX IF NOT EXISTS idx_profiles_access_level ON profiles(access_level);
-CREATE INDEX IF NOT EXISTS idx_profiles_points ON profiles(total_points DESC);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_wallet_address ON user_profiles(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_wallet_hash ON user_profiles(wallet_address_hash);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_access_level ON user_profiles(access_level);
+CREATE INDEX IF NOT EXISTS idx_user_profiles_points ON user_profiles(total_points DESC);
 CREATE INDEX IF NOT EXISTS idx_beta_applications_status ON beta_applications(status);
 CREATE INDEX IF NOT EXISTS idx_beta_applications_wallet ON beta_applications(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_access_grants_wallet ON access_grants(wallet_address);
@@ -180,8 +180,8 @@ END;
 $$ language 'plpgsql';
 
 -- Apply triggers
-DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
+CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 DROP TRIGGER IF EXISTS update_beta_applications_updated_at ON beta_applications;
 CREATE TRIGGER update_beta_applications_updated_at BEFORE UPDATE ON beta_applications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -193,7 +193,7 @@ DROP TRIGGER IF EXISTS update_admin_users_updated_at ON admin_users;
 CREATE TRIGGER update_admin_users_updated_at BEFORE UPDATE ON admin_users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Enable RLS (Row Level Security)
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE beta_applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE access_grants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
@@ -202,10 +202,10 @@ ALTER TABLE backup_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist
-DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
-DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
-DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can view their own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON user_profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON user_profiles;
 
 DROP POLICY IF EXISTS "Users can view their own applications" ON beta_applications;
 DROP POLICY IF EXISTS "Admins can view all applications" ON beta_applications;

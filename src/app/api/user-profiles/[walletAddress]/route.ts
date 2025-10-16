@@ -34,10 +34,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ walletAddress: string }> }
 ) {
+  const resolvedParams = await params;
+  const walletAddress = resolvedParams.walletAddress;
+  const updates = await request.json();
+  
   try {
-    const resolvedParams = await params;
-    const walletAddress = resolvedParams.walletAddress;
-    const updates = await request.json();
     
     // Check username uniqueness if username is being updated
     if (updates.username) {
@@ -63,8 +64,17 @@ export async function PUT(
     return NextResponse.json(updatedProfile);
   } catch (error) {
     console.error('Error updating user profile:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      updates: updates,
+      walletAddress: walletAddress
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://solana.com https://cdn.skypack.dev https://vercel.live",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https://rpc.analos.io https://api.analos.io https://*.supabase.co wss: ws:",
+              "connect-src 'self' https://rpc.analos.io https://api.analos.io https://*.supabase.co https://api.pinata.cloud https://gateway.pinata.cloud wss: ws:",
               "font-src 'self' data: https://fonts.gstatic.com",
               "frame-src 'self' https://vercel.live",
               "object-src 'none'",
