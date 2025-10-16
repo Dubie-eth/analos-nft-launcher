@@ -53,7 +53,7 @@ async function uploadToPinata(filePath: string, fileName: string): Promise<strin
         'pinata_secret_api_key': PINATA_SECRET,
         ...formData.getHeaders()
       },
-      body: formData
+      body: formData as any
     });
 
     if (!response.ok) {
