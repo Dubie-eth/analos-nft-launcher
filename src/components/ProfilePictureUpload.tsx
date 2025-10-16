@@ -108,7 +108,7 @@ export default function ProfilePictureUpload({
           relative border-2 border-dashed rounded-lg p-6 text-center transition-colors
           ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
-          ${isProfile ? 'w-48 h-48 mx-auto' : 'w-full h-32'}
+          ${isProfile ? 'profile-upload-area w-48 h-48 mx-auto' : 'banner-upload-area w-full h-32'}
         `}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}

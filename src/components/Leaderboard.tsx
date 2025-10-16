@@ -273,7 +273,7 @@ export default function Leaderboard({
             <div
               key={user.walletAddress}
               className={`
-                px-6 py-4 flex items-center space-x-4 transition-colors
+                px-6 py-4 flex items-center space-x-4 transition-colors leaderboard-entry
                 ${user.isCurrentUser ? 'bg-blue-50 border-l-4 border-blue-500' : 'hover:bg-gray-50'}
               `}
             >
@@ -308,7 +308,7 @@ export default function Leaderboard({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
                   <p className={`
-                    text-sm font-medium truncate
+                    text-sm font-medium username
                     ${user.isCurrentUser ? 'text-blue-900' : 'text-gray-900'}
                   `}>
                     {user.username}
@@ -319,14 +319,14 @@ export default function Leaderboard({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-gray-500 wallet-address">
                   {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
                 </p>
               </div>
 
               {/* Stats */}
               <div className="flex-shrink-0 text-right">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-lg font-bold text-gray-900 points">
                   {selectedCategory === 'referrals' 
                     ? user.totalReferrals 
                     : formatNumber(getPointsForCategory(user, selectedCategory))

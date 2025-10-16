@@ -199,7 +199,7 @@ export default function SocialLinksManager({
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 social-links-container">
         {SOCIAL_PLATFORMS.map((platform) => {
           const value = links[platform.key] || '';
           const hasError = getUrlError(platform.key, value);
@@ -207,7 +207,7 @@ export default function SocialLinksManager({
           const isPending = verificationStatus[platform.key] === 'pending';
 
           return (
-            <div key={platform.key} className="space-y-2">
+            <div key={platform.key} className="space-y-2 social-link-item">
               <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 ${platform.color} rounded-lg flex items-center justify-center text-white text-lg`}>
                   {platform.icon}

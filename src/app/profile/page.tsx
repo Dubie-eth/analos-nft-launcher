@@ -242,7 +242,7 @@ export default function ProfilePage() {
 
         {/* Navigation Tabs */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
-          <div className="flex space-x-2 nav-tabs">
+          <div className="flex space-x-2 nav-tabs overflow-x-auto">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'profile', label: 'Profile', icon: '👤' },
@@ -253,7 +253,7 @@ export default function ProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                className={`flex-shrink-0 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                     : 'text-gray-300 hover:text-white hover:bg-white/10'
