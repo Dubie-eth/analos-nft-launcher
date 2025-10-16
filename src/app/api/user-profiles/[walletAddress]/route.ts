@@ -39,9 +39,9 @@ export async function GET(
       });
     }
     
-    // Get profile from users table
+    // Get profile from user_profiles table
     const { data: profile, error } = await supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .select('*')
       .eq('wallet_address', walletAddress)
       .single();
@@ -133,7 +133,7 @@ export async function PUT(
     // Check username uniqueness if username is being updated
     if (updates.username) {
       const { data: existingUser } = await supabaseAdmin
-        .from('users')
+        .from('user_profiles')
         .select('username')
         .eq('wallet_address', walletAddress)
         .single();
@@ -141,7 +141,7 @@ export async function PUT(
       // Only check uniqueness if username is actually changing
       if (!existingUser || existingUser.username !== updates.username.toLowerCase()) {
         const { data: usernameExists } = await supabaseAdmin
-          .from('users')
+          .from('user_profiles')
           .select('username')
           .eq('username', updates.username.toLowerCase())
           .single();
@@ -181,7 +181,7 @@ export async function PUT(
     
     // Upsert user profile
     const { data: updatedProfile, error: upsertError } = await supabaseAdmin
-      .from('users')
+      .from('user_profiles')
       .upsert(userData, { 
         onConflict: 'wallet_address',
         ignoreDuplicates: false 
