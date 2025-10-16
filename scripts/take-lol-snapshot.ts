@@ -1,267 +1,165 @@
 /**
- * LOL TOKEN HOLDER SNAPSHOT SCRIPT
- * Takes snapshot of LOL token holders with 1M+ tokens
- * Stores first 100 eligible holders in database
+ * LOL TOKEN SNAPSHOT SCRIPT
+ * Takes snapshot of LOL token holders for whitelist
+ * Finds first 100 wallets with 1M+ LOL tokens
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { createClient } from '@supabase/supabase-js';
+import { getAccount } from '@solana/spl-token';
 
 // Configuration
-const LOL_TOKEN_MINT = process.env.LOL_TOKEN_MINT || 'YOUR_LOL_TOKEN_MINT_HERE';
-const MIN_LOL_BALANCE = 1_000_000; // 1 million LOL
-const MAX_WHITELIST_SPOTS = 100;
-
-const ANALOS_RPC = 'https://rpc.analos.io';
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY || '';
-
-// Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.analos.io';
+const LOL_TOKEN_MINT = process.env.LOL_TOKEN_MINT || '';
+const MIN_LOL_BALANCE = 1000000; // 1M LOL tokens
+const WHITELIST_SPOTS = 100;
 
 interface LOLHolder {
-  wallet_address: string;
-  lol_balance: number;
+  walletAddress: string;
+  lolBalance: number;
   eligible: boolean;
-  snapshot_time: string;
+  claimOrder?: number;
 }
 
-async function getLOLHoldersFromHelius(): Promise<LOLHolder[]> {
-  console.log('🔍 Fetching LOL token holders from Helius...');
+async function takeLOLSnapshot(): Promise<void> {
+  console.log('🔍 Taking LOL token holder snapshot...');
   
-  try {
-    const response = await fetch(
-      `https://api.helius.xyz/v0/addresses/${LOL_TOKEN_MINT}/balances?api-key=${HELIUS_API_KEY}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Helius API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    
-    // Filter holders with 1M+ LOL and sort by balance
-    const eligibleHolders: LOLHolder[] = data.balances
-      .filter((holder: any) => holder.amount >= MIN_LOL_BALANCE * 10 ** 9) // Adjust for decimals
-      .sort((a: any, b: any) => b.amount - a.amount)
-      .slice(0, MAX_WHITELIST_SPOTS)
-      .map((holder: any) => ({
-        wallet_address: holder.address,
-        lol_balance: Math.floor(holder.amount / 10 ** 9), // Convert to human-readable
-        eligible: true,
-        snapshot_time: new Date().toISOString()
-      }));
-
-    console.log(`✅ Found ${eligibleHolders.length} eligible holders`);
-    return eligibleHolders;
-
-  } catch (error) {
-    console.error('❌ Error fetching from Helius:', error);
-    throw error;
+  if (!LOL_TOKEN_MINT) {
+    throw new Error('LOL_TOKEN_MINT environment variable not set!');
   }
-}
 
-async function getLOLHoldersFromRPC(): Promise<LOLHolder[]> {
-  console.log('🔍 Fetching LOL token holders from RPC (fallback)...');
+  const connection = new Connection(RPC_URL, 'confirmed');
+  const lolMint = new PublicKey(LOL_TOKEN_MINT);
   
-  const connection = new Connection(ANALOS_RPC, 'confirmed');
-  const tokenMint = new PublicKey(LOL_TOKEN_MINT);
+  console.log(`📊 Scanning LOL token: ${LOL_TOKEN_MINT}`);
+  console.log(`🎯 Looking for holders with ${MIN_LOL_BALANCE.toLocaleString()}+ LOL tokens`);
+  console.log(`🏆 Whitelist spots available: ${WHITELIST_SPOTS}`);
 
   try {
-    // Get all token accounts for this mint
-    const accounts = await connection.getProgramAccounts(
-      new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+    // Get all token accounts for LOL token
+    console.log('⏳ Fetching all token accounts...');
+    const tokenAccounts = await connection.getProgramAccounts(
+      new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), // SPL Token Program
       {
         filters: [
           {
-            dataSize: 165, // Size of token account
+            dataSize: 165, // Token account size
           },
           {
             memcmp: {
-              offset: 0,
-              bytes: tokenMint.toBase58(),
+              offset: 0, // Mint address offset
+              bytes: lolMint.toBase58(),
             },
           },
         ],
       }
     );
 
-    console.log(`📊 Found ${accounts.length} total token accounts`);
+    console.log(`📈 Found ${tokenAccounts.length} LOL token accounts`);
 
-    // Parse accounts and extract balances
-    const holders: { address: string; balance: number }[] = [];
-
-    for (const account of accounts) {
+    // Process each account
+    const holders: LOLHolder[] = [];
+    
+    for (const { pubkey, account } of tokenAccounts) {
       try {
-        // Token account layout: https://github.com/solana-labs/solana-program-library/blob/master/token/program/src/state.rs
-        const data = account.account.data;
+        const tokenAccount = await getAccount(connection, pubkey);
+        const balance = Number(tokenAccount.amount);
         
-        // Owner is at offset 32 (32 bytes)
-        const owner = new PublicKey(data.slice(32, 64));
-        
-        // Amount is at offset 64 (8 bytes, little-endian)
-        const amount = Number(
-          data.readBigUInt64LE(64)
-        );
-
-        if (amount >= MIN_LOL_BALANCE * 10 ** 9) {
+        if (balance >= MIN_LOL_BALANCE) {
           holders.push({
-            address: owner.toBase58(),
-            balance: Math.floor(amount / 10 ** 9)
+            walletAddress: tokenAccount.owner.toBase58(),
+            lolBalance: balance,
+            eligible: true
           });
         }
-      } catch (parseError) {
-        console.error('Error parsing account:', parseError);
+      } catch (error) {
+        // Skip invalid accounts
         continue;
       }
     }
 
-    // Sort by balance and take top 100
-    const eligibleHolders: LOLHolder[] = holders
-      .sort((a, b) => b.balance - a.balance)
-      .slice(0, MAX_WHITELIST_SPOTS)
-      .map(holder => ({
-        wallet_address: holder.address,
-        lol_balance: holder.balance,
-        eligible: true,
-        snapshot_time: new Date().toISOString()
-      }));
+    // Sort by balance (highest first)
+    holders.sort((a, b) => b.lolBalance - a.lolBalance);
 
-    console.log(`✅ Found ${eligibleHolders.length} eligible holders`);
-    return eligibleHolders;
-
-  } catch (error) {
-    console.error('❌ Error fetching from RPC:', error);
-    throw error;
-  }
-}
-
-async function storeSnapshot(holders: LOLHolder[]): Promise<void> {
-  console.log('💾 Storing snapshot in Supabase...');
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  try {
-    // Clear existing snapshot (optional - remove if you want to keep history)
-    // await supabase.from('lol_whitelist').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-    // Insert new snapshot
-    const { data, error } = await supabase
-      .from('lol_whitelist')
-      .upsert(holders, { onConflict: 'wallet_address' });
-
-    if (error) {
-      throw error;
-    }
-
-    console.log(`✅ Stored ${holders.length} holders in database`);
-
-    // Print summary
-    console.log('\n📊 WHITELIST SUMMARY:');
-    console.log('═══════════════════════════════════════════');
-    holders.slice(0, 10).forEach((holder, index) => {
-      console.log(
-        `#${index + 1}: ${holder.wallet_address.slice(0, 8)}... - ${holder.lol_balance.toLocaleString()} LOL`
-      );
+    // Take first 100 for whitelist
+    const whitelist = holders.slice(0, WHITELIST_SPOTS);
+    
+    // Add claim order
+    whitelist.forEach((holder, index) => {
+      holder.claimOrder = index + 1;
     });
-    if (holders.length > 10) {
-      console.log(`... and ${holders.length - 10} more holders`);
-    }
-    console.log('═══════════════════════════════════════════');
+
+    console.log('\n🎉 LOL SNAPSHOT COMPLETE!');
+    console.log(`📊 Total eligible holders: ${holders.length}`);
+    console.log(`🏆 Whitelist spots filled: ${whitelist.length}`);
+    console.log(`💰 Total LOL in whitelist: ${whitelist.reduce((sum, h) => sum + h.lolBalance, 0).toLocaleString()}`);
+
+    // Display top 10
+    console.log('\n🥇 TOP 10 WHITELIST HOLDERS:');
+    whitelist.slice(0, 10).forEach((holder, index) => {
+      console.log(`${index + 1}. ${holder.walletAddress.slice(0, 8)}...${holder.walletAddress.slice(-4)} - ${holder.lolBalance.toLocaleString()} LOL`);
+    });
+
+    // Save to CSV
+    const csvContent = [
+      'Wallet Address,LOL Balance,Claim Order,Eligible',
+      ...whitelist.map(h => `${h.walletAddress},${h.lolBalance},${h.claimOrder},${h.eligible}`)
+    ].join('\n');
+
+    const fs = require('fs');
+    fs.writeFileSync('lol-whitelist.csv', csvContent);
+    console.log('\n💾 Whitelist saved to: lol-whitelist.csv');
+
+    // Save to JSON for database import
+    const jsonContent = {
+      snapshotDate: new Date().toISOString(),
+      lolTokenMint: LOL_TOKEN_MINT,
+      minBalance: MIN_LOL_BALANCE,
+      whitelistSpots: WHITELIST_SPOTS,
+      totalEligible: holders.length,
+      whitelist: whitelist
+    };
+
+    fs.writeFileSync('lol-whitelist.json', JSON.stringify(jsonContent, null, 2));
+    console.log('💾 Full data saved to: lol-whitelist.json');
+
+    // Database import instructions
+    console.log('\n📋 NEXT STEPS:');
+    console.log('1. Review lol-whitelist.csv');
+    console.log('2. Import to Supabase database');
+    console.log('3. Deploy smart contracts with whitelist');
+    console.log('4. Launch whitelist phase!');
+
+    // Display SQL for database import
+    console.log('\n🗄️  SQL FOR DATABASE IMPORT:');
+    console.log('-- Run this in Supabase SQL Editor:');
+    console.log(`
+INSERT INTO lol_whitelist (wallet_address, lol_balance, eligible, claim_order, token_allocation)
+VALUES
+${whitelist.map(h => `('${h.walletAddress}', ${h.lolBalance}, true, ${h.claimOrder}, 1000)`).join(',\n')}
+ON CONFLICT (wallet_address) DO UPDATE SET
+  lol_balance = EXCLUDED.lol_balance,
+  eligible = EXCLUDED.eligible,
+  claim_order = EXCLUDED.claim_order,
+  token_allocation = EXCLUDED.token_allocation;
+    `);
 
   } catch (error) {
-    console.error('❌ Error storing snapshot:', error);
+    console.error('❌ Error taking LOL snapshot:', error);
     throw error;
   }
 }
 
-async function exportWhitelist(holders: LOLHolder[]): Promise<void> {
-  console.log('📄 Exporting whitelist to CSV...');
-
-  const csv = [
-    'Wallet Address,LOL Balance,Eligible,Snapshot Time',
-    ...holders.map(h => 
-      `${h.wallet_address},${h.lol_balance},${h.eligible},${h.snapshot_time}`
-    )
-  ].join('\n');
-
-  const fs = require('fs');
-  const path = require('path');
-  
-  const outputPath = path.join(process.cwd(), 'lol-whitelist.csv');
-  fs.writeFileSync(outputPath, csv);
-
-  console.log(`✅ Whitelist exported to: ${outputPath}`);
-}
-
-async function main() {
-  console.log('🚀 LOL Token Holder Snapshot Tool');
-  console.log('═══════════════════════════════════════════\n');
-
-  console.log('Configuration:');
-  console.log(`  LOL Token Mint: ${LOL_TOKEN_MINT}`);
-  console.log(`  Min Balance: ${MIN_LOL_BALANCE.toLocaleString()} LOL`);
-  console.log(`  Max Spots: ${MAX_WHITELIST_SPOTS}`);
-  console.log('');
-
-  // Validate configuration
-  if (!LOL_TOKEN_MINT || LOL_TOKEN_MINT === 'YOUR_LOL_TOKEN_MINT_HERE') {
-    console.error('❌ Error: LOL_TOKEN_MINT not configured');
-    console.error('Set environment variable: LOL_TOKEN_MINT=your_token_mint_address');
-    process.exit(1);
-  }
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('❌ Error: Supabase not configured');
-    console.error('Set environment variables:');
-    console.error('  NEXT_PUBLIC_SUPABASE_URL=your_supabase_url');
-    console.error('  SUPABASE_SERVICE_ROLE_KEY=your_service_key');
-    process.exit(1);
-  }
-
-  try {
-    let holders: LOLHolder[];
-
-    // Try Helius first (faster and more reliable)
-    if (HELIUS_API_KEY) {
-      try {
-        holders = await getLOLHoldersFromHelius();
-      } catch (heliusError) {
-        console.log('⚠️ Helius failed, falling back to RPC...');
-        holders = await getLOLHoldersFromRPC();
-      }
-    } else {
-      console.log('⚠️ No Helius API key, using RPC (slower)...');
-      holders = await getLOLHoldersFromRPC();
-    }
-
-    if (holders.length === 0) {
-      console.error('❌ No eligible holders found!');
-      process.exit(1);
-    }
-
-    // Store in database
-    await storeSnapshot(holders);
-
-    // Export to CSV for backup
-    await exportWhitelist(holders);
-
-    console.log('\n✅ Snapshot complete!');
-    console.log(`Total eligible holders: ${holders.length}`);
-    console.log('\n🎯 Next steps:');
-    console.log('1. Review the whitelist in Supabase');
-    console.log('2. Announce to LOL holders');
-    console.log('3. Prepare for launch!');
-
-  } catch (error) {
-    console.error('\n❌ Snapshot failed:', error);
-    process.exit(1);
-  }
-}
-
-// Run if called directly
+// Run the snapshot
 if (require.main === module) {
-  main().catch(console.error);
+  takeLOLSnapshot()
+    .then(() => {
+      console.log('\n✅ LOL snapshot completed successfully!');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('\n❌ LOL snapshot failed:', error);
+      process.exit(1);
+    });
 }
 
-export { getLOLHoldersFromHelius, getLOLHoldersFromRPC, storeSnapshot };
+export { takeLOLSnapshot };
