@@ -464,14 +464,20 @@ export default function CompleteProfileManager({
                   </label>
                   <textarea
                     value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                    rows={4}
+                    onChange={(e) => {
+                      setFormData({ ...formData, bio: e.target.value });
+                      // Auto-resize textarea
+                      e.target.style.height = 'auto';
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                    }}
+                    rows={3}
                     className={`
-                      w-full px-3 py-2 border rounded-md
+                      w-full px-3 py-2 border rounded-md resize-none overflow-hidden
                       ${errors.bio ? 'border-red-300' : 'border-gray-300'}
                       focus:border-blue-500 focus:ring-blue-500
                     `}
                     placeholder="Tell the community about yourself..."
+                    style={{ minHeight: '80px', maxHeight: '120px' }}
                   />
                   <div className="flex justify-between mt-1">
                     {errors.bio && (
