@@ -18,6 +18,7 @@ export async function GET(
     
     // Check if database is configured
     if (!isSupabaseConfigured) {
+      console.error('❌ Supabase not configured - returning default profile');
       // Return a default profile if database is not configured
       return NextResponse.json({
         id: '1',
@@ -33,7 +34,8 @@ export async function GET(
         rank: 999,
         privacyLevel: 'public',
         allowDataExport: true,
-        allowAnalytics: true
+        allowAnalytics: true,
+        _warning: 'Database not configured - profile data will not persist'
       });
     }
     
@@ -118,23 +120,14 @@ export async function PUT(
   try {
     // Check if database is configured
     if (!isSupabaseConfigured) {
-      // Return a success response with default profile if database is not configured
-      return NextResponse.json({
-        id: '1',
-        walletAddress: walletAddress,
-        username: updates.username || walletAddress.slice(0, 8) + '...',
-        bio: updates.bio || '',
-        profilePictureUrl: updates.profilePictureUrl || '',
-        bannerImageUrl: updates.bannerImageUrl || '',
-        socials: updates.socials || {},
-        referralCode: (updates.username || walletAddress.slice(0, 8)).toUpperCase(),
-        totalReferrals: 0,
-        totalPoints: 0,
-        rank: 999,
-        privacyLevel: updates.privacyLevel || 'public',
-        allowDataExport: updates.allowDataExport ?? true,
-        allowAnalytics: updates.allowAnalytics ?? true
-      });
+      console.error('❌ Supabase not configured - profile save will not persist');
+      return NextResponse.json(
+        { 
+          error: 'Database not configured. Please set up Supabase environment variables.',
+          details: 'Missing NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, or SUPABASE_SERVICE_ROLE_KEY'
+        },
+        { status: 503 }
+      );
     }
     
     // Check username uniqueness if username is being updated

@@ -87,6 +87,11 @@ export default function CompleteProfileManager({
             allowAnalytics: userProfile.allowAnalytics ?? true
           });
           logger.log('Profile loaded from database:', userProfile.username);
+          
+          // Show warning if database is not configured
+          if (userProfile._warning) {
+            logger.warn('Database warning:', userProfile._warning);
+          }
         } else {
           // Create new profile if none exists
           const newProfile: UserProfile = {
@@ -240,6 +245,12 @@ export default function CompleteProfileManager({
         const errorData = await response.json();
         if (errorData.error?.includes('username')) {
           setErrors({ username: 'Username is already taken' });
+          setSaving(false);
+          return;
+        }
+        if (response.status === 503) {
+          // Database not configured
+          alert(`❌ Database not configured!\n\n${errorData.error}\n\nPlease set up your Supabase environment variables in .env.local file.`);
           setSaving(false);
           return;
         }
