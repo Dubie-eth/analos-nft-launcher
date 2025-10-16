@@ -215,12 +215,12 @@ export default function CompleteProfileManager({
           
           {/* Banner Upload - Mobile Optimized */}
           <div className="absolute top-2 right-2">
-            <div className="bg-white bg-opacity-90 rounded-lg p-2">
+            <div className="bg-white bg-opacity-90 rounded-lg p-1">
               <ProfilePictureUpload
                 currentImage={profile.bannerImageUrl}
                 type="banner"
                 onUploadComplete={handleBannerUpload}
-                className="w-20 h-12"
+                className=""
               />
             </div>
           </div>
@@ -230,12 +230,12 @@ export default function CompleteProfileManager({
         <div className="px-4 pb-4">
           {/* Profile Picture - Centered */}
           <div className="flex justify-center -mt-12 mb-4">
-            <div className="bg-white rounded-full p-2 shadow-lg">
+            <div className="bg-white rounded-full p-1 shadow-lg">
               <ProfilePictureUpload
                 currentImage={profile.profilePictureUrl}
                 type="profile"
                 onUploadComplete={handleProfilePictureUpload}
-                className="w-24 h-24"
+                className=""
               />
             </div>
           </div>

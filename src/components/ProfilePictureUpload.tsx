@@ -105,10 +105,10 @@ export default function ProfilePictureUpload({
       {/* Upload Area */}
       <div
         className={`
-          relative border-2 border-dashed rounded-lg p-4 text-center transition-colors
+          relative border-2 border-dashed rounded-lg text-center transition-colors
           ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
-          ${isProfile ? 'w-full h-full' : 'w-full h-full'}
+          ${isProfile ? 'w-24 h-24' : 'w-20 h-12'}
         `}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -134,22 +134,11 @@ export default function ProfilePictureUpload({
                 ${isProfile ? 'rounded-full' : 'rounded-lg'}
               `}
             />
-            {!uploading && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeImage();
-                }}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-              >
-                ×
-              </button>
-            )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full p-2">
             <svg
-              className="w-8 h-8 text-gray-400 mb-2"
+              className="w-6 h-6 text-gray-400 mb-1"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -158,14 +147,11 @@ export default function ProfilePictureUpload({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            <p className="text-xs text-gray-600 mb-1">
-              {isProfile ? 'Upload Picture' : 'Upload Banner'}
-            </p>
-            <p className="text-xs text-gray-500">
-              Tap to browse
+            <p className="text-xs text-gray-600 text-center">
+              {isProfile ? 'Add Photo' : 'Add Banner'}
             </p>
           </div>
         )}
@@ -201,12 +187,6 @@ export default function ProfilePictureUpload({
         </div>
       )}
 
-      {/* Upload Tips */}
-      <div className="text-xs text-gray-500 space-y-1">
-        <p>• Supported formats: JPEG, PNG, GIF, WebP</p>
-        <p>• {isProfile ? 'Square images work best for profile pictures' : 'Wide images work best for banners'}</p>
-        <p>• Images are automatically optimized for web</p>
-      </div>
     </div>
   );
 }
