@@ -124,8 +124,8 @@ export default function PublicProfileDisplay({
           };
 
           // Calculate portfolio value
-          const nftValue = enhancedProfile.nfts?.reduce((sum: number, nft) => sum + (nft.price || 0), 0) || 0;
-          const tokenValue = enhancedProfile.tokens?.reduce((sum: number, token) => sum + (token.balance * token.price), 0) || 0;
+          const nftValue = enhancedProfile.nfts?.reduce((sum: number, nft: NFT) => sum + (nft.price || 0), 0) || 0;
+          const tokenValue = enhancedProfile.tokens?.reduce((sum: number, token: Token) => sum + (token.balance * token.price), 0) || 0;
           enhancedProfile.totalPortfolioValue = nftValue + tokenValue;
 
           setProfile(enhancedProfile);
