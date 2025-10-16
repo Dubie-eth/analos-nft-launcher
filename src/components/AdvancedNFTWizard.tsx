@@ -233,24 +233,35 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload Trait Images</h3>
               <p className="text-gray-600 mb-4">Upload your trait images using either method below:</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">📁 Method 1: Folder Structure</h4>
+                  <h4 className="font-medium text-blue-800 mb-2">📁 Method 1: Folder Upload</h4>
                   <div className="text-sm text-blue-700 space-y-1">
-                    <div><strong>Background/blue.png</strong> → Layer: "Background", Trait: "blue"</div>
-                    <div><strong>Eyes/red.png</strong> → Layer: "Eyes", Trait: "red"</div>
-                    <div><strong>Hat/cap.png</strong> → Layer: "Hat", Trait: "cap"</div>
-                    <div><strong>Clothing/shirt.png</strong> → Layer: "Clothing", Trait: "shirt"</div>
+                    <div><strong>LosBros/Background/blue.png</strong></div>
+                    <div><strong>LosBros/Eyes/red.png</strong></div>
+                    <div><strong>LosBros/Hat/cap.png</strong></div>
+                    <div><strong>LosBros/Clothing/shirt.png</strong></div>
+                  </div>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h4 className="font-medium text-purple-800 mb-2">📦 Method 2: ZIP Upload</h4>
+                  <div className="text-sm text-purple-700 space-y-1">
+                    <div><strong>LosBros.zip</strong> containing:</div>
+                    <div>• Background/ folder</div>
+                    <div>• Eyes/ folder</div>
+                    <div>• Hat/ folder</div>
+                    <div>• Clothing/ folder</div>
                   </div>
                 </div>
                 
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-medium text-green-800 mb-2">📝 Method 2: File Naming</h4>
+                  <h4 className="font-medium text-green-800 mb-2">📝 Method 3: File Naming</h4>
                   <div className="text-sm text-green-700 space-y-1">
-                    <div><strong>Background_blue.png</strong> → Layer: "Background", Trait: "blue"</div>
-                    <div><strong>Eyes_red.png</strong> → Layer: "Eyes", Trait: "red"</div>
-                    <div><strong>Hat_cap.png</strong> → Layer: "Hat", Trait: "cap"</div>
-                    <div><strong>Clothing_shirt.png</strong> → Layer: "Clothing", Trait: "shirt"</div>
+                    <div><strong>Background_blue.png</strong></div>
+                    <div><strong>Eyes_red.png</strong></div>
+                    <div><strong>Hat_cap.png</strong></div>
+                    <div><strong>Clothing_shirt.png</strong></div>
                   </div>
                 </div>
               </div>
@@ -263,7 +274,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
             >
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg font-medium text-gray-700 mb-2">
-                Drag and drop your trait folders or images here
+                Drag and drop your trait folders, ZIP files, or images here
               </p>
               <p className="text-gray-500 mb-4">or</p>
               <button
@@ -271,19 +282,19 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
                 disabled={uploading}
               >
-                {uploading ? 'Uploading...' : 'Choose Folders/Files'}
+                {uploading ? 'Uploading...' : 'Choose Folders/ZIP/Files'}
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/*,.zip"
                 {...({ webkitdirectory: "" } as any)}
                 onChange={handleFileInputChange}
                 className="hidden"
               />
               <p className="text-sm text-gray-500 mt-4">
-                Supported formats: PNG, JPG, GIF. Max 10MB per file.
+                Supported formats: PNG, JPG, GIF, ZIP. Max 10MB per file.
               </p>
             </div>
             
