@@ -669,25 +669,26 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 Cancel
               </button>
             
-            {currentStep < totalSteps ? (
-              <button
-                onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                onClick={() => onComplete({
-                  ...collectionConfig,
-                  layers,
-                  timestamp: new Date().toISOString()
-                })}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                Deploy Collection
-              </button>
-            )}
+              {currentStep < totalSteps ? (
+                <button
+                  onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={() => onComplete({
+                    ...collectionConfig,
+                    layers,
+                    timestamp: new Date().toISOString()
+                  })}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Deploy Collection
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

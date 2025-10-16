@@ -28,14 +28,40 @@ interface UserCollection {
   ownedCount: number;
 }
 
+interface CreatorReward {
+  id: string;
+  reward_type: string;
+  amount: number;
+  token_symbol: string;
+  status: string;
+  created_at: string;
+  saved_collections: {
+    collection_name: string;
+    collection_symbol: string;
+  };
+}
+
+interface RewardsSummary {
+  total_claimable: number;
+  total_claimed: number;
+  pending_rewards: number;
+}
+
 export default function ProfilePage() {
   const { publicKey, connected, disconnect } = useWallet();
   const { connection } = useConnection();
   const [solBalance, setSolBalance] = useState(0);
   const [uiNFTs, setUiNFTs] = useState<UserNFT[]>([]);
   const [uiCollections, setUiCollections] = useState<UserCollection[]>([]);
+  const [rewards, setRewards] = useState<CreatorReward[]>([]);
+  const [rewardsSummary, setRewardsSummary] = useState<RewardsSummary>({
+    total_claimable: 0,
+    total_claimed: 0,
+    pending_rewards: 0
+  });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'activity' | 'edit'>('overview');
+  const [claiming, setClaiming] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit'>('overview');
   const [exampleData, setExampleData] = useState<any>(null);
 
   // Load user data
@@ -81,6 +107,32 @@ export default function ProfilePage() {
         setUiNFTs([]);
         console.log('✅ Processed', 0, 'NFTs from our program');
 
+        // Load saved collections
+        const collectionsResponse = await fetch(`/api/collections/save?userWallet=${publicKey.toString()}`);
+        const collectionsData = await collectionsResponse.json();
+        
+        if (collectionsData.success) {
+          setUiCollections(collectionsData.collections.map((col: any) => ({
+            name: col.collection_name,
+            symbol: col.collection_symbol,
+            description: col.description,
+            image: '/api/placeholder/300/300',
+            floorPrice: 0,
+            volume24h: 0,
+            totalSupply: col.total_supply,
+            ownedCount: 0
+          })));
+        }
+
+        // Load creator rewards
+        const rewardsResponse = await fetch(`/api/rewards?userWallet=${publicKey.toString()}`);
+        const rewardsData = await rewardsResponse.json();
+        
+        if (rewardsData.success) {
+          setRewards(rewardsData.rewards);
+          setRewardsSummary(rewardsData.summary);
+        }
+
       } catch (error) {
         console.error('❌ Error loading user data:', error);
       } finally {
@@ -102,10 +154,48 @@ export default function ProfilePage() {
     );
   }
 
+  const handleClaimRewards = async () => {
+    if (!publicKey) return;
+
+    setClaiming(true);
+    try {
+      const claimableRewards = rewards.filter(r => r.status === 'claimable');
+      const rewardIds = claimableRewards.map(r => r.id);
+
+      const response = await fetch('/api/rewards/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userWallet: publicKey.toString(),
+          rewardIds: rewardIds,
+          txSignature: 'placeholder-tx-signature' // In real implementation, this would be the actual transaction signature
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`Successfully claimed ${result.totalClaimed} tokens!`);
+        // Reload data
+        window.location.reload();
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error claiming rewards:', error);
+      alert('Failed to claim rewards');
+    } finally {
+      setClaiming(false);
+    }
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '⭐' },
     { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
+    { id: 'rewards', label: `Rewards (${rewards.length})`, icon: '💰' },
     { id: 'activity', label: 'Activity', icon: '📊' },
     { id: 'edit', label: 'Edit Profile', icon: '✏️' }
   ];
@@ -271,6 +361,100 @@ export default function ProfilePage() {
                   <p className="text-gray-300">Create your first collection to get started!</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'rewards' && (
+            <div className="space-y-6">
+              {/* Rewards Summary */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h2 className="text-2xl font-bold text-white mb-6">💰 Creator Rewards</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-400 mb-2">
+                      {rewardsSummary.total_claimable.toFixed(2)}
+                    </div>
+                    <div className="text-gray-300">Claimable (LOS)</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-400 mb-2">
+                      {rewardsSummary.total_claimed.toFixed(2)}
+                    </div>
+                    <div className="text-gray-300">Total Claimed (LOS)</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-400 mb-2">
+                      {rewardsSummary.pending_rewards.toFixed(2)}
+                    </div>
+                    <div className="text-gray-300">Pending (LOS)</div>
+                  </div>
+                </div>
+                
+                {rewardsSummary.total_claimable > 0 && (
+                  <div className="text-center">
+                    <button
+                      onClick={handleClaimRewards}
+                      disabled={claiming}
+                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {claiming ? 'Claiming...' : `Claim ${rewardsSummary.total_claimable.toFixed(2)} LOS`}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Rewards List */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h3 className="text-xl font-bold text-white mb-4">Rewards History</h3>
+                {rewards.length > 0 ? (
+                  <div className="space-y-4">
+                    {rewards.map((reward) => (
+                      <div key={reward.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                              <span className="text-2xl">💰</span>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-white capitalize">
+                                {reward.reward_type.replace('_', ' ')} Reward
+                              </h4>
+                              <p className="text-sm text-gray-300">
+                                From: {reward.saved_collections.collection_name}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-white">
+                              {reward.amount.toFixed(4)} {reward.token_symbol}
+                            </div>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              reward.status === 'claimable' 
+                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
+                                : reward.status === 'claimed'
+                                ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
+                                : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
+                            }`}>
+                              {reward.status}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 text-xs text-gray-400">
+                          Created: {new Date(reward.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">💰</div>
+                    <h4 className="text-lg font-semibold text-white mb-2">No Rewards Yet</h4>
+                    <p className="text-gray-300">Rewards will appear here when your collections generate sales and fees.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
