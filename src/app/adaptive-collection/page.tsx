@@ -7,10 +7,12 @@
 
 import React, { useState, useEffect } from 'react';
 import AdaptiveNFTCard from '@/components/AdaptiveNFTCard';
+import SecurityConsent from '@/components/SecurityConsent';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function AdaptiveCollectionPage() {
   const { publicKey, connected } = useWallet();
+  const [hasConsented, setHasConsented] = useState(false);
   const [collectionStats, setCollectionStats] = useState({
     totalSupply: 2222,
     minted: 156,
@@ -46,6 +48,23 @@ export default function AdaptiveCollectionPage() {
     }
   ];
 
+  useEffect(() => {
+    // Check if user has previously consented
+    const consent = localStorage.getItem('adaptive_nft_consent');
+    if (consent === 'true') {
+      setHasConsented(true);
+    }
+  }, []);
+
+  const handleConsent = () => {
+    localStorage.setItem('adaptive_nft_consent', 'true');
+    setHasConsented(true);
+  };
+
+  const handleDecline = () => {
+    alert('You must consent to use Adaptive NFTs. Your wallet is completely safe - we only read public blockchain data.');
+  };
+
   const handleWalletAnalysis = () => {
     if (!selectedWallet.trim()) return;
     
@@ -53,6 +72,20 @@ export default function AdaptiveCollectionPage() {
     console.log('Analyzing wallet:', selectedWallet);
     alert(`Analyzing wallet: ${selectedWallet.slice(0, 8)}...`);
   };
+
+  // Show security consent first
+  if (connected && !hasConsented) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <SecurityConsent 
+            onAccept={handleConsent} 
+            onDecline={handleDecline} 
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (!connected) {
     return (

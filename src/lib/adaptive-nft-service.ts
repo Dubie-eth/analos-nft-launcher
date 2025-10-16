@@ -80,16 +80,67 @@ interface NFTAdaptation {
 class AdaptiveNFTService {
   private nfts: Map<string, AdaptiveNFTState> = new Map();
   private webhookEndpoints: Map<string, string> = new Map();
+  private rateLimiter: Map<string, { count: number; resetTime: number }> = new Map();
+  
+  // SECURITY: Rate limiting configuration
+  private readonly MAX_REQUESTS_PER_HOUR = 100;
+  private readonly COOLDOWN_SECONDS = 60;
 
   constructor() {
     // Initialize webhook endpoints for different collections
     this.webhookEndpoints.set('analos_adaptive_collection', '/api/webhooks/adaptive-nft');
+    
+    // SECURITY: Log service initialization
+    console.log('🔒 Adaptive NFT Service initialized with security measures:');
+    console.log('   ✅ Read-only blockchain access');
+    console.log('   ✅ No wallet signing capabilities');
+    console.log('   ✅ Public data analysis only');
+    console.log(`   ✅ Rate limit: ${this.MAX_REQUESTS_PER_HOUR} requests/hour`);
+  }
+
+  /**
+   * SECURITY: Check rate limit before processing
+   */
+  private checkRateLimit(walletAddress: string): boolean {
+    const now = Date.now();
+    const limiter = this.rateLimiter.get(walletAddress);
+
+    if (!limiter || now > limiter.resetTime) {
+      // Reset or initialize rate limit
+      this.rateLimiter.set(walletAddress, {
+        count: 1,
+        resetTime: now + (60 * 60 * 1000) // 1 hour
+      });
+      return true;
+    }
+
+    if (limiter.count >= this.MAX_REQUESTS_PER_HOUR) {
+      console.warn(`⚠️ Rate limit exceeded for wallet: ${walletAddress.slice(0, 8)}...`);
+      return false;
+    }
+
+    limiter.count++;
+    return true;
   }
 
   /**
    * Analyze a wallet and create personality profile
+   * SECURITY: This function ONLY reads PUBLIC blockchain data
+   * NO wallet signatures required, NO private keys accessed
    */
   async analyzeWallet(walletAddress: string): Promise<WalletAnalysis> {
+    // SECURITY: Rate limiting
+    if (!this.checkRateLimit(walletAddress)) {
+      throw new Error('Rate limit exceeded. Please try again later.');
+    }
+
+    // SECURITY: Validate wallet address format
+    if (!this.isValidSolanaAddress(walletAddress)) {
+      throw new Error('Invalid Solana wallet address');
+    }
+
+    console.log(`🔍 Analyzing wallet (READ-ONLY): ${walletAddress.slice(0, 8)}...`);
+    
     try {
       // Fetch wallet data from multiple sources
       const [nftData, tokenData, tradingData] = await Promise.all([
@@ -550,6 +601,22 @@ class AdaptiveNFTService {
     }, {} as Record<string, number>);
 
     return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b) as T;
+  }
+
+  /**
+   * SECURITY: Validate Solana wallet address format
+   */
+  private isValidSolanaAddress(address: string): boolean {
+    // Solana addresses are 32-44 characters, base58 encoded
+    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return base58Regex.test(address);
+  }
+
+  /**
+   * SECURITY: Sanitize user input
+   */
+  private sanitizeInput(input: string): string {
+    return input.trim().slice(0, 1000); // Max 1000 chars
   }
 
   // Public API methods
