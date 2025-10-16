@@ -16,10 +16,10 @@ export const EXCLUSIVE_COLLECTION_CONFIG = {
   platformReserve: 222,
   
   // Pricing Configuration
-  whitelistPrice: 0, // FREE for LOL holders
-  mintingCost: 0.01, // Just gas fees
-  bondingCurveStart: 0.1, // SOL
-  bondingCurveEnd: 1.0, // SOL
+  whitelistPrice: 0, // FREE for first mint (1M+ ANAL holders)
+  additionalMintPrice: 4200.69, // LOS tokens for additional mints
+  bondingCurveStart: 4200.69, // LOS tokens
+  bondingCurveEnd: 42000.69, // LOS tokens
   
   // Reveal Configuration
   preRevealImage: "https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm",
@@ -62,37 +62,39 @@ export const EXCLUSIVE_COLLECTION_CONFIG = {
   // Bonding Curve Configuration
   bondingCurve: {
     enabled: true,
+    token: "LOS", // All prices in LOS tokens
     phases: [
       {
         name: "Whitelist",
         startMint: 0,
         endMint: 100,
-        price: 0, // FREE
-        description: "FREE for 1M+ LOL holders"
+        price: 0, // FREE for first mint if 1M+ ANAL holders
+        additionalPrice: 4200.69, // LOS for additional mints
+        description: "First mint FREE for 1M+ ANAL holders, 4,200.69 LOS for additional"
       },
       {
         name: "Early Public",
         startMint: 100,
         endMint: 600,
-        priceStart: 0.1,
-        priceEnd: 0.3,
-        description: "Early bird pricing"
+        priceStart: 4200.69,
+        priceEnd: 14000,
+        description: "Early bird pricing in LOS tokens"
       },
       {
         name: "Mid Public",
         startMint: 600,
         endMint: 1400,
-        priceStart: 0.3,
-        priceEnd: 0.6,
-        description: "Mid-tier pricing"
+        priceStart: 14000,
+        priceEnd: 28000,
+        description: "Mid-tier pricing in LOS tokens"
       },
       {
         name: "Late Public",
         startMint: 1400,
-        endMint: 1900,
-        priceStart: 0.6,
-        priceEnd: 1.0,
-        description: "Premium pricing"
+        endMint: 2000,
+        priceStart: 28000,
+        priceEnd: 42000.69,
+        description: "Premium pricing in LOS tokens"
       }
     ]
   },
