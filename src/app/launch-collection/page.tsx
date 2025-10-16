@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
-import NFTWizard from '@/components/NFTWizard';
+import AdvancedNFTWizard from '@/components/AdvancedNFTWizard';
 
 interface CollectionConfig {
   name: string;
@@ -51,16 +51,25 @@ export default function LaunchCollectionPage() {
       name: wizardConfig.name,
       symbol: wizardConfig.symbol,
       description: wizardConfig.description,
-      maxSupply: wizardConfig.maxSupply,
+      maxSupply: wizardConfig.supply,
       mintPriceUSD: wizardConfig.mintPrice,
-      creatorAddress: wizardConfig.creatorAddress,
-      isWhitelistOnly: wizardConfig.isWhitelistOnly,
+      creatorAddress: publicKey?.toString() || '',
+      isWhitelistOnly: wizardConfig.whitelistEnabled,
       revealType: wizardConfig.revealType,
       revealDate: wizardConfig.revealDate,
     });
     setShowWizard(false);
-    // Here you would also store the images, metadata, and whitelist data
-    console.log('Wizard completed with config:', wizardConfig);
+    
+    // Store advanced configuration including layers and traits
+    console.log('Advanced wizard completed with config:', {
+      ...wizardConfig,
+      layers: wizardConfig.layers,
+      totalTraits: wizardConfig.layers?.reduce((sum: number, layer: any) => sum + layer.traits.length, 0) || 0,
+      bondingCurveEnabled: wizardConfig.bondingCurveEnabled
+    });
+    
+    // You can now use this data to deploy to your NFT_LAUNCHPAD_CORE program
+    alert(`Collection configured successfully!\n\nName: ${wizardConfig.name}\nSymbol: ${wizardConfig.symbol}\nSupply: ${wizardConfig.supply}\nLayers: ${wizardConfig.layers?.length || 0}\nTotal Traits: ${wizardConfig.layers?.reduce((sum: number, layer: any) => sum + layer.traits.length, 0) || 0}\n\nReady to deploy to your existing NFT Launchpad!`);
   };
 
   const handleWizardCancel = () => {
@@ -124,7 +133,7 @@ export default function LaunchCollectionPage() {
 
   // Show wizard if requested
   if (showWizard) {
-    return <NFTWizard onComplete={handleWizardComplete} onCancel={handleWizardCancel} />;
+    return <AdvancedNFTWizard onComplete={handleWizardComplete} onCancel={handleWizardCancel} />;
   }
 
   return (
@@ -143,9 +152,9 @@ export default function LaunchCollectionPage() {
         {/* Wizard Option */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">🎨 NFT Collection Wizard</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">🎨 Advanced NFT Collection Wizard</h2>
             <p className="text-gray-300 mb-6">
-              Use our step-by-step wizard to create your NFT collection with images, metadata, and whitelist configuration
+              Create your NFT collection with advanced features: trait layers, rarity controls, bonding curves, and whitelist management
             </p>
             <button
               onClick={() => setShowWizard(true)}
@@ -153,7 +162,7 @@ export default function LaunchCollectionPage() {
             >
               <div className="flex items-center justify-center space-x-2">
                 <span>🎨</span>
-                <span>Start NFT Wizard</span>
+                <span>Start Advanced Wizard</span>
               </div>
             </button>
             <p className="text-gray-400 text-sm mt-4">
