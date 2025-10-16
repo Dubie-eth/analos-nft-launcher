@@ -231,15 +231,27 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           <div className="space-y-6">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload Trait Images</h3>
-              <p className="text-gray-600 mb-4">Upload your trait images. Use the naming convention: <strong>LayerName_TraitName.png</strong></p>
+              <p className="text-gray-600 mb-4">Upload your trait images using either method below:</p>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-blue-800 mb-2">📝 Naming Convention Examples:</h4>
-                <div className="text-sm text-blue-700 space-y-1">
-                  <div><strong>Background_blue.png</strong> → Layer: "Background", Trait: "blue"</div>
-                  <div><strong>Eyes_red.png</strong> → Layer: "Eyes", Trait: "red"</div>
-                  <div><strong>Hat_cap.png</strong> → Layer: "Hat", Trait: "cap"</div>
-                  <div><strong>Clothing_shirt.png</strong> → Layer: "Clothing", Trait: "shirt"</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-800 mb-2">📁 Method 1: Folder Structure</h4>
+                  <div className="text-sm text-blue-700 space-y-1">
+                    <div><strong>Background/blue.png</strong> → Layer: "Background", Trait: "blue"</div>
+                    <div><strong>Eyes/red.png</strong> → Layer: "Eyes", Trait: "red"</div>
+                    <div><strong>Hat/cap.png</strong> → Layer: "Hat", Trait: "cap"</div>
+                    <div><strong>Clothing/shirt.png</strong> → Layer: "Clothing", Trait: "shirt"</div>
+                  </div>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-medium text-green-800 mb-2">📝 Method 2: File Naming</h4>
+                  <div className="text-sm text-green-700 space-y-1">
+                    <div><strong>Background_blue.png</strong> → Layer: "Background", Trait: "blue"</div>
+                    <div><strong>Eyes_red.png</strong> → Layer: "Eyes", Trait: "red"</div>
+                    <div><strong>Hat_cap.png</strong> → Layer: "Hat", Trait: "cap"</div>
+                    <div><strong>Clothing_shirt.png</strong> → Layer: "Clothing", Trait: "shirt"</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -251,7 +263,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
             >
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg font-medium text-gray-700 mb-2">
-                Drag and drop your NFT images here
+                Drag and drop your trait folders or images here
               </p>
               <p className="text-gray-500 mb-4">or</p>
               <button
@@ -259,13 +271,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
                 disabled={uploading}
               >
-                {uploading ? 'Uploading...' : 'Choose Files'}
+                {uploading ? 'Uploading...' : 'Choose Folders/Files'}
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
                 accept="image/*"
+                {...({ webkitdirectory: "" } as any)}
                 onChange={handleFileInputChange}
                 className="hidden"
               />

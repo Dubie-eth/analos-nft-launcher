@@ -91,10 +91,18 @@ export class LayerProcessor {
   /**
    * Extract layer name from file path
    * Supports formats like: "Background_blue.png", "Eyes_red.png", "Hat_cap.png"
+   * Also supports folder structures like: "Background/blue.png", "Eyes/red.png"
    */
   private extractLayerName(filePath: string): string {
-    const fileName = filePath.split('/').pop() || filePath;
+    const pathParts = filePath.split('/');
+    const fileName = pathParts.pop() || filePath;
     const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+    
+    // If file is in a folder, use folder name as layer name
+    if (pathParts.length > 0) {
+      const folderName = pathParts[pathParts.length - 1];
+      return folderName.charAt(0).toUpperCase() + folderName.slice(1).toLowerCase();
+    }
     
     // Split by underscore and take the first part as layer name
     const parts = nameWithoutExt.split('_');
@@ -109,10 +117,17 @@ export class LayerProcessor {
   /**
    * Extract trait name from file path
    * Supports formats like: "Background_blue.png", "Eyes_red.png", "Hat_cap.png"
+   * Also supports folder structures like: "Background/blue.png", "Eyes/red.png"
    */
   private extractTraitName(filePath: string): string {
-    const fileName = filePath.split('/').pop() || filePath;
+    const pathParts = filePath.split('/');
+    const fileName = pathParts.pop() || filePath;
     const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+    
+    // If file is in a folder, use the filename as trait name
+    if (pathParts.length > 0) {
+      return nameWithoutExt.replace(/_/g, ' ');
+    }
     
     // Split by underscore and take everything after the first underscore as trait name
     const parts = nameWithoutExt.split('_');
