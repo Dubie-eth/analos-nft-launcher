@@ -283,17 +283,17 @@ export default function ProfilePage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Wallet Information</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <span className="text-gray-300">Address:</span>
-                      <code className="text-white font-mono text-sm">
+                      <code className="text-white font-mono text-sm wallet-address text-right break-all max-w-[65%] sm:max-w-none">
                         {publicKey ? publicKey.toString() : 'Not connected'}
                       </code>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <span className="text-gray-300">Network:</span>
                       <span className="text-white">Analos Mainnet</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <span className="text-gray-300">RPC Endpoint:</span>
                       <span className="text-white text-sm">rpc.analos.io</span>
                     </div>
@@ -303,15 +303,15 @@ export default function ProfilePage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Activity Summary</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <span className="text-gray-300">First Mint:</span>
                       <span className="text-white">-</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <span className="text-gray-300">Last Activity:</span>
                       <span className="text-white">-</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-start justify-between gap-3">
                       <span className="text-gray-300">Total Transactions:</span>
                       <span className="text-white">0</span>
                     </div>
