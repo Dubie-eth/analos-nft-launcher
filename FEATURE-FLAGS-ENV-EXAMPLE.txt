@@ -1,0 +1,54 @@
+# FEATURE FLAGS FOR STAGED ROLLOUTS
+# Copy this to .env.local and adjust values for your deployment
+
+# ============================================
+# MARKETING PAGES - Deploy as needed for campaigns
+# ============================================
+
+# New landing page (for A/B testing)
+NEXT_PUBLIC_NEW_LANDING=false
+
+# Enhanced profile system (already implemented)
+NEXT_PUBLIC_ENHANCED_PROFILE=true
+
+# Social features (leaderboard, social links)
+NEXT_PUBLIC_SOCIAL_FEATURES=true
+
+# Leaderboard system
+NEXT_PUBLIC_LEADERBOARD=true
+
+# ============================================
+# EXPERIMENTAL FEATURES - For testing
+# ============================================
+
+# Beta onboarding flow
+NEXT_PUBLIC_BETA_ONBOARDING=false
+
+# Advanced analytics dashboard
+NEXT_PUBLIC_ADVANCED_ANALYTICS=false
+
+# Mobile optimizations
+NEXT_PUBLIC_MOBILE_OPTIMIZATIONS=true
+
+# ============================================
+# CORE FEATURES - NEVER DISABLE
+# ============================================
+# These are hardcoded to true in feature-flags.ts
+# Wallet connection, NFT minting, marketplace, whitelist
+
+# ============================================
+# DEPLOYMENT EXAMPLES
+# ============================================
+
+# For gradual rollout (10% of users):
+# NEXT_PUBLIC_NEW_LANDING=true (for 10% of traffic)
+
+# For A/B testing:
+# NEXT_PUBLIC_NEW_LANDING=true (for test group)
+# NEXT_PUBLIC_NEW_LANDING=false (for control group)
+
+# For full rollout:
+# NEXT_PUBLIC_NEW_LANDING=true (globally)
+
+# For emergency rollback:
+# NEXT_PUBLIC_NEW_LANDING=false (immediately)
