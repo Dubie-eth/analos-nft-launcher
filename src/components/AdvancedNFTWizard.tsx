@@ -3,22 +3,10 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, Plus, Settings, Eye, EyeOff, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
 import AdvancedLayerManager from './AdvancedLayerManager';
+import { LayerProcessor } from '@/lib/layer-processor';
+import { Layer, Trait } from '@/lib/nft-generator';
 
-interface Trait {
-  id: string;
-  name: string;
-  image: string;
-  rarity: number;
-  weight: number;
-}
-
-interface Layer {
-  id: string;
-  name: string;
-  traits: Trait[];
-  visible: boolean;
-  order: number;
-}
+// Trait and Layer interfaces are now imported from @/lib/nft-generator
 
 interface AdvancedNFTWizardProps {
   onComplete: (config: any) => void;
@@ -40,6 +28,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const layerProcessor = useRef(new LayerProcessor());
 
   const totalSteps = 8;
 
@@ -49,61 +38,39 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     setUploading(true);
     
     try {
-      const newTraits: { [layerName: string]: Trait[] } = {};
+      console.log('🔄 Processing uploaded files with LayerProcessor...');
       
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const layerName = file.name.split('_')[0] || 'Default';
-        
-        if (!newTraits[layerName]) {
-          newTraits[layerName] = [];
-        }
-        
-        const trait: Trait = {
-          id: generateId(),
-          name: file.name.replace(/\.[^/.]+$/, ""),
-          image: URL.createObjectURL(file),
-          rarity: 10, // Default rarity
-          weight: 1
-        };
-        
-        newTraits[layerName].push(trait);
-      }
+      // Use the LayerProcessor to properly handle file uploads
+      const processedLayers = await layerProcessor.current.processUploadedFiles(files);
       
-      // Update layers
-      const updatedLayers: Layer[] = [];
-      let order = 0;
+      // Merge with existing layers
+      const existingLayers = [...layers];
+      const newLayers: Layer[] = [];
       
-      for (const [layerName, traits] of Object.entries(newTraits)) {
-        const existingLayer = layers.find(l => l.name === layerName);
+      for (const processedLayer of processedLayers) {
+        const existingLayer = existingLayers.find(l => l.name === processedLayer.name);
         
         if (existingLayer) {
           // Add traits to existing layer
-          existingLayer.traits.push(...traits);
-          updatedLayers.push(existingLayer);
+          existingLayer.traits.push(...processedLayer.traits);
+          newLayers.push(existingLayer);
         } else {
           // Create new layer
-          const newLayer: Layer = {
-            id: generateId(),
-            name: layerName,
-            traits,
-            visible: true,
-            order: order++
-          };
-          updatedLayers.push(newLayer);
+          newLayers.push(processedLayer);
         }
       }
       
       // Add existing layers that weren't updated
-      layers.forEach(layer => {
-        if (!updatedLayers.find(l => l.id === layer.id)) {
-          updatedLayers.push(layer);
+      existingLayers.forEach(layer => {
+        if (!newLayers.find(l => l.id === layer.id)) {
+          newLayers.push(layer);
         }
       });
       
-      setLayers(updatedLayers);
+      setLayers(newLayers);
+      console.log(`✅ Successfully processed ${processedLayers.length} layers`);
     } catch (error) {
-      console.error('Error processing files:', error);
+      console.error('❌ Error processing files:', error);
     } finally {
       setUploading(false);
     }
@@ -264,7 +231,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           <div className="space-y-6">
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload Trait Images</h3>
-              <p className="text-gray-600">Upload your trait images. Name them with layer prefixes (e.g., "Background_blue.png", "Eyes_red.png").</p>
+              <p className="text-gray-600 mb-4">Upload your trait images. Use the naming convention: <strong>LayerName_TraitName.png</strong></p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-blue-800 mb-2">📝 Naming Convention Examples:</h4>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <div><strong>Background_blue.png</strong> → Layer: "Background", Trait: "blue"</div>
+                  <div><strong>Eyes_red.png</strong> → Layer: "Eyes", Trait: "red"</div>
+                  <div><strong>Hat_cap.png</strong> → Layer: "Hat", Trait: "cap"</div>
+                  <div><strong>Clothing_shirt.png</strong> → Layer: "Clothing", Trait: "shirt"</div>
+                </div>
+              </div>
             </div>
             
             <div
