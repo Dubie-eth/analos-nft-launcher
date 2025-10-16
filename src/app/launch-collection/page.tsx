@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import AdvancedNFTWizard from '@/components/AdvancedNFTWizard';
+import AdvancedWhitelistConfig from '@/components/AdvancedWhitelistConfig';
 
 interface CollectionConfig {
   name: string;
@@ -16,6 +17,37 @@ interface CollectionConfig {
   isWhitelistOnly: boolean;
   revealType: 'instant' | 'delayed';
   revealDate?: string;
+  advancedWhitelist?: {
+    enabled: boolean;
+    phases: Array<{
+      id: string;
+      name: string;
+      description: string;
+      startDate: string;
+      endDate: string;
+      maxMintsPerWallet: number;
+      maxTotalMints: number;
+      price: number;
+      priceMultiplier: number;
+      phaseType: 'address' | 'token' | 'social' | 'mixed';
+      tokenRequirements: Array<{
+        tokenMint: string;
+        tokenSymbol: string;
+        minBalance: number;
+        decimals: number;
+      }>;
+      socialRequirements: {
+        twitter?: boolean;
+        discord?: boolean;
+        telegram?: boolean;
+        instagram?: boolean;
+        minFollowers?: number;
+        verifiedAccount?: boolean;
+      };
+      addressWhitelist: string[];
+      isActive: boolean;
+    }>;
+  };
 }
 
 export default function LaunchCollectionPage() {
@@ -353,6 +385,23 @@ export default function LaunchCollectionPage() {
               </div>
             )}
           </div>
+
+          {/* Advanced Whitelist Configuration */}
+          {collectionConfig.isWhitelistOnly && (
+            <div className="mt-8">
+              <AdvancedWhitelistConfig
+                onConfigChange={(config) => {
+                  console.log('Advanced whitelist config:', config);
+                  // Store the advanced whitelist configuration
+                  setCollectionConfig(prev => ({
+                    ...prev,
+                    advancedWhitelist: config
+                  }));
+                }}
+                initialConfig={collectionConfig.advancedWhitelist}
+              />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
