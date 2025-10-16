@@ -39,6 +39,7 @@ export default function Navigation() {
         { href: '/token-lock', label: 'Token Lock', icon: '🔒' },
         { href: '/explorer', label: 'Explorer', icon: '🔍' },
         { href: '/profile', label: 'Profile', icon: '👤' },
+        { href: '/created', label: 'My Collections', icon: '📦' },
             { href: '/adaptive-collection', label: 'Adaptive NFTs', icon: '🧬' },
             { href: '/living-portfolio', label: 'Living Portfolio', icon: '🚀' },
       ];

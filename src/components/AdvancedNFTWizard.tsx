@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, Plus, Settings, Eye, EyeOff, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
+import { Upload, X, Plus, Settings, Eye, EyeOff, ArrowUp, ArrowDown, Trash2, Save } from 'lucide-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import AdvancedLayerManager from './AdvancedLayerManager';
 import { LayerProcessor } from '@/lib/layer-processor';
 import { Layer, Trait } from '@/lib/nft-generator';
@@ -14,6 +15,7 @@ interface AdvancedNFTWizardProps {
 }
 
 export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTWizardProps) {
+  const { publicKey } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
   const [layers, setLayers] = useState<Layer[]>([]);
   const [collectionConfig, setCollectionConfig] = useState({
@@ -27,6 +29,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     bondingCurveEnabled: false
   });
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -94,6 +98,62 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       handleFileUpload(files);
     }
   }, [handleFileUpload]);
+
+  const handleSaveCollection = async () => {
+    if (!publicKey) {
+      setSaveMessage('Please connect your wallet to save collections');
+      return;
+    }
+
+    if (!collectionConfig.name || !collectionConfig.symbol) {
+      setSaveMessage('Please fill in collection name and symbol');
+      return;
+    }
+
+    setSaving(true);
+    setSaveMessage('');
+
+    try {
+      const response = await fetch('/api/collections/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userWallet: publicKey.toString(),
+          collectionName: collectionConfig.name,
+          collectionSymbol: collectionConfig.symbol,
+          description: collectionConfig.description,
+          totalSupply: collectionConfig.supply,
+          mintPrice: collectionConfig.mintPrice,
+          revealType: collectionConfig.revealType,
+          revealDate: collectionConfig.revealType === 'delayed' ? new Date().toISOString() : null,
+          whitelistEnabled: collectionConfig.whitelistEnabled,
+          bondingCurveEnabled: collectionConfig.bondingCurveEnabled,
+          layers: layers,
+          collectionConfig: {
+            ...collectionConfig,
+            layers: layers,
+            timestamp: new Date().toISOString()
+          }
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSaveMessage('✅ Collection saved successfully!');
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        setSaveMessage(`❌ Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error saving collection:', error);
+      setSaveMessage('❌ Failed to save collection');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const updateTrait = (layerId: string, traitId: string, updates: Partial<Trait>) => {
     setLayers(prev => prev.map(layer => 
@@ -570,22 +630,44 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         </div>
 
         {/* Footer */}
-        <div className="theme-accent px-6 py-4 border-t border-gray-200 dark:border-gray-600 flex justify-between">
-          <button
-            onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-            disabled={currentStep === 1}
-            className="px-4 py-2 theme-text-secondary border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Previous
-          </button>
+        <div className="theme-accent px-6 py-4 border-t border-gray-200 dark:border-gray-600">
+          {/* Save Message */}
+          {saveMessage && (
+            <div className={`mb-4 p-3 rounded-lg text-sm ${
+              saveMessage.includes('✅') 
+                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300' 
+                : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
+            }`}>
+              {saveMessage}
+            </div>
+          )}
           
-          <div className="flex gap-2">
+          <div className="flex justify-between items-center">
             <button
-              onClick={onCancel}
-              className="px-4 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+              disabled={currentStep === 1}
+              className="px-4 py-2 theme-text-secondary border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Cancel
+              Previous
             </button>
+            
+            <div className="flex gap-2">
+              {/* Save Button */}
+              <button
+                onClick={handleSaveCollection}
+                disabled={saving || !collectionConfig.name || !collectionConfig.symbol}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Saving...' : 'Save Draft'}
+              </button>
+              
+              <button
+                onClick={onCancel}
+                className="px-4 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                Cancel
+              </button>
             
             {currentStep < totalSteps ? (
               <button
