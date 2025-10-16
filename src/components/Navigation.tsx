@@ -38,6 +38,7 @@ export default function Navigation() {
         { href: '/token-lock', label: 'Token Lock', icon: '🔒' },
         { href: '/explorer', label: 'Explorer', icon: '🔍' },
         { href: '/profile', label: 'Profile', icon: '👤' },
+        { href: '/adaptive-collection', label: 'Adaptive NFTs', icon: '🧬' },
       ];
 
   // Admin-only navigation items

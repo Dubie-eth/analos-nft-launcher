@@ -3,6 +3,7 @@
 import React, { FC, ReactNode, useMemo, useState, useEffect } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 
 // Default styles that can be overridden by your app
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -23,13 +24,16 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
       
       // Only log once in development to reduce console spam
       if (process.env.NODE_ENV === 'development' && !(window as any).walletAPILogged) {
-        console.log('🔧 Using Standard Wallet API (supports Backpack automatically)');
+        console.log('🔧 Configuring explicit wallet adapters for better mobile support');
         (window as any).walletAPILogged = true;
       }
       
-      // Return empty array to use Standard Wallet API
-      // This supports Backpack, Phantom, Solflare, and all Standard Wallet API wallets
-      return [];
+      // Configure wallets for mobile support
+      // Backpack uses Standard Wallet API, so we don't need explicit adapter
+      return [
+        new PhantomWalletAdapter(),
+        new SolflareWalletAdapter(),
+      ];
     },
     []
   );
@@ -60,6 +64,14 @@ export const WalletContextProvider: FC<Props> = ({ children }) => {
         autoConnect={false}
         onError={(error) => {
           console.error('❌ Wallet error:', error);
+          // Enhanced mobile error handling
+          if (error.message?.includes('User rejected')) {
+            console.log('👤 User rejected wallet connection');
+          } else if (error.message?.includes('backpack')) {
+            console.error('🚨 Backpack-specific error:', error);
+          } else {
+            console.error('🚨 General wallet error:', error);
+          }
         }}
       >
         <WalletModalProvider>
