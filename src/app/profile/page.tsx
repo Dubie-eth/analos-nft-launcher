@@ -273,10 +273,13 @@ export default function ProfilePage() {
 
         {/* Tab Content */}
         {activeTab === 'profile' && (
-          <CompleteProfileManager
-            userWallet={publicKey?.toString() || ''}
-            className="profile-manager"
-          />
+          <>
+            {console.log('🔍 Profile page rendering CompleteProfileManager with wallet:', publicKey?.toString() || '')}
+            <CompleteProfileManager
+              userWallet={publicKey?.toString() || ''}
+              className="profile-manager"
+            />
+          </>
         )}
 
         {activeTab === 'overview' && (

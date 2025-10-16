@@ -70,9 +70,12 @@ export default function CompleteProfileManager({
 
   // Load user profile
   useEffect(() => {
+    console.log('🔍 CompleteProfileManager useEffect triggered with userWallet:', userWallet);
+    
     const loadProfile = async () => {
       setLoading(true);
       try {
+        console.log('🔄 Loading profile for wallet:', userWallet);
         // Load profile from database
         const response = await fetch(`/api/user-profiles/${userWallet}`);
         
