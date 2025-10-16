@@ -5,6 +5,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import CompleteProfileManager from '@/components/CompleteProfileManager';
+import { getFreshExample } from '@/lib/wallet-examples';
 
 interface UserNFT {
   mint: string;
@@ -53,9 +54,13 @@ export default function ProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'activity' | 'profile'>('overview');
+  const [exampleData, setExampleData] = useState<any>(null);
 
   // Load user data
   useEffect(() => {
+    // Generate fresh example data each time
+    setExampleData(getFreshExample(publicKey?.toString()));
+    
     const loadUserData = async () => {
       if (!connected || !publicKey) {
         setLoading(false);
@@ -187,7 +192,7 @@ export default function ProfilePage() {
                   <div className="text-gray-300">
                     <span className="font-medium">Wallet:</span>
                     <code className="ml-2 font-mono text-sm bg-gray-800/50 px-2 py-1 rounded wallet-address">
-                      {publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Not connected'}
+                      {exampleData?.wallet || (publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-8)}` : 'Not connected')}
                     </code>
                   </div>
                   <div className="text-gray-300">
@@ -283,10 +288,10 @@ export default function ProfilePage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Wallet Information</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-300">Address:</span>
-                      <code className="text-white font-mono text-sm">
-                        {publicKey ? publicKey.toString() : 'Not connected'}
+                    <div className="flex justify-between items-start gap-3">
+                      <span className="text-gray-300 flex-shrink-0">Address:</span>
+                      <code className="text-white font-mono text-sm text-right break-all max-w-[65%]">
+                        {exampleData?.wallet || (publicKey ? `${publicKey.toString().slice(0, 8)}...${publicKey.toString().slice(-4)}` : 'Not connected')}
                       </code>
                     </div>
                     <div className="flex justify-between">

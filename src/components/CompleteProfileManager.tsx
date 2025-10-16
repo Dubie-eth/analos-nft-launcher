@@ -10,6 +10,7 @@ import ProfilePictureUpload from './ProfilePictureUpload';
 import SocialLinksManager from './SocialLinksManager';
 import Leaderboard from './Leaderboard';
 import { logger } from '@/lib/logger';
+import { getFreshExample } from '@/lib/wallet-examples';
 import styles from './CompleteProfileManager.module.css';
 
 interface UserProfile {
@@ -262,6 +263,15 @@ export default function CompleteProfileManager({
           allowAnalytics: updatedProfile.allowAnalytics
         });
       }
+
+      // Update form data to match saved data
+      setFormData({
+        username: updatedProfile.username,
+        bio: updatedProfile.bio,
+        privacyLevel: updatedProfile.privacyLevel,
+        allowDataExport: updatedProfile.allowDataExport,
+        allowAnalytics: updatedProfile.allowAnalytics
+      });
 
       logger.log('Profile updated successfully');
       
