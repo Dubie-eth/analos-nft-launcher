@@ -87,8 +87,14 @@ export default function AdvancedLayerManager({
         Advanced Layer Management
       </h3>
       
-      <div className="space-y-4">
-        {sortedLayers.map((layer, index) => (
+      {/* Layers Section */}
+      <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 rounded-lg">
+        <h5 className="font-medium text-purple-800 dark:text-purple-300 mb-3 flex items-center gap-2">
+          <Settings className="w-4 h-4" />
+          Layer Management
+        </h5>
+        <div className="space-y-4 max-h-[400px] overflow-y-auto">
+          {sortedLayers.map((layer, index) => (
           <div key={layer.id} className="border border-gray-600 bg-gray-700/30 rounded-lg overflow-hidden">
             {/* Layer Header */}
             <div className="bg-gray-600/30 p-4 flex items-center justify-between">
@@ -201,22 +207,22 @@ export default function AdvancedLayerManager({
                 </div>
                 
                 {/* Layer Statistics */}
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-500">Total Traits:</span>
-                      <span className="font-medium ml-1">{layer.traits.length}</span>
+                      <span className="text-gray-300">Total Traits:</span>
+                      <span className="font-medium ml-1 text-white">{layer.traits.length}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Total Rarity:</span>
-                      <span className="font-medium ml-1">
+                      <span className="text-gray-300">Total Rarity:</span>
+                      <span className="font-medium ml-1 text-white">
                         {layer.traits.reduce((sum, trait) => sum + trait.rarity, 0)}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Status:</span>
+                      <span className="text-gray-300">Status:</span>
                       <span className={`font-medium ml-1 ${
-                        layer.visible ? 'text-green-600' : 'text-gray-500'
+                        layer.visible ? 'text-green-300' : 'text-gray-400'
                       }`}>
                         {layer.visible ? 'Visible' : 'Hidden'}
                       </span>
@@ -227,6 +233,7 @@ export default function AdvancedLayerManager({
             )}
           </div>
         ))}
+        </div>
       </div>
       
       {/* NFT Preview Section */}
@@ -276,14 +283,14 @@ export default function AdvancedLayerManager({
           {/* Layer Stack Preview */}
           <div className="space-y-3">
             <h6 className="font-medium text-purple-700 dark:text-purple-300 text-sm">Layer Stack (Bottom to Top)</h6>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 min-h-[200px] max-h-[200px] overflow-y-auto bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
               {layers
                 .filter(layer => layer.visible)
                 .sort((a, b) => a.order - b.order)
                 .map((layer, index) => (
                   <div 
                     key={layer.id} 
-                    className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 hover:shadow-sm transition-shadow cursor-move"
+                    className="flex items-center gap-3 p-2 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 hover:shadow-sm transition-shadow cursor-move"
                     draggable
                     onDragStart={(e) => {
                       e.dataTransfer.setData('text/plain', layer.id);
@@ -322,8 +329,11 @@ export default function AdvancedLayerManager({
                 ))}
             </div>
             {layers.filter(l => l.visible).length === 0 && (
-              <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
-                No visible layers to preview
+              <div className="flex items-center justify-center h-full min-h-[150px] text-center text-gray-500 dark:text-gray-400 text-sm">
+                <div>
+                  <div className="text-4xl mb-2">📁</div>
+                  <div>No visible layers to preview</div>
+                </div>
               </div>
             )}
           </div>
@@ -331,32 +341,32 @@ export default function AdvancedLayerManager({
       </div>
       
       {/* Overall Statistics */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h5 className="font-medium text-blue-800 mb-3">Collection Overview</h5>
+      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+        <h5 className="font-medium text-blue-800 dark:text-blue-300 mb-3">Collection Overview</h5>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
-            <div className="text-blue-600 font-medium">{layers.length}</div>
-            <div className="text-blue-700">Total Layers</div>
+            <div className="text-blue-600 dark:text-blue-300 font-medium">{layers.length}</div>
+            <div className="text-blue-700 dark:text-blue-400">Total Layers</div>
           </div>
           <div>
-            <div className="text-blue-600 font-medium">
+            <div className="text-blue-600 dark:text-blue-300 font-medium">
               {layers.reduce((sum, layer) => sum + layer.traits.length, 0)}
             </div>
-            <div className="text-blue-700">Total Traits</div>
+            <div className="text-blue-700 dark:text-blue-400">Total Traits</div>
           </div>
           <div>
-            <div className="text-blue-600 font-medium">
+            <div className="text-blue-600 dark:text-blue-300 font-medium">
               {layers.filter(layer => layer.visible).length}
             </div>
-            <div className="text-blue-700">Visible Layers</div>
+            <div className="text-blue-700 dark:text-blue-400">Visible Layers</div>
           </div>
           <div>
-            <div className="text-blue-600 font-medium">
+            <div className="text-blue-600 dark:text-blue-300 font-medium">
               {layers.reduce((total, layer) => 
                 total * (layer.visible && layer.traits ? layer.traits.length : 1), 1
               ).toLocaleString()}
             </div>
-            <div className="text-blue-700">Possible Combinations</div>
+            <div className="text-blue-700 dark:text-blue-400">Possible Combinations</div>
           </div>
         </div>
       </div>

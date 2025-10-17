@@ -832,12 +832,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               </label>
               
               {collectionConfig.whitelistEnabled && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-800 mb-2">Whitelist Configuration</h4>
-                  <p className="text-sm text-blue-700">
+                <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-300 mb-2">Whitelist Configuration</h4>
+                  <p className="text-sm text-blue-200">
                     Whitelist settings will be configured in the next step. This will allow you to:
                   </p>
-                  <ul className="text-sm text-blue-700 mt-2 list-disc list-inside">
+                  <ul className="text-sm text-blue-200 mt-2 list-disc list-inside">
                     <li>Set token gate requirements (e.g., 1M+ ANAL tokens)</li>
                     <li>Configure free mints for whitelist holders</li>
                     <li>Set additional mint pricing</li>
@@ -894,46 +894,46 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               <p className="text-gray-300">Review your collection configuration before deploying.</p>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-              <h4 className="font-medium text-gray-800">Collection Summary</h4>
+            <div className="bg-gray-800/50 rounded-lg p-6 space-y-4 border border-gray-600">
+              <h4 className="font-medium text-white">Collection Summary</h4>
               
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Name:</span>
-                  <span className="font-medium ml-2">{collectionConfig.name}</span>
+                  <span className="text-gray-300">Name:</span>
+                  <span className="font-medium ml-2 text-white">{collectionConfig.name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Symbol:</span>
-                  <span className="font-medium ml-2">{collectionConfig.symbol}</span>
+                  <span className="text-gray-300">Symbol:</span>
+                  <span className="font-medium ml-2 text-white">{collectionConfig.symbol}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Supply:</span>
+                  <span className="text-gray-300">Supply:</span>
                   <span className="font-medium ml-2">{collectionConfig.supply}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Mint Price:</span>
+                  <span className="text-gray-300">Mint Price:</span>
                   <span className="font-medium ml-2">{collectionConfig.mintPrice} SOL</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Layers:</span>
+                  <span className="text-gray-300">Layers:</span>
                   <span className="font-medium ml-2">{layers.length}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Total Traits:</span>
+                  <span className="text-gray-300">Total Traits:</span>
                   <span className="font-medium ml-2">
                     {layers.reduce((sum, layer) => sum + layer.traits.length, 0)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Reveal Type:</span>
+                  <span className="text-gray-300">Reveal Type:</span>
                   <span className="font-medium ml-2 capitalize">{collectionConfig.revealType}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Whitelist:</span>
+                  <span className="text-gray-300">Whitelist:</span>
                   <span className="font-medium ml-2">{collectionConfig.whitelistEnabled ? 'Enabled' : 'Disabled'}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Bonding Curve:</span>
+                  <span className="text-gray-300">Bonding Curve:</span>
                   <span className="font-medium ml-2">{collectionConfig.bondingCurveEnabled ? 'Enabled' : 'Disabled'}</span>
                 </div>
               </div>
