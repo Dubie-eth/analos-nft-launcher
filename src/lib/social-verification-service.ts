@@ -28,8 +28,8 @@ export class SocialVerificationService {
 
     try {
       // Create verification request
-      const { data: request, error: requestError } = await supabase
-        .from('social_verification_requests')
+      const { data: request, error: requestError } = await (supabase
+        .from('social_verification_requests') as any)
         .insert({
           wallet_address: walletAddress,
           status: 'pending',
@@ -38,7 +38,7 @@ export class SocialVerificationService {
           verification_count: 0
         })
         .select()
-        .single();
+        .single() as { data: any; error: any };
 
       if (requestError) throw requestError;
 
@@ -53,10 +53,10 @@ export class SocialVerificationService {
         )
       }));
 
-      const { data: accounts, error: accountsError } = await supabase
-        .from('user_social_accounts')
+      const { data: accounts, error: accountsError } = await (supabase
+        .from('user_social_accounts') as any)
         .insert(accountsWithRequestId.map(({ request_id, verification_score, ...account }) => account))
-        .select();
+        .select() as { data: any; error: any };
 
       if (accountsError) throw accountsError;
 
@@ -67,8 +67,8 @@ export class SocialVerificationService {
         verification_score: accountsWithRequestId[index].verification_score
       }));
 
-      const { error: linkError } = await supabase
-        .from('verification_request_accounts')
+      const { error: linkError } = await (supabase
+        .from('verification_request_accounts') as any)
         .insert(linkData);
 
       if (linkError) throw linkError;
@@ -77,8 +77,8 @@ export class SocialVerificationService {
       const totalScore = accountsWithRequestId.reduce((sum, acc) => sum + acc.verification_score, 0);
       
       // Update request with calculated score
-      const { data: updatedRequest, error: updateError } = await supabase
-        .from('social_verification_requests')
+      const { data: updatedRequest, error: updateError } = await (supabase
+        .from('social_verification_requests') as any)
         .update({
           total_score: totalScore,
           verification_count: accounts.length,
@@ -86,7 +86,7 @@ export class SocialVerificationService {
         })
         .eq('id', request.id)
         .select()
-        .single();
+        .single() as { data: any; error: any };
 
       if (updateError) throw updateError;
 
@@ -138,8 +138,8 @@ export class SocialVerificationService {
     adminId?: string
   ): Promise<SocialAccount> {
     try {
-      const { data: account, error } = await supabase
-        .from('user_social_accounts')
+      const { data: account, error } = await (supabase
+        .from('user_social_accounts') as any)
         .update({
           verification_status: 'verified',
           verification_code: verificationCode,
@@ -147,13 +147,13 @@ export class SocialVerificationService {
         })
         .eq('id', accountId)
         .select()
-        .single();
+        .single() as { data: any; error: any };
 
       if (error) throw error;
 
       // Log verification action
-      await supabase
-        .from('social_verification_audit')
+      await (supabase
+        .from('social_verification_audit') as any)
         .insert({
           social_account_id: accountId,
           wallet_address: account.wallet_address,
@@ -180,16 +180,16 @@ export class SocialVerificationService {
     adminId: string
   ): Promise<void> {
     try {
-      const { data: account, error: fetchError } = await supabase
-        .from('user_social_accounts')
+      const { data: account, error: fetchError } = await (supabase
+        .from('user_social_accounts') as any)
         .select('*')
         .eq('id', accountId)
-        .single();
+        .single() as { data: any; error: any };
 
       if (fetchError) throw fetchError;
 
-      const { error: updateError } = await supabase
-        .from('user_social_accounts')
+      const { error: updateError } = await (supabase
+        .from('user_social_accounts') as any)
         .update({
           verification_status: 'revoked'
         })
@@ -198,8 +198,8 @@ export class SocialVerificationService {
       if (updateError) throw updateError;
 
       // Log revocation
-      await supabase
-        .from('social_verification_audit')
+      await (supabase
+        .from('social_verification_audit') as any)
         .insert({
           social_account_id: accountId,
           wallet_address: account.wallet_address,
@@ -257,15 +257,15 @@ export class SocialVerificationService {
    */
   async getWalletSocialAccounts(walletAddress: string): Promise<SocialAccount[]> {
     try {
-      const { data, error } = await supabase
-        .from('user_social_accounts')
+      const { data, error } = await (supabase
+        .from('user_social_accounts') as any)
         .select('*')
         .eq('wallet_address', walletAddress)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: any; error: any };
 
       if (error) throw error;
 
-      return data.map(account => this.mapAccountFromDb(account));
+      return data.map((account: any) => this.mapAccountFromDb(account));
 
     } catch (error) {
       console.error('❌ Error getting social accounts:', error);
@@ -278,15 +278,15 @@ export class SocialVerificationService {
    */
   async getVerificationConfigs(collectionId: string): Promise<SocialVerificationConfig[]> {
     try {
-      const { data, error } = await supabase
-        .from('social_verification_configs')
+      const { data, error } = await (supabase
+        .from('social_verification_configs') as any)
         .select('*')
         .eq('collection_id', collectionId)
-        .eq('is_active', true);
+        .eq('is_active', true) as { data: any; error: any };
 
       if (error) throw error;
 
-      return data.map(config => ({
+      return data.map((config: any) => ({
         id: config.id,
         collectionId: config.collection_id,
         platform: config.platform,
@@ -316,15 +316,15 @@ export class SocialVerificationService {
       const eligibility = await this.checkVerificationEligibility(walletAddress);
       
       // Update user's verification level
-      const { data: user, error } = await supabase
-        .from('users')
+      const { data: user, error } = await (supabase
+        .from('users') as any)
         .update({
           verification_level: eligibility.eligible ? 'verified' : 'basic',
           is_verified: eligibility.eligible
         })
         .eq('wallet_address', walletAddress)
         .select()
-        .single();
+        .single() as { data: any; error: any };
 
       if (error) throw error;
 
@@ -420,17 +420,17 @@ export class SocialVerificationService {
    */
   async getAllVerificationRequests(): Promise<SocialVerificationRequest[]> {
     try {
-      const { data, error } = await supabase
-        .from('social_verification_requests')
+      const { data, error } = await (supabase
+        .from('social_verification_requests') as any)
         .select(`
           *,
           user_social_accounts(*)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: any; error: any };
 
       if (error) throw error;
 
-      return data.map(request => ({
+      return data.map((request: any) => ({
         id: request.id,
         walletAddress: request.wallet_address,
         status: request.status,
