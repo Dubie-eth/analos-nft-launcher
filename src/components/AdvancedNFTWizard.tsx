@@ -31,6 +31,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [uploadMessage, setUploadMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -73,8 +74,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       
       setLayers(newLayers);
       console.log(`✅ Successfully processed ${processedLayers.length} layers`);
+      
+      // Show success message
+      const totalTraits = newLayers.reduce((sum, layer) => sum + layer.traits.length, 0);
+      setUploadMessage(`✅ Successfully uploaded ${processedLayers.length} layers with ${totalTraits} total traits! Click "Next" to continue.`);
+      setTimeout(() => setUploadMessage(''), 5000);
     } catch (error) {
       console.error('❌ Error processing files:', error);
+      setUploadMessage('❌ Error processing files. Please try again.');
+      setTimeout(() => setUploadMessage(''), 3000);
     } finally {
       setUploading(false);
     }
@@ -358,8 +366,31 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               </p>
             </div>
             
+            {/* Upload Success Message */}
+            {uploadMessage && (
+              <div className={`mt-4 p-4 rounded-lg border-2 text-center font-medium ${
+                uploadMessage.includes('✅')
+                  ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600 text-green-800 dark:text-green-300'
+                  : 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600 text-red-800 dark:text-red-300'
+              }`}>
+                {uploadMessage}
+              </div>
+            )}
+            
             {layers.length > 0 && (
               <div className="mt-6">
+                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-600 rounded-lg p-4 mb-4">
+                  <h4 className="text-lg font-bold text-green-800 dark:text-green-300 mb-2">
+                    ✅ Upload Successful!
+                  </h4>
+                  <p className="text-green-700 dark:text-green-400 mb-1">
+                    Your traits have been uploaded successfully. Review the layers below, then click "Next" to continue.
+                  </p>
+                  <p className="text-sm text-green-600 dark:text-green-500">
+                    {layers.length} layers • {layers.reduce((sum, layer) => sum + layer.traits.length, 0)} total traits
+                  </p>
+                </div>
+                
                 <h4 className="text-lg font-medium theme-text-primary mb-4">Uploaded Layers:</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {layers.map(layer => (
