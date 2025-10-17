@@ -21,16 +21,14 @@ type AccessGrantUpdate = Database['public']['Tables']['access_grants']['Update']
 export class SupabaseDatabaseService {
   // Encryption helpers
   private async encryptData(data: string): Promise<string> {
-    const { data: result, error } = await supabaseAdmin
-      .rpc('encrypt_sensitive_data', { data });
+    const { data: result, error } = await (supabaseAdmin.rpc as any)('encrypt_sensitive_data', { data });
     
     if (error) throw error;
     return result;
   }
 
   private async decryptData(encryptedData: string): Promise<string> {
-    const { data: result, error } = await supabaseAdmin
-      .rpc('decrypt_sensitive_data', { encrypted_data: encryptedData });
+    const { data: result, error } = await (supabaseAdmin.rpc as any)('decrypt_sensitive_data', { encrypted_data: encryptedData });
     
     if (error) throw error;
     return result;
