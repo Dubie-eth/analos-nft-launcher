@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Eye, EyeOff, ArrowUp, ArrowDown, Trash2, Image, Settings, ChevronDown, ChevronRight } from 'lucide-react';
+import { Eye, EyeOff, ArrowUp, ArrowDown, Trash2, Image, Settings, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 
 interface Trait {
   id: string;
@@ -26,6 +26,9 @@ interface AdvancedLayerManagerProps {
   onReorderLayer: (layerId: string, direction: 'up' | 'down') => void;
   onDeleteTrait: (layerId: string, traitId: string) => void;
   collectionSupply?: number;
+  onGeneratePreview?: () => void;
+  previewImage?: string | null;
+  generatingPreview?: boolean;
 }
 
 export default function AdvancedLayerManager({ 
@@ -34,7 +37,10 @@ export default function AdvancedLayerManager({
   onToggleVisibility, 
   onReorderLayer,
   onDeleteTrait,
-  collectionSupply = 1000
+  collectionSupply = 1000,
+  onGeneratePreview,
+  previewImage,
+  generatingPreview = false
 }: AdvancedLayerManagerProps) {
   const [expandedLayers, setExpandedLayers] = useState<Set<string>>(new Set());
 
@@ -232,17 +238,38 @@ export default function AdvancedLayerManager({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Preview Canvas */}
           <div className="space-y-3">
-            <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 text-center min-h-[200px] flex items-center justify-center">
-              <div className="text-gray-500">
-                <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">NFT Preview</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {layers.filter(l => l.visible).length} visible layers
-                </p>
-              </div>
+            <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 text-center min-h-[200px] flex items-center justify-center">
+              {previewImage ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <img 
+                    src={previewImage} 
+                    alt="NFT Preview" 
+                    className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                  />
+                </div>
+              ) : (
+                <div className="text-gray-500">
+                  <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">NFT Preview</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {layers.filter(l => l.visible).length} visible layers
+                  </p>
+                </div>
+              )}
             </div>
-            <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-              Generate Preview
+            <button 
+              onClick={onGeneratePreview}
+              disabled={generatingPreview || layers.filter(l => l.visible).length === 0}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+            >
+              {generatingPreview ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Generating...
+                </div>
+              ) : (
+                'Generate Preview'
+              )}
             </button>
           </div>
           
@@ -254,7 +281,33 @@ export default function AdvancedLayerManager({
                 .filter(layer => layer.visible)
                 .sort((a, b) => a.order - b.order)
                 .map((layer, index) => (
-                  <div key={layer.id} className="flex items-center gap-3 p-2 bg-white rounded border">
+                  <div 
+                    key={layer.id} 
+                    className="flex items-center gap-3 p-2 bg-white rounded border hover:shadow-sm transition-shadow cursor-move"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', layer.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const draggedLayerId = e.dataTransfer.getData('text/plain');
+                      if (draggedLayerId !== layer.id) {
+                        // Reorder layers
+                        const draggedLayer = layers.find(l => l.id === draggedLayerId);
+                        const targetLayer = layer;
+                        if (draggedLayer && targetLayer) {
+                          const newOrder = targetLayer.order;
+                          // Update the dragged layer's order
+                          onReorderLayer(draggedLayerId, newOrder > draggedLayer.order ? 'down' : 'up');
+                        }
+                      }
+                    }}
+                  >
+                    <div className="cursor-move text-gray-400 hover:text-gray-600">
+                      <GripVertical className="w-4 h-4" />
+                    </div>
                     <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       {index + 1}
                     </div>

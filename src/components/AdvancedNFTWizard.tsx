@@ -36,6 +36,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [savedCollections, setSavedCollections] = useState<any[]>([]);
   const [showCollectionLoader, setShowCollectionLoader] = useState(false);
   const [deletingCollection, setDeletingCollection] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [generatingPreview, setGeneratingPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -273,6 +275,79 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       setUploadMessage('❌ Failed to delete collection');
     } finally {
       setDeletingCollection(null);
+    }
+  };
+
+  const generatePreview = async () => {
+    if (layers.length === 0) {
+      setUploadMessage('❌ No layers available for preview');
+      setTimeout(() => setUploadMessage(''), 3000);
+      return;
+    }
+
+    setGeneratingPreview(true);
+    console.log('🔄 Generating NFT preview...');
+
+    try {
+      // Create a canvas to combine layers
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Set canvas size (you can adjust this)
+      canvas.width = 512;
+      canvas.height = 512;
+
+      // Get visible layers sorted by order
+      const visibleLayers = layers
+        .filter(layer => layer.visible)
+        .sort((a, b) => a.order - b.order);
+
+      if (visibleLayers.length === 0) {
+        throw new Error('No visible layers to preview');
+      }
+
+      // Load and draw each layer
+      for (const layer of visibleLayers) {
+        if (layer.traits.length > 0) {
+          // Pick a random trait from this layer for preview
+          const randomTrait = layer.traits[Math.floor(Math.random() * layer.traits.length)];
+          
+          try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = randomTrait.image;
+            });
+
+            // Draw the image on canvas
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          } catch (error) {
+            console.warn(`Could not load image for layer ${layer.name}:`, error);
+          }
+        }
+      }
+
+      // Convert canvas to data URL
+      const previewDataUrl = canvas.toDataURL('image/png');
+      setPreviewImage(previewDataUrl);
+      
+      console.log('✅ Preview generated successfully');
+      setUploadMessage('✅ NFT preview generated!');
+      setTimeout(() => setUploadMessage(''), 3000);
+
+    } catch (error) {
+      console.error('❌ Error generating preview:', error);
+      setUploadMessage('❌ Failed to generate preview');
+      setTimeout(() => setUploadMessage(''), 3000);
+    } finally {
+      setGeneratingPreview(false);
     }
   };
 
@@ -687,6 +762,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               onReorderLayer={reorderLayer}
               onDeleteTrait={deleteTrait}
               collectionSupply={collectionConfig.supply}
+              onGeneratePreview={generatePreview}
+              previewImage={previewImage}
+              generatingPreview={generatingPreview}
             />
           </div>
         );
