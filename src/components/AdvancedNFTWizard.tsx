@@ -1825,7 +1825,7 @@ image.png                  )}
                       {whitelistConfig.phases.length > 0 && (
                         <div className="mb-4 p-4 bg-white/5 rounded-lg border border-white/10">
                           <label className="block text-sm font-medium text-white mb-2">
-                            Select Phase to Configure:
+                            🎯 Select Phase to Configure:
                           </label>
                           <select
                             value={selectedPhaseId || ''}
@@ -1841,9 +1841,18 @@ image.png                  )}
                                 </option>
                               ))}
                           </select>
-                          {selectedPhaseId && (
+                          {selectedPhaseId ? (
+                            <div className="mt-2 p-2 bg-blue-900/20 border border-blue-500/30 rounded">
+                              <p className="text-xs text-blue-300">
+                                ✅ <strong>Phase Selected:</strong> {whitelistConfig.phases.find(p => p.id === selectedPhaseId)?.name}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Use the configuration panel below to modify this phase. Changes apply only to the selected phase.
+                              </p>
+                            </div>
+                          ) : (
                             <p className="text-xs text-gray-400 mt-1">
-                              Configure the selected phase below. Changes will apply to the selected phase only.
+                              Select a phase above to configure its individual settings.
                             </p>
                           )}
                         </div>
@@ -2385,7 +2394,7 @@ image.png                  )}
                                 placeholder="Describe this phase..."
                               />
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-between">
                               <label className="flex items-center gap-2">
                                 <input
                                   type="checkbox"
@@ -2395,6 +2404,26 @@ image.png                  )}
                                 />
                                 <span className="text-white text-sm">Enable this phase</span>
                               </label>
+                              
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    console.log('Phase configuration saved:', selectedPhase);
+                                    alert(`Phase "${selectedPhase.name}" configuration saved!`);
+                                  }}
+                                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
+                                >
+                                  💾 Save Phase
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedPhaseId(null)}
+                                  className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+                                >
+                                  ✕ Close
+                                </button>
+                              </div>
                             </div>
                           </div>
                         );
