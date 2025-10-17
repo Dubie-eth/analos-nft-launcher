@@ -221,8 +221,7 @@ export class SocialVerificationService {
    */
   async checkVerificationEligibility(walletAddress: string): Promise<VerificationEligibility> {
     try {
-      const { data, error } = await supabase
-        .rpc('check_verification_eligibility', { wallet_addr: walletAddress });
+      const { data, error } = await (supabase.rpc as any)('check_verification_eligibility', { wallet_addr: walletAddress });
 
       if (error) throw error;
 
