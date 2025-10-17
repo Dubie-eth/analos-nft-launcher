@@ -311,11 +311,11 @@ export class UserProfileService {
       last_login_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase
-      .from('user_profiles')
+    const { data, error } = await (supabase
+      .from('user_profiles') as any)
       .upsert(profileData, { onConflict: 'wallet_address' })
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
 
@@ -330,11 +330,11 @@ export class UserProfileService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('leaderboard')
+    const { data, error } = await (supabase
+      .from('leaderboard') as any)
       .select('*')
       .order('total_points', { ascending: false })
-      .limit(limit);
+      .limit(limit) as { data: any; error: any };
 
     if (error) throw error;
 
@@ -359,8 +359,8 @@ export class UserProfileService {
     }
 
     // Log the activity
-    await supabaseAdmin
-      .from('activity_logs')
+    await (supabaseAdmin
+      .from('activity_logs') as any)
       .insert({
         wallet_address: walletAddress,
         activity_type: activityType,
@@ -370,11 +370,10 @@ export class UserProfileService {
       });
 
     // Update user profile points
-    const { error } = await supabaseAdmin
-      .rpc('increment_activity_points', {
-        user_wallet: walletAddress,
-        points: points
-      });
+    const { error } = await (supabaseAdmin.rpc as any)('increment_activity_points', {
+      user_wallet: walletAddress,
+      points: points
+    });
 
     if (error) throw error;
   }
@@ -388,8 +387,8 @@ export class UserProfileService {
     }
 
     // Create referral tracking record
-    await supabaseAdmin
-      .from('referral_tracking')
+    await (supabaseAdmin
+      .from('referral_tracking') as any)
       .insert({
         referrer_wallet: referrerWallet,
         referred_wallet: referredWallet,
@@ -398,11 +397,10 @@ export class UserProfileService {
       });
 
     // Update referrer's points
-    await supabaseAdmin
-      .rpc('increment_referral_points', {
-        user_wallet: referrerWallet,
-        points: points
-      });
+    await (supabaseAdmin.rpc as any)('increment_referral_points', {
+      user_wallet: referrerWallet,
+      points: points
+    });
 
     // Award activity points to referred user
     await this.awardActivityPoints(referredWallet, 'referral_signup', 50, 'Signed up via referral');
@@ -468,11 +466,11 @@ export class UserProfileService {
     }
 
     // Check if username exists in database
-    const { data, error } = await supabaseAdmin
-      .from('user_profiles')
+    const { data, error } = await (supabaseAdmin
+      .from('user_profiles') as any)
       .select('username')
       .eq('username', username.toLowerCase())
-      .single();
+      .single() as { data: any; error: any };
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
       throw new Error(`Failed to check username availability: ${error.message}`);
