@@ -1104,7 +1104,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   Your collection will be automatically optimized for:
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {['DexScreener', 'MagicEden', 'OpenSea', 'SolanaFM', 'Solscan', 'Analos.io', 'CoinMarketCap', 'CoinGecko'].map((platform) => (
+                  {['DexScreener', 'MagicEden', 'OpenSea', 'SolanaFM', 'Solscan', 'Analos.io', 'CoinMarketCap', 'CoinGecko', 'Losscreener', 'AnalosPay'].map((platform) => (
                     <span key={platform} className="bg-blue-600/20 text-blue-300 px-2 py-1 rounded text-xs">
                       {platform}
                     </span>
