@@ -13,28 +13,44 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder
 // Check if we're in a build environment or missing real environment variables
 const isBuildTime = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Client for user operations (with RLS)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  db: {
-    schema: 'public'
-  }
-});
+// Singleton instances to prevent multiple client creation
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 
-// Admin client for server-side operations (bypasses RLS)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  },
-  db: {
-    schema: 'public'
+// Client for user operations (with RLS) - Singleton pattern
+export const supabase = (() => {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storageKey: 'analos-auth'
+      },
+      db: {
+        schema: 'public'
+      }
+    });
   }
-});
+  return supabaseInstance;
+})();
+
+// Admin client for server-side operations (bypasses RLS) - Singleton pattern
+export const supabaseAdmin = (() => {
+  if (!supabaseAdminInstance) {
+    supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'public'
+      }
+    });
+  }
+  return supabaseAdminInstance;
+})();
 
 // Export a flag to check if we have real environment variables
 export const isSupabaseConfigured = !isBuildTime;

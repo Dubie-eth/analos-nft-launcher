@@ -14,6 +14,12 @@ export const metadata: Metadata = {
   title: 'Analos NFT Launcher v4.2.2 - Minimal Clean Architecture with Backpack Wallet',
   description: 'Clean minimal frontend for Analos NFT Launcher with Backpack wallet support, backend testing, marketplace, and mint functionality',
   robots: 'no-cache, no-store, must-revalidate',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico' }
+    ],
+  },
   other: {
     'cache-version': '4.2.2',
     'build-timestamp': Date.now().toString(),
