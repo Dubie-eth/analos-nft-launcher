@@ -16,8 +16,8 @@ export interface SavedCollection {
   status: 'draft' | 'deployed' | 'active' | 'paused' | 'completed';
   deployed_at?: string;
   collection_address?: string;
-  logo_url?: string;
-  banner_url?: string;
+  logo_url?: string | null;
+  banner_url?: string | null;
   created_at: string;
   updated_at: string;
 }
