@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, Plus, Settings, Eye, EyeOff, ArrowUp, ArrowDown, Trash2, Save } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import AdvancedLayerManager from './AdvancedLayerManager';
+import ThemeToggle from './ThemeToggle';
 import { LayerProcessor } from '@/lib/layer-processor';
 import { Layer, Trait } from '@/lib/nft-generator';
 
@@ -985,7 +986,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-lg border-b border-white/20 px-8 py-6">
           <div className="flex items-center justify-between mb-4">
@@ -995,12 +996,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               </div>
               <h2 className="text-2xl font-bold text-white">Analos NFT Launcher</h2>
             </div>
-            <button
-              onClick={onCancel}
-              className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <button
+                onClick={onCancel}
+                className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
           
           {/* Step Progress Bar */}
@@ -1041,13 +1045,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
         {/* Content */}
         <div className="flex-1 p-8 overflow-y-auto">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+          <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-lg rounded-2xl p-8 border border-white/20 dark:border-gray-700/50">
             {renderStepContent()}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="bg-white/10 backdrop-blur-lg border-t border-white/20 px-8 py-6">
+        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-lg border-t border-white/20 dark:border-gray-700/50 px-8 py-6">
           {/* Save Message */}
           {saveMessage && (
             <div className={`mb-4 p-4 rounded-lg text-sm ${

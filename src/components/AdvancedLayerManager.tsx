@@ -230,15 +230,15 @@ export default function AdvancedLayerManager({
       </div>
       
       {/* NFT Preview Section */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
-        <h5 className="font-medium text-purple-800 mb-3 flex items-center gap-2">
+      <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 rounded-lg">
+        <h5 className="font-medium text-purple-800 dark:text-purple-300 mb-3 flex items-center gap-2">
           <Image className="w-4 h-4" />
           NFT Preview
         </h5>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Preview Canvas */}
           <div className="space-y-3">
-            <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 text-center min-h-[200px] flex items-center justify-center">
+            <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center min-h-[200px] flex items-center justify-center">
               {previewImage ? (
                 <div className="w-full h-full flex items-center justify-center">
                   <img 
@@ -248,10 +248,10 @@ export default function AdvancedLayerManager({
                   />
                 </div>
               ) : (
-                <div className="text-gray-500">
+                <div className="text-gray-500 dark:text-gray-400">
                   <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">NFT Preview</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                     {layers.filter(l => l.visible).length} visible layers
                   </p>
                 </div>
@@ -275,7 +275,7 @@ export default function AdvancedLayerManager({
           
           {/* Layer Stack Preview */}
           <div className="space-y-3">
-            <h6 className="font-medium text-purple-700 text-sm">Layer Stack (Bottom to Top)</h6>
+            <h6 className="font-medium text-purple-700 dark:text-purple-300 text-sm">Layer Stack (Bottom to Top)</h6>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {layers
                 .filter(layer => layer.visible)
@@ -283,7 +283,7 @@ export default function AdvancedLayerManager({
                 .map((layer, index) => (
                   <div 
                     key={layer.id} 
-                    className="flex items-center gap-3 p-2 bg-white rounded border hover:shadow-sm transition-shadow cursor-move"
+                    className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 hover:shadow-sm transition-shadow cursor-move"
                     draggable
                     onDragStart={(e) => {
                       e.dataTransfer.setData('text/plain', layer.id);
@@ -305,24 +305,24 @@ export default function AdvancedLayerManager({
                       }
                     }}
                   >
-                    <div className="cursor-move text-gray-400 hover:text-gray-600">
+                    <div className="cursor-move text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
                       <GripVertical className="w-4 h-4" />
                     </div>
                     <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-sm text-gray-800">{layer.name}</div>
-                      <div className="text-xs text-gray-500">{layer.traits.length} traits</div>
+                      <div className="font-medium text-sm text-gray-800 dark:text-gray-200">{layer.name}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{layer.traits.length} traits</div>
                     </div>
-                    <div className="w-8 h-8 bg-gray-100 rounded border flex items-center justify-center">
-                      <Image className="w-4 h-4 text-gray-400" />
+                    <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                      <Image className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     </div>
                   </div>
                 ))}
             </div>
             {layers.filter(l => l.visible).length === 0 && (
-              <div className="text-center text-gray-500 text-sm py-4">
+              <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
                 No visible layers to preview
               </div>
             )}

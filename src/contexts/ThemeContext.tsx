@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'dark' | 'light';
 
 interface ThemeContextType {
   theme: Theme;
@@ -14,41 +14,34 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
 
-  // Load theme from localStorage on mount
   useEffect(() => {
+    // Check for saved theme preference or default to dark
     const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+    if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
       setThemeState(savedTheme);
     } else {
-      // Default to dark mode
-      setThemeState('dark');
+      setThemeState('dark'); // Default to dark mode
     }
-    setMounted(true);
   }, []);
 
-  // Apply theme to document
   useEffect(() => {
-    if (mounted) {
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(theme);
-      localStorage.setItem('theme', theme);
-    }
-  }, [theme, mounted]);
+    // Apply theme to document
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    
+    // Save to localStorage
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const toggleTheme = () => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light');
+    setThemeState(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
   };
-
-  // Don't render until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return <div className="min-h-screen bg-gray-900">{children}</div>;
-  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
