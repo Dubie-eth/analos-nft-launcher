@@ -216,79 +216,175 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Collection Basics</h3>
-              <p className="text-gray-600">Set up the basic information for your NFT collection.</p>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold text-white mb-2">Collection Basic Information</h3>
+              <p className="text-white/80 text-lg">Tell us about your NFT collection</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Collection Name
+                <label className="block text-sm font-medium text-white mb-2">
+                  Collection Name *
                 </label>
                 <input
                   type="text"
                   value={collectionConfig.name}
                   onChange={(e) => setCollectionConfig(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="My Awesome Collection"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Symbol
+                <label className="block text-sm font-medium text-white mb-2">
+                  Symbol *
                 </label>
                 <input
                   type="text"
                   value={collectionConfig.symbol}
-                  onChange={(e) => setCollectionConfig(prev => ({ ...prev, symbol: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setCollectionConfig(prev => ({ ...prev, symbol: e.target.value.toUpperCase() }))}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="MAC"
                   maxLength={10}
                 />
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Description
                 </label>
                 <textarea
                   value={collectionConfig.description}
                   onChange={(e) => setCollectionConfig(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   rows={3}
                   placeholder="Describe your collection..."
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Total Supply
+                <label className="block text-sm font-medium text-white mb-2">
+                  Max Supply
                 </label>
                 <input
                   type="number"
                   value={collectionConfig.supply}
                   onChange={(e) => setCollectionConfig(prev => ({ ...prev, supply: parseInt(e.target.value) || 1000 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   min="1"
                   max="10000"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mint Price (SOL)
+                <label className="block text-sm font-medium text-white mb-2">
+                  Mint Price
+                </label>
+                <div className="flex">
+                  <input
+                    type="number"
+                    value={collectionConfig.mintPrice}
+                    onChange={(e) => setCollectionConfig(prev => ({ ...prev, mintPrice: parseFloat(e.target.value) || 0.1 }))}
+                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-l-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    step="0.01"
+                    min="0"
+                  />
+                  <select className="px-4 py-3 bg-white/20 border border-white/20 border-l-0 rounded-r-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="LOS">$LOS</option>
+                    <option value="SOL">$SOL</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Creator Address
+                </label>
+                <input
+                  type="text"
+                  value={publicKey?.toString() || ''}
+                  readOnly
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white/70"
+                  placeholder="Enter creator address"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Royalty (%)
                 </label>
                 <input
                   type="number"
-                  value={collectionConfig.mintPrice}
-                  onChange={(e) => setCollectionConfig(prev => ({ ...prev, mintPrice: parseFloat(e.target.value) || 0.1 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="0.01"
-                  min="0"
+                  value="5"
+                  readOnly
+                  className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white/70"
                 />
+              </div>
+            </div>
+
+            {/* Selection Cards */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-white mb-4">
+                  Mint Type *
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/10 border-2 border-purple-500 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xl">🎨</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-semibold text-lg">Standard NFT</h4>
+                        <p className="text-white/70 text-sm">Traditional NFT minting</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/10 border-2 border-white/20 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xl">📈</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-semibold text-lg">Bonding Curve</h4>
+                        <p className="text-white/70 text-sm">Dynamic pricing model</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white mb-4">
+                  Reveal Type *
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/10 border-2 border-purple-500 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xl">⚡</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-semibold text-lg">Instant Reveal</h4>
+                        <p className="text-white/70 text-sm">Images revealed immediately</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/10 border-2 border-white/20 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xl">🔒</span>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-semibold text-lg">Delayed Reveal</h4>
+                        <p className="text-white/70 text-sm">Images revealed later</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -296,10 +392,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
       case 2:
         return (
-          <div className="space-y-6">
-                <div>
-                  <h3 className="text-2xl font-bold theme-text-primary mb-2">Upload Trait Images</h3>
-                  <p className="theme-text-secondary mb-4">Upload your trait images using either method below:</p>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold text-white mb-2">Upload Trait Images</h3>
+              <p className="text-white/80 text-lg">Upload your trait images using either method below:</p>
+            </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
@@ -336,18 +433,18 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
             </div>
             
             <div
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+              className="border-2 border-dashed border-white/30 rounded-xl p-12 text-center hover:border-white/50 transition-colors bg-white/5"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
-              <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-lg font-medium theme-text-primary mb-2">
+              <Upload className="w-16 h-16 text-white/60 mx-auto mb-6" />
+              <p className="text-xl font-medium text-white mb-3">
                 Drag and drop your trait folders, ZIP files, or images here
               </p>
-              <p className="theme-text-secondary mb-4">or</p>
+              <p className="text-white/70 mb-6">or</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                 disabled={uploading}
               >
                 {uploading ? 'Uploading...' : 'Choose Folders/ZIP/Files'}
@@ -361,42 +458,42 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 onChange={handleFileInputChange}
                 className="hidden"
               />
-              <p className="text-sm theme-text-muted mt-4">
+              <p className="text-sm text-white/60 mt-6">
                 Supported formats: PNG, JPG, GIF, ZIP. Max 10MB per file.
               </p>
             </div>
             
             {/* Upload Success Message */}
             {uploadMessage && (
-              <div className={`mt-4 p-4 rounded-lg border-2 text-center font-medium ${
+              <div className={`mt-6 p-6 rounded-xl border-2 text-center font-medium ${
                 uploadMessage.includes('✅')
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600 text-green-800 dark:text-green-300'
-                  : 'bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600 text-red-800 dark:text-red-300'
+                  ? 'bg-green-500/20 border-green-500/50 text-green-300'
+                  : 'bg-red-500/20 border-red-500/50 text-red-300'
               }`}>
                 {uploadMessage}
               </div>
             )}
             
             {layers.length > 0 && (
-              <div className="mt-6">
-                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-600 rounded-lg p-4 mb-4">
-                  <h4 className="text-lg font-bold text-green-800 dark:text-green-300 mb-2">
+              <div className="mt-8">
+                <div className="bg-green-500/20 border-2 border-green-500/50 rounded-xl p-6 mb-6">
+                  <h4 className="text-xl font-bold text-green-300 mb-3">
                     ✅ Upload Successful!
                   </h4>
-                  <p className="text-green-700 dark:text-green-400 mb-1">
+                  <p className="text-green-200 mb-2">
                     Your traits have been uploaded successfully. Review the layers below, then click "Next" to continue.
                   </p>
-                  <p className="text-sm text-green-600 dark:text-green-500">
+                  <p className="text-sm text-green-300">
                     {layers.length} layers • {layers.reduce((sum, layer) => sum + layer.traits.length, 0)} total traits
                   </p>
                 </div>
                 
-                <h4 className="text-lg font-medium theme-text-primary mb-4">Uploaded Layers:</h4>
+                <h4 className="text-xl font-medium text-white mb-6">Uploaded Layers:</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {layers.map(layer => (
-                    <div key={layer.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <h5 className="font-medium theme-text-primary">{layer.name}</h5>
-                      <p className="text-sm theme-text-secondary">{layer.traits.length} traits</p>
+                    <div key={layer.id} className="bg-white/10 rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-colors">
+                      <h5 className="font-medium text-white">{layer.name}</h5>
+                      <p className="text-sm text-white/70">{layer.traits.length} traits</p>
                     </div>
                   ))}
                 </div>
@@ -627,47 +724,88 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     }
   };
 
+  const stepNames = [
+    'Basic Info',
+    'Traits', 
+    'Configure',
+    'Reveal',
+    'Whitelist',
+    'Bonding Curve',
+    'Review',
+    'Deploy'
+  ];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="theme-card rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden">
         {/* Header */}
-        <div className="theme-accent px-6 py-4 border-b border-gray-200 dark:border-gray-600">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold theme-text-primary">NFT Collection Wizard</h2>
+        <div className="bg-white/10 backdrop-blur-lg border-b border-white/20 px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">A</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white">Analos NFT Launcher</h2>
+            </div>
             <button
               onClick={onCancel}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
-          <div className="mt-2">
-            <div className="flex items-center justify-between text-sm theme-text-secondary">
-              <span>Step {currentStep} of {totalSteps}</span>
-              <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
-            </div>
-            <div className="mt-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-              />
-            </div>
+          
+          {/* Step Progress Bar */}
+          <div className="flex items-center justify-between">
+            {stepNames.map((step, index) => {
+              const stepNumber = index + 1;
+              const isActive = currentStep === stepNumber;
+              const isCompleted = currentStep > stepNumber;
+              
+              return (
+                <div key={stepNumber} className="flex items-center">
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-purple-600 text-white shadow-lg' 
+                      : isCompleted 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-white/20 text-white/60'
+                  }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
+                      isActive 
+                        ? 'bg-white text-purple-600' 
+                        : isCompleted 
+                        ? 'bg-white text-green-500' 
+                        : 'bg-white/30 text-white/80'
+                    }`}>
+                      {stepNumber}
+                    </div>
+                    <span className="text-sm font-medium">{step}</span>
+                  </div>
+                  {index < stepNames.length - 1 && (
+                    <div className="w-8 h-0.5 bg-white/20 mx-2" />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {renderStepContent()}
+        <div className="p-8 overflow-y-auto max-h-[calc(95vh-200px)]">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+            {renderStepContent()}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="theme-accent px-6 py-4 border-t border-gray-200 dark:border-gray-600">
+        <div className="bg-white/10 backdrop-blur-lg border-t border-white/20 px-8 py-6">
           {/* Save Message */}
           {saveMessage && (
-            <div className={`mb-4 p-3 rounded-lg text-sm ${
+            <div className={`mb-4 p-4 rounded-lg text-sm ${
               saveMessage.includes('✅') 
-                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300' 
-                : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300'
+                ? 'bg-green-500/20 border border-green-500/50 text-green-300' 
+                : 'bg-red-500/20 border border-red-500/50 text-red-300'
             }`}>
               {saveMessage}
             </div>
@@ -677,17 +815,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
             <button
               onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
               disabled={currentStep === 1}
-              className="px-4 py-2 theme-text-secondary border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 text-white/70 border border-white/20 rounded-lg hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Previous
+              ← Previous
             </button>
             
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               {/* Save Button */}
               <button
                 onClick={handleSaveCollection}
                 disabled={saving || !collectionConfig.name || !collectionConfig.symbol}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save Draft'}
@@ -695,7 +833,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               
               <button
                 onClick={onCancel}
-                className="px-4 py-2 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="px-6 py-3 text-white/70 border border-white/20 rounded-lg hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
@@ -703,9 +841,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               {currentStep < totalSteps ? (
                 <button
                   onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold"
                 >
-                  Next
+                  Next →
                 </button>
               ) : (
                 <button
@@ -714,7 +852,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     layers,
                     timestamp: new Date().toISOString()
                   })}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold"
                 >
                   Deploy Collection
                 </button>
