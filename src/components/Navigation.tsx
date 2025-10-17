@@ -99,11 +99,11 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 min-w-0 flex-shrink-0">
-            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
               <img 
-                src="/analos-logo.svg" 
+                src="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm" 
                 alt="Los Logo" 
-                className="w-8 h-8"
+                className="w-10 h-10 rounded-lg"
                 onError={(e) => {
                   // Fallback to gradient circle if logo fails to load
                   e.currentTarget.style.display = 'none';
@@ -111,7 +111,7 @@ export default function Navigation() {
                   if (fallback) fallback.style.display = 'flex';
                 }}
               />
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center hidden">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center hidden">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
             </div>
@@ -147,26 +147,26 @@ export default function Navigation() {
           {/* More Menu for additional items */}
           <div className="hidden lg:flex items-center space-x-2">
             <div className="relative group">
-              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-white hover:text-blue-300 hover:bg-white/10 transition-all duration-200">
-                <span className="text-base">⋯</span>
-                <span className="hidden xl:inline">More</span>
-                <svg className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:text-blue-300 hover:bg-white/20 transition-all duration-200 border border-white/20 hover:border-blue-400/50">
+                <span className="text-lg">⋯</span>
+                <span className="hidden xl:inline font-semibold">More</span>
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-lg rounded-lg shadow-xl border border-gray-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute right-0 mt-3 w-64 bg-gray-900/98 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-blue-500/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95">
                 {navItems.slice(6).map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg mx-1 my-1 whitespace-nowrap ${
+                    className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg mx-1 my-1 whitespace-nowrap hover:scale-105 ${
                       isActive(item.href)
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                        : 'text-white hover:text-blue-300 hover:bg-white/10'
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                        : 'text-white hover:text-blue-300 hover:bg-white/15 hover:shadow-md'
                     }`}
                   >
-                    <span className="text-base flex-shrink-0">{item.icon}</span>
-                    <span className="flex-1">{item.label}</span>
+                    <span className="text-lg flex-shrink-0">{item.icon}</span>
+                    <span className="flex-1 font-semibold">{item.label}</span>
                   </Link>
                 ))}
               </div>
