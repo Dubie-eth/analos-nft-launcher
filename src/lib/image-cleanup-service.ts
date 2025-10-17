@@ -12,8 +12,8 @@ interface ImageCleanupData {
 interface CollectionImageData {
   logo_url?: string | null;
   banner_url?: string | null;
-  logo_cleanup?: ImageCleanupData;
-  banner_cleanup?: ImageCleanupData;
+  logo_cleanup?: ImageCleanupData | null;
+  banner_cleanup?: ImageCleanupData | null;
 }
 
 export class ImageCleanupService {
