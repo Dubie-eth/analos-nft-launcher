@@ -296,7 +296,7 @@ export class SupabaseDatabaseService {
       .limit(1)
       .single();
 
-    const stats = applicationStats?.reduce((acc, stat) => {
+    const stats = applicationStats?.reduce((acc: any, stat: any) => {
       acc.totalApplications += stat.count;
       if (stat.status === 'pending') acc.pendingApplications = stat.count;
       if (stat.status === 'approved') acc.approvedApplications = stat.count;
