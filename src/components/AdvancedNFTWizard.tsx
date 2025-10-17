@@ -39,6 +39,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [deletingCollection, setDeletingCollection] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [generatingPreview, setGeneratingPreview] = useState(false);
+  const [currentCollectionId, setCurrentCollectionId] = useState<string | null>(null);
+  
+  // Logo and banner upload state
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   
   // Bonding curve configuration state
   const [bondingCurveConfig, setBondingCurveConfig] = useState({
@@ -261,7 +268,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         ...collectionConfig,
         layers: layers,
         timestamp: new Date().toISOString()
-      }
+      },
+      collectionId: currentCollectionId, // Include collection ID if updating existing collection
+      logoFile: logoFile, // Include logo file
+      bannerFile: bannerFile // Include banner file
     };
 
     console.log('📤 Sending save request with data:', saveData);
@@ -344,6 +354,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     if (collection.layers && Array.isArray(collection.layers)) {
       setLayers(collection.layers);
     }
+
+    // Load logo and banner if available
+    if (collection.logo_url) {
+      setLogoPreview(collection.logo_url);
+    }
+    if (collection.banner_url) {
+      setBannerPreview(collection.banner_url);
+    }
+
+    // Set current collection ID for updates
+    setCurrentCollectionId(collection.id);
 
     setShowCollectionLoader(false);
     setUploadMessage('✅ Collection loaded successfully!');
@@ -518,6 +539,72 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     } finally {
       setGeneratingPreview(false);
     }
+  };
+
+  // Logo upload handler
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file for the logo');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Logo file size must be less than 5MB');
+      return;
+    }
+
+    setLogoFile(file);
+
+    // Create preview
+    const reader = new Image();
+    reader.onload = (e) => {
+      setLogoPreview(e.target?.result as string);
+    };
+    reader.src = URL.createObjectURL(file);
+  };
+
+  // Banner upload handler
+  const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file for the banner');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Banner file size must be less than 10MB');
+      return;
+    }
+
+    setBannerFile(file);
+
+    // Create preview
+    const reader = new Image();
+    reader.onload = (e) => {
+      setBannerPreview(e.target?.result as string);
+    };
+    reader.src = URL.createObjectURL(file);
+  };
+
+  // Remove logo
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
+
+  // Remove banner
+  const removeBanner = () => {
+    setBannerFile(null);
+    setBannerPreview(null);
   };
 
   const updateTrait = (layerId: string, traitId: string, updates: Partial<Trait>) => {
@@ -825,6 +912,115 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Logo and Banner Upload Section */}
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-xl font-semibold text-white mb-4">🎨 Collection Visuals</h4>
+                <p className="text-white/70 mb-6">Upload your collection logo and banner for better visibility on marketplaces</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Logo Upload */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                  <h5 className="text-lg font-semibold text-white mb-4">Collection Logo</h5>
+                  <p className="text-sm text-white/70 mb-4">
+                    Recommended: 512x512px, PNG format. Used on DexScreener, MagicEden, and other platforms.
+                  </p>
+                  
+                  {logoPreview ? (
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <img 
+                          src={logoPreview} 
+                          alt="Logo preview" 
+                          className="w-32 h-32 object-cover rounded-lg border border-white/20 mx-auto"
+                        />
+                        <button
+                          onClick={removeLogo}
+                          className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <p className="text-xs text-green-400 text-center">✅ Logo uploaded successfully</p>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center hover:border-white/50 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      <label htmlFor="logo-upload" className="cursor-pointer">
+                        <div className="text-4xl mb-2">🖼️</div>
+                        <p className="text-white/70 mb-2">Click to upload logo</p>
+                        <p className="text-xs text-white/50">PNG, JPG, GIF • Max 5MB</p>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* Banner Upload */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                  <h5 className="text-lg font-semibold text-white mb-4">Collection Banner</h5>
+                  <p className="text-sm text-white/70 mb-4">
+                    Recommended: 1200x400px, PNG format. Used for collection headers and social media.
+                  </p>
+                  
+                  {bannerPreview ? (
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <img 
+                          src={bannerPreview} 
+                          alt="Banner preview" 
+                          className="w-full h-24 object-cover rounded-lg border border-white/20"
+                        />
+                        <button
+                          onClick={removeBanner}
+                          className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <p className="text-xs text-green-400 text-center">✅ Banner uploaded successfully</p>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center hover:border-white/50 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerUpload}
+                        className="hidden"
+                        id="banner-upload"
+                      />
+                      <label htmlFor="banner-upload" className="cursor-pointer">
+                        <div className="text-4xl mb-2">🖼️</div>
+                        <p className="text-white/70 mb-2">Click to upload banner</p>
+                        <p className="text-xs text-white/50">PNG, JPG, GIF • Max 10MB</p>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Platform Compatibility Info */}
+              <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-lg p-4">
+                <h6 className="text-blue-300 font-medium mb-2">🌐 Platform Compatibility</h6>
+                <p className="text-blue-200 text-sm">
+                  Your logo and banner will be automatically optimized for:
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {['DexScreener', 'MagicEden', 'OpenSea', 'SolanaFM', 'Solscan'].map((platform) => (
+                    <span key={platform} className="bg-blue-600/20 text-blue-300 px-2 py-1 rounded text-xs">
+                      {platform}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -2480,8 +2676,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <p className="text-sm text-gray-300">Symbol: {collection.collection_symbol || 'N/A'}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm text-gray-400">
-                            {new Date(collection.created_at).toLocaleDateString()}
+                          <div className="text-xs text-gray-400 space-y-1">
+                            <div>Created: {new Date(collection.created_at).toLocaleDateString()}</div>
+                            {collection.updated_at && collection.updated_at !== collection.created_at && (
+                              <div>Updated: {new Date(collection.updated_at).toLocaleDateString()}</div>
+                            )}
                           </div>
                         </div>
                       </div>

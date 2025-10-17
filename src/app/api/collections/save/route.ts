@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
       whitelistEnabled, 
       bondingCurveEnabled, 
       layers, 
-      collectionConfig 
+      collectionConfig,
+      collectionId, // Optional: if provided, update existing collection
+      logoFile, // Optional: logo file data
+      bannerFile // Optional: banner file data
     } = body;
 
     // Validate required fields
@@ -35,26 +38,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save collection to database
-    const { data, error } = await (supabaseAdmin
-      .from('saved_collections') as any)
-      .insert({
-        user_wallet: userWallet,
-        collection_name: collectionName,
-        collection_symbol: collectionSymbol,
-        description: description || '',
-        total_supply: totalSupply || 1000,
-        mint_price: mintPrice || 0.1,
-        reveal_type: revealType || 'instant',
-        reveal_date: revealDate || null,
-        whitelist_enabled: whitelistEnabled || false,
-        bonding_curve_enabled: bondingCurveEnabled || false,
-        layers: layers,
-        collection_config: collectionConfig || {},
-        status: 'draft'
-      })
-      .select()
-      .single() as { data: any; error: any };
+    // Prepare collection data
+    const collectionData = {
+      user_wallet: userWallet,
+      collection_name: collectionName,
+      collection_symbol: collectionSymbol,
+      description: description || '',
+      total_supply: totalSupply || 1000,
+      mint_price: mintPrice || 0.1,
+      reveal_type: revealType || 'instant',
+      reveal_date: revealDate || null,
+      whitelist_enabled: whitelistEnabled || false,
+      bonding_curve_enabled: bondingCurveEnabled || false,
+      layers: layers,
+      collection_config: collectionConfig || {},
+      status: 'draft',
+      updated_at: new Date().toISOString(),
+      // Note: In a real implementation, you would upload logoFile and bannerFile to a storage service
+      // and store the URLs here. For now, we'll store placeholder values.
+      logo_url: logoFile ? 'uploaded_logo_url' : null,
+      banner_url: bannerFile ? 'uploaded_banner_url' : null
+    };
+
+    // If collectionId is provided, update existing collection, otherwise create new one
+    let data, error;
+    if (collectionId) {
+      // Update existing collection
+      const result = await (supabaseAdmin
+        .from('saved_collections') as any)
+        .update(collectionData)
+        .eq('id', collectionId)
+        .eq('user_wallet', userWallet) // Ensure user can only update their own collections
+        .select()
+        .single() as { data: any; error: any };
+      data = result.data;
+      error = result.error;
+    } else {
+      // Create new collection
+      const result = await (supabaseAdmin
+        .from('saved_collections') as any)
+        .insert(collectionData)
+        .select()
+        .single() as { data: any; error: any };
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error('Error saving collection:', error);
