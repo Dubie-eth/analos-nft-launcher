@@ -40,6 +40,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [generatingPreview, setGeneratingPreview] = useState(false);
   const [currentCollectionId, setCurrentCollectionId] = useState<string | null>(null);
+  const [pageLoadId] = useState(() => `page_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`);
+  const [hasSaved, setHasSaved] = useState(false);
   
   // Logo and banner upload state
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -248,6 +250,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       return;
     }
 
+    // Check if already saved in this page load
+    if (hasSaved) {
+      setSaveMessage('You can only save once per page load. Please refresh the page to save again.');
+      return;
+    }
+
     console.log('✅ Validation passed, starting save...');
     setSaving(true);
     setSaveMessage('');
@@ -271,7 +279,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       },
       collectionId: currentCollectionId, // Include collection ID if updating existing collection
       logoFile: logoFile, // Include logo file
-      bannerFile: bannerFile // Include banner file
+      bannerFile: bannerFile, // Include banner file
+      pageLoadId: pageLoadId // Include page load ID for save restriction
     };
 
     console.log('📤 Sending save request with data:', saveData);
@@ -294,6 +303,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       if (result.success) {
         console.log('✅ Collection saved successfully to database!');
         setSaveMessage('✅ Collection saved successfully!');
+        setHasSaved(true); // Mark as saved to prevent multiple saves
         setTimeout(() => setSaveMessage(''), 3000);
       } else {
         console.log('❌ Save failed:', result.error);
@@ -2603,11 +2613,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               {/* Save Button */}
               <button
                 onClick={handleSaveCollection}
-                disabled={saving || !collectionConfig.name || !collectionConfig.symbol}
+                disabled={saving || !collectionConfig.name || !collectionConfig.symbol || hasSaved}
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                title={hasSaved ? 'Already saved. Refresh page to save again.' : ''}
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save Draft'}
+                {saving ? 'Saving...' : hasSaved ? 'Saved' : 'Save Draft'}
               </button>
               
               <button

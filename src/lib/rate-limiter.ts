@@ -1,164 +1,234 @@
-/**
- * RATE LIMITING MIDDLEWARE
- * Prevents DoS attacks and abuse
- */
-
+// Rate limiting system for API endpoints and functions
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
-  maxRequests: number; // Max requests per window
+  maxRequests: number; // Maximum requests per window
+  message?: string; // Custom error message
+  skipSuccessfulRequests?: boolean; // Don't count successful requests
+  skipFailedRequests?: boolean; // Don't count failed requests
 }
 
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-  };
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+  blocked: boolean;
 }
 
-const store: RateLimitStore = {};
+// In-memory store for rate limiting (in production, use Redis)
+const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(store).forEach(key => {
-    if (store[key].resetTime < now) {
-      delete store[key];
-    }
-  });
-}, 5 * 60 * 1000);
+// Default rate limit configurations
+export const RATE_LIMITS = {
+  // API endpoints
+  SAVE_COLLECTION: { windowMs: 5 * 60 * 1000, maxRequests: 1 }, // 1 save per 5 minutes
+  LOAD_COLLECTIONS: { windowMs: 60 * 1000, maxRequests: 10 }, // 10 loads per minute
+  DELETE_COLLECTION: { windowMs: 60 * 1000, maxRequests: 5 }, // 5 deletes per minute
+  UPLOAD_IMAGES: { windowMs: 60 * 1000, maxRequests: 20 }, // 20 uploads per minute
+  VERIFY_SOCIAL: { windowMs: 60 * 1000, maxRequests: 10 }, // 10 verifications per minute
+  
+  // User actions
+  PROFILE_UPDATE: { windowMs: 5 * 60 * 1000, maxRequests: 3 }, // 3 updates per 5 minutes
+  WALLET_CONNECT: { windowMs: 60 * 1000, maxRequests: 5 }, // 5 connections per minute
+  
+  // General API
+  GENERAL_API: { windowMs: 60 * 1000, maxRequests: 100 }, // 100 requests per minute
+} as const;
 
 export class RateLimiter {
-  private config: RateLimitConfig;
+  private static instance: RateLimiter;
+  private store = rateLimitStore;
 
-  constructor(config: RateLimitConfig) {
-    this.config = config;
+  static getInstance(): RateLimiter {
+    if (!RateLimiter.instance) {
+      RateLimiter.instance = new RateLimiter();
+    }
+    return RateLimiter.instance;
   }
 
   /**
-   * Check if request is rate limited
-   * @param identifier - Unique identifier (IP, wallet, etc.)
-   * @returns true if allowed, false if rate limited
+   * Check if request is within rate limit
    */
-  check(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+  checkLimit(
+    identifier: string, 
+    config: RateLimitConfig
+  ): { allowed: boolean; remaining: number; resetTime: number; message?: string } {
     const now = Date.now();
-    const key = `${this.config.windowMs}-${this.config.maxRequests}-${identifier}`;
-
-    if (!store[key] || store[key].resetTime < now) {
-      // First request or window expired
-      store[key] = {
-        count: 1,
-        resetTime: now + this.config.windowMs
-      };
-      return {
-        allowed: true,
-        remaining: this.config.maxRequests - 1,
-        resetTime: store[key].resetTime
-      };
+    const key = `${identifier}:${config.windowMs}`;
+    
+    let entry = this.store.get(key);
+    
+    // Clean up expired entries
+    if (entry && now > entry.resetTime) {
+      this.store.delete(key);
+      entry = undefined;
     }
-
-    // Increment count
-    store[key].count++;
-
-    if (store[key].count > this.config.maxRequests) {
+    
+    // Create new entry if none exists
+    if (!entry) {
+      entry = {
+        count: 0,
+        resetTime: now + config.windowMs,
+        blocked: false
+      };
+      this.store.set(key, entry);
+    }
+    
+    // Check if blocked
+    if (entry.blocked && now < entry.resetTime) {
       return {
         allowed: false,
         remaining: 0,
-        resetTime: store[key].resetTime
+        resetTime: entry.resetTime,
+        message: config.message || 'Rate limit exceeded. Please try again later.'
       };
     }
-
+    
+    // Check if limit exceeded
+    if (entry.count >= config.maxRequests) {
+      entry.blocked = true;
+      return {
+        allowed: false,
+        remaining: 0,
+        resetTime: entry.resetTime,
+        message: config.message || 'Rate limit exceeded. Please try again later.'
+      };
+    }
+    
+    // Increment counter
+    entry.count++;
+    
     return {
       allowed: true,
-      remaining: this.config.maxRequests - store[key].count,
-      resetTime: store[key].resetTime
+      remaining: config.maxRequests - entry.count,
+      resetTime: entry.resetTime
     };
   }
-}
 
-// Pre-configured rate limiters
-export const rateLimiters = {
-  // Strict rate limit for sensitive operations
-  strict: new RateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 10 // 10 requests per 15 minutes
-  }),
-
-  // Standard rate limit for API calls
-  standard: new RateLimiter({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 60 // 60 requests per minute
-  }),
-
-  // Relaxed rate limit for read operations
-  relaxed: new RateLimiter({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 120 // 120 requests per minute
-  }),
-
-  // Admin operations
-  admin: new RateLimiter({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 100 // 100 requests per minute
-  })
-};
-
-/**
- * Get identifier from request (IP or wallet)
- */
-export function getRequestIdentifier(request: Request): string {
-  // Try to get wallet from cookie
-  const cookies = request.headers.get('cookie');
-  if (cookies) {
-    const walletMatch = cookies.match(/user-wallet=([^;]+)/);
-    if (walletMatch) {
-      return `wallet:${walletMatch[1]}`;
+  /**
+   * Reset rate limit for an identifier
+   */
+  resetLimit(identifier: string, windowMs?: number): void {
+    if (windowMs) {
+      this.store.delete(`${identifier}:${windowMs}`);
+    } else {
+      // Reset all windows for this identifier
+      for (const key of this.store.keys()) {
+        if (key.startsWith(`${identifier}:`)) {
+          this.store.delete(key);
+        }
+      }
     }
   }
 
-  // Fallback to IP address
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
-  return `ip:${ip}`;
+  /**
+   * Get current rate limit status
+   */
+  getStatus(identifier: string, config: RateLimitConfig): {
+    count: number;
+    remaining: number;
+    resetTime: number;
+    blocked: boolean;
+  } {
+    const key = `${identifier}:${config.windowMs}`;
+    const entry = this.store.get(key);
+    const now = Date.now();
+    
+    if (!entry || now > entry.resetTime) {
+      return {
+        count: 0,
+        remaining: config.maxRequests,
+        resetTime: now + config.windowMs,
+        blocked: false
+      };
+    }
+    
+    return {
+      count: entry.count,
+      remaining: config.maxRequests - entry.count,
+      resetTime: entry.resetTime,
+      blocked: entry.blocked
+    };
+  }
+
+  /**
+   * Clean up expired entries (call periodically)
+   */
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.store.entries()) {
+      if (now > entry.resetTime) {
+        this.store.delete(key);
+      }
+    }
+  }
 }
 
-/**
- * Rate limit middleware for Next.js API routes
- */
+// Helper function to get client identifier
+export function getClientIdentifier(request: Request): string {
+  // Try to get IP from various headers
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  
+  const ip = forwarded?.split(',')[0] || realIp || cfConnectingIp || 'unknown';
+  
+  // Add user agent for additional uniqueness
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+  const userAgentHash = btoa(userAgent).slice(0, 8);
+  
+  return `${ip}:${userAgentHash}`;
+}
+
+// Helper function to get wallet-based identifier
+export function getWalletIdentifier(walletAddress: string): string {
+  return `wallet:${walletAddress}`;
+}
+
+// Rate limiting middleware for API routes
 export function withRateLimit(
-  handler: (request: Request) => Promise<Response>,
-  limiter: RateLimiter = rateLimiters.standard
+  config: RateLimitConfig,
+  getIdentifier: (request: Request) => string = getClientIdentifier
 ) {
-  return async (request: Request) => {
-    const identifier = getRequestIdentifier(request);
-    const { allowed, remaining, resetTime } = limiter.check(identifier);
-
-    if (!allowed) {
-      return new Response(
-        JSON.stringify({
-          error: 'Rate limit exceeded',
-          message: 'Too many requests. Please try again later.',
-          resetTime: new Date(resetTime).toISOString()
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((resetTime - Date.now()) / 1000).toString(),
-            'X-RateLimit-Limit': limiter['config'].maxRequests.toString(),
-            'X-RateLimit-Remaining': remaining.toString(),
-            'X-RateLimit-Reset': new Date(resetTime).toISOString()
+  return function(handler: Function) {
+    return async function(request: Request, ...args: any[]) {
+      const identifier = getIdentifier(request);
+      const rateLimiter = RateLimiter.getInstance();
+      
+      const result = rateLimiter.checkLimit(identifier, config);
+      
+      if (!result.allowed) {
+        return new Response(
+          JSON.stringify({ 
+            error: result.message,
+            retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000)
+          }),
+          { 
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': Math.ceil((result.resetTime - Date.now()) / 1000).toString(),
+              'X-RateLimit-Limit': config.maxRequests.toString(),
+              'X-RateLimit-Remaining': result.remaining.toString(),
+              'X-RateLimit-Reset': result.resetTime.toString()
+            }
           }
-        }
-      );
-    }
-
-    // Add rate limit headers to response
-    const response = await handler(request);
-    response.headers.set('X-RateLimit-Limit', limiter['config'].maxRequests.toString());
-    response.headers.set('X-RateLimit-Remaining', remaining.toString());
-    response.headers.set('X-RateLimit-Reset', new Date(resetTime).toISOString());
-
-    return response;
+        );
+      }
+      
+      // Add rate limit headers to response
+      const response = await handler(request, ...args);
+      
+      if (response instanceof Response) {
+        response.headers.set('X-RateLimit-Limit', config.maxRequests.toString());
+        response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
+        response.headers.set('X-RateLimit-Reset', result.resetTime.toString());
+      }
+      
+      return response;
+    };
   };
 }
 
+// Cleanup expired entries every 5 minutes
+setInterval(() => {
+  RateLimiter.getInstance().cleanup();
+}, 5 * 60 * 1000);
