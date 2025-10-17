@@ -39,6 +39,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [deletingCollection, setDeletingCollection] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [generatingPreview, setGeneratingPreview] = useState(false);
+  
+  // Bonding curve configuration state
+  const [bondingCurveConfig, setBondingCurveConfig] = useState({
+    startingPrice: 0.1,
+    maxPrice: 1.0,
+    increaseRate: 5.0
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -277,6 +284,28 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     } finally {
       setDeletingCollection(null);
     }
+  };
+
+  // Generate bonding curve data based on configuration
+  const generateBondingCurveData = () => {
+    const data = [];
+    const totalSupply = 1000; // Assuming 1000 NFTs for visualization
+    
+    for (let i = 1; i <= totalSupply; i++) {
+      // Calculate price using exponential growth formula
+      const price = bondingCurveConfig.startingPrice * Math.pow(1 + (bondingCurveConfig.increaseRate / 100), i - 1);
+      
+      // Cap at max price
+      const cappedPrice = Math.min(price, bondingCurveConfig.maxPrice);
+      
+      data.push({
+        mint: i,
+        price: cappedPrice,
+        supply: i
+      });
+    }
+    
+    return data;
   };
 
   const generatePreview = async () => {
@@ -1088,45 +1117,132 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 </div>
               )}
 
-              {/* Additional Bonding Curve Configuration */}
+              {/* Bonding Curve Configuration with Interactive Chart */}
               {collectionConfig.bondingCurveEnabled && (
-                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-                  <h4 className="text-lg font-semibold text-white mb-4">Pricing Configuration</h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Starting Price (ANAL)
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="0.1"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                <div className="space-y-6">
+                  {/* Pricing Configuration */}
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                    <h4 className="text-lg font-semibold text-white mb-4">Pricing Configuration</h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Starting Price (ANAL)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.1"
+                          value={bondingCurveConfig.startingPrice}
+                          onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, startingPrice: parseFloat(e.target.value) || 0 }))}
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Max Price (ANAL)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="1.0"
+                          value={bondingCurveConfig.maxPrice}
+                          onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, maxPrice: parseFloat(e.target.value) || 0 }))}
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Max Price (ANAL)
+                        Price Increase Rate (%)
                       </label>
                       <input
                         type="number"
-                        placeholder="1.0"
+                        step="0.1"
+                        placeholder="5"
+                        value={bondingCurveConfig.increaseRate}
+                        onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, increaseRate: parseFloat(e.target.value) || 0 }))}
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      <p className="text-xs text-gray-400 mt-1">Percentage increase per mint</p>
                     </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Price Increase Rate (%)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="5"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">Percentage increase per mint</p>
+
+                  {/* Interactive Bonding Curve Chart */}
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                    <h4 className="text-lg font-semibold text-white mb-4">Bonding Curve Visualization</h4>
+                    
+                    <div className="space-y-4">
+                      {/* Chart Container */}
+                      <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                        <div className="h-64 flex items-end justify-between gap-1" id="bonding-curve-chart">
+                          {generateBondingCurveData().map((point, index) => (
+                            <div
+                              key={index}
+                              className="flex flex-col items-center group cursor-pointer"
+                              style={{ flex: '1' }}
+                            >
+                              <div
+                                className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
+                                style={{ height: `${(point.price / Math.max(...generateBondingCurveData().map(p => p.price))) * 200}px` }}
+                                title={`Mint ${index + 1}: ${point.price.toFixed(4)} ANAL`}
+                              />
+                              {index % 10 === 0 && (
+                                <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left">
+                                  {index + 1}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Chart Labels */}
+                        <div className="flex justify-between text-xs text-gray-400 mt-2">
+                          <span>Mint #1</span>
+                          <span>Supply</span>
+                          <span>Mint #{generateBondingCurveData().length}</span>
+                        </div>
+                      </div>
+
+                      {/* Price Range Display */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                          <div className="text-blue-300 text-sm font-medium">Starting Price</div>
+                          <div className="text-white text-lg font-bold">{bondingCurveConfig.startingPrice.toFixed(4)} ANAL</div>
+                        </div>
+                        
+                        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
+                          <div className="text-purple-300 text-sm font-medium">Current Price (50% sold)</div>
+                          <div className="text-white text-lg font-bold">
+                            {generateBondingCurveData()[Math.floor(generateBondingCurveData().length / 2)]?.price.toFixed(4) || '0.0000'} ANAL
+                          </div>
+                        </div>
+                        
+                        <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                          <div className="text-green-300 text-sm font-medium">Max Price</div>
+                          <div className="text-white text-lg font-bold">{bondingCurveConfig.maxPrice.toFixed(4)} ANAL</div>
+                        </div>
+                      </div>
+
+                      {/* Revenue Projection */}
+                      <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-500/30 rounded-lg p-4">
+                        <h5 className="text-yellow-300 font-medium mb-2">Revenue Projection</h5>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-400">Total Supply:</span>
+                            <span className="text-white ml-2">1,000 NFTs</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Projected Revenue:</span>
+                            <span className="text-white ml-2">
+                              {generateBondingCurveData().reduce((sum, point) => sum + point.price, 0).toFixed(2)} ANAL
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
