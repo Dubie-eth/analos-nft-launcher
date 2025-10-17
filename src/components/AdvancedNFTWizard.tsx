@@ -486,6 +486,21 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 </div>
               </div>
             </div>
+
+            {/* Load Saved Collections Section */}
+            <div className="mt-8 p-6 bg-white/10 backdrop-blur-lg rounded-xl border border-white/20">
+              <div className="text-center">
+                <h4 className="text-xl font-semibold text-white mb-3">Or Load a Saved Collection</h4>
+                <p className="text-white/70 mb-4">Continue working on a previously saved collection</p>
+                <button
+                  onClick={loadSavedCollections}
+                  disabled={loadingCollections}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingCollections ? 'Loading...' : '📂 Load Saved Collections'}
+                </button>
+              </div>
+            </div>
           </div>
         );
 
