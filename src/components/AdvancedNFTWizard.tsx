@@ -32,6 +32,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [uploadMessage, setUploadMessage] = useState('');
+  const [loadingCollections, setLoadingCollections] = useState(false);
+  const [savedCollections, setSavedCollections] = useState<any[]>([]);
+  const [showCollectionLoader, setShowCollectionLoader] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -177,6 +180,58 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       console.log('🏁 Save process completed');
       setSaving(false);
     }
+  };
+
+  const loadSavedCollections = async () => {
+    if (!publicKey) {
+      console.log('❌ No wallet connected');
+      return;
+    }
+
+    setLoadingCollections(true);
+    console.log('🔄 Loading saved collections...');
+
+    try {
+      const response = await fetch(`/api/collections/load?wallet=${publicKey.toString()}`);
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Loaded collections:', result.collections);
+        setSavedCollections(result.collections || []);
+        setShowCollectionLoader(true);
+      } else {
+        console.log('❌ Failed to load collections:', result.error);
+      }
+    } catch (error) {
+      console.error('💥 Error loading collections:', error);
+    } finally {
+      setLoadingCollections(false);
+    }
+  };
+
+  const loadCollection = (collection: any) => {
+    console.log('🔄 Loading collection:', collection);
+    
+    // Load collection config
+    setCollectionConfig({
+      name: collection.collection_name || '',
+      symbol: collection.collection_symbol || '',
+      description: collection.description || '',
+      supply: collection.total_supply || 1000,
+      mintPrice: collection.mint_price || 0.1,
+      revealType: collection.reveal_type || 'instant',
+      whitelistEnabled: collection.whitelist_enabled || false,
+      bondingCurveEnabled: collection.bonding_curve_enabled || false
+    });
+
+    // Load layers if available
+    if (collection.layers && Array.isArray(collection.layers)) {
+      setLayers(collection.layers);
+    }
+
+    setShowCollectionLoader(false);
+    setUploadMessage('✅ Collection loaded successfully!');
+    setTimeout(() => setUploadMessage(''), 3000);
   };
 
   const updateTrait = (layerId: string, traitId: string, updates: Partial<Trait>) => {
@@ -504,6 +559,21 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               <p className="text-sm text-white/60 mt-6">
                 Supported formats: PNG, JPG, GIF, ZIP. Max 10MB per file.
               </p>
+            </div>
+            
+            {/* Load Saved Collections Section */}
+            <div className="mt-8 p-6 bg-white/10 backdrop-blur-lg rounded-xl border border-white/20">
+              <div className="text-center">
+                <h4 className="text-xl font-semibold text-white mb-3">Or Load a Saved Collection</h4>
+                <p className="text-white/70 mb-4">Continue working on a previously saved collection</p>
+                <button
+                  onClick={loadSavedCollections}
+                  disabled={loadingCollections}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingCollections ? 'Loading...' : '📂 Load Saved Collections'}
+                </button>
+              </div>
             </div>
             
             {/* Upload Success Message */}
@@ -904,6 +974,73 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           </div>
         </div>
       </div>
+
+      {/* Collection Loader Modal */}
+      {showCollectionLoader && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-white">Your Saved Collections</h3>
+                <button
+                  onClick={() => setShowCollectionLoader(false)}
+                  className="text-white hover:text-gray-200 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {savedCollections.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Settings className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Saved Collections</h4>
+                  <p className="text-gray-600">You haven't saved any collections yet. Create and save your first collection to see it here!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {savedCollections.map((collection, index) => (
+                    <div key={collection.id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-lg">{collection.collection_name || 'Unnamed Collection'}</h4>
+                          <p className="text-sm text-gray-600">Symbol: {collection.collection_symbol || 'N/A'}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">
+                            {new Date(collection.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                        {collection.description || 'No description provided'}
+                      </p>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
+                        <div>Supply: {collection.total_supply || 'N/A'}</div>
+                        <div>Type: {collection.bonding_curve_enabled ? 'Bonding Curve' : 'Standard'}</div>
+                        <div>Reveal: {collection.reveal_type || 'Instant'}</div>
+                        <div>Layers: {collection.layers?.length || 0}</div>
+                      </div>
+                      
+                      <button
+                        onClick={() => loadCollection(collection)}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+                      >
+                        Load Collection
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
