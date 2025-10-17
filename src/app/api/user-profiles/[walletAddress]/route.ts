@@ -137,7 +137,7 @@ export async function PUT(
         .from('user_profiles')
         .select('username')
         .eq('wallet_address', walletAddress)
-        .single();
+        .single() as { data: any; error: any };
       
       // Only check uniqueness if username is actually changing
       if (!existingUser || existingUser.username !== updates.username.toLowerCase()) {
@@ -145,7 +145,7 @@ export async function PUT(
           .from('user_profiles')
           .select('username')
           .eq('username', updates.username.toLowerCase())
-          .single();
+          .single() as { data: any; error: any };
           
         if (usernameExists) {
           return NextResponse.json(
@@ -188,7 +188,7 @@ export async function PUT(
         ignoreDuplicates: false 
       })
       .select()
-      .single();
+      .single() as { data: any; error: any };
     
     if (upsertError) {
       console.error('Error upserting user profile:', upsertError);
