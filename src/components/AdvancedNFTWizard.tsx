@@ -52,6 +52,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   // Whitelist config upload state
   const [whitelistConfigFile, setWhitelistConfigFile] = useState<File | null>(null);
   const [uploadedWhitelistConfig, setUploadedWhitelistConfig] = useState<any>(null);
+  const [showConfigUpload, setShowConfigUpload] = useState(false);
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
   
   // Bonding curve configuration state
   const [bondingCurveConfig, setBondingCurveConfig] = useState({
@@ -1658,11 +1660,22 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   </div>
 
                   {/* Whitelist Configuration Upload */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-                    <h4 className="text-lg font-semibold text-white mb-4">📁 Upload Whitelist Configuration</h4>
-                    <p className="text-sm text-gray-300 mb-4">
-                      Upload a JSON configuration file to quickly set up your whitelist phases, conditions, and pricing.
-                    </p>
+                  {showConfigUpload && (
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-white">📁 Upload Whitelist Configuration</h4>
+                        <button
+                          onClick={() => setShowConfigUpload(false)}
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-300 mb-4">
+                        Upload a JSON configuration file to quickly set up your whitelist phases, conditions, and pricing.
+                      </p>
                     
                     <div className="space-y-4">
                       {!whitelistConfigFile ? (
@@ -1739,6 +1752,25 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
                   </div>
+                  )}
+
+                  {/* Show Upload Option Button */}
+                  {!showConfigUpload && (
+                    <div className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-white">Quick Setup Option</h4>
+                          <p className="text-xs text-gray-400">Upload a JSON config to quickly set up your whitelist</p>
+                        </div>
+                        <button
+                          onClick={() => setShowConfigUpload(true)}
+                          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          Upload Config
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Advanced Whitelist Structure */}
                   <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
@@ -1757,11 +1789,40 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         </button>
                       </div>
                       
+                      {/* Phase Selection */}
+                      {whitelistConfig.phases.length > 0 && (
+                        <div className="mb-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                          <label className="block text-sm font-medium text-white mb-2">
+                            Select Phase to Configure:
+                          </label>
+                          <select
+                            value={selectedPhaseId || ''}
+                            onChange={(e) => setSelectedPhaseId(e.target.value || null)}
+                            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Choose a phase to configure...</option>
+                            {whitelistConfig.phases
+                              .sort((a, b) => a.order - b.order)
+                              .map((phase) => (
+                                <option key={phase.id} value={phase.id}>
+                                  {phase.name} (Order: {phase.order})
+                                </option>
+                              ))}
+                          </select>
+                          {selectedPhaseId && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Configure the selected phase below. Changes will apply to the selected phase only.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="space-y-3">
                         {whitelistConfig.phases
                           .sort((a, b) => a.order - b.order)
                           .map((phase, index) => {
                             const isPublicAccess = phase.name === 'Public Access';
+                            const isSelected = selectedPhaseId === phase.id;
                             const totalWhitelistSpots = whitelistConfig.phases
                               .filter((p, i) => p.id !== phase.id && p.enabled)
                               .reduce((sum, p) => sum + p.spots, 0);
@@ -1769,9 +1830,20 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
                             
                             return (
-                              <div key={phase.id} className="p-4 bg-gray-800/30 rounded-lg border border-gray-600">
+                              <div 
+                                key={phase.id} 
+                                className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                                  isSelected 
+                                    ? 'bg-blue-900/30 border-blue-500 ring-2 ring-blue-500/50' 
+                                    : 'bg-gray-800/30 border-gray-600 hover:border-gray-500'
+                                }`}
+                                onClick={() => setSelectedPhaseId(phase.id)}
+                              >
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center gap-3">
+                                    {isSelected && (
+                                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                    )}
                                     <input 
                                       type="checkbox" 
                                       className="w-4 h-4 text-blue-600" 
@@ -2232,6 +2304,71 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Selected Phase Configuration */}
+                  {selectedPhaseId && (
+                    <div className="mt-6 p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                      <h5 className="text-md font-semibold text-blue-300 mb-3">
+                        ⚙️ Configure Selected Phase
+                      </h5>
+                      {(() => {
+                        const selectedPhase = whitelistConfig.phases.find(p => p.id === selectedPhaseId);
+                        if (!selectedPhase) return null;
+                        
+                        return (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-white mb-1">
+                                  Phase Name
+                                </label>
+                                <input
+                                  type="text"
+                                  value={selectedPhase.name}
+                                  onChange={(e) => updatePhase(selectedPhaseId, { name: e.target.value })}
+                                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-white mb-1">
+                                  Available Spots
+                                </label>
+                                <input
+                                  type="number"
+                                  value={selectedPhase.spots}
+                                  onChange={(e) => updatePhase(selectedPhaseId, { spots: parseInt(e.target.value) || 0 })}
+                                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-white mb-1">
+                                Description
+                              </label>
+                              <textarea
+                                value={selectedPhase.description}
+                                onChange={(e) => updatePhase(selectedPhaseId, { description: e.target.value })}
+                                rows={2}
+                                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Describe this phase..."
+                              />
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedPhase.enabled}
+                                  onChange={(e) => updatePhase(selectedPhaseId, { enabled: e.target.checked })}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-white text-sm">Enable this phase</span>
+                              </label>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
