@@ -291,7 +291,7 @@ export class DatabaseAirdropService {
     }
 
     // Award activity points for claiming
-    await supabaseAdmin.rpc('increment_activity_points', {
+    await (supabaseAdmin.rpc as any)('increment_activity_points', {
       user_wallet: walletAddress,
       points: Math.floor(amount / 100) // 1 point per 100 tokens claimed
     });
