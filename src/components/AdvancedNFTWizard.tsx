@@ -46,6 +46,42 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     maxPrice: 1.0,
     increaseRate: 5.0
   });
+
+  // Whitelist configuration state
+  const [whitelistConfig, setWhitelistConfig] = useState({
+    phases: [
+      { name: 'Early Supporters', enabled: true, spots: 100 },
+      { name: 'Community Members', enabled: true, spots: 200 },
+      { name: 'Public Access', enabled: false, spots: 200 }
+    ],
+    tokenContract: 'So11111111111111111111111111111111111111112', // Default to SOL
+    minTokenBalance: 1000000,
+    minNftHoldings: 1,
+    socialVerification: {
+      twitter: false,
+      discord: false,
+      telegram: false
+    },
+    startTime: '',
+    endTime: ''
+  });
+
+  // Reveal configuration state
+  const [revealConfig, setRevealConfig] = useState({
+    revealType: 'instant', // 'instant' or 'delayed'
+    delayedReveal: {
+      criteria: 'time', // 'time', 'percentage', 'manual'
+      timeDelay: 24, // hours
+      percentageThreshold: 50, // percentage of collection sold
+      manualTrigger: false
+    },
+    revealRules: {
+      enforceWhitelistPhases: true,
+      enforceBondingCurve: true,
+      enforceTimeBasedAccess: true,
+      enforceSocialVerification: true
+    }
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -286,12 +322,29 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     }
   };
 
-  // Generate bonding curve data based on configuration
+  // Generate bonding curve data based on configuration and remaining supply
   const generateBondingCurveData = () => {
     const data = [];
-    const totalSupply = 1000; // Assuming 1000 NFTs for visualization
     
-    for (let i = 1; i <= totalSupply; i++) {
+    // Calculate total whitelist spots from enabled phases
+    let totalWhitelistSpots = 0;
+    if (collectionConfig.whitelistEnabled) {
+      totalWhitelistSpots = whitelistConfig.phases
+        .filter(phase => phase.enabled)
+        .reduce((sum, phase) => sum + phase.spots, 0);
+    }
+    
+    // Get the actual collection supply from collectionConfig
+    const totalCollectionSupply = collectionConfig.supply || 1000;
+    
+    // The effective supply for bonding curve is total supply minus whitelist spots
+    const effectiveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+    
+    if (effectiveSupply === 0) {
+      return []; // No NFTs left for bonding curve
+    }
+    
+    for (let i = 1; i <= effectiveSupply; i++) {
       // Calculate price using exponential growth formula
       const price = bondingCurveConfig.startingPrice * Math.pow(1 + (bondingCurveConfig.increaseRate / 100), i - 1);
       
@@ -301,7 +354,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       data.push({
         mint: i,
         price: cappedPrice,
-        supply: i
+        supply: i,
+        totalSupply: effectiveSupply
       });
     }
     
@@ -801,39 +855,215 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
       case 4:
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Reveal Settings</h3>
-              <p className="text-gray-300">Choose how your NFTs will be revealed to users.</p>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold text-white mb-2">Reveal Settings</h3>
+              <p className="text-white/80 text-lg">Choose how your NFTs will be revealed to users.</p>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reveal Type
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center">
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Reveal Type Selection */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <h4 className="text-lg font-semibold text-white mb-4">Reveal Type</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div 
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      revealConfig.revealType === 'instant' 
+                        ? 'border-green-500 bg-green-900/20' 
+                        : 'border-gray-600 bg-gray-800/30 hover:border-gray-500'
+                    }`}
+                    onClick={() => setRevealConfig(prev => ({ ...prev, revealType: 'instant' }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="revealType"
+                        value="instant"
+                        checked={revealConfig.revealType === 'instant'}
+                        onChange={() => setRevealConfig(prev => ({ ...prev, revealType: 'instant' }))}
+                        className="w-4 h-4 text-green-600"
+                      />
+                      <div>
+                        <h5 className="text-white font-medium">Instant Reveal</h5>
+                        <p className="text-gray-400 text-sm">NFTs are revealed immediately upon mint</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      revealConfig.revealType === 'delayed' 
+                        ? 'border-blue-500 bg-blue-900/20' 
+                        : 'border-gray-600 bg-gray-800/30 hover:border-gray-500'
+                    }`}
+                    onClick={() => setRevealConfig(prev => ({ ...prev, revealType: 'delayed' }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="revealType"
+                        value="delayed"
+                        checked={revealConfig.revealType === 'delayed'}
+                        onChange={() => setRevealConfig(prev => ({ ...prev, revealType: 'delayed' }))}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <div>
+                        <h5 className="text-white font-medium">Delayed Reveal</h5>
+                        <p className="text-gray-400 text-sm">NFTs are revealed based on criteria</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delayed Reveal Configuration */}
+              {revealConfig.revealType === 'delayed' && (
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Delayed Reveal Criteria</h4>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-3">Reveal Trigger</label>
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="revealCriteria"
+                          value="time"
+                          checked={revealConfig.delayedReveal.criteria === 'time'}
+                          onChange={(e) => setRevealConfig(prev => ({ 
+                            ...prev, 
+                            delayedReveal: { ...prev.delayedReveal, criteria: e.target.value as 'time' | 'percentage' | 'manual' }
+                          }))}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-white">Time-based (after X hours)</span>
+                      </label>
+                      
+                      <label className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="revealCriteria"
+                          value="percentage"
+                          checked={revealConfig.delayedReveal.criteria === 'percentage'}
+                          onChange={(e) => setRevealConfig(prev => ({ 
+                            ...prev, 
+                            delayedReveal: { ...prev.delayedReveal, criteria: e.target.value as 'time' | 'percentage' | 'manual' }
+                          }))}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-white">Percentage-based (after X% sold)</span>
+                      </label>
+                      
+                      <label className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="revealCriteria"
+                          value="manual"
+                          checked={revealConfig.delayedReveal.criteria === 'manual'}
+                          onChange={(e) => setRevealConfig(prev => ({ 
+                            ...prev, 
+                            delayedReveal: { ...prev.delayedReveal, criteria: e.target.value as 'time' | 'percentage' | 'manual' }
+                          }))}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <span className="text-white">Manual trigger (admin controlled)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Time-based Configuration */}
+                  {revealConfig.delayedReveal.criteria === 'time' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Delay Time (hours)</label>
+                      <input
+                        type="number"
+                        value={revealConfig.delayedReveal.timeDelay}
+                        onChange={(e) => setRevealConfig(prev => ({ 
+                          ...prev, 
+                          delayedReveal: { ...prev.delayedReveal, timeDelay: parseInt(e.target.value) || 0 }
+                        }))}
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="24"
+                      />
+                    </div>
+                  )}
+
+                  {/* Percentage-based Configuration */}
+                  {revealConfig.delayedReveal.criteria === 'percentage' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Reveal Threshold (%)</label>
+                      <input
+                        type="number"
+                        value={revealConfig.delayedReveal.percentageThreshold}
+                        onChange={(e) => setRevealConfig(prev => ({ 
+                          ...prev, 
+                          delayedReveal: { ...prev.delayedReveal, percentageThreshold: parseInt(e.target.value) || 0 }
+                        }))}
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="50"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">NFTs will be revealed when this percentage of the collection is sold</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Rule Enforcement Settings */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                <h4 className="text-lg font-semibold text-white mb-4">Launch Rule Enforcement</h4>
+                <p className="text-gray-400 text-sm mb-4">Configure which rules will be enforced during the launch:</p>
+                
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3">
                     <input
-                      type="radio"
-                      name="revealType"
-                      value="instant"
-                      checked={collectionConfig.revealType === 'instant'}
-                      onChange={(e) => setCollectionConfig(prev => ({ ...prev, revealType: e.target.value as 'instant' | 'delayed' }))}
-                      className="mr-2"
+                      type="checkbox"
+                      checked={revealConfig.revealRules.enforceWhitelistPhases}
+                      onChange={(e) => setRevealConfig(prev => ({ 
+                        ...prev, 
+                        revealRules: { ...prev.revealRules, enforceWhitelistPhases: e.target.checked }
+                      }))}
+                      className="w-4 h-4 text-blue-600"
                     />
-                    <span>Instant Reveal</span>
+                    <span className="text-white">Enforce Whitelist Phases</span>
                   </label>
-                  <label className="flex items-center">
+                  
+                  <label className="flex items-center gap-3">
                     <input
-                      type="radio"
-                      name="revealType"
-                      value="delayed"
-                      checked={collectionConfig.revealType === 'delayed'}
-                      onChange={(e) => setCollectionConfig(prev => ({ ...prev, revealType: e.target.value as 'instant' | 'delayed' }))}
-                      className="mr-2"
+                      type="checkbox"
+                      checked={revealConfig.revealRules.enforceBondingCurve}
+                      onChange={(e) => setRevealConfig(prev => ({ 
+                        ...prev, 
+                        revealRules: { ...prev.revealRules, enforceBondingCurve: e.target.checked }
+                      }))}
+                      className="w-4 h-4 text-blue-600"
                     />
-                    <span>Delayed Reveal</span>
+                    <span className="text-white">Enforce Bonding Curve Pricing</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={revealConfig.revealRules.enforceTimeBasedAccess}
+                      onChange={(e) => setRevealConfig(prev => ({ 
+                        ...prev, 
+                        revealRules: { ...prev.revealRules, enforceTimeBasedAccess: e.target.checked }
+                      }))}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-white">Enforce Time-based Access</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={revealConfig.revealRules.enforceSocialVerification}
+                      onChange={(e) => setRevealConfig(prev => ({ 
+                        ...prev, 
+                        revealRules: { ...prev.revealRules, enforceSocialVerification: e.target.checked }
+                      }))}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-white">Enforce Social Verification</span>
                   </label>
                 </div>
               </div>
@@ -947,49 +1177,65 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">Whitelist Phases</label>
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
-                          <div className="flex items-center gap-3">
-                            <input type="checkbox" className="w-4 h-4 text-blue-600" defaultChecked />
-                            <span className="text-white">Phase 1: Early Supporters</span>
+                        {whitelistConfig.phases.map((phase, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
+                            <div className="flex items-center gap-3">
+                              <input 
+                                type="checkbox" 
+                                className="w-4 h-4 text-blue-600" 
+                                checked={phase.enabled}
+                                onChange={(e) => {
+                                  const newPhases = [...whitelistConfig.phases];
+                                  newPhases[index].enabled = e.target.checked;
+                                  setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
+                                }}
+                              />
+                              <span className="text-white">Phase {index + 1}: {phase.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="number" 
+                                value={phase.spots}
+                                onChange={(e) => {
+                                  const newPhases = [...whitelistConfig.phases];
+                                  newPhases[index].spots = parseInt(e.target.value) || 0;
+                                  setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
+                                }}
+                                className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" 
+                              />
+                              <span className="text-gray-400 text-sm">spots</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <input type="number" placeholder="50" className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" />
-                            <span className="text-gray-400 text-sm">spots</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
-                          <div className="flex items-center gap-3">
-                            <input type="checkbox" className="w-4 h-4 text-blue-600" defaultChecked />
-                            <span className="text-white">Phase 2: Community Members</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input type="number" placeholder="100" className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" />
-                            <span className="text-gray-400 text-sm">spots</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
-                          <div className="flex items-center gap-3">
-                            <input type="checkbox" className="w-4 h-4 text-blue-600" />
-                            <span className="text-white">Phase 3: Public Access</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input type="number" placeholder="200" className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" />
-                            <span className="text-gray-400 text-sm">spots</span>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </div>
 
                     {/* Token Gate Requirements */}
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">Token Gate Requirements</label>
+                      
+                      {/* Token Contract Selection */}
+                      <div className="mb-4">
+                        <label className="block text-xs text-gray-400 mb-1">Token Contract Address</label>
+                        <input
+                          type="text"
+                          value={whitelistConfig.tokenContract}
+                          onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
+                          placeholder="Enter token contract address (e.g., ANAL, SOL, or custom token)"
+                          className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Popular tokens: ANAL, SOL, USDC, or enter any SPL token contract
+                        </p>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Minimum ANAL Balance</label>
+                          <label className="block text-xs text-gray-400 mb-1">Minimum Token Balance</label>
                           <input
                             type="number"
+                            value={whitelistConfig.minTokenBalance}
+                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minTokenBalance: parseInt(e.target.value) || 0 }))}
                             placeholder="1000000"
                             className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
                           />
@@ -998,6 +1244,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
                           <input
                             type="number"
+                            value={whitelistConfig.minNftHoldings}
+                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minNftHoldings: parseInt(e.target.value) || 0 }))}
                             placeholder="1"
                             className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
                           />
@@ -1010,15 +1258,39 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       <label className="block text-sm font-medium text-gray-300 mb-3">Social Verification</label>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2">
-                          <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 text-blue-600"
+                            checked={whitelistConfig.socialVerification.twitter}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              socialVerification: { ...prev.socialVerification, twitter: e.target.checked }
+                            }))}
+                          />
                           <span className="text-white text-sm">Require Twitter/X verification</span>
                         </label>
                         <label className="flex items-center gap-2">
-                          <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 text-blue-600"
+                            checked={whitelistConfig.socialVerification.discord}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              socialVerification: { ...prev.socialVerification, discord: e.target.checked }
+                            }))}
+                          />
                           <span className="text-white text-sm">Require Discord server membership</span>
                         </label>
                         <label className="flex items-center gap-2">
-                          <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 text-blue-600"
+                            checked={whitelistConfig.socialVerification.telegram}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              socialVerification: { ...prev.socialVerification, telegram: e.target.checked }
+                            }))}
+                          />
                           <span className="text-white text-sm">Require Telegram group membership</span>
                         </label>
                       </div>
@@ -1032,6 +1304,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <label className="block text-xs text-gray-400 mb-1">Whitelist Start Time</label>
                           <input
                             type="datetime-local"
+                            value={whitelistConfig.startTime}
+                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, startTime: e.target.value }))}
                             className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white text-sm"
                           />
                         </div>
@@ -1039,6 +1313,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <label className="block text-xs text-gray-400 mb-1">Whitelist End Time</label>
                           <input
                             type="datetime-local"
+                            value={whitelistConfig.endTime}
+                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, endTime: e.target.value }))}
                             className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white text-sm"
                           />
                         </div>
