@@ -255,6 +255,9 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({ className = '' 
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
                     placeholder="Short bio..."
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -268,6 +271,9 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({ className = '' 
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
                     placeholder="Extended description..."
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                 </div>
 
