@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate total claimable amount
-    const totalClaimable = data?.reduce((sum, reward) => sum + parseFloat(reward.amount), 0) || 0;
+    const totalClaimable = data?.reduce((sum: number, reward: any) => sum + parseFloat(reward.amount), 0) || 0;
 
     return NextResponse.json({
       success: true,
