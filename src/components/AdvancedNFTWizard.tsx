@@ -430,7 +430,6 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   </div>
                 </div>
               </div>
-            </div>
             
             <div
               className="border-2 border-dashed border-white/30 rounded-xl p-12 text-center hover:border-white/50 transition-colors bg-white/5"
