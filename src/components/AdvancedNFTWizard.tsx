@@ -1784,7 +1784,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
                   </div>
-image.png                  )}
+                  )}
 
                   {/* Show Upload Option Button */}
                   {!showConfigUpload && (
