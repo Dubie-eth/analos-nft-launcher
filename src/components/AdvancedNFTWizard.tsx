@@ -108,18 +108,44 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   }, [handleFileUpload]);
 
   const handleSaveCollection = async () => {
+    console.log('🔄 Starting collection save process...');
+    
     if (!publicKey) {
+      console.log('❌ No wallet connected');
       setSaveMessage('Please connect your wallet to save collections');
       return;
     }
 
     if (!collectionConfig.name || !collectionConfig.symbol) {
+      console.log('❌ Missing required fields:', { name: collectionConfig.name, symbol: collectionConfig.symbol });
       setSaveMessage('Please fill in collection name and symbol');
       return;
     }
 
+    console.log('✅ Validation passed, starting save...');
     setSaving(true);
     setSaveMessage('');
+
+    const saveData = {
+      userWallet: publicKey.toString(),
+      collectionName: collectionConfig.name,
+      collectionSymbol: collectionConfig.symbol,
+      description: collectionConfig.description,
+      totalSupply: collectionConfig.supply,
+      mintPrice: collectionConfig.mintPrice,
+      revealType: collectionConfig.revealType,
+      revealDate: collectionConfig.revealType === 'delayed' ? new Date().toISOString() : null,
+      whitelistEnabled: collectionConfig.whitelistEnabled,
+      bondingCurveEnabled: collectionConfig.bondingCurveEnabled,
+      layers: layers,
+      collectionConfig: {
+        ...collectionConfig,
+        layers: layers,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    console.log('📤 Sending save request with data:', saveData);
 
     try {
       const response = await fetch('/api/collections/save', {
@@ -127,38 +153,28 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userWallet: publicKey.toString(),
-          collectionName: collectionConfig.name,
-          collectionSymbol: collectionConfig.symbol,
-          description: collectionConfig.description,
-          totalSupply: collectionConfig.supply,
-          mintPrice: collectionConfig.mintPrice,
-          revealType: collectionConfig.revealType,
-          revealDate: collectionConfig.revealType === 'delayed' ? new Date().toISOString() : null,
-          whitelistEnabled: collectionConfig.whitelistEnabled,
-          bondingCurveEnabled: collectionConfig.bondingCurveEnabled,
-          layers: layers,
-          collectionConfig: {
-            ...collectionConfig,
-            layers: layers,
-            timestamp: new Date().toISOString()
-          }
-        }),
+        body: JSON.stringify(saveData),
       });
 
+      console.log('📡 API Response status:', response.status);
+      console.log('📡 API Response headers:', Object.fromEntries(response.headers.entries()));
+
       const result = await response.json();
+      console.log('📥 API Response data:', result);
 
       if (result.success) {
+        console.log('✅ Collection saved successfully to database!');
         setSaveMessage('✅ Collection saved successfully!');
         setTimeout(() => setSaveMessage(''), 3000);
       } else {
+        console.log('❌ Save failed:', result.error);
         setSaveMessage(`❌ Error: ${result.error}`);
       }
     } catch (error) {
-      console.error('Error saving collection:', error);
+      console.error('💥 Error saving collection:', error);
       setSaveMessage('❌ Failed to save collection');
     } finally {
+      console.log('🏁 Save process completed');
       setSaving(false);
     }
   };

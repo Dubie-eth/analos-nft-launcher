@@ -46,7 +46,8 @@ export async function GET(
       .eq('wallet_address', walletAddress)
       .single();
     
-    if (!profile || error) {
+    if (error || !profile) {
+      console.log('No profile found or error:', error);
       // Return a default profile if none exists
       return NextResponse.json({
         id: '1',
