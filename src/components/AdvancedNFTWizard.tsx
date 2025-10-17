@@ -618,13 +618,27 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     }`}
                     onClick={() => setCollectionConfig(prev => ({ ...prev, bondingCurveEnabled: false }))}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xl">🎨</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xl">🎨</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-lg">Standard NFT</h4>
+                          <p className="text-white/70 text-sm">Traditional NFT minting</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-white font-semibold text-lg">Standard NFT</h4>
-                        <p className="text-white/70 text-sm">Traditional NFT minting</p>
+                      
+                      <div className="pl-16 space-y-2">
+                        <div className="text-xs text-gray-300">
+                          <strong>How it works:</strong> Fixed price for all mints from start to finish
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          <strong>Example:</strong> All 1000 NFTs cost 0.5 LOL each
+                        </div>
+                        <div className="text-xs text-purple-300">
+                          <strong>Best for:</strong> Predictable pricing, simple launches, established projects
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -637,13 +651,27 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     }`}
                     onClick={() => setCollectionConfig(prev => ({ ...prev, bondingCurveEnabled: true }))}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xl">📈</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xl">📈</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-lg">Bonding Curve</h4>
+                          <p className="text-white/70 text-sm">Dynamic pricing model</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-white font-semibold text-lg">Bonding Curve</h4>
-                        <p className="text-white/70 text-sm">Dynamic pricing model</p>
+                      
+                      <div className="pl-16 space-y-2">
+                        <div className="text-xs text-gray-300">
+                          <strong>How it works:</strong> Price increases as more NFTs are minted
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          <strong>Example:</strong> Start at 0.1 LOL, reach 1.0 LOL at 50% sold
+                        </div>
+                        <div className="text-xs text-blue-300">
+                          <strong>Best for:</strong> Creating FOMO, fair price discovery, maximizing revenue
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -663,13 +691,27 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     }`}
                     onClick={() => setCollectionConfig(prev => ({ ...prev, revealType: 'instant' }))}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xl">⚡</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xl">⚡</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-lg">Instant Reveal</h4>
+                          <p className="text-white/70 text-sm">Images revealed immediately</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-white font-semibold text-lg">Instant Reveal</h4>
-                        <p className="text-white/70 text-sm">Images revealed immediately</p>
+                      
+                      <div className="pl-16 space-y-2">
+                        <div className="text-xs text-gray-300">
+                          <strong>How it works:</strong> Users see their NFT image right after minting
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          <strong>Example:</strong> Mint → See your unique NFT instantly
+                        </div>
+                        <div className="text-xs text-yellow-300">
+                          <strong>Best for:</strong> Immediate gratification, simple launches, established projects
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -682,13 +724,27 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     }`}
                     onClick={() => setCollectionConfig(prev => ({ ...prev, revealType: 'delayed' }))}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-xl">🔒</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xl">🔒</span>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-semibold text-lg">Delayed Reveal</h4>
+                          <p className="text-white/70 text-sm">Images revealed later</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-white font-semibold text-lg">Delayed Reveal</h4>
-                        <p className="text-white/70 text-sm">Images revealed later</p>
+                      
+                      <div className="pl-16 space-y-2">
+                        <div className="text-xs text-gray-300">
+                          <strong>How it works:</strong> NFTs show placeholder until reveal criteria is met
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          <strong>Example:</strong> Mint → Wait for 50% sold → Reveal all NFTs
+                        </div>
+                        <div className="text-xs text-gray-300">
+                          <strong>Best for:</strong> Building anticipation, mystery drops, community events
+                        </div>
                       </div>
                     </div>
                   </div>
