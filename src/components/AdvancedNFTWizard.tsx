@@ -869,7 +869,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               {/* Additional Whitelist Configuration */}
               {collectionConfig.whitelistEnabled && (
                 <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-                  <h4 className="text-lg font-semibold text-white mb-4">Whitelist Requirements</h4>
+                  <h4 className="text-lg font-semibold text-white mb-4">Whitelist Configuration</h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
