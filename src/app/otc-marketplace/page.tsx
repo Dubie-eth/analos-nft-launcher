@@ -81,6 +81,9 @@ export default function OTCMarketplacePage() {
                     onChange={(e) => setOfferAmount(e.target.value)}
                     placeholder="1000"
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -94,6 +97,9 @@ export default function OTCMarketplacePage() {
                     onChange={(e) => setRequestAmount(e.target.value)}
                     placeholder="500"
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                 </div>
 
