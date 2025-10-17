@@ -736,7 +736,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden">
+      <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-lg border-b border-white/20 px-8 py-6">
           <div className="flex items-center justify-between mb-4">
@@ -791,7 +791,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto max-h-[calc(95vh-200px)]">
+        <div className="flex-1 p-8 overflow-y-auto">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
             {renderStepContent()}
           </div>
