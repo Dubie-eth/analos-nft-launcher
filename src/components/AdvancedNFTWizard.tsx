@@ -49,6 +49,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   
+  // Whitelist config upload state
+  const [whitelistConfigFile, setWhitelistConfigFile] = useState<File | null>(null);
+  const [uploadedWhitelistConfig, setUploadedWhitelistConfig] = useState<any>(null);
+  
   // Bonding curve configuration state
   const [bondingCurveConfig, setBondingCurveConfig] = useState({
     startingPrice: '',
@@ -80,6 +84,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     endTime: '',
     csvFile: null as File | null, // For CSV upload
     pricing: {
+      selectedToken: 'lol' as 'lol' | 'los' | 'sol' | 'usdc' | 'custom', // Which token is selected for pricing
       lolPrice: '', // Price in LOL tokens
       losPrice: '', // Price in LOS tokens (native Analos token)
       solPrice: '', // Price in SOL
@@ -615,6 +620,79 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const removeBanner = () => {
     setBannerFile(null);
     setBannerPreview(null);
+  };
+
+  // Get USD estimate for token price
+  const getUSDPrice = (tokenType: string, amount: string): string => {
+    if (!amount || isNaN(parseFloat(amount))) return '$0.00';
+    
+    const price = parseFloat(amount);
+    const tokenPrices: { [key: string]: number } = {
+      'lol': 0.0001, // Example: LOL token price in USD
+      'los': 0.05,   // Example: LOS token price in USD
+      'sol': 100,    // Example: SOL price in USD
+      'usdc': 1,     // USDC is always $1
+      'custom': 0.01 // Default custom token price
+    };
+    
+    const usdValue = price * (tokenPrices[tokenType] || 0);
+    return `$${usdValue.toFixed(2)}`;
+  };
+
+  // Handle whitelist config upload
+  const handleWhitelistConfigUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.includes('json') && !file.name.endsWith('.json')) {
+      alert('Please select a valid JSON configuration file');
+      return;
+    }
+
+    // Validate file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      alert('Configuration file size must be less than 1MB');
+      return;
+    }
+
+    setWhitelistConfigFile(file);
+
+    // Read and parse the file
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const config = JSON.parse(e.target?.result as string);
+        setUploadedWhitelistConfig(config);
+        
+        // Apply the configuration to the whitelist state
+        if (config.phases) {
+          setWhitelistConfig(prev => ({
+            ...prev,
+            phases: config.phases,
+            whitelistType: config.whitelistType || prev.whitelistType,
+            tokenContract: config.tokenContract || prev.tokenContract,
+            minTokenBalance: config.minTokenBalance || prev.minTokenBalance,
+            minNftHoldings: config.minNftHoldings || prev.minNftHoldings,
+            maxMintsPerWallet: config.maxMintsPerWallet || prev.maxMintsPerWallet,
+            socialVerification: config.socialVerification || prev.socialVerification,
+            pricing: config.pricing || prev.pricing
+          }));
+        }
+        
+        alert('Whitelist configuration loaded successfully!');
+      } catch (error) {
+        console.error('Error parsing whitelist config:', error);
+        alert('Invalid JSON configuration file');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Remove uploaded whitelist config
+  const removeWhitelistConfig = () => {
+    setWhitelistConfigFile(null);
+    setUploadedWhitelistConfig(null);
   };
 
   const updateTrait = (layerId: string, traitId: string, updates: Partial<Trait>) => {
@@ -1579,6 +1657,89 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     </div>
                   </div>
 
+                  {/* Whitelist Configuration Upload */}
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                    <h4 className="text-lg font-semibold text-white mb-4">📁 Upload Whitelist Configuration</h4>
+                    <p className="text-sm text-gray-300 mb-4">
+                      Upload a JSON configuration file to quickly set up your whitelist phases, conditions, and pricing.
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {!whitelistConfigFile ? (
+                        <div className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center">
+                          <input
+                            type="file"
+                            accept=".json"
+                            onChange={handleWhitelistConfigUpload}
+                            className="hidden"
+                            id="whitelist-config-upload"
+                          />
+                          <label
+                            htmlFor="whitelist-config-upload"
+                            className="cursor-pointer flex flex-col items-center space-y-2"
+                          >
+                            <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                            </div>
+                            <p className="text-gray-300 font-medium">Upload Whitelist Config</p>
+                            <p className="text-xs text-gray-400">JSON file with phases, conditions, and pricing</p>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <p className="text-green-300 font-medium">{whitelistConfigFile.name}</p>
+                                <p className="text-xs text-green-400">Configuration loaded successfully</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={removeWhitelistConfig}
+                              className="text-red-400 hover:text-red-300 transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <p><strong>Expected JSON format:</strong></p>
+                        <pre className="bg-gray-800/50 p-2 rounded text-xs overflow-x-auto">
+{`{
+  "phases": [
+    {
+      "id": "early",
+      "name": "Early Supporters",
+      "enabled": true,
+      "spots": 100,
+      "order": 1,
+      "description": "First supporters"
+    }
+  ],
+  "whitelistType": "token",
+  "tokenContract": "token_address",
+  "minTokenBalance": 1000000,
+  "pricing": {
+    "selectedToken": "lol",
+    "lolPrice": "1000"
+  }
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Advanced Whitelist Structure */}
                   <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
                     <h4 className="text-lg font-semibold text-white mb-4">Advanced Whitelist Structure</h4>
@@ -1867,97 +2028,85 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       <label className="block text-sm font-medium text-gray-300 mb-3">💰 Whitelist Pricing</label>
                       <p className="text-xs text-gray-400 mb-4">Set the price per mint for different tokens</p>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        {/* Token Selection */}
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">LOL Token Price</label>
-                          <input
-                            type="number"
-                            step="0.001"
-                            value={whitelistConfig.pricing.lolPrice}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              pricing: { ...prev.pricing, lolPrice: e.target.value }
-                            }))}
-                            placeholder="1000"
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Price in LOL tokens</p>
+                          <label className="block text-xs text-gray-400 mb-2">Payment Token</label>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { id: 'lol', name: 'LOL', description: 'LOL Token' },
+                              { id: 'los', name: 'LOS', description: 'Native Analos Token' },
+                              { id: 'sol', name: 'SOL', description: 'Solana' },
+                              { id: 'usdc', name: 'USDC', description: 'USD Coin' },
+                              { id: 'custom', name: 'Custom', description: 'Custom Token' }
+                            ].map((token) => (
+                              <button
+                                key={token.id}
+                                onClick={() => setWhitelistConfig(prev => ({ 
+                                  ...prev, 
+                                  pricing: { ...prev.pricing, selectedToken: token.id as any }
+                                }))}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                  whitelistConfig.pricing.selectedToken === token.id
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
+                              >
+                                {token.name}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        
+
+                        {/* Price Input */}
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">LOS Price</label>
-                          <input
-                            type="number"
-                            step="0.001"
-                            value={whitelistConfig.pricing.losPrice}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              pricing: { ...prev.pricing, losPrice: e.target.value }
-                            }))}
-                            placeholder="100"
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Price in LOS (native Analos token)</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">SOL Price</label>
-                          <input
-                            type="number"
-                            step="0.001"
-                            value={whitelistConfig.pricing.solPrice}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              pricing: { ...prev.pricing, solPrice: e.target.value }
-                            }))}
-                            placeholder="0.1"
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Price in SOL</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">USDC Price</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={whitelistConfig.pricing.usdcPrice}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              pricing: { ...prev.pricing, usdcPrice: e.target.value }
-                            }))}
-                            placeholder="10.00"
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Price in USDC</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Custom Token Price</label>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Price in {whitelistConfig.pricing.selectedToken.toUpperCase()}
+                          </label>
                           <div className="flex gap-2">
                             <input
                               type="number"
-                              step="0.001"
-                              value={whitelistConfig.pricing.customTokenPrice}
+                              step={whitelistConfig.pricing.selectedToken === 'usdc' ? '0.01' : '0.001'}
+                              value={whitelistConfig.pricing[`${whitelistConfig.pricing.selectedToken}Price` as keyof typeof whitelistConfig.pricing] as string}
                               onChange={(e) => setWhitelistConfig(prev => ({ 
                                 ...prev, 
-                                pricing: { ...prev.pricing, customTokenPrice: e.target.value }
+                                pricing: { 
+                                  ...prev.pricing, 
+                                  [`${prev.pricing.selectedToken}Price`]: e.target.value 
+                                }
                               }))}
-                              placeholder="100"
+                              placeholder={
+                                whitelistConfig.pricing.selectedToken === 'lol' ? '1000' :
+                                whitelistConfig.pricing.selectedToken === 'los' ? '100' :
+                                whitelistConfig.pricing.selectedToken === 'sol' ? '0.1' :
+                                whitelistConfig.pricing.selectedToken === 'usdc' ? '10.00' : '100'
+                              }
                               className="flex-1 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
                             />
-                            <input
-                              type="text"
-                              value={whitelistConfig.pricing.customTokenSymbol}
-                              onChange={(e) => setWhitelistConfig(prev => ({ 
-                                ...prev, 
-                                pricing: { ...prev.pricing, customTokenSymbol: e.target.value }
-                              }))}
-                              placeholder="TOKEN"
-                              className="w-20 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                            />
+                            {whitelistConfig.pricing.selectedToken === 'custom' && (
+                              <input
+                                type="text"
+                                value={whitelistConfig.pricing.customTokenSymbol}
+                                onChange={(e) => setWhitelistConfig(prev => ({ 
+                                  ...prev, 
+                                  pricing: { ...prev.pricing, customTokenSymbol: e.target.value }
+                                }))}
+                                placeholder="SYMBOL"
+                                className="w-24 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm text-center"
+                              />
+                            )}
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Price in custom token</p>
+                          
+                          {/* USD Estimate */}
+                          <div className="mt-2 p-2 bg-green-900/20 border border-green-500/30 rounded">
+                            <p className="text-xs text-green-300">
+                              <span className="font-medium">Estimated USD Value:</span>{' '}
+                              {getUSDPrice(
+                                whitelistConfig.pricing.selectedToken, 
+                                whitelistConfig.pricing[`${whitelistConfig.pricing.selectedToken}Price` as keyof typeof whitelistConfig.pricing] as string
+                              )}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
