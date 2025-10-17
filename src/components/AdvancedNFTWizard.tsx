@@ -752,8 +752,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Configure Layers & Rarity</h3>
-              <p className="text-gray-600">Set up your layers, adjust trait rarity, and position layers correctly.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Configure Layers & Rarity</h3>
+              <p className="text-gray-300">Set up your layers, adjust trait rarity, and position layers correctly.</p>
             </div>
             
             <AdvancedLayerManager
@@ -774,8 +774,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Reveal Settings</h3>
-              <p className="text-gray-600">Choose how your NFTs will be revealed to users.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Reveal Settings</h3>
+              <p className="text-gray-300">Choose how your NFTs will be revealed to users.</p>
             </div>
             
             <div className="space-y-4">
@@ -816,8 +816,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Whitelist Settings</h3>
-              <p className="text-gray-600">Configure whitelist phases for your collection.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Whitelist Settings</h3>
+              <p className="text-gray-300">Configure whitelist phases for your collection.</p>
             </div>
             
             <div className="space-y-4">
@@ -853,8 +853,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Bonding Curve</h3>
-              <p className="text-gray-600">Configure dynamic pricing for your collection.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Bonding Curve</h3>
+              <p className="text-gray-300">Configure dynamic pricing for your collection.</p>
             </div>
             
             <div className="space-y-4">
@@ -890,8 +890,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Review & Deploy</h3>
-              <p className="text-gray-600">Review your collection configuration before deploying.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Review & Deploy</h3>
+              <p className="text-gray-300">Review your collection configuration before deploying.</p>
             </div>
             
             <div className="bg-gray-50 rounded-lg p-6 space-y-4">
@@ -945,8 +945,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Deploy Collection</h3>
-              <p className="text-gray-600">Deploy your collection to the blockchain.</p>
+              <h3 className="text-2xl font-bold text-white mb-2">Deploy Collection</h3>
+              <p className="text-gray-300">Deploy your collection to the blockchain.</p>
             </div>
             
             <div className="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -988,7 +988,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-lg border-b border-white/20 px-8 py-6">
+        <div className="bg-gray-900/80 dark:bg-gray-800/90 backdrop-blur-lg border-b border-gray-700/50 dark:border-gray-600/50 px-8 py-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -1045,13 +1045,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
         {/* Content */}
         <div className="flex-1 p-8 overflow-y-auto">
-          <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-lg rounded-2xl p-8 border border-white/20 dark:border-gray-700/50">
+          <div className="bg-gray-900/80 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 border border-gray-700/50 dark:border-gray-600/50">
             {renderStepContent()}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="bg-white/10 dark:bg-gray-800/20 backdrop-blur-lg border-t border-white/20 dark:border-gray-700/50 px-8 py-6">
+        <div className="bg-gray-900/80 dark:bg-gray-800/90 backdrop-blur-lg border-t border-gray-700/50 dark:border-gray-600/50 px-8 py-6">
           {/* Save Message */}
           {saveMessage && (
             <div className={`mb-4 p-4 rounded-lg text-sm ${
@@ -1136,30 +1136,30 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Settings className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Saved Collections</h4>
-                  <p className="text-gray-600">You haven't saved any collections yet. Create and save your first collection to see it here!</p>
+                  <h4 className="text-lg font-medium text-white mb-2">No Saved Collections</h4>
+                  <p className="text-gray-300">You haven't saved any collections yet. Create and save your first collection to see it here!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {savedCollections.map((collection, index) => (
-                    <div key={collection.id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div key={collection.id || index} className="border border-gray-600 bg-gray-800/50 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="font-semibold text-gray-900 text-lg">{collection.collection_name || 'Unnamed Collection'}</h4>
-                          <p className="text-sm text-gray-600">Symbol: {collection.collection_symbol || 'N/A'}</p>
+                          <h4 className="font-semibold text-white text-lg">{collection.collection_name || 'Unnamed Collection'}</h4>
+                          <p className="text-sm text-gray-300">Symbol: {collection.collection_symbol || 'N/A'}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-400">
                             {new Date(collection.created_at).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
                       
-                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                      <p className="text-gray-300 text-sm mb-3 line-clamp-2">
                         {collection.description || 'No description provided'}
                       </p>
                       
-                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mb-4">
                         <div>Supply: {collection.total_supply || 'N/A'}</div>
                         <div>Type: {collection.bonding_curve_enabled ? 'Bonding Curve' : 'Standard'}</div>
                         <div>Reveal: {collection.reveal_type || 'Instant'}</div>
