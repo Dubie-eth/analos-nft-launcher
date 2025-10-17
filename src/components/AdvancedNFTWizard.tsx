@@ -1101,10 +1101,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-lg p-4">
                 <h6 className="text-blue-300 font-medium mb-2">🌐 Platform Compatibility</h6>
                 <p className="text-blue-200 text-sm">
-                  Your logo and banner will be automatically optimized for:
+                  Your collection will be automatically optimized for:
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {['DexScreener', 'MagicEden', 'OpenSea', 'SolanaFM', 'Solscan'].map((platform) => (
+                  {['DexScreener', 'MagicEden', 'OpenSea', 'SolanaFM', 'Solscan', 'Analos.io', 'CoinMarketCap', 'CoinGecko'].map((platform) => (
                     <span key={platform} className="bg-blue-600/20 text-blue-300 px-2 py-1 rounded text-xs">
                       {platform}
                     </span>

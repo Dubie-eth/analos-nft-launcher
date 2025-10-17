@@ -19,7 +19,7 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 // Default rate limit configurations
 export const RATE_LIMITS = {
   // API endpoints
-  SAVE_COLLECTION: { windowMs: 5 * 60 * 1000, maxRequests: 1 }, // 1 save per 5 minutes
+  SAVE_COLLECTION: { windowMs: 60 * 1000, maxRequests: 10 }, // 10 saves per minute
   LOAD_COLLECTIONS: { windowMs: 60 * 1000, maxRequests: 10 }, // 10 loads per minute
   DELETE_COLLECTION: { windowMs: 60 * 1000, maxRequests: 5 }, // 5 deletes per minute
   UPLOAD_IMAGES: { windowMs: 60 * 1000, maxRequests: 20 }, // 20 uploads per minute
