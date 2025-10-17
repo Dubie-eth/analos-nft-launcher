@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/client';
+import { SavedCollection } from '@/types/database';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     console.log('✅ Database connection successful');
     
     // Test table structure by trying to insert a test record
-    const testData = {
+    const testData: Partial<SavedCollection> = {
       user_wallet: 'test-wallet-123',
       collection_name: 'Test Collection',
       collection_symbol: 'TEST',
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     
     const { data: insertData, error: insertError } = await supabaseAdmin
       .from('saved_collections')
-      .insert(testData)
+      .insert(testData as any)
       .select()
       .single();
     

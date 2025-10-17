@@ -4,6 +4,7 @@ import { withRateLimit, RATE_LIMITS, getClientIdentifier } from '@/lib/rate-limi
 import { withSecurityValidation, SecurityValidator } from '@/lib/security-middleware';
 import { SaveRestriction } from '@/lib/save-restriction';
 import { ImageCleanupService } from '@/lib/image-cleanup-service';
+import { SavedCollection } from '@/types/database';
 
 // Apply rate limiting and security validation
 const secureHandler = withSecurityValidation(
@@ -103,14 +104,14 @@ const secureHandler = withSecurityValidation(
       // }
 
     // Prepare collection data
-    const collectionData = {
+    const collectionData: Partial<SavedCollection> = {
       user_wallet: userWallet,
       collection_name: collectionName,
       collection_symbol: collectionSymbol,
       description: description || '',
       total_supply: totalSupply || 1000,
       mint_price: mintPrice || 0.1,
-      reveal_type: revealType || 'instant',
+      reveal_type: (revealType || 'instant') as 'instant' | 'delayed',
       reveal_date: revealDate || null,
       whitelist_enabled: whitelistEnabled || false,
       bonding_curve_enabled: bondingCurveEnabled || false,
@@ -142,26 +143,26 @@ const secureHandler = withSecurityValidation(
       }
 
       // If collectionId is provided, update existing collection, otherwise create new one
-      let data, error;
+      let data: SavedCollection | null, error: any;
       if (collectionId) {
         // Update existing collection
         const result = await supabaseAdmin
           .from('saved_collections')
-          .update(collectionData)
+          .update(collectionData as any)
           .eq('id', collectionId)
           .eq('user_wallet', userWallet) // Ensure user can only update their own collections
           .select()
           .single();
-        data = result.data;
+        data = result.data as SavedCollection | null;
         error = result.error;
       } else {
         // Create new collection
         const result = await supabaseAdmin
           .from('saved_collections')
-          .insert(collectionData)
+          .insert(collectionData as any)
           .select()
           .single();
-        data = result.data;
+        data = result.data as SavedCollection | null;
         error = result.error;
       }
 
