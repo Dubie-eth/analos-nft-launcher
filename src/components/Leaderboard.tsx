@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface UserRank {
   rank: number;
@@ -35,6 +36,7 @@ export default function Leaderboard({
   currentUserWallet,
   className = ''
 }: LeaderboardProps) {
+  const { theme } = useTheme();
   const [leaderboardData, setLeaderboardData] = useState<UserRank[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<'total' | 'referrals' | 'activity'>('total');
@@ -175,14 +177,24 @@ export default function Leaderboard({
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="h-6 bg-gray-200 rounded mb-4"></div>
+        <div className={`rounded-lg shadow p-6 ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
+          <div className={`h-6 rounded mb-4 ${
+            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+          }`}></div>
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center space-x-4">
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                <div className="flex-1 h-4 bg-gray-200 rounded"></div>
-                <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                <div className={`w-8 h-8 rounded-full ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                }`}></div>
+                <div className={`flex-1 h-4 rounded ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                }`}></div>
+                <div className={`w-16 h-4 rounded ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+                }`}></div>
               </div>
             ))}
           </div>
@@ -197,21 +209,29 @@ export default function Leaderboard({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className={`rounded-lg shadow p-6 ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      }`}>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Leaderboard</h2>
-            <p className="text-gray-600">Top performers and community contributors</p>
+            <h2 className={`text-2xl font-bold ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>Leaderboard</h2>
+            <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Top performers and community contributors</p>
           </div>
           
           {/* Current User Stats */}
           {currentUser && (
             <div className="text-right">
-              <div className="text-sm text-gray-500">Your Rank</div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className={`text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`}>Your Rank</div>
+              <div className="text-2xl font-bold text-blue-500">
                 #{currentUser.rank}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className={`text-sm ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+              }`}>
                 {formatNumber(currentUser.totalPoints)} points
               </div>
             </div>
