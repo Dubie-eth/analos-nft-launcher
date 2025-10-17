@@ -66,7 +66,7 @@ export default function Navigation() {
             <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
               <img 
                 src="/analos-logo.svg" 
-                alt="Analos Logo" 
+                alt="Los Logo" 
                 className="w-8 h-8"
                 onError={(e) => {
                   // Fallback to gradient circle if logo fails to load
@@ -76,12 +76,12 @@ export default function Navigation() {
                 }}
               />
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center hidden">
-                <span className="text-white font-bold text-sm">A</span>
+                <span className="text-white font-bold text-sm">L</span>
               </div>
             </div>
             <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
-              <span className="hidden sm:inline">Analos NFT Launcher</span>
-              <span className="sm:hidden">Analos</span>
+              <span className="hidden sm:inline">Launch On Los</span>
+              <span className="sm:hidden">Los</span>
             </span>
           </Link>
 
