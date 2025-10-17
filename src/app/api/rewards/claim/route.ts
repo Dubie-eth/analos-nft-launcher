@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate total claimed amount
-    const totalClaimed = data.reduce((sum, reward) => sum + parseFloat(reward.amount), 0);
+    const totalClaimed = data.reduce((sum: number, reward: any) => sum + parseFloat(reward.amount), 0);
 
     return NextResponse.json({
       success: true,
