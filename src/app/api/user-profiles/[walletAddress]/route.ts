@@ -44,7 +44,7 @@ export async function GET(
       .from('user_profiles')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single();
+      .single() as { data: any; error: any };
     
     if (error || !profile) {
       console.log('No profile found or error:', error);
@@ -68,23 +68,21 @@ export async function GET(
     }
     
     // Map database fields to API response format
-    // TypeScript assertion: profile is guaranteed to be non-null here
-    const userProfile = profile as NonNullable<typeof profile>;
     return NextResponse.json({
-      id: userProfile.id,
-      walletAddress: userProfile.wallet_address,
-      username: userProfile.username,
-      bio: userProfile.bio || '',
-      profilePictureUrl: userProfile.profile_picture_url || '',
-      bannerImageUrl: userProfile.banner_image_url || '',
-      socials: userProfile.socials || {},
-      referralCode: userProfile.username.toUpperCase(),
+      id: profile.id,
+      walletAddress: profile.wallet_address,
+      username: profile.username,
+      bio: profile.bio || '',
+      profilePictureUrl: profile.profile_picture_url || '',
+      bannerImageUrl: profile.banner_image_url || '',
+      socials: profile.socials || {},
+      referralCode: profile.username.toUpperCase(),
       totalReferrals: 0, // TODO: Calculate from referrals table
       totalPoints: 0, // TODO: Calculate from points
       rank: 999, // TODO: Calculate from leaderboard
-      privacyLevel: userProfile.privacy_level || 'public',
-      allowDataExport: userProfile.allow_data_export ?? true,
-      allowAnalytics: userProfile.allow_analytics ?? true
+      privacyLevel: profile.privacy_level || 'public',
+      allowDataExport: profile.allow_data_export ?? true,
+      allowAnalytics: profile.allow_analytics ?? true
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
