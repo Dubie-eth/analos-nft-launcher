@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { supabase, supabaseAdmin } from '@/lib/supabase/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,14 +14,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's rewards
-    const { data: rewards, error: rewardsError } = await supabase
-      .from('creator_rewards')
+    const { data: rewards, error: rewardsError } = await (supabase
+      .from('creator_rewards') as any)
       .select(`
         *,
         saved_collections!inner(collection_name, collection_symbol)
       `)
       .eq('user_wallet', userWallet)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: any; error: any };
 
     if (rewardsError) {
       console.error('Error fetching rewards:', rewardsError);
@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total rewards summary
-    const { data: summary, error: summaryError } = await supabase
-      .rpc('get_user_total_rewards', { user_wallet_param: userWallet });
+    const { data: summary, error: summaryError } = await (supabase
+      .rpc as any)('get_user_total_rewards', { user_wallet_param: userWallet }) as { data: any; error: any };
 
     if (summaryError) {
       console.error('Error fetching rewards summary:', summaryError);
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new reward
-    const { data, error } = await supabaseAdmin
-      .from('creator_rewards')
+    const { data, error } = await (supabaseAdmin
+      .from('creator_rewards') as any)
       .insert({
         user_wallet: userWallet,
         collection_id: collectionId || null,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         status: 'pending'
       })
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       console.error('Error creating reward:', error);

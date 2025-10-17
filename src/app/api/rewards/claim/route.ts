@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Update rewards to claimed status
-    const { data, error } = await supabaseAdmin
-      .from('creator_rewards')
+    const { data, error } = await (supabaseAdmin
+      .from('creator_rewards') as any)
       .update({
         status: 'claimed',
         claim_tx_signature: txSignature || null,
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       .in('id', rewardIds)
       .eq('user_wallet', userWallet)
       .eq('status', 'claimable')
-      .select();
+      .select() as { data: any; error: any };
 
     if (error) {
       console.error('Error claiming rewards:', error);
@@ -74,15 +74,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get claimable rewards for user
-    const { data, error } = await supabaseAdmin
-      .from('creator_rewards')
+    const { data, error } = await (supabaseAdmin
+      .from('creator_rewards') as any)
       .select(`
         *,
         saved_collections!inner(collection_name, collection_symbol)
       `)
       .eq('user_wallet', userWallet)
       .eq('status', 'claimable')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: any; error: any };
 
     if (error) {
       console.error('Error fetching claimable rewards:', error);
