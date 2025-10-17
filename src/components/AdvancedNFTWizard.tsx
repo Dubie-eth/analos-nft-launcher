@@ -1123,7 +1123,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       {/* Collection Loader Modal */}
       {showCollectionLoader && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
+          <div className="bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden border border-gray-700">
             <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-white">Your Saved Collections</h3>
@@ -1136,10 +1136,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               </div>
             </div>
             
-            <div className="p-6 max-h-[60vh] overflow-y-auto">
+            <div className="p-6 max-h-[60vh] overflow-y-auto bg-gray-800">
               {savedCollections.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Settings className="w-8 h-8 text-gray-400" />
                   </div>
                   <h4 className="text-lg font-medium text-white mb-2">No Saved Collections</h4>
