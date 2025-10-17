@@ -591,6 +591,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         setLogoFile(file);
         setLogoPreview(result.url); // Use server URL
         console.log('Logo uploaded successfully:', result.url);
+        
+        // Log size information for user awareness
+        if (result.cleanup) {
+          console.log(`📊 Logo storage: ${(result.cleanup.compressedSize / 1024).toFixed(2)} KB (${(result.cleanup.originalSize / 1024).toFixed(2)} KB original)`);
+        }
       } else {
         const errorData = await response.json();
         console.error('Failed to upload logo:', errorData);
@@ -635,6 +640,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         setBannerFile(file);
         setBannerPreview(result.url); // Use server URL
         console.log('Banner uploaded successfully:', result.url);
+        
+        // Log size information for user awareness
+        if (result.cleanup) {
+          console.log(`📊 Banner storage: ${(result.cleanup.compressedSize / 1024).toFixed(2)} KB (${(result.cleanup.originalSize / 1024).toFixed(2)} KB original)`);
+        }
       } else {
         const errorData = await response.json();
         console.error('Failed to upload banner:', errorData);

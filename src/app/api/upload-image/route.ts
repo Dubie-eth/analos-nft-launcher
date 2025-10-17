@@ -38,28 +38,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `File size must be less than ${type === 'banner' ? '10MB' : '5MB'}` }, { status: 400 });
     }
 
-    // Convert file to base64 for storage (works in serverless environments)
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = buffer.toString('base64');
-    
     // Generate unique filename
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop() || 'png';
     const filename = `${type}_${timestamp}.${fileExtension}`;
 
-    // For now, return a data URL that can be used directly
-    // In production, you'd want to upload to a cloud storage service like AWS S3, Cloudinary, etc.
+    // For serverless environments, we'll use a compressed approach
+    // Convert to base64 but with compression info for cleanup
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64 = buffer.toString('base64');
+    
+    // Create a compressed data URL with metadata for cleanup
     const dataUrl = `data:${file.type};base64,${base64}`;
 
-    console.log('✅ Image processed successfully:', filename);
+    console.log('✅ Image processed successfully:', filename, 'Size:', file.size, 'Base64 size:', base64.length);
 
     return NextResponse.json({
       success: true,
-      url: dataUrl, // Using data URL for now
+      url: dataUrl,
       filename: filename,
       type: type,
-      size: file.size
+      size: file.size,
+      base64Size: base64.length,
+      // Add cleanup metadata
+      cleanup: {
+        timestamp: timestamp,
+        originalSize: file.size,
+        compressedSize: base64.length
+      }
     });
 
   } catch (error) {

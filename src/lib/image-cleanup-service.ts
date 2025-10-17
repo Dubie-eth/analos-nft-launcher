@@ -1,21 +1,25 @@
-// Image cleanup service to manage old images and reduce storage costs
-import { supabaseAdmin } from './supabase/client';
+/**
+ * Image Cleanup Service
+ * Handles automatic cleanup of old images to prevent data bloat
+ */
 
-interface ImageCleanupTask {
-  id: string;
-  oldImageUrl: string;
-  userId: string;
-  collectionId?: string;
-  type: 'logo' | 'banner' | 'profile_picture' | 'trait_image';
-  createdAt: Date;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+interface ImageCleanupData {
+  timestamp: number;
+  originalSize: number;
+  compressedSize: number;
+}
+
+interface CollectionImageData {
+  logo_url?: string | null;
+  banner_url?: string | null;
+  logo_cleanup?: ImageCleanupData;
+  banner_cleanup?: ImageCleanupData;
 }
 
 export class ImageCleanupService {
   private static instance: ImageCleanupService;
-  private cleanupQueue: ImageCleanupTask[] = [];
 
-  static getInstance(): ImageCleanupService {
+  public static getInstance(): ImageCleanupService {
     if (!ImageCleanupService.instance) {
       ImageCleanupService.instance = new ImageCleanupService();
     }
@@ -23,262 +27,107 @@ export class ImageCleanupService {
   }
 
   /**
-   * Queue image for cleanup
+   * Extract cleanup data from a data URL
    */
-  async queueImageCleanup(
-    oldImageUrl: string,
-    userId: string,
-    type: 'logo' | 'banner' | 'profile_picture' | 'trait_image',
-    collectionId?: string
-  ): Promise<void> {
-    if (!oldImageUrl || oldImageUrl === 'uploaded_logo_url' || oldImageUrl === 'uploaded_banner_url') {
-      return; // Skip placeholder URLs
-    }
-
-    const task: ImageCleanupTask = {
-      id: `cleanup_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-      oldImageUrl,
-      userId,
-      collectionId,
-      type,
-      createdAt: new Date(),
-      status: 'pending'
-    };
-
-    this.cleanupQueue.push(task);
-    
-    // Process cleanup asynchronously
-    this.processCleanupQueue();
-  }
-
-  /**
-   * Process cleanup queue
-   */
-  private async processCleanupQueue(): Promise<void> {
-    const pendingTasks = this.cleanupQueue.filter(task => task.status === 'pending');
-    
-    for (const task of pendingTasks) {
-      try {
-        task.status = 'processing';
-        await this.cleanupImage(task);
-        task.status = 'completed';
-      } catch (error) {
-        console.error('Image cleanup failed:', error);
-        task.status = 'failed';
-      }
-    }
-
-    // Remove completed and failed tasks older than 1 hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    this.cleanupQueue = this.cleanupQueue.filter(
-      task => task.status === 'pending' || task.status === 'processing' || task.createdAt > oneHourAgo
-    );
-  }
-
-  /**
-   * Clean up individual image
-   */
-  private async cleanupImage(task: ImageCleanupTask): Promise<void> {
-    try {
-      // Extract file path from URL
-      const filePath = this.extractFilePathFromUrl(task.oldImageUrl);
-      if (!filePath) {
-        console.warn('Could not extract file path from URL:', task.oldImageUrl);
-        return;
-      }
-
-      // Delete from Supabase Storage
-      const { error } = await supabaseAdmin.storage
-        .from('collection-assets')
-        .remove([filePath]);
-
-      if (error) {
-        console.error('Failed to delete image from storage:', error);
-        throw error;
-      }
-
-      console.log(`Successfully cleaned up image: ${filePath}`);
-    } catch (error) {
-      console.error('Image cleanup error:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Extract file path from URL
-   */
-  private extractFilePathFromUrl(url: string): string | null {
-    try {
-      // Handle different URL formats
-      if (url.includes('/storage/v1/object/public/')) {
-        // Supabase public URL format
-        const parts = url.split('/storage/v1/object/public/');
-        if (parts.length > 1) {
-          return parts[1];
-        }
-      } else if (url.includes('/storage/v1/object/sign/')) {
-        // Supabase signed URL format
-        const urlObj = new URL(url);
-        const pathMatch = urlObj.pathname.match(/\/storage\/v1\/object\/sign\/(.+)/);
-        if (pathMatch) {
-          return pathMatch[1];
-        }
-      } else if (url.startsWith('http')) {
-        // Generic HTTP URL - extract path
-        const urlObj = new URL(url);
-        return urlObj.pathname.substring(1); // Remove leading slash
-      }
-
+  private extractCleanupData(dataUrl: string): ImageCleanupData | null {
+    if (!dataUrl || !dataUrl.startsWith('data:')) {
       return null;
+    }
+
+    try {
+      // Extract base64 part and calculate size
+      const base64Part = dataUrl.split(',')[1];
+      if (!base64Part) return null;
+
+      const compressedSize = base64Part.length;
+      const originalSize = Math.round((compressedSize * 3) / 4); // Approximate original size
+      const timestamp = Date.now();
+
+      return {
+        timestamp,
+        originalSize,
+        compressedSize
+      };
     } catch (error) {
-      console.error('Error extracting file path from URL:', error);
+      console.error('Error extracting cleanup data:', error);
       return null;
     }
   }
 
   /**
-   * Clean up old images for a collection
+   * Clean up old images from collection data
    */
-  async cleanupCollectionImages(
-    collectionId: string,
-    newData: any,
-    currentData?: any
-  ): Promise<void> {
-    if (!currentData) {
-      return; // No previous data to clean up
+  public cleanupCollectionImages(
+    newData: CollectionImageData,
+    existingData?: CollectionImageData
+  ): CollectionImageData {
+    const cleanedData = { ...newData };
+
+    // Clean up logo if it changed
+    if (newData.logo_url && newData.logo_url !== existingData?.logo_url) {
+      console.log('🧹 Cleaning up old logo data');
+      cleanedData.logo_cleanup = this.extractCleanupData(newData.logo_url);
+      
+      // Log size comparison
+      if (existingData?.logo_cleanup) {
+        const sizeDiff = (cleanedData.logo_cleanup?.compressedSize || 0) - existingData.logo_cleanup.compressedSize;
+        console.log(`📊 Logo size change: ${sizeDiff > 0 ? '+' : ''}${sizeDiff} bytes`);
+      }
     }
 
-    // Check for logo changes
-    if (currentData.logo_url && currentData.logo_url !== newData.logo_url) {
-      await this.queueImageCleanup(
-        currentData.logo_url,
-        currentData.user_wallet,
-        'logo',
-        collectionId
-      );
+    // Clean up banner if it changed
+    if (newData.banner_url && newData.banner_url !== existingData?.banner_url) {
+      console.log('🧹 Cleaning up old banner data');
+      cleanedData.banner_cleanup = this.extractCleanupData(newData.banner_url);
+      
+      // Log size comparison
+      if (existingData?.banner_cleanup) {
+        const sizeDiff = (cleanedData.banner_cleanup?.compressedSize || 0) - existingData.banner_cleanup.compressedSize;
+        console.log(`📊 Banner size change: ${sizeDiff > 0 ? '+' : ''}${sizeDiff} bytes`);
+      }
     }
 
-    // Check for banner changes
-    if (currentData.banner_url && currentData.banner_url !== newData.banner_url) {
-      await this.queueImageCleanup(
-        currentData.banner_url,
-        currentData.user_wallet,
-        'banner',
-        collectionId
-      );
-    }
+    return cleanedData;
   }
 
   /**
-   * Clean up old profile images
+   * Get storage statistics for a collection
    */
-  async cleanupProfileImages(
-    userId: string,
-    newData: any,
-    currentData?: any
-  ): Promise<void> {
-    if (!currentData) {
-      return; // No previous data to clean up
-    }
-
-    // Check for profile picture changes
-    if (currentData.profile_picture_url && currentData.profile_picture_url !== newData.profile_picture_url) {
-      await this.queueImageCleanup(
-        currentData.profile_picture_url,
-        userId,
-        'profile_picture'
-      );
-    }
-
-    // Check for banner image changes
-    if (currentData.banner_image_url && currentData.banner_image_url !== newData.banner_image_url) {
-      await this.queueImageCleanup(
-        currentData.banner_image_url,
-        userId,
-        'banner'
-      );
-    }
-  }
-
-  /**
-   * Clean up old trait images
-   */
-  async cleanupTraitImages(
-    collectionId: string,
-    userId: string,
-    oldLayers: any[],
-    newLayers: any[]
-  ): Promise<void> {
-    const oldImageUrls = new Set<string>();
-    const newImageUrls = new Set<string>();
-
-    // Collect old image URLs
-    oldLayers.forEach(layer => {
-      layer.traits?.forEach((trait: any) => {
-        if (trait.imageUrl) {
-          oldImageUrls.add(trait.imageUrl);
-        }
-      });
-    });
-
-    // Collect new image URLs
-    newLayers.forEach(layer => {
-      layer.traits?.forEach((trait: any) => {
-        if (trait.imageUrl) {
-          newImageUrls.add(trait.imageUrl);
-        }
-      });
-    });
-
-    // Find images that are no longer used
-    const imagesToCleanup = Array.from(oldImageUrls).filter(url => !newImageUrls.has(url));
-
-    // Queue cleanup for unused images
-    for (const imageUrl of imagesToCleanup) {
-      await this.queueImageCleanup(imageUrl, userId, 'trait_image', collectionId);
-    }
-  }
-
-  /**
-   * Get cleanup statistics
-   */
-  getCleanupStats(): {
-    totalTasks: number;
-    pendingTasks: number;
-    processingTasks: number;
-    completedTasks: number;
-    failedTasks: number;
+  public getStorageStats(data: CollectionImageData): {
+    totalSize: number;
+    logoSize: number;
+    bannerSize: number;
+    imageCount: number;
   } {
-    const stats = {
-      totalTasks: this.cleanupQueue.length,
-      pendingTasks: 0,
-      processingTasks: 0,
-      completedTasks: 0,
-      failedTasks: 0
-    };
+    const logoSize = data.logo_cleanup?.compressedSize || 0;
+    const bannerSize = data.banner_cleanup?.compressedSize || 0;
+    const totalSize = logoSize + bannerSize;
+    const imageCount = (data.logo_url ? 1 : 0) + (data.banner_url ? 1 : 0);
 
-    this.cleanupQueue.forEach(task => {
-      switch (task.status) {
-        case 'pending':
-          stats.pendingTasks++;
-          break;
-        case 'processing':
-          stats.processingTasks++;
-          break;
-        case 'completed':
-          stats.completedTasks++;
-          break;
-        case 'failed':
-          stats.failedTasks++;
-          break;
-      }
+    return {
+      totalSize,
+      logoSize,
+      bannerSize,
+      imageCount
+    };
+  }
+
+  /**
+   * Log storage usage for monitoring
+   */
+  public logStorageUsage(data: CollectionImageData, collectionName: string): void {
+    const stats = this.getStorageStats(data);
+    
+    console.log(`📊 Storage stats for "${collectionName}":`, {
+      totalSize: `${(stats.totalSize / 1024).toFixed(2)} KB`,
+      logoSize: `${(stats.logoSize / 1024).toFixed(2)} KB`,
+      bannerSize: `${(stats.bannerSize / 1024).toFixed(2)} KB`,
+      imageCount: stats.imageCount
     });
 
-    return stats;
+    // Warn if storage is getting large
+    if (stats.totalSize > 2 * 1024 * 1024) { // 2MB
+      console.warn(`⚠️ Large storage usage detected: ${(stats.totalSize / 1024 / 1024).toFixed(2)} MB`);
+    }
   }
 }
-
-// Process cleanup queue every 5 minutes
-setInterval(() => {
-  ImageCleanupService.getInstance()['processCleanupQueue']();
-}, 5 * 60 * 1000);

@@ -4,6 +4,7 @@ import { withRateLimit, RATE_LIMITS, getClientIdentifier } from '@/lib/rate-limi
 import { withSecurityValidation, SecurityValidator } from '@/lib/security-middleware';
 import { SaveRestriction } from '@/lib/save-restriction';
 import { ImageCleanupService } from '@/lib/image-cleanup-service';
+import { UserIsolationService } from '@/lib/user-isolation-service';
 import { SavedCollection } from '@/types/database';
 
 // Apply rate limiting and security validation
@@ -55,19 +56,26 @@ const secureHandler = withSecurityValidation(
         );
       }
 
-      // Validate wallet address
-      const walletValidation = SecurityValidator.validateWalletAddress(userWallet);
+      // Validate and sanitize user wallet with isolation service
+      const userIsolation = UserIsolationService.getInstance();
+      const walletValidation = userIsolation.validateUserWallet(userWallet);
       if (!walletValidation.isValid) {
+        userIsolation.logUserIsolationEvent('INVALID_WALLET_ATTEMPT', userWallet, walletValidation.errors);
         return NextResponse.json(
           { error: 'Invalid wallet address', details: walletValidation.errors },
           { status: 400 }
         );
       }
 
-      // Check save restriction
+      // Use sanitized wallet address
+      const sanitizedUserWallet = walletValidation.sanitizedWallet;
+      userIsolation.logUserIsolationEvent('COLLECTION_SAVE_ATTEMPT', sanitizedUserWallet);
+
+      // Check save restriction with sanitized wallet
       const saveRestriction = SaveRestriction.getInstance();
-      const canSave = saveRestriction.canSave(userWallet, pageLoadId, 'save_collection');
+      const canSave = saveRestriction.canSave(sanitizedUserWallet, pageLoadId, 'save_collection');
       if (!canSave.allowed) {
+        userIsolation.logUserIsolationEvent('SAVE_RESTRICTION_VIOLATION', sanitizedUserWallet, { reason: canSave.reason });
         return NextResponse.json(
           { error: canSave.reason },
           { status: 429 }
@@ -103,9 +111,44 @@ const secureHandler = withSecurityValidation(
       //   );
       // }
 
-    // Prepare collection data
-    const collectionData: Partial<SavedCollection> = {
-      user_wallet: userWallet,
+    // Get current data for image cleanup if updating (with ownership validation)
+    let currentData = null;
+    if (collectionId) {
+      const ownershipValidation = await userIsolation.validateCollectionOwnership(
+        collectionId, 
+        sanitizedUserWallet, 
+        supabaseAdmin
+      );
+      
+      if (!ownershipValidation.isValid) {
+        userIsolation.logUserIsolationEvent('UNAUTHORIZED_COLLECTION_ACCESS', sanitizedUserWallet, { collectionId });
+        return NextResponse.json(
+          { error: ownershipValidation.error || 'Access denied' },
+          { status: 403 }
+        );
+      }
+      
+      currentData = ownershipValidation.collection;
+    }
+
+    // Prepare collection data with image cleanup
+    const newImageData = {
+      logo_url: logo_url || null,
+      banner_url: banner_url || null
+    };
+
+    // Apply image cleanup to prevent data bloat
+    const cleanedImageData = ImageCleanupService.getInstance().cleanupCollectionImages(
+      newImageData,
+      currentData
+    );
+
+    // Log storage usage for monitoring
+    ImageCleanupService.getInstance().logStorageUsage(cleanedImageData, collectionName);
+
+    // Prepare raw collection data
+    const rawCollectionData = {
+      user_wallet: sanitizedUserWallet, // Use sanitized wallet
       collection_name: collectionName,
       collection_symbol: collectionSymbol,
       description: description || '',
@@ -119,42 +162,33 @@ const secureHandler = withSecurityValidation(
       collection_config: collectionConfig || {},
       status: 'draft',
       updated_at: new Date().toISOString(),
-      // Note: In a real implementation, you would upload logoFile and bannerFile to a storage service
-      // and store the URLs here. For now, we'll store placeholder values.
-      logo_url: logoFile ? 'uploaded_logo_url' : null,
-      banner_url: bannerFile ? 'uploaded_banner_url' : null
+      // Use cleaned image data
+      logo_url: cleanedImageData.logo_url,
+      banner_url: cleanedImageData.banner_url
     };
 
-      // Get current data for image cleanup if updating
-      let currentData = null;
-      if (collectionId) {
-        const { data: existingData, error: fetchError } = await (supabaseAdmin as any)
-          .from('saved_collections')
-          .select('*')
-          .eq('id', collectionId)
-          .eq('user_wallet', userWallet)
-          .single();
-        
-        if (fetchError) {
-          console.log('Error fetching existing collection:', fetchError);
-        } else {
-          currentData = existingData;
-        }
-      }
+    // Sanitize collection data to ensure user isolation
+    const collectionData = userIsolation.sanitizeCollectionData(rawCollectionData, sanitizedUserWallet);
 
       // If collectionId is provided, update existing collection, otherwise create new one
       let data: SavedCollection | null, error: any;
       if (collectionId) {
-        // Update existing collection
+        // Update existing collection with secure query
         const result = await (supabaseAdmin as any)
           .from('saved_collections')
           .update(collectionData)
           .eq('id', collectionId)
-          .eq('user_wallet', userWallet) // Ensure user can only update their own collections
+          .eq('user_wallet', sanitizedUserWallet) // Critical: Only user's own collections
           .select()
           .single();
         data = result.data as SavedCollection | null;
         error = result.error;
+        
+        if (error) {
+          userIsolation.logUserIsolationEvent('COLLECTION_UPDATE_ERROR', sanitizedUserWallet, { error: error.message });
+        } else {
+          userIsolation.logUserIsolationEvent('COLLECTION_UPDATED', sanitizedUserWallet, { collectionId });
+        }
       } else {
         // Create new collection
         const result = await (supabaseAdmin as any)
@@ -164,6 +198,12 @@ const secureHandler = withSecurityValidation(
           .single();
         data = result.data as SavedCollection | null;
         error = result.error;
+        
+        if (error) {
+          userIsolation.logUserIsolationEvent('COLLECTION_CREATE_ERROR', sanitizedUserWallet, { error: error.message });
+        } else {
+          userIsolation.logUserIsolationEvent('COLLECTION_CREATED', sanitizedUserWallet, { collectionId: data?.id });
+        }
       }
 
       if (error) {
@@ -181,8 +221,8 @@ const secureHandler = withSecurityValidation(
         );
       }
 
-      // Record save attempt
-      saveRestriction.recordSaveAttempt(userWallet, pageLoadId, 'save_collection');
+      // Record save attempt with sanitized wallet
+      saveRestriction.recordSaveAttempt(sanitizedUserWallet, pageLoadId, 'save_collection');
 
       // Clean up old images if updating
       if (collectionId && currentData) {
@@ -222,14 +262,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user's saved collections
+    // Validate and sanitize user wallet with isolation service
+    const userIsolation = UserIsolationService.getInstance();
+    const walletValidation = userIsolation.validateUserWallet(userWallet);
+    if (!walletValidation.isValid) {
+      userIsolation.logUserIsolationEvent('INVALID_WALLET_GET_ATTEMPT', userWallet, walletValidation.errors);
+      return NextResponse.json(
+        { error: 'Invalid wallet address', details: walletValidation.errors },
+        { status: 400 }
+      );
+    }
+
+    const sanitizedUserWallet = walletValidation.sanitizedWallet;
+    userIsolation.logUserIsolationEvent('COLLECTIONS_FETCH_ATTEMPT', sanitizedUserWallet);
+
+    // Get user's saved collections with strict user isolation
     const { data, error } = await (supabaseAdmin as any)
       .from('saved_collections')
       .select('*')
-      .eq('user_wallet', userWallet)
+      .eq('user_wallet', sanitizedUserWallet) // Critical: Only user's own collections
       .order('created_at', { ascending: false });
 
     if (error) {
+      userIsolation.logUserIsolationEvent('COLLECTIONS_FETCH_ERROR', sanitizedUserWallet, { error: error.message });
       console.error('Error fetching collections:', error);
       return NextResponse.json(
         { error: 'Failed to fetch collections' },
@@ -237,6 +292,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    userIsolation.logUserIsolationEvent('COLLECTIONS_FETCHED', sanitizedUserWallet, { count: data?.length || 0 });
     return NextResponse.json({
       success: true,
       collections: data || []
