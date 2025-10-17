@@ -203,7 +203,7 @@ export async function PUT(
       
       // Insert into referrals table for leaderboard tracking
       try {
-        await supabaseAdmin.from('referrals').insert({
+        await (supabaseAdmin.from('referrals') as any).insert({
           referrer_wallet: walletAddress,
           referral_code: referralCode,
           points_earned: 0,
