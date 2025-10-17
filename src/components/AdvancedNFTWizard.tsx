@@ -63,13 +63,16 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     socialVerification: {
       twitter: false,
       discord: false,
-      telegram: false
+      telegram: false,
+      discordServerId: '', // Discord server ID for membership verification
+      telegramGroupId: '', // Telegram group ID for membership verification
     },
     startTime: '',
     endTime: '',
     csvFile: null as File | null, // For CSV upload
     pricing: {
       lolPrice: '', // Price in LOL tokens
+      losPrice: '', // Price in LOS tokens (native Analos token)
       solPrice: '', // Price in SOL
       usdcPrice: '', // Price in USDC
       customTokenPrice: '', // Price for custom token
@@ -1676,6 +1679,22 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         </div>
                         
                         <div>
+                          <label className="block text-xs text-gray-400 mb-1">LOS Price</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={whitelistConfig.pricing.losPrice}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              pricing: { ...prev.pricing, losPrice: e.target.value }
+                            }))}
+                            placeholder="100"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Price in LOS (native Analos token)</p>
+                        </div>
+                        
+                        <div>
                           <label className="block text-xs text-gray-400 mb-1">SOL Price</label>
                           <input
                             type="number"
@@ -1765,6 +1784,27 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           />
                           <span className="text-white text-sm">Require Discord server membership</span>
                         </label>
+                        
+                        {/* Discord Server ID Input */}
+                        {whitelistConfig.socialVerification.discord && (
+                          <div className="ml-6 mt-2">
+                            <label className="block text-xs text-gray-400 mb-1">Discord Server ID</label>
+                            <input
+                              type="text"
+                              value={whitelistConfig.socialVerification.discordServerId}
+                              onChange={(e) => setWhitelistConfig(prev => ({ 
+                                ...prev, 
+                                socialVerification: { ...prev.socialVerification, discordServerId: e.target.value }
+                              }))}
+                              placeholder="123456789012345678"
+                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Right-click on your Discord server → Server Settings → Advanced → Server ID
+                            </p>
+                          </div>
+                        )}
+                        
                         <label className="flex items-center gap-2">
                           <input 
                             type="checkbox" 
@@ -1777,6 +1817,26 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           />
                           <span className="text-white text-sm">Require Telegram group membership</span>
                         </label>
+                        
+                        {/* Telegram Group ID Input */}
+                        {whitelistConfig.socialVerification.telegram && (
+                          <div className="ml-6 mt-2">
+                            <label className="block text-xs text-gray-400 mb-1">Telegram Group ID</label>
+                            <input
+                              type="text"
+                              value={whitelistConfig.socialVerification.telegramGroupId}
+                              onChange={(e) => setWhitelistConfig(prev => ({ 
+                                ...prev, 
+                                socialVerification: { ...prev.socialVerification, telegramGroupId: e.target.value }
+                              }))}
+                              placeholder="-1001234567890"
+                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Use @userinfobot in your Telegram group to get the group ID
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
