@@ -966,7 +966,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           }))}
                           className="w-4 h-4 text-blue-600"
                         />
-                        <span className="text-white">Manual trigger (admin controlled)</span>
+                        <span className="text-white">Manual trigger (creator controlled)</span>
                       </label>
                     </div>
                   </div>
@@ -1003,6 +1003,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         placeholder="50"
                       />
                       <p className="text-xs text-gray-400 mt-1">NFTs will be revealed when this percentage of the collection is sold</p>
+                    </div>
+                  )}
+
+                  {/* Manual Configuration */}
+                  {revealConfig.delayedReveal.criteria === 'manual' && (
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                      <h5 className="text-blue-300 font-medium mb-2">Creator-Controlled Reveal</h5>
+                      <p className="text-blue-200 text-sm">
+                        As the collection creator, you will have full control over when to reveal your NFTs. 
+                        You can trigger the reveal at any time through your creator dashboard after the collection is launched.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1177,36 +1188,56 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-3">Whitelist Phases</label>
                       <div className="space-y-3">
-                        {whitelistConfig.phases.map((phase, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
-                            <div className="flex items-center gap-3">
-                              <input 
-                                type="checkbox" 
-                                className="w-4 h-4 text-blue-600" 
-                                checked={phase.enabled}
-                                onChange={(e) => {
-                                  const newPhases = [...whitelistConfig.phases];
-                                  newPhases[index].enabled = e.target.checked;
-                                  setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
-                                }}
-                              />
-                              <span className="text-white">Phase {index + 1}: {phase.name}</span>
+                        {whitelistConfig.phases.map((phase, index) => {
+                          // Calculate remaining spots for public access
+                          const isPublicAccess = phase.name === 'Public Access';
+                          const totalWhitelistSpots = whitelistConfig.phases
+                            .filter((p, i) => i !== index && p.enabled)
+                            .reduce((sum, p) => sum + p.spots, 0);
+                          const totalCollectionSupply = collectionConfig.supply || 1000;
+                          const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+                          
+                          return (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
+                              <div className="flex items-center gap-3">
+                                <input 
+                                  type="checkbox" 
+                                  className="w-4 h-4 text-blue-600" 
+                                  checked={phase.enabled}
+                                  onChange={(e) => {
+                                    const newPhases = [...whitelistConfig.phases];
+                                    newPhases[index].enabled = e.target.checked;
+                                    setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
+                                  }}
+                                />
+                                <span className="text-white">Phase {index + 1}: {phase.name}</span>
+                                {isPublicAccess && (
+                                  <span className="text-xs text-gray-400">(Auto-calculated)</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="number" 
+                                  value={isPublicAccess ? remainingSpots : phase.spots}
+                                  onChange={(e) => {
+                                    if (!isPublicAccess) {
+                                      const newPhases = [...whitelistConfig.phases];
+                                      newPhases[index].spots = parseInt(e.target.value) || 0;
+                                      setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
+                                    }
+                                  }}
+                                  disabled={isPublicAccess}
+                                  className={`w-16 px-2 py-1 border border-gray-500 rounded text-white text-sm ${
+                                    isPublicAccess 
+                                      ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
+                                      : 'bg-gray-700'
+                                  }`}
+                                />
+                                <span className="text-gray-400 text-sm">spots</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="number" 
-                                value={phase.spots}
-                                onChange={(e) => {
-                                  const newPhases = [...whitelistConfig.phases];
-                                  newPhases[index].spots = parseInt(e.target.value) || 0;
-                                  setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
-                                }}
-                                className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" 
-                              />
-                              <span className="text-gray-400 text-sm">spots</span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
