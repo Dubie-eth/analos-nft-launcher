@@ -66,9 +66,16 @@ const secureHandler = withSecurityValidation(
         name: collectionName,
         symbol: collectionSymbol,
         supply: totalSupply,
-        mintPrice: mintPrice
+        mintPrice: mintPrice || 0 // Default to 0 if not provided
       });
       if (!configValidation.isValid) {
+        console.log('Validation failed for config:', {
+          name: collectionName,
+          symbol: collectionSymbol,
+          supply: totalSupply,
+          mintPrice: mintPrice || 0
+        });
+        console.log('Validation errors:', configValidation.errors);
         return NextResponse.json(
           { error: 'Invalid collection configuration', details: configValidation.errors },
           { status: 400 }
