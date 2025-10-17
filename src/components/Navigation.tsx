@@ -154,7 +154,7 @@ export default function Navigation() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute right-0 mt-3 w-64 bg-gray-900/98 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-blue-500/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95">
+              <div className="absolute right-0 mt-3 w-64 bg-gray-900 border-2 border-blue-500/50 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95">
                 {navItems.slice(6).map((item) => (
                   <Link
                     key={item.href}
