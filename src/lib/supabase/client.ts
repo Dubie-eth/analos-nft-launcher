@@ -31,7 +31,7 @@ export const supabase = (() => {
       db: {
         schema: 'public'
       }
-    });
+    } as any);
   }
   return supabaseInstance;
 })();
@@ -47,7 +47,7 @@ export const supabaseAdmin = (() => {
       db: {
         schema: 'public'
       }
-    });
+    } as any);
   }
   return supabaseAdminInstance;
 })();
