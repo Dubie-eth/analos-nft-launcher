@@ -56,11 +56,11 @@ export class SupabaseDatabaseService {
       verification_level: profile.verificationLevel
     };
 
-    const { data, error } = await supabaseAdmin
-      .from('users')
+    const { data, error } = await (supabaseAdmin
+      .from('users') as any)
       .insert(userInsert)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
 
@@ -71,11 +71,11 @@ export class SupabaseDatabaseService {
   }
 
   async getUserProfile(userId: string, accessedBy: string): Promise<UserProfile | null> {
-    const { data, error } = await supabaseAdmin
-      .from('users')
+    const { data, error } = await (supabaseAdmin
+      .from('users') as any)
       .select('*')
       .eq('id', userId)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
@@ -86,11 +86,11 @@ export class SupabaseDatabaseService {
   }
 
   async getUserProfileByWallet(walletAddress: string, accessedBy: string): Promise<UserProfile | null> {
-    const { data, error } = await supabaseAdmin
-      .from('users')
+    const { data, error } = await (supabaseAdmin
+      .from('users') as any)
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
@@ -113,12 +113,12 @@ export class SupabaseDatabaseService {
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabaseAdmin
-      .from('users')
+    const { data, error } = await (supabaseAdmin
+      .from('users') as any)
       .update(userUpdate)
       .eq('id', userId)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
     if (!data) return null;
@@ -145,11 +145,11 @@ export class SupabaseDatabaseService {
       applied_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabaseAdmin
-      .from('beta_applications')
+    const { data, error } = await (supabaseAdmin
+      .from('beta_applications') as any)
       .insert(appInsert)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
 
@@ -159,11 +159,11 @@ export class SupabaseDatabaseService {
   }
 
   async getBetaApplication(applicationId: string, accessedBy: string): Promise<BetaApplication | null> {
-    const { data, error } = await supabaseAdmin
-      .from('beta_applications')
+    const { data, error } = await (supabaseAdmin
+      .from('beta_applications') as any)
       .select('*')
       .eq('id', applicationId)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
@@ -174,8 +174,8 @@ export class SupabaseDatabaseService {
   }
 
   async getAllBetaApplications(accessedBy: string, status?: string): Promise<BetaApplication[]> {
-    let query = supabaseAdmin
-      .from('beta_applications')
+    let query = (supabaseAdmin
+      .from('beta_applications') as any)
       .select('*')
       .order('applied_at', { ascending: false });
 
@@ -183,13 +183,13 @@ export class SupabaseDatabaseService {
       query = query.eq('status', status);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query as { data: any; error: any };
 
     if (error) throw error;
 
     await this.logDataAccess(accessedBy, 'read', 'application', 'all', 'Retrieving all beta applications');
 
-    return data.map(this.mapApplicationRowToApplication);
+    return data.map((app: any) => this.mapApplicationRowToApplication(app));
   }
 
   async updateBetaApplication(applicationId: string, updates: Partial<BetaApplication>, accessedBy: string): Promise<BetaApplication | null> {
@@ -202,12 +202,12 @@ export class SupabaseDatabaseService {
       reviewed_at: updates.reviewedAt?.toISOString() || new Date().toISOString()
     };
 
-    const { data, error } = await supabaseAdmin
-      .from('beta_applications')
+    const { data, error } = await (supabaseAdmin
+      .from('beta_applications') as any)
       .update(appUpdate)
       .eq('id', applicationId)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
     if (!data) return null;
