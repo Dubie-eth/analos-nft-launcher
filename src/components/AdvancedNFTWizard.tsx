@@ -42,9 +42,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   
   // Bonding curve configuration state
   const [bondingCurveConfig, setBondingCurveConfig] = useState({
-    startingPrice: 0.1,
-    maxPrice: 1.0,
-    increaseRate: 5.0
+    startingPrice: '',
+    maxPrice: '',
+    increaseRate: '',
+    creatorRoyalty: '' // User can set their royalty percentage
   });
 
   // Whitelist configuration state
@@ -328,6 +329,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const generateBondingCurveData = () => {
     const data = [];
     
+    // Get user input values or use defaults for calculation
+    const startingPrice = parseFloat(bondingCurveConfig.startingPrice) || 0.1;
+    const maxPrice = parseFloat(bondingCurveConfig.maxPrice) || 1.0;
+    const increaseRate = parseFloat(bondingCurveConfig.increaseRate) || 5.0;
+    
     // Calculate total whitelist spots from enabled phases
     let totalWhitelistSpots = 0;
     if (collectionConfig.whitelistEnabled) {
@@ -348,10 +354,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     
     for (let i = 1; i <= effectiveSupply; i++) {
       // Calculate price using exponential growth formula
-      const price = bondingCurveConfig.startingPrice * Math.pow(1 + (bondingCurveConfig.increaseRate / 100), i - 1);
+      const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
       
       // Cap at max price
-      const cappedPrice = Math.min(price, bondingCurveConfig.maxPrice);
+      const cappedPrice = Math.min(price, maxPrice);
       
       data.push({
         mint: i,
@@ -1438,28 +1444,28 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                           Starting Price (LOL)
                         </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          placeholder="0.1"
-                          value={bondingCurveConfig.startingPrice}
-                          onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, startingPrice: parseFloat(e.target.value) || 0 }))}
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.1"
+                      value={bondingCurveConfig.startingPrice}
+                      onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, startingPrice: e.target.value }))}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
                       </div>
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                           Max Price (LOL)
                         </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          placeholder="1.0"
-                          value={bondingCurveConfig.maxPrice}
-                          onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, maxPrice: parseFloat(e.target.value) || 0 }))}
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="1.0"
+                      value={bondingCurveConfig.maxPrice}
+                      onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, maxPrice: e.target.value }))}
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
                       </div>
                     </div>
                     
@@ -1472,10 +1478,62 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         step="0.1"
                         placeholder="5"
                         value={bondingCurveConfig.increaseRate}
-                        onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, increaseRate: parseFloat(e.target.value) || 0 }))}
+                        onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, increaseRate: e.target.value }))}
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       <p className="text-xs text-gray-400 mt-1">Percentage increase per mint</p>
+                    </div>
+                  </div>
+
+                  {/* Royalty Configuration */}
+                  <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-lg p-4 mt-6">
+                    <h5 className="text-purple-300 font-medium mb-4">💰 Royalty & Fee Structure</h5>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Creator Royalty (%)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="10"
+                          placeholder="2.5"
+                          value={bondingCurveConfig.creatorRoyalty}
+                          onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, creatorRoyalty: e.target.value }))}
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Your royalty on secondary sales (0-10%)</p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Platform Fee (%)
+                        </label>
+                        <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-500 rounded-lg text-gray-300 cursor-not-allowed">
+                          2.5% (Fixed)
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Analos platform fee - non-negotiable</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                      <div className="text-blue-300 text-sm font-medium mb-2">📊 Total Fee Breakdown:</div>
+                      <div className="space-y-1 text-xs text-blue-200">
+                        <div className="flex justify-between">
+                          <span>Creator Royalty:</span>
+                          <span>{bondingCurveConfig.creatorRoyalty || '0'}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Platform Fee:</span>
+                          <span>2.5%</span>
+                        </div>
+                        <div className="flex justify-between border-t border-blue-500/30 pt-1 font-medium">
+                          <span>Total Fees:</span>
+                          <span>{(parseFloat(bondingCurveConfig.creatorRoyalty) || 0) + 2.5}%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1604,7 +1662,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
                           <div className="text-blue-300 text-sm font-medium">Starting Price</div>
-                          <div className="text-white text-lg font-bold">{bondingCurveConfig.startingPrice.toFixed(4)} LOL</div>
+                          <div className="text-white text-lg font-bold">
+                            {bondingCurveConfig.startingPrice ? parseFloat(bondingCurveConfig.startingPrice).toFixed(4) : '0.0000'} LOL
+                          </div>
                         </div>
                         
                         <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
@@ -1616,7 +1676,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         
                         <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
                           <div className="text-green-300 text-sm font-medium">Max Price</div>
-                          <div className="text-white text-lg font-bold">{bondingCurveConfig.maxPrice.toFixed(4)} LOL</div>
+                          <div className="text-white text-lg font-bold">
+                            {bondingCurveConfig.maxPrice ? parseFloat(bondingCurveConfig.maxPrice).toFixed(4) : '0.0000'} LOL
+                          </div>
                         </div>
                       </div>
 
