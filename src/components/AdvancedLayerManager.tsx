@@ -245,7 +245,7 @@ export default function AdvancedLayerManager({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Preview Canvas */}
           <div className="space-y-3">
-            <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center min-h-[200px] flex items-center justify-center">
+            <div className="bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4 text-center min-h-[200px] flex items-center justify-center">
               {previewImage ? (
                 <div className="w-full h-full flex items-center justify-center">
                   <img 
@@ -255,10 +255,10 @@ export default function AdvancedLayerManager({
                   />
                 </div>
               ) : (
-                <div className="text-gray-500 dark:text-gray-400">
+                <div className="text-gray-400">
                   <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">NFT Preview</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-sm text-white">NFT Preview</p>
+                  <p className="text-xs text-gray-500 mt-1">
                     {layers.filter(l => l.visible).length} visible layers
                   </p>
                 </div>
@@ -283,14 +283,14 @@ export default function AdvancedLayerManager({
           {/* Layer Stack Preview */}
           <div className="space-y-3">
             <h6 className="font-medium text-purple-700 dark:text-purple-300 text-sm">Layer Stack (Bottom to Top)</h6>
-            <div className="space-y-2 min-h-[200px] max-h-[200px] overflow-y-auto bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+            <div className="space-y-2 min-h-[200px] max-h-[200px] overflow-y-auto bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4">
               {layers
                 .filter(layer => layer.visible)
                 .sort((a, b) => a.order - b.order)
                 .map((layer, index) => (
                   <div 
                     key={layer.id} 
-                    className="flex items-center gap-3 p-2 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 hover:shadow-sm transition-shadow cursor-move"
+                    className="flex items-center gap-3 p-2 bg-gray-700 rounded border border-gray-600 hover:shadow-sm transition-shadow cursor-move"
                     draggable
                     onDragStart={(e) => {
                       e.dataTransfer.setData('text/plain', layer.id);
@@ -319,11 +319,11 @@ export default function AdvancedLayerManager({
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-sm text-gray-800 dark:text-gray-200">{layer.name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{layer.traits.length} traits</div>
+                      <div className="font-medium text-sm text-white">{layer.name}</div>
+                      <div className="text-xs text-gray-400">{layer.traits.length} traits</div>
                     </div>
-                    <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center">
-                      <Image className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <div className="w-8 h-8 bg-gray-700 rounded border border-gray-600 flex items-center justify-center">
+                      <Image className="w-4 h-4 text-gray-500" />
                     </div>
                   </div>
                 ))}
