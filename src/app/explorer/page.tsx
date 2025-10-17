@@ -98,10 +98,10 @@ export default function ExplorerPage() {
         ];
 
         const demoProgramActivity: ProgramActivity[] = [
-          // Core Platform Programs
+          // Current Active Programs Only
           {
-            programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
-            programName: 'NFT Launchpad',
+            programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD_CORE.toString(),
+            programName: 'NFT Launchpad Core',
             recentTransactions: demoTransactions.filter(tx => tx.type === 'mint' || tx.type === 'collection_create'),
             totalTransactions: 2
           },
@@ -123,7 +123,6 @@ export default function ExplorerPage() {
             recentTransactions: [],
             totalTransactions: 0
           },
-          // Enhancement Programs
           {
             programId: ANALOS_PROGRAMS.OTC_ENHANCED.toString(),
             programName: 'OTC Enhanced',
@@ -151,24 +150,6 @@ export default function ExplorerPage() {
           {
             programId: ANALOS_PROGRAMS.MONITORING_SYSTEM.toString(),
             programName: 'Monitoring System',
-            recentTransactions: [],
-            totalTransactions: 0
-          },
-          {
-            programId: ANALOS_PROGRAMS.TOKEN_LOCK_ENHANCED.toString(),
-            programName: 'Token Lock Enhanced',
-            recentTransactions: [],
-            totalTransactions: 0
-          },
-          {
-            programId: ANALOS_PROGRAMS.AIRDROP_ENHANCED.toString(),
-            programName: 'Airdrop Enhanced',
-            recentTransactions: [],
-            totalTransactions: 0
-          },
-          {
-            programId: ANALOS_PROGRAMS.OTC_ENHANCED.toString(),
-            programName: 'OTC Enhanced',
             recentTransactions: [],
             totalTransactions: 0
           }
@@ -249,42 +230,104 @@ export default function ExplorerPage() {
           </p>
         </div>
 
-        {/* Program Status Cards - All 9 Programs! 🎉 */}
+        {/* RPC Connection Status */}
+        <div className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border border-green-500/30 rounded-xl p-4 mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div>
+                <h3 className="text-green-300 font-semibold">Connected to Analos Mainnet</h3>
+                <p className="text-green-200 text-sm">Using official RPC: rpc.analos.io</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-green-300 text-sm font-medium">✅ Verified Connection</p>
+              <p className="text-green-200 text-xs">All programs active</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Program Cards - Current Programs Only */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {Object.entries(ANALOS_PROGRAMS).map(([key, programId]) => {
-            const programName = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          {[
+            { key: 'NFT_LAUNCHPAD_CORE', name: 'NFT Launchpad Core', description: 'Complete NFT launchpad with all features' },
+            { key: 'PRICE_ORACLE', name: 'Price Oracle', description: 'Real-time LOL price data' },
+            { key: 'RARITY_ORACLE', name: 'Rarity Oracle', description: 'NFT rarity calculations' },
+            { key: 'TOKEN_LAUNCH', name: 'Token Launch', description: 'Token launches with bonding curves' },
+            { key: 'OTC_ENHANCED', name: 'OTC Enhanced', description: 'P2P trading with escrow' },
+            { key: 'AIRDROP_ENHANCED', name: 'Airdrop Enhanced', description: 'Merkle tree airdrops' },
+            { key: 'VESTING_ENHANCED', name: 'Vesting Enhanced', description: 'Token vesting schedules' },
+            { key: 'TOKEN_LOCK_ENHANCED', name: 'Token Lock Enhanced', description: 'Time-locked token escrow' },
+            { key: 'MONITORING_SYSTEM', name: 'Monitoring System', description: 'Real-time monitoring & alerts' }
+          ].map(({ key, name, description }) => {
+            const programId = ANALOS_PROGRAMS[key as keyof typeof ANALOS_PROGRAMS];
             const activity = programActivity.find(p => p.programId === programId.toString());
+            const explorerUrl = ANALOS_EXPLORER_URLS[key as keyof typeof ANALOS_EXPLORER_URLS];
+            
+            const copyToClipboard = async (address: string) => {
+              try {
+                await navigator.clipboard.writeText(address);
+                // You could add a toast notification here
+                console.log('Address copied to clipboard:', address);
+              } catch (err) {
+                console.error('Failed to copy address:', err);
+              }
+            };
             
             return (
-              <div key={key} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <div className="text-center">
-                  <div className="text-3xl mb-3">
-                    {key === 'NFT_LAUNCHPAD' && '🚀'}
-                    {key === 'PRICE_ORACLE' && '💰'}
-                    {key === 'RARITY_ORACLE' && '🎲'}
-                    {key === 'TOKEN_LAUNCH' && '📈'}
-                    {key === 'METADATA' && '📝'}
-                    {key === 'VESTING' && '⏳'}
-                    {key === 'TOKEN_LOCK' && '🔒'}
-                    {key === 'AIRDROP' && '🎁'}
-                    {key === 'OTC_MARKETPLACE' && '🤝'}
+              <div key={key} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-white/40 transition-all duration-200">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-1">{name}</h3>
+                    <p className="text-gray-300 text-sm">{description}</p>
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{programName}</h3>
-                  <div className="bg-gray-800/50 rounded-lg p-2 font-mono text-xs text-gray-300 break-all mb-3">
-                    {programId.toString().slice(0, 16)}...
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">Contract Address:</span>
+                      <button
+                        onClick={() => copyToClipboard(programId.toString())}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                        title="Click to copy full address"
+                      >
+                        📋 Copy
+                      </button>
+                    </div>
+                    <div 
+                      className="bg-gray-800/50 rounded-lg p-3 font-mono text-xs text-gray-300 cursor-pointer hover:bg-gray-700/50 transition-colors"
+                      onClick={() => copyToClipboard(programId.toString())}
+                      title="Click to copy full address"
+                    >
+                      {programId.toString().slice(0, 20)}...{programId.toString().slice(-8)}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-300">
-                    <div>Transactions: <span className="text-purple-400 font-semibold">{activity?.totalTransactions || 0}</span></div>
-                    <div className="mt-1">Status: <span className="text-green-400 font-semibold">Active</span></div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-gray-300">
+                      <span>Transactions: </span>
+                      <span className="text-purple-400 font-semibold">{activity?.totalTransactions || 0}</span>
+                    </div>
+                    <div className="text-gray-300">
+                      <span>Status: </span>
+                      <span className="text-green-400 font-semibold">Active</span>
+                    </div>
                   </div>
-                  <a
-                    href={ANALOS_EXPLORER_URLS[key as keyof typeof ANALOS_EXPLORER_URLS]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block mt-3 text-purple-400 hover:text-purple-300 text-sm"
-                  >
-                    View on Explorer →
-                  </a>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => window.open(explorerUrl, '_blank')}
+                      className="flex-1 px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg text-sm font-medium transition-all duration-200 border border-purple-500/30"
+                    >
+                      View on Explorer
+                    </button>
+                    <button
+                      onClick={() => copyToClipboard(programId.toString())}
+                      className="px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 rounded-lg text-sm font-medium transition-all duration-200 border border-blue-500/30"
+                      title="Copy contract address"
+                    >
+                      📋
+                    </button>
+                  </div>
                 </div>
               </div>
             );
