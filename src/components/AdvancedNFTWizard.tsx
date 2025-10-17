@@ -814,35 +814,98 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
       case 5:
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Whitelist Settings</h3>
-              <p className="text-gray-300">Configure whitelist phases for your collection.</p>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold text-white mb-2">Whitelist Settings</h3>
+              <p className="text-white/80 text-lg">Configure whitelist phases for your collection.</p>
             </div>
             
-            <div className="space-y-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={collectionConfig.whitelistEnabled}
-                  onChange={(e) => setCollectionConfig(prev => ({ ...prev, whitelistEnabled: e.target.checked }))}
-                  className="mr-2"
-                />
-                <span>Enable Whitelist</span>
-              </label>
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Whitelist Toggle */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={collectionConfig.whitelistEnabled}
+                    onChange={(e) => setCollectionConfig(prev => ({ ...prev, whitelistEnabled: e.target.checked }))}
+                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <span className="ml-3 text-lg font-medium text-white">Enable Whitelist</span>
+                </label>
+              </div>
               
               {collectionConfig.whitelistEnabled && (
-                <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-300 mb-2">Whitelist Configuration</h4>
-                  <p className="text-sm text-blue-200">
+                <div className="bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border border-blue-500/30 rounded-xl p-6 backdrop-blur-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">✓</span>
+                    </div>
+                    <h4 className="text-xl font-semibold text-blue-300">Whitelist Configuration</h4>
+                  </div>
+                  <p className="text-blue-200 mb-4">
                     Whitelist settings will be configured in the next step. This will allow you to:
                   </p>
-                  <ul className="text-sm text-blue-200 mt-2 list-disc list-inside">
-                    <li>Set token gate requirements (e.g., 1M+ ANAL tokens)</li>
-                    <li>Configure free mints for whitelist holders</li>
-                    <li>Set additional mint pricing</li>
-                    <li>Define whitelist supply limits</li>
-                  </ul>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 text-blue-200">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span>Set token gate requirements (e.g., 1M+ ANAL tokens)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-200">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span>Configure free mints for whitelist holders</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-200">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span>Set additional mint pricing</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-200">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span>Define whitelist supply limits</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Whitelist Configuration */}
+              {collectionConfig.whitelistEnabled && (
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Whitelist Requirements</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Minimum ANAL Tokens
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="1000000"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Whitelist Supply
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="100"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Whitelist Price (ANAL)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0.05"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Special price for whitelist holders (0 = free)</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -851,35 +914,98 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
       case 6:
         return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Bonding Curve</h3>
-              <p className="text-gray-300">Configure dynamic pricing for your collection.</p>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h3 className="text-3xl font-bold text-white mb-2">Bonding Curve</h3>
+              <p className="text-white/80 text-lg">Configure dynamic pricing for your collection.</p>
             </div>
             
-            <div className="space-y-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={collectionConfig.bondingCurveEnabled}
-                  onChange={(e) => setCollectionConfig(prev => ({ ...prev, bondingCurveEnabled: e.target.checked }))}
-                  className="mr-2"
-                />
-                <span>Enable Bonding Curve Pricing</span>
-              </label>
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Bonding Curve Toggle */}
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={collectionConfig.bondingCurveEnabled}
+                    onChange={(e) => setCollectionConfig(prev => ({ ...prev, bondingCurveEnabled: e.target.checked }))}
+                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <span className="ml-3 text-lg font-medium text-white">Enable Bonding Curve Pricing</span>
+                </label>
+              </div>
               
               {collectionConfig.bondingCurveEnabled && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-medium text-green-800 mb-2">Bonding Curve Benefits</h4>
-                  <p className="text-sm text-green-700">
+                <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30 rounded-xl p-6 backdrop-blur-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">✓</span>
+                    </div>
+                    <h4 className="text-xl font-semibold text-green-300">Bonding Curve Benefits</h4>
+                  </div>
+                  <p className="text-green-200 mb-4">
                     Bonding curve pricing will automatically adjust based on supply:
                   </p>
-                  <ul className="text-sm text-green-700 mt-2 list-disc list-inside">
-                    <li>Lower prices when supply is high</li>
-                    <li>Higher prices as supply decreases</li>
-                    <li>Creates urgency and FOMO</li>
-                    <li>Maximizes revenue potential</li>
-                  </ul>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 text-green-200">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Lower prices when supply is high</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-200">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Higher prices as supply decreases</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-200">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Creates urgency and FOMO</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-green-200">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span>Maximizes revenue potential</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Bonding Curve Configuration */}
+              {collectionConfig.bondingCurveEnabled && (
+                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                  <h4 className="text-lg font-semibold text-white mb-4">Pricing Configuration</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Starting Price (ANAL)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="0.1"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Max Price (ANAL)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="1.0"
+                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Price Increase Rate (%)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="5"
+                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Percentage increase per mint</p>
+                  </div>
                 </div>
               )}
             </div>
