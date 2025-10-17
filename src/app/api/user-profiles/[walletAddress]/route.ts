@@ -203,6 +203,7 @@ export async function PUT(
       
       // Insert into referrals table for leaderboard tracking
       try {
+        // TypeScript fix: apply type assertion to bypass type inference issues
         await (supabaseAdmin.from('referrals') as any).insert({
           referrer_wallet: walletAddress,
           referral_code: referralCode,
