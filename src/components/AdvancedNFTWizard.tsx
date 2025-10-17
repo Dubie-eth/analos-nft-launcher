@@ -82,6 +82,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       enforceSocialVerification: true
     }
   });
+
+  const [chartViewMode, setChartViewMode] = useState<'full' | 'compact'>('compact');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -1479,39 +1481,124 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
                   {/* Interactive Bonding Curve Chart */}
                   <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
-                    <h4 className="text-lg font-semibold text-white mb-4">Bonding Curve Visualization</h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-white">Bonding Curve Visualization</h4>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-300">View:</span>
+                        <button
+                          onClick={() => setChartViewMode('compact')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            chartViewMode === 'compact' 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Compact
+                        </button>
+                        <button
+                          onClick={() => setChartViewMode('full')}
+                          className={`px-3 py-1 rounded text-sm transition-colors ${
+                            chartViewMode === 'full' 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          Full
+                        </button>
+                      </div>
+                    </div>
                     
                     <div className="space-y-4">
-                      {/* Chart Container */}
-                      <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                        <div className="h-64 flex items-end justify-between gap-1" id="bonding-curve-chart">
-                          {generateBondingCurveData().map((point, index) => (
-                            <div
-                              key={index}
-                              className="flex flex-col items-center group cursor-pointer"
-                              style={{ flex: '1' }}
-                            >
-                              <div
-                                className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
-                                style={{ height: `${(point.price / Math.max(...generateBondingCurveData().map(p => p.price))) * 200}px` }}
-                                title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOL`}
-                              />
-                              {index % 10 === 0 && (
-                                <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left">
-                                  {index + 1}
+                  {/* Chart Container */}
+                  <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                    {chartViewMode === 'compact' ? (
+                      // Compact view - shows every nth point
+                      <div className="h-64">
+                        <div className="h-full flex items-end justify-between gap-1" id="bonding-curve-chart">
+                          {(() => {
+                            const data = generateBondingCurveData();
+                            const maxPrice = Math.max(...data.map(p => p.price));
+                            const step = Math.max(1, Math.floor(data.length / 50)); // Show max 50 bars
+                            const compactData = data.filter((_, index) => index % step === 0);
+                            
+                            return compactData.map((point, index) => {
+                              const barHeight = (point.price / maxPrice) * 200;
+                              const originalIndex = index * step;
+                              
+                              return (
+                                <div
+                                  key={originalIndex}
+                                  className="flex flex-col items-center group cursor-pointer relative flex-1"
+                                >
+                                  <div
+                                    className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
+                                    style={{ height: `${barHeight}px` }}
+                                    title={`Mint ${originalIndex + 1}: ${point.price.toFixed(4)} LOL`}
+                                  />
+                                  {index % 5 === 0 && (
+                                    <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left whitespace-nowrap">
+                                      {originalIndex + 1}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          ))}
+                              );
+                            });
+                          })()}
                         </div>
                         
                         {/* Chart Labels */}
                         <div className="flex justify-between text-xs text-gray-400 mt-2">
                           <span>Mint #1</span>
-                          <span>Supply</span>
+                          <span>Supply: {generateBondingCurveData().length} NFTs (Compact View)</span>
                           <span>Mint #{generateBondingCurveData().length}</span>
                         </div>
                       </div>
+                    ) : (
+                      // Full view - scrollable
+                      <div className="h-64 overflow-x-auto">
+                        <div className="h-full flex items-end gap-0.5 min-w-max" id="bonding-curve-chart">
+                          {generateBondingCurveData().map((point, index) => {
+                            const maxPrice = Math.max(...generateBondingCurveData().map(p => p.price));
+                            const barHeight = (point.price / maxPrice) * 200;
+                            const barWidth = Math.max(2, Math.min(8, 400 / generateBondingCurveData().length));
+                            
+                            return (
+                              <div
+                                key={index}
+                                className="flex flex-col items-center group cursor-pointer relative"
+                                style={{ width: `${barWidth}px` }}
+                              >
+                                <div
+                                  className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
+                                  style={{ height: `${barHeight}px` }}
+                                  title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOL`}
+                                />
+                                {index % Math.ceil(generateBondingCurveData().length / 10) === 0 && (
+                                  <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left whitespace-nowrap">
+                                    {index + 1}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Chart Labels */}
+                        <div className="flex justify-between text-xs text-gray-400 mt-2">
+                          <span>Mint #1</span>
+                          <span>Supply: {generateBondingCurveData().length} NFTs</span>
+                          <span>Mint #{generateBondingCurveData().length}</span>
+                        </div>
+                        
+                        {/* Scroll Indicator */}
+                        {generateBondingCurveData().length > 50 && (
+                          <div className="text-center mt-2">
+                            <p className="text-xs text-gray-500">← Scroll horizontally to see full curve →</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                       {/* Price Range Display */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
