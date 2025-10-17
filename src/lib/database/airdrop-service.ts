@@ -344,8 +344,8 @@ export class DatabaseAirdropService {
     if (error) throw error;
 
     const totalClaims = data.length;
-    const uniqueClaimers = new Set(data.map(c => c.wallet_address)).size;
-    const totalClaimedAmount = data.reduce((sum, c) => sum + c.amount, 0);
+    const uniqueClaimers = new Set(data.map((c: any) => c.wallet_address)).size;
+    const totalClaimedAmount = data.reduce((sum: number, c: any) => sum + c.amount, 0);
 
     const campaign = await this.getCampaign(campaignId);
     const remainingAmount = campaign ? campaign.totalAmount - totalClaimedAmount : 0;
