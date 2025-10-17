@@ -11,6 +11,7 @@ import SocialLinksManager from './SocialLinksManager';
 import Leaderboard from './Leaderboard';
 import { logger } from '@/lib/logger';
 import { getFreshExample } from '@/lib/wallet-examples';
+import { useTheme } from '@/contexts/ThemeContext';
 import styles from './CompleteProfileManager.module.css';
 
 interface UserProfile {
@@ -55,6 +56,7 @@ export default function CompleteProfileManager({
   userWallet,
   className = ''
 }: CompleteProfileManagerProps) {
+  const { theme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -339,12 +341,22 @@ export default function CompleteProfileManager({
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="h-6 bg-gray-200 rounded mb-4"></div>
+        <div className={`rounded-lg shadow p-6 ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
+          <div className={`h-6 rounded mb-4 ${
+            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+          }`}></div>
           <div className="space-y-4">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className={`h-4 rounded ${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+            }`}></div>
+            <div className={`h-4 rounded ${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+            }`}></div>
+            <div className={`h-4 rounded ${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
+            }`}></div>
           </div>
         </div>
       </div>
@@ -354,8 +366,10 @@ export default function CompleteProfileManager({
   if (!profile) {
     return (
       <div className={`${className}`}>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">Failed to load profile</p>
+        <div className={`rounded-lg shadow p-6 text-center ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
+          <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>Failed to load profile</p>
         </div>
       </div>
     );
@@ -364,7 +378,9 @@ export default function CompleteProfileManager({
   return (
         <div className={`w-full max-w-4xl mx-auto px-4 py-6 ${styles.profileManager} ${className}`}>
       {/* Mobile-First Profile Header */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+      <div className={`rounded-lg shadow-lg overflow-hidden mb-6 ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      }`}>
         {/* Banner Section */}
         <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
           {profile.bannerImageUrl && (
@@ -405,22 +421,32 @@ export default function CompleteProfileManager({
 
           {/* User Info - Clean Layout */}
           <div className="text-center space-y-3">
-            <h1 className="text-2xl font-bold text-gray-900">{profile.username}</h1>
-            <p className="text-gray-600 text-sm leading-relaxed px-4">{profile.bio}</p>
+            <h1 className={`text-2xl font-bold ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>{profile.username}</h1>
+            <p className={`text-sm leading-relaxed px-4 ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}>{profile.bio}</p>
             
             {/* Stats - Horizontal Layout */}
             <div className="flex justify-center space-x-6 text-sm">
               <div className="text-center">
-                <div className="font-bold text-gray-900">#{profile.rank}</div>
-                <div className="text-gray-500">Rank</div>
+                <div className={`font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>#{profile.rank}</div>
+                <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>Rank</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-gray-900">{profile.totalPoints.toLocaleString()}</div>
-                <div className="text-gray-500">Points</div>
+                <div className={`font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>{profile.totalPoints.toLocaleString()}</div>
+                <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>Points</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-gray-900">{profile.totalReferrals}</div>
-                <div className="text-gray-500">Referrals</div>
+                <div className={`font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>{profile.totalReferrals}</div>
+                <div className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>Referrals</div>
               </div>
             </div>
           </div>
@@ -428,8 +454,12 @@ export default function CompleteProfileManager({
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-gray-200">
+      <div className={`rounded-lg shadow ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <div className={`border-b ${
+          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+        }`}>
           <nav className="flex px-4 overflow-x-auto">
             {[
               { key: 'profile', label: 'Profile', icon: '👤' },
@@ -443,8 +473,10 @@ export default function CompleteProfileManager({
                 className={`
                   py-3 px-4 border-b-2 font-medium text-sm transition-colors flex-shrink-0 whitespace-nowrap mr-2
                   ${activeTab === tab.key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-500'
+                    : theme === 'dark'
+                      ? 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
               >
@@ -461,7 +493,9 @@ export default function CompleteProfileManager({
             <div className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Username
                   </label>
                   <input
@@ -470,18 +504,27 @@ export default function CompleteProfileManager({
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className={`
                       w-full px-3 py-2 border rounded-md
-                      ${errors.username ? 'border-red-300' : 'border-gray-300'}
-                      focus:border-blue-500 focus:ring-blue-500
+                      ${theme === 'dark' 
+                        ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' 
+                        : 'bg-white text-gray-900 border-gray-300 placeholder-gray-500'
+                      }
+                      ${errors.username ? 'border-red-500' : ''}
+                      ${theme === 'dark' 
+                        ? 'focus:border-blue-400 focus:ring-blue-400' 
+                        : 'focus:border-blue-500 focus:ring-blue-500'
+                      }
                     `}
                     placeholder="Enter your username"
                   />
                   {errors.username && (
-                    <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+                    <p className="mt-1 text-sm text-red-500">{errors.username}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Referral Code
                   </label>
                   <div className="flex">
@@ -489,7 +532,11 @@ export default function CompleteProfileManager({
                       type="text"
                       value={profile.referralCode}
                       readOnly
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50"
+                      className={`flex-1 px-3 py-2 border rounded-l-md ${
+                        theme === 'dark' 
+                          ? 'bg-gray-700 text-white border-gray-600' 
+                          : 'bg-gray-50 text-gray-900 border-gray-300'
+                      }`}
                     />
                     <button
                       onClick={() => navigator.clipboard.writeText(profile.referralCode)}
@@ -501,7 +548,9 @@ export default function CompleteProfileManager({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Bio
                   </label>
                   <textarea
@@ -515,17 +564,26 @@ export default function CompleteProfileManager({
                     rows={3}
                     className={`
                       w-full px-3 py-2 border rounded-md resize-none overflow-hidden
-                      ${errors.bio ? 'border-red-300' : 'border-gray-300'}
-                      focus:border-blue-500 focus:ring-blue-500
+                      ${theme === 'dark' 
+                        ? 'bg-gray-700 text-white border-gray-600 placeholder-gray-400' 
+                        : 'bg-white text-gray-900 border-gray-300 placeholder-gray-500'
+                      }
+                      ${errors.bio ? 'border-red-500' : ''}
+                      ${theme === 'dark' 
+                        ? 'focus:border-blue-400 focus:ring-blue-400' 
+                        : 'focus:border-blue-500 focus:ring-blue-500'
+                      }
                     `}
                     placeholder="Tell the community about yourself..."
                     style={{ minHeight: '80px', maxHeight: '120px' }}
                   />
                   <div className="flex justify-between mt-1">
                     {errors.bio && (
-                      <p className="text-sm text-red-600">{errors.bio}</p>
+                      <p className="text-sm text-red-500">{errors.bio}</p>
                     )}
-                    <p className="text-sm text-gray-500 ml-auto">
+                    <p className={`text-sm ml-auto ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       {formData.bio.length}/500 characters
                     </p>
                   </div>
@@ -561,7 +619,9 @@ export default function CompleteProfileManager({
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className={`block text-sm font-medium mb-3 ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Privacy Level
                 </label>
                 <div className="space-y-3">
@@ -576,8 +636,12 @@ export default function CompleteProfileManager({
                         className="mt-1"
                       />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{level.label}</div>
-                        <div className="text-sm text-gray-500">{level.description}</div>
+                        <div className={`text-sm font-medium ${
+                          theme === 'dark' ? 'text-white' : 'text-gray-900'
+                        }`}>{level.label}</div>
+                        <div className={`text-sm ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                        }`}>{level.description}</div>
                       </div>
                     </label>
                   ))}
@@ -593,8 +657,12 @@ export default function CompleteProfileManager({
                     className="rounded"
                   />
                   <div>
-                    <div className="text-sm font-medium text-gray-900">Allow Data Export</div>
-                    <div className="text-sm text-gray-500">Allow you to export your data</div>
+                    <div className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>Allow Data Export</div>
+                    <div className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Allow you to export your data</div>
                   </div>
                 </label>
 
@@ -606,8 +674,12 @@ export default function CompleteProfileManager({
                     className="rounded"
                   />
                   <div>
-                    <div className="text-sm font-medium text-gray-900">Allow Analytics</div>
-                    <div className="text-sm text-gray-500">Help improve the platform with anonymous usage data</div>
+                    <div className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>Allow Analytics</div>
+                    <div className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>Help improve the platform with anonymous usage data</div>
                   </div>
                 </label>
               </div>

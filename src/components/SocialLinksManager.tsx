@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { logger } from '@/lib/logger';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SocialLinks {
   twitter: string;
@@ -30,7 +31,8 @@ const SOCIAL_PLATFORMS = [
     key: 'twitter' as keyof SocialLinks,
     name: 'Twitter/X',
     icon: '🐦',
-    placeholder: 'https://twitter.com/yourusername',
+    placeholder: 'yourusername',
+    urlPrefix: 'https://twitter.com/',
     color: 'bg-blue-500',
     verification: true
   },
@@ -38,7 +40,8 @@ const SOCIAL_PLATFORMS = [
     key: 'telegram' as keyof SocialLinks,
     name: 'Telegram',
     icon: '✈️',
-    placeholder: 'https://t.me/yourusername',
+    placeholder: 'yourusername',
+    urlPrefix: 'https://t.me/',
     color: 'bg-blue-400',
     verification: true
   },
@@ -46,7 +49,8 @@ const SOCIAL_PLATFORMS = [
     key: 'discord' as keyof SocialLinks,
     name: 'Discord',
     icon: '🎮',
-    placeholder: 'Your Discord username#1234',
+    placeholder: 'username#1234',
+    urlPrefix: '',
     color: 'bg-indigo-500',
     verification: false
   },
@@ -54,7 +58,8 @@ const SOCIAL_PLATFORMS = [
     key: 'website' as keyof SocialLinks,
     name: 'Website',
     icon: '🌐',
-    placeholder: 'https://yourwebsite.com',
+    placeholder: 'yourwebsite.com',
+    urlPrefix: 'https://',
     color: 'bg-green-500',
     verification: false
   },
@@ -62,7 +67,8 @@ const SOCIAL_PLATFORMS = [
     key: 'github' as keyof SocialLinks,
     name: 'GitHub',
     icon: '💻',
-    placeholder: 'https://github.com/yourusername',
+    placeholder: 'yourusername',
+    urlPrefix: 'https://github.com/',
     color: 'bg-gray-800',
     verification: true
   },
@@ -70,7 +76,8 @@ const SOCIAL_PLATFORMS = [
     key: 'instagram' as keyof SocialLinks,
     name: 'Instagram',
     icon: '📷',
-    placeholder: 'https://instagram.com/yourusername',
+    placeholder: 'yourusername',
+    urlPrefix: 'https://instagram.com/',
     color: 'bg-pink-500',
     verification: true
   },
@@ -78,7 +85,8 @@ const SOCIAL_PLATFORMS = [
     key: 'linkedin' as keyof SocialLinks,
     name: 'LinkedIn',
     icon: '💼',
-    placeholder: 'https://linkedin.com/in/yourusername',
+    placeholder: 'in/yourusername',
+    urlPrefix: 'https://linkedin.com/',
     color: 'bg-blue-600',
     verification: false
   },
@@ -86,7 +94,8 @@ const SOCIAL_PLATFORMS = [
     key: 'youtube' as keyof SocialLinks,
     name: 'YouTube',
     icon: '📺',
-    placeholder: 'https://youtube.com/@yourchannel',
+    placeholder: '@yourchannel',
+    urlPrefix: 'https://youtube.com/',
     color: 'bg-red-500',
     verification: false
   }
@@ -97,6 +106,7 @@ export default function SocialLinksManager({
   onLinksChange,
   className = ''
 }: SocialLinksManagerProps) {
+  const { theme } = useTheme();
   const [links, setLinks] = useState<SocialLinks>({
     twitter: '',
     telegram: '',
@@ -111,65 +121,77 @@ export default function SocialLinksManager({
 
   const [verificationStatus, setVerificationStatus] = useState<Record<string, 'none' | 'pending' | 'verified' | 'failed'>>({});
 
-  const updateLink = (key: keyof SocialLinks, value: string) => {
-    const newLinks = { ...links, [key]: value };
+  const updateLink = (key: keyof SocialLinks, username: string) => {
+    const platform = SOCIAL_PLATFORMS.find(p => p.key === key);
+    if (!platform) return;
+
+    // For Discord, store username as-is (no URL prefix)
+    // For all others, combine prefix + username
+    const fullUrl = platform.urlPrefix ? `${platform.urlPrefix}${username}` : username;
+    
+    const newLinks = { ...links, [key]: fullUrl };
     setLinks(newLinks);
     onLinksChange(newLinks);
     
-    logger.log('Social link updated:', key, value);
+    logger.log('Social link updated:', key, fullUrl);
   };
 
-  const validateUrl = (url: string): boolean => {
-    if (!url) return true; // Empty is valid
+  // Extract username from stored URL for display
+  const getDisplayUsername = (key: keyof SocialLinks): string => {
+    const platform = SOCIAL_PLATFORMS.find(p => p.key === key);
+    const storedValue = links[key] || '';
     
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
+    if (!platform || !storedValue) return '';
+    
+    // For Discord, return as-is
+    if (key === 'discord') return storedValue;
+    
+    // For others, remove the URL prefix
+    if (platform.urlPrefix && storedValue.startsWith(platform.urlPrefix)) {
+      return storedValue.substring(platform.urlPrefix.length);
     }
+    
+    return storedValue;
   };
 
-  const getUrlError = (key: keyof SocialLinks, value: string): string | null => {
-    if (!value) return null;
+  const validateUsername = (key: keyof SocialLinks, username: string): string | null => {
+    if (!username) return null;
     
-    if (!validateUrl(value)) {
-      return 'Please enter a valid URL';
+    // Basic username validation
+    if (username.length < 1) {
+      return 'Username cannot be empty';
     }
 
     // Platform-specific validation
     switch (key) {
-      case 'twitter':
-        if (!value.includes('twitter.com') && !value.includes('x.com')) {
-          return 'Twitter URL should include twitter.com or x.com';
-        }
-        break;
-      case 'telegram':
-        if (!value.includes('t.me')) {
-          return 'Telegram URL should include t.me';
-        }
-        break;
       case 'discord':
-        // Discord doesn't need URL validation
-        break;
-      case 'github':
-        if (!value.includes('github.com')) {
-          return 'GitHub URL should include github.com';
+        // Discord username format: username#1234 or username
+        if (!/^[a-zA-Z0-9_]+(#[0-9]{4})?$/.test(username)) {
+          return 'Discord username should be in format: username#1234';
         }
         break;
-      case 'instagram':
-        if (!value.includes('instagram.com')) {
-          return 'Instagram URL should include instagram.com';
-        }
-        break;
-      case 'linkedin':
-        if (!value.includes('linkedin.com')) {
-          return 'LinkedIn URL should include linkedin.com';
+      case 'website':
+        // Website should be a domain
+        if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(username)) {
+          return 'Please enter a valid domain (e.g., example.com)';
         }
         break;
       case 'youtube':
-        if (!value.includes('youtube.com') && !value.includes('youtu.be')) {
-          return 'YouTube URL should include youtube.com or youtu.be';
+        // YouTube channel should start with @
+        if (!username.startsWith('@')) {
+          return 'YouTube channel should start with @ (e.g., @channelname)';
+        }
+        break;
+      case 'linkedin':
+        // LinkedIn should start with 'in/'
+        if (!username.startsWith('in/')) {
+          return 'LinkedIn should start with "in/" (e.g., in/username)';
+        }
+        break;
+      default:
+        // For other platforms, basic alphanumeric + underscore validation
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+          return 'Username can only contain letters, numbers, and underscores';
         }
         break;
     }
@@ -193,16 +215,16 @@ export default function SocialLinksManager({
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Social Links</h3>
-        <div className="text-sm text-gray-500">
+        <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Social Links</h3>
+        <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
           {Object.values(links).filter(link => link.trim()).length} of {SOCIAL_PLATFORMS.length} platforms
         </div>
       </div>
 
       <div className="grid gap-4 social-links-container">
         {SOCIAL_PLATFORMS.map((platform) => {
-          const value = links[platform.key] || '';
-          const hasError = getUrlError(platform.key, value);
+          const displayUsername = getDisplayUsername(platform.key);
+          const hasError = validateUsername(platform.key, displayUsername);
           const isVerified = verificationStatus[platform.key] === 'verified';
           const isPending = verificationStatus[platform.key] === 'pending';
 
@@ -214,27 +236,27 @@ export default function SocialLinksManager({
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       {platform.name}
                       {platform.verification && (
-                        <span className="ml-2 text-xs text-blue-600">(Verifiable)</span>
+                        <span className="ml-2 text-xs text-blue-500">(Verifiable)</span>
                       )}
                     </label>
-                    {value && (
+                    {displayUsername && (
                       <div className="flex items-center space-x-2">
                         {isVerified && (
-                          <span className="text-xs text-green-600 flex items-center">
+                          <span className="text-xs text-green-500 flex items-center">
                             ✅ Verified
                           </span>
                         )}
                         {isPending && (
-                          <span className="text-xs text-yellow-600 flex items-center">
+                          <span className="text-xs text-yellow-500 flex items-center">
                             ⏳ Pending
                           </span>
                         )}
                         <button
-                          onClick={() => copyToClipboard(value)}
-                          className="text-xs text-gray-500 hover:text-gray-700"
+                          onClick={() => copyToClipboard(links[platform.key] || '')}
+                          className={`text-xs ${theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
                           title="Copy link"
                         >
                           📋
@@ -254,25 +276,31 @@ export default function SocialLinksManager({
 
               <div className="ml-13">
                 <input
-                  type="url"
-                  value={value}
+                  type="text"
+                  value={displayUsername}
                   onChange={(e) => updateLink(platform.key, e.target.value)}
                   placeholder={platform.placeholder}
                   className={`
                     w-full px-3 py-2 border rounded-md text-sm
+                    ${theme === 'dark' 
+                      ? 'bg-gray-800 text-white border-gray-600 placeholder-gray-400' 
+                      : 'bg-white text-gray-900 border-gray-300 placeholder-gray-500'
+                    }
                     ${hasError 
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+                      : theme === 'dark'
+                        ? 'focus:border-blue-400 focus:ring-blue-400'
+                        : 'focus:border-blue-500 focus:ring-blue-500'
                     }
                     ${platform.key === 'discord' ? 'font-mono' : ''}
                   `}
                 />
                 
                 {hasError && (
-                  <p className="mt-1 text-xs text-red-600">{hasError}</p>
+                  <p className="mt-1 text-xs text-red-500">{hasError}</p>
                 )}
 
-                {value && !hasError && platform.verification && (
+                {displayUsername && !hasError && platform.verification && (
                   <div className="mt-2 flex items-center space-x-2">
                     <button
                       onClick={() => {
@@ -288,7 +316,11 @@ export default function SocialLinksManager({
                           }));
                         }, 2000);
                       }}
-                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                      className={`text-xs px-2 py-1 rounded ${
+                        theme === 'dark'
+                          ? 'bg-blue-900 text-blue-300 hover:bg-blue-800'
+                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      }`}
                       disabled={isPending}
                     >
                       {isPending ? 'Verifying...' : 'Verify Link'}
@@ -302,9 +334,17 @@ export default function SocialLinksManager({
       </div>
 
       {/* Summary */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Profile Summary</h4>
-        <div className="text-xs text-gray-600 space-y-1">
+      <div className={`rounded-lg p-4 ${
+        theme === 'dark' 
+          ? 'bg-gray-800 border border-gray-700' 
+          : 'bg-gray-50 border border-gray-200'
+      }`}>
+        <h4 className={`text-sm font-medium mb-2 ${
+          theme === 'dark' ? 'text-white' : 'text-gray-900'
+        }`}>Profile Summary</h4>
+        <div className={`text-xs space-y-1 ${
+          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+        }`}>
           <p>• {Object.values(links).filter(link => link.trim()).length} social platforms connected</p>
           <p>• {Object.entries(verificationStatus).filter(([_, status]) => status === 'verified').length} links verified</p>
           <p>• Your social links help build trust with the community</p>
