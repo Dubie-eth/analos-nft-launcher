@@ -560,12 +560,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
     setLogoFile(file);
 
-    // Create preview
-    const reader = new Image();
+    // Create preview using FileReader
+    const reader = new FileReader();
     reader.onload = (e) => {
       setLogoPreview(e.target?.result as string);
     };
-    reader.src = URL.createObjectURL(file);
+    reader.readAsDataURL(file);
   };
 
   // Banner upload handler
@@ -587,12 +587,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
     setBannerFile(file);
 
-    // Create preview
-    const reader = new Image();
+    // Create preview using FileReader
+    const reader = new FileReader();
     reader.onload = (e) => {
       setBannerPreview(e.target?.result as string);
     };
-    reader.src = URL.createObjectURL(file);
+    reader.readAsDataURL(file);
   };
 
   // Remove logo
