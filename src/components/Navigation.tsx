@@ -4,7 +4,7 @@ import SecureWalletConnection from './SecureWalletConnection';
 import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 // Add static property to track warning logging
@@ -12,6 +12,7 @@ Navigation._contextWarningLogged = false;
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userBannerImage, setUserBannerImage] = useState<string | null>(null);
   const { publicKey, connected } = useWallet();
   
   const pathname = usePathname();
@@ -24,6 +25,29 @@ export default function Navigation() {
   ];
 
   const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+
+  // Fetch user's banner image when wallet connects
+  useEffect(() => {
+    const fetchUserBanner = async () => {
+      if (connected && publicKey) {
+        try {
+          const response = await fetch(`/api/user-profiles/${publicKey.toString()}`);
+          if (response.ok) {
+            const profile = await response.json();
+            if (profile.banner_image_url) {
+              setUserBannerImage(profile.banner_image_url);
+            }
+          }
+        } catch (error) {
+          console.log('Could not fetch user banner image:', error);
+        }
+      } else {
+        setUserBannerImage(null);
+      }
+    };
+
+    fetchUserBanner();
+  }, [connected, publicKey]);
 
   // Base navigation items (always visible)
     const baseNavItems = [
@@ -58,8 +82,20 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-transparent backdrop-blur-md border-b border-gray-700/50 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav 
+      className="bg-transparent backdrop-blur-md border-b border-gray-700/50 sticky top-0 z-50 relative"
+      style={{
+        backgroundImage: userBannerImage ? `url(${userBannerImage})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Overlay for better text readability */}
+      {userBannerImage && (
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 min-w-0 flex-shrink-0">
@@ -87,20 +123,25 @@ export default function Navigation() {
 
           {/* Navigation Links */}
           <div className="hidden lg:flex items-center space-x-2">
-            {navItems.slice(0, 6).map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive(item.href)
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                    : 'text-white hover:text-blue-300 hover:bg-white/10'
-                }`}
-              >
-                <span className="text-base">{item.icon}</span>
-                <span className="hidden xl:inline">{item.label}</span>
-              </Link>
-            ))}
+            {navItems.slice(0, 6).map((item) => {
+              const isLaunchCollection = item.href === '/launch-collection';
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive(item.href)
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                      : isLaunchCollection
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md hover:shadow-lg transform hover:scale-105'
+                      : 'text-white hover:text-blue-300 hover:bg-white/10'
+                  }`}
+                >
+                  <span className="text-base">{item.icon}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
 
           {/* More Menu for additional items */}

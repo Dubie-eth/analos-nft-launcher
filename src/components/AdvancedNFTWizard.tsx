@@ -85,7 +85,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   });
 
   const [chartViewMode, setChartViewMode] = useState<'full' | 'compact'>('compact');
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverImageInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
   const totalSteps = 8;
@@ -368,6 +370,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     }
     
     return data;
+  };
+
+  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCoverImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const generatePreview = async () => {
@@ -1080,6 +1093,58 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </p>
                     </div>
                   )}
+
+                  {/* Cover Image for Delayed Reveal */}
+                  <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-lg p-4">
+                    <h5 className="text-purple-300 font-medium mb-3">🖼️ Cover Image for Delayed Reveal</h5>
+                    <p className="text-purple-200 text-sm mb-4">
+                      Upload a cover image that will be shown to users before the reveal. This creates anticipation and mystery!
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {coverImage ? (
+                        <div className="relative">
+                          <img 
+                            src={coverImage} 
+                            alt="Cover preview" 
+                            className="w-full max-w-md mx-auto rounded-lg border border-purple-500/30"
+                          />
+                          <button
+                            onClick={() => setCoverImage(null)}
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <div 
+                          className="border-2 border-dashed border-purple-500/50 rounded-lg p-8 text-center cursor-pointer hover:border-purple-500/70 transition-colors"
+                          onClick={() => coverImageInputRef.current?.click()}
+                        >
+                          <div className="text-purple-300 text-4xl mb-2">📸</div>
+                          <p className="text-purple-200 text-sm mb-2">Click to upload cover image</p>
+                          <p className="text-purple-300 text-xs">PNG, JPG, or GIF (max 5MB)</p>
+                        </div>
+                      )}
+                      
+                      <input
+                        ref={coverImageInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverImageUpload}
+                        className="hidden"
+                      />
+                      
+                      {!coverImage && (
+                        <button
+                          onClick={() => coverImageInputRef.current?.click()}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors"
+                        >
+                          Choose Cover Image
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
