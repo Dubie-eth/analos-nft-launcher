@@ -67,7 +67,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     },
     startTime: '',
     endTime: '',
-    csvFile: null as File | null // For CSV upload
+    csvFile: null as File | null, // For CSV upload
+    pricing: {
+      lolPrice: '', // Price in LOL tokens
+      solPrice: '', // Price in SOL
+      usdcPrice: '', // Price in USDC
+      customTokenPrice: '', // Price for custom token
+      customTokenSymbol: '' // Symbol for custom token
+    }
   });
 
   // Reveal configuration state
@@ -1367,60 +1374,121 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
                     <h4 className="text-lg font-semibold text-white mb-4">Advanced Whitelist Structure</h4>
                     
-                    {/* Whitelist Phases */}
+                    {/* Whitelist Phases Management */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">Whitelist Phases</label>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="block text-sm font-medium text-gray-300">Whitelist Phases</label>
+                        <button
+                          type="button"
+                          onClick={addPhase}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          + Add Phase
+                        </button>
+                      </div>
+                      
                       <div className="space-y-3">
-                        {whitelistConfig.phases.map((phase, index) => {
-                          // Calculate remaining spots for public access
-                          const isPublicAccess = phase.name === 'Public Access';
-                          const totalWhitelistSpots = whitelistConfig.phases
-                            .filter((p, i) => i !== index && p.enabled)
-                            .reduce((sum, p) => sum + p.spots, 0);
-                          const totalCollectionSupply = collectionConfig.supply || 1000;
-                          const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
-                          
-                          return (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
-                              <div className="flex items-center gap-3">
-                                <input 
-                                  type="checkbox" 
-                                  className="w-4 h-4 text-blue-600" 
-                                  checked={phase.enabled}
-                                  onChange={(e) => {
-                                    const newPhases = [...whitelistConfig.phases];
-                                    newPhases[index].enabled = e.target.checked;
-                                    setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
-                                  }}
-                                />
-                                <span className="text-white">Phase {index + 1}: {phase.name}</span>
-                                {isPublicAccess && (
-                                  <span className="text-xs text-gray-400">(Auto-calculated)</span>
-                                )}
+                        {whitelistConfig.phases
+                          .sort((a, b) => a.order - b.order)
+                          .map((phase, index) => {
+                            const isPublicAccess = phase.name === 'Public Access';
+                            const totalWhitelistSpots = whitelistConfig.phases
+                              .filter((p, i) => p.id !== phase.id && p.enabled)
+                              .reduce((sum, p) => sum + p.spots, 0);
+                            const totalCollectionSupply = collectionConfig.supply || 1000;
+                            const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+                            
+                            return (
+                              <div key={phase.id} className="p-4 bg-gray-800/30 rounded-lg border border-gray-600">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-3">
+                                    <input 
+                                      type="checkbox" 
+                                      className="w-4 h-4 text-blue-600" 
+                                      checked={phase.enabled}
+                                      onChange={(e) => updatePhase(phase.id, { enabled: e.target.checked })}
+                                    />
+                                    <span className="text-white font-medium">Phase {phase.order}: {phase.name}</span>
+                                    {isPublicAccess && (
+                                      <span className="text-xs text-gray-400">(Auto-calculated)</span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    {/* Reorder buttons */}
+                                    <button
+                                      type="button"
+                                      onClick={() => reorderPhase(phase.id, 'up')}
+                                      disabled={index === 0}
+                                      className="p-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 rounded"
+                                      title="Move up"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => reorderPhase(phase.id, 'down')}
+                                      disabled={index === whitelistConfig.phases.length - 1}
+                                      className="p-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 rounded"
+                                      title="Move down"
+                                    >
+                                      ↓
+                                    </button>
+                                    
+                                    {/* Delete button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => removePhase(phase.id)}
+                                      className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                      title="Delete phase"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-xs text-gray-400 mb-1">Phase Name</label>
+                                    <input
+                                      type="text"
+                                      value={phase.name}
+                                      onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
+                                      className="w-full px-3 py-2 bg-gray-700 border border-gray-500 rounded text-white text-sm"
+                                      placeholder="Phase name"
+                                    />
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="block text-xs text-gray-400 mb-1">Spots</label>
+                                    <input
+                                      type="number"
+                                      value={isPublicAccess ? remainingSpots : phase.spots}
+                                      onChange={(e) => {
+                                        if (!isPublicAccess) {
+                                          updatePhase(phase.id, { spots: parseInt(e.target.value) || 0 });
+                                        }
+                                      }}
+                                      disabled={isPublicAccess}
+                                      className="w-full px-3 py-2 bg-gray-700 border border-gray-500 rounded text-white text-sm disabled:opacity-50"
+                                      placeholder="100"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <div className="mt-3">
+                                  <label className="block text-xs text-gray-400 mb-1">Description</label>
+                                  <input
+                                    type="text"
+                                    value={phase.description}
+                                    onChange={(e) => updatePhase(phase.id, { description: e.target.value })}
+                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-500 rounded text-white text-sm"
+                                    placeholder="Phase description"
+                                  />
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <input 
-                                  type="number" 
-                                  value={isPublicAccess ? remainingSpots : phase.spots}
-                                  onChange={(e) => {
-                                    if (!isPublicAccess) {
-                                      const newPhases = [...whitelistConfig.phases];
-                                      newPhases[index].spots = parseInt(e.target.value) || 0;
-                                      setWhitelistConfig(prev => ({ ...prev, phases: newPhases }));
-                                    }
-                                  }}
-                                  disabled={isPublicAccess}
-                                  className={`w-16 px-2 py-1 border border-gray-500 rounded text-white text-sm ${
-                                    isPublicAccess 
-                                      ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-                                      : 'bg-gray-700'
-                                  }`}
-                                />
-                                <span className="text-gray-400 text-sm">spots</span>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
                       </div>
                     </div>
 
@@ -1583,6 +1651,90 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    {/* Whitelist Pricing Configuration */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">💰 Whitelist Pricing</label>
+                      <p className="text-xs text-gray-400 mb-4">Set the price per mint for different tokens</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">LOL Token Price</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={whitelistConfig.pricing.lolPrice}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              pricing: { ...prev.pricing, lolPrice: e.target.value }
+                            }))}
+                            placeholder="1000"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Price in LOL tokens</p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">SOL Price</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={whitelistConfig.pricing.solPrice}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              pricing: { ...prev.pricing, solPrice: e.target.value }
+                            }))}
+                            placeholder="0.1"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Price in SOL</p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">USDC Price</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={whitelistConfig.pricing.usdcPrice}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              pricing: { ...prev.pricing, usdcPrice: e.target.value }
+                            }))}
+                            placeholder="10.00"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Price in USDC</p>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Custom Token Price</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              step="0.001"
+                              value={whitelistConfig.pricing.customTokenPrice}
+                              onChange={(e) => setWhitelistConfig(prev => ({ 
+                                ...prev, 
+                                pricing: { ...prev.pricing, customTokenPrice: e.target.value }
+                              }))}
+                              placeholder="100"
+                              className="flex-1 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                            />
+                            <input
+                              type="text"
+                              value={whitelistConfig.pricing.customTokenSymbol}
+                              onChange={(e) => setWhitelistConfig(prev => ({ 
+                                ...prev, 
+                                pricing: { ...prev.pricing, customTokenSymbol: e.target.value }
+                              }))}
+                              placeholder="TOKEN"
+                              className="w-20 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Price in custom token</p>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Social Verification */}
