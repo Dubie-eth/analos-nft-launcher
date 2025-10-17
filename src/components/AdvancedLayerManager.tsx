@@ -66,14 +66,14 @@ export default function AdvancedLayerManager({
 
   if (layers.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-lg">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <div className="bg-gray-800/50 dark:bg-gray-700/50 rounded-xl p-6 shadow-lg border border-gray-600/50">
+        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5" />
           Advanced Layer Management
         </h3>
         <div className="text-center py-12">
-          <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h4 className="text-lg font-medium text-gray-500 mb-2">No layers found</h4>
+          <Image className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h4 className="text-lg font-medium text-gray-300 mb-2">No layers found</h4>
           <p className="text-gray-400">Upload some files first to configure layers and traits.</p>
         </div>
       </div>
@@ -81,21 +81,21 @@ export default function AdvancedLayerManager({
   }
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-lg">
-      <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+    <div className="bg-gray-800/50 dark:bg-gray-700/50 rounded-xl p-6 shadow-lg border border-gray-600/50">
+      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
         <Settings className="w-5 h-5" />
         Advanced Layer Management
       </h3>
       
       <div className="space-y-4">
         {sortedLayers.map((layer, index) => (
-          <div key={layer.id} className="border border-gray-200 rounded-lg overflow-hidden">
+          <div key={layer.id} className="border border-gray-600 bg-gray-700/30 rounded-lg overflow-hidden">
             {/* Layer Header */}
-            <div className="bg-gray-50 p-4 flex items-center justify-between">
+            <div className="bg-gray-600/30 p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => toggleLayerExpansion(layer.id)}
-                  className="text-gray-600 hover:text-gray-800 transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   {expandedLayers.has(layer.id) ? (
                     <ChevronDown className="w-4 h-4" />
@@ -104,8 +104,8 @@ export default function AdvancedLayerManager({
                   )}
                 </button>
                 
-                <h4 className="font-medium text-gray-800">{layer.name}</h4>
-                <span className="text-sm font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                <h4 className="font-medium text-white">{layer.name}</h4>
+                <span className="text-sm font-semibold text-blue-300 bg-blue-900/50 px-2 py-1 rounded-full">
                   {layer.traits.length} traits
                 </span>
               </div>
@@ -116,8 +116,8 @@ export default function AdvancedLayerManager({
                   onClick={() => onToggleVisibility(layer.id)}
                   className={`p-2 rounded-lg transition-colors ${
                     layer.visible 
-                      ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                      : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                      ? 'bg-green-900/50 text-green-300 hover:bg-green-800/50' 
+                      : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/50'
                   }`}
                   title={layer.visible ? 'Hide layer' : 'Show layer'}
                 >
@@ -128,7 +128,7 @@ export default function AdvancedLayerManager({
                 <button
                   onClick={() => onReorderLayer(layer.id, 'up')}
                   disabled={index === 0}
-                  className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   title="Move layer up"
                 >
                   <ArrowUp className="w-4 h-4" />
@@ -138,7 +138,7 @@ export default function AdvancedLayerManager({
                 <button
                   onClick={() => onReorderLayer(layer.id, 'down')}
                   disabled={index === sortedLayers.length - 1}
-                  className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   title="Move layer down"
                 >
                   <ArrowDown className="w-4 h-4" />
@@ -148,23 +148,23 @@ export default function AdvancedLayerManager({
             
             {/* Layer Traits */}
             {expandedLayers.has(layer.id) && (
-              <div className="p-4 bg-white">
+              <div className="p-4 bg-gray-800/30">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {layer.traits.map((trait) => (
-                    <div key={trait.id} className="border border-gray-200 rounded-lg p-3">
+                    <div key={trait.id} className="border border-gray-600 bg-gray-700/30 rounded-lg p-3">
                       <div className="flex items-center gap-3 mb-3">
                         <img 
                           src={trait.image} 
                           alt={trait.name}
-                          className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                          className="w-12 h-12 object-cover rounded-lg border border-gray-600"
                         />
                         <div className="flex-1 min-w-0">
-                          <h5 className="font-medium text-gray-800 truncate">{trait.name}</h5>
-                          <p className="text-sm text-gray-500">Rarity: {trait.rarity}%</p>
+                          <h5 className="font-medium text-white truncate">{trait.name}</h5>
+                          <p className="text-sm text-gray-300">Rarity: {trait.rarity}%</p>
                         </div>
                         <button
                           onClick={() => onDeleteTrait(layer.id, trait.id)}
-                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                          className="p-1 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded transition-colors"
                           title="Delete trait"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -172,7 +172,7 @@ export default function AdvancedLayerManager({
                       </div>
                       
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-300">
                           Rarity (%)
                         </label>
                         <input
@@ -181,9 +181,9 @@ export default function AdvancedLayerManager({
                           max="100"
                           value={trait.rarity}
                           onChange={(e) => handleRarityChange(layer.id, trait.id, parseInt(e.target.value))}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                          className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
                         />
-                        <div className="flex justify-between text-xs text-gray-500">
+                        <div className="flex justify-between text-xs text-gray-400">
                           <span>1%</span>
                           <span className="font-medium">{trait.rarity}%</span>
                           <span>100%</span>
@@ -191,7 +191,7 @@ export default function AdvancedLayerManager({
                         
                         {/* Mint Count Display */}
                         <div className="text-center">
-                          <div className="text-gray-400 text-xs">
+                          <div className="text-gray-300 text-xs">
                             {getTraitMintCount(trait.rarity, collectionSupply)} mints
                           </div>
                         </div>
