@@ -40,12 +40,12 @@ export class UserIsolationService {
       return { isValid: false, errors, sanitizedWallet: '' };
     }
 
-    // Sanitize wallet address (remove any potential injection attempts)
-    const sanitizedWallet = walletAddress.toLowerCase().trim();
+    // Sanitize wallet address (trim only, preserve case for Solana addresses)
+    const sanitizedWallet = walletAddress.trim();
 
-    // Additional validation for Solana wallet format
-    if (!this.isValidSolanaAddress(sanitizedWallet)) {
-      errors.push('Invalid Solana wallet address format');
+    // Basic length check for Solana addresses (32-44 characters)
+    if (sanitizedWallet.length < 32 || sanitizedWallet.length > 44) {
+      errors.push('Wallet address must be between 32 and 44 characters');
       return { isValid: false, errors, sanitizedWallet: '' };
     }
 
@@ -61,7 +61,16 @@ export class UserIsolationService {
    */
   private isValidSolanaAddress(address: string): boolean {
     // Solana addresses are base58 encoded and typically 32-44 characters
+    // Base58 excludes: 0, O, I, l (lowercase L)
+    // Base58 includes: 123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz
     const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    
+    // Additional check: ensure no invalid base58 characters
+    const invalidChars = /[0OIl]/;
+    if (invalidChars.test(address)) {
+      return false;
+    }
+    
     return base58Regex.test(address);
   }
 
