@@ -182,13 +182,13 @@ export async function PUT(
     
     // Upsert user profile
     const { data: updatedProfile, error: upsertError } = await (supabaseAdmin
-      .from('user_profiles')
+      .from('user_profiles') as any)
       .upsert(userData, { 
         onConflict: 'wallet_address',
         ignoreDuplicates: false 
       })
       .select()
-      .single()) as { data: any; error: any };
+      .single() as { data: any; error: any };
     
     if (upsertError) {
       console.error('Error upserting user profile:', upsertError);
