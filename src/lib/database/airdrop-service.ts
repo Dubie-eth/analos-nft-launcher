@@ -106,7 +106,7 @@ export class DatabaseAirdropService {
 
     if (error) throw error;
 
-    return data.map(row => this.mapCampaignRow(row));
+    return data.map((row: any) => this.mapCampaignRow(row));
   }
 
   /**
