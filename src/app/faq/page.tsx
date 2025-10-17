@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const FAQPage: React.FC = () => {
+  const { theme } = useTheme();
   const [activeCategory, setActiveCategory] = useState('general');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -212,7 +214,14 @@ const FAQPage: React.FC = () => {
               placeholder="Search FAQ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                theme === 'dark' 
+                  ? 'bg-white/10 border-white/20 text-white placeholder-gray-300' 
+                  : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'
+              }`}
+              data-1p-ignore
+              data-lpignore="true"
+              autoComplete="off"
             />
             <div className="absolute right-3 top-3 text-gray-400">🔍</div>
           </div>
@@ -221,8 +230,14 @@ const FAQPage: React.FC = () => {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Category Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-4">Categories</h2>
+            <div className={`backdrop-blur-sm rounded-lg p-6 border ${
+              theme === 'dark' 
+                ? 'bg-white/10 border-white/20' 
+                : 'bg-gray-100/80 border-gray-300'
+            }`}>
+              <h2 className={`text-xl font-bold mb-4 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>Categories</h2>
               <div className="space-y-2">
                 {categories.map((category) => (
                   <button
@@ -231,7 +246,9 @@ const FAQPage: React.FC = () => {
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                       activeCategory === category.id
                         ? 'bg-blue-600 text-white'
-                        : 'text-gray-300 hover:bg-white/10'
+                        : theme === 'dark' 
+                          ? 'text-gray-300 hover:bg-white/10' 
+                          : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     <span className="mr-2">{category.icon}</span>

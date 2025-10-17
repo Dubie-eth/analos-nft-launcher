@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import Link from 'next/link';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,7 @@ interface UserProfile {
 }
 
 const BetaSignupPage: React.FC = () => {
+  const { theme } = useTheme();
   const { publicKey, connected, connect } = useWallet();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'connect' | 'profile' | 'socials' | 'complete'>('connect');
@@ -392,15 +394,24 @@ const BetaSignupPage: React.FC = () => {
 
                 {/* Bio */}
                 <div>
-                  <label className="block text-white font-semibold mb-2">
+                  <label className={`block font-semibold mb-2 ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
                     Bio (Optional)
                   </label>
                   <textarea
                     value={profile.bio}
                     onChange={(e) => handleProfileUpdate('bio', e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      theme === 'dark' 
+                        ? 'bg-gray-800/50 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
                     placeholder="Tell us about yourself..."
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                 </div>
 

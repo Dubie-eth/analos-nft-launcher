@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Twitter, MessageCircle, Globe, Github, Instagram, Linkedin, Youtube, Copy, ExternalLink, Trophy, Users, Star, Calendar, Image, Coins, Package, TrendingUp, Sparkles } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface NFT {
   mint: string;
@@ -89,6 +90,7 @@ export default function PublicProfileDisplay({
   userWallet,
   className = ''
 }: PublicProfileDisplayProps) {
+  const { theme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
