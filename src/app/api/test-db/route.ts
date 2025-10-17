@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     console.log('🔍 Testing database connection...');
     
     // Test basic connection
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('saved_collections')
       .select('*')
       .limit(1);
@@ -45,9 +45,9 @@ export async function GET(request: NextRequest) {
       banner_url: 'test-banner-url'
     };
     
-    const { data: insertData, error: insertError } = await supabaseAdmin
+    const { data: insertData, error: insertError } = await (supabaseAdmin as any)
       .from('saved_collections')
-      .insert(testData as any)
+      .insert(testData)
       .select()
       .single();
     
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Clean up test record
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('saved_collections')
       .delete()
       .eq('id', insertData.id);

@@ -128,7 +128,7 @@ const secureHandler = withSecurityValidation(
       // Get current data for image cleanup if updating
       let currentData = null;
       if (collectionId) {
-        const { data: existingData, error: fetchError } = await supabaseAdmin
+        const { data: existingData, error: fetchError } = await (supabaseAdmin as any)
           .from('saved_collections')
           .select('*')
           .eq('id', collectionId)
@@ -146,9 +146,9 @@ const secureHandler = withSecurityValidation(
       let data: SavedCollection | null, error: any;
       if (collectionId) {
         // Update existing collection
-        const result = await supabaseAdmin
+        const result = await (supabaseAdmin as any)
           .from('saved_collections')
-          .update(collectionData as any)
+          .update(collectionData)
           .eq('id', collectionId)
           .eq('user_wallet', userWallet) // Ensure user can only update their own collections
           .select()
@@ -157,9 +157,9 @@ const secureHandler = withSecurityValidation(
         error = result.error;
       } else {
         // Create new collection
-        const result = await supabaseAdmin
+        const result = await (supabaseAdmin as any)
           .from('saved_collections')
-          .insert(collectionData as any)
+          .insert(collectionData)
           .select()
           .single();
         data = result.data as SavedCollection | null;
@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's saved collections
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('saved_collections')
       .select('*')
       .eq('user_wallet', userWallet)
