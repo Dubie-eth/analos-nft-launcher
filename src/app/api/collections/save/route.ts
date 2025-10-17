@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { supabaseAdmin } from '@/lib/supabase/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save collection to database
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('saved_collections')
       .insert({
         user_wallet: userWallet,
@@ -97,7 +92,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's saved collections
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('saved_collections')
       .select('*')
       .eq('user_wallet', userWallet)
