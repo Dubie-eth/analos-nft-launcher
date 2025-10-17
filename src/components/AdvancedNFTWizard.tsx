@@ -285,8 +285,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         timestamp: new Date().toISOString()
       },
       collectionId: currentCollectionId, // Include collection ID if updating existing collection
-      logoFile: logoFile, // Include logo file
-      bannerFile: bannerFile, // Include banner file
+      logo_url: logoPreview, // Include logo URL
+      banner_url: bannerPreview, // Include banner URL
       pageLoadId: pageLoadId // Include page load ID for save restriction
     };
 
@@ -559,7 +559,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   };
 
   // Logo upload handler
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -575,18 +575,34 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       return;
     }
 
-    setLogoFile(file);
+    try {
+      // Upload to server
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'logo');
 
-    // Create preview using FileReader
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setLogoPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setLogoFile(file);
+        setLogoPreview(result.url); // Use server URL
+        console.log('Logo uploaded successfully:', result.url);
+      } else {
+        console.error('Failed to upload logo');
+        alert('Failed to upload logo. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Error uploading logo. Please try again.');
+    }
   };
 
   // Banner upload handler
-  const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -602,14 +618,30 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       return;
     }
 
-    setBannerFile(file);
+    try {
+      // Upload to server
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'banner');
 
-    // Create preview using FileReader
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setBannerPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setBannerFile(file);
+        setBannerPreview(result.url); // Use server URL
+        console.log('Banner uploaded successfully:', result.url);
+      } else {
+        console.error('Failed to upload banner');
+        alert('Failed to upload banner. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading banner:', error);
+      alert('Error uploading banner. Please try again.');
+    }
   };
 
   // Remove logo
@@ -1752,7 +1784,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
                   </div>
-                  )}
+image.png                  )}
 
                   {/* Show Upload Option Button */}
                   {!showConfigUpload && (
