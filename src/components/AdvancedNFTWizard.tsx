@@ -988,8 +988,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gray-900/80 dark:bg-gray-800/90 backdrop-blur-lg border-b border-gray-700/50 dark:border-gray-600/50 px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-gray-900/80 dark:bg-gray-800/90 backdrop-blur-lg border-b border-gray-700/50 dark:border-gray-600/50 px-8 py-6 relative overflow-hidden">
+          {/* Logo Background */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-full blur-2xl"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full blur-3xl"></div>
+          </div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">A</span>
@@ -1008,7 +1014,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           </div>
           
           {/* Step Progress Bar */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between relative z-10">
             {stepNames.map((step, index) => {
               const stepNumber = index + 1;
               const isActive = currentStep === stepNumber;
