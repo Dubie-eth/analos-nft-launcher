@@ -80,11 +80,11 @@ export class DatabaseAirdropService {
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabaseAdmin
-      .from('airdrop_campaigns')
+    const { data, error } = await (supabaseAdmin
+      .from('airdrop_campaigns') as any)
       .insert(campaignData)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
 
@@ -99,10 +99,10 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('airdrop_campaigns')
+    const { data, error } = await (supabase
+      .from('airdrop_campaigns') as any)
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as { data: any; error: any };
 
     if (error) throw error;
 
@@ -117,11 +117,11 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('airdrop_campaigns')
+    const { data, error } = await (supabase
+      .from('airdrop_campaigns') as any)
       .select('*')
       .eq('id', campaignId)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -150,12 +150,12 @@ export class DatabaseAirdropService {
     if (updates.startDate) updateData.start_date = updates.startDate.toISOString();
     if (updates.endDate) updateData.end_date = updates.endDate.toISOString();
 
-    const { data, error } = await supabaseAdmin
-      .from('airdrop_campaigns')
+    const { data, error } = await (supabaseAdmin
+      .from('airdrop_campaigns') as any)
       .update(updateData)
       .eq('id', campaignId)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
 
@@ -265,24 +265,24 @@ export class DatabaseAirdropService {
       status: 'pending'
     };
 
-    const { data: claim, error: claimError } = await supabaseAdmin
-      .from('airdrop_claims')
+    const { data: claim, error: claimError } = await (supabaseAdmin
+      .from('airdrop_claims') as any)
       .insert(claimData)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (claimError) throw claimError;
 
     // Update campaign claimed amount - get current amount first, then update
-    const { data: campaign } = await supabaseAdmin
-      .from('airdrop_campaigns')
+    const { data: campaign } = await (supabaseAdmin
+      .from('airdrop_campaigns') as any)
       .select('claimed_amount')
       .eq('id', campaignId)
-      .single();
+      .single() as { data: any; error: any };
 
     if (campaign) {
-      await supabaseAdmin
-        .from('airdrop_campaigns')
+      await (supabaseAdmin
+        .from('airdrop_campaigns') as any)
         .update({
           claimed_amount: campaign.claimed_amount + amount,
           updated_at: new Date().toISOString()
@@ -307,12 +307,12 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('airdrop_claims')
+    const { data, error } = await (supabase
+      .from('airdrop_claims') as any)
       .select('*')
       .eq('campaign_id', campaignId)
       .eq('wallet_address', walletAddress)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -335,11 +335,11 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('airdrop_claims')
+    const { data, error } = await (supabase
+      .from('airdrop_claims') as any)
       .select('amount, wallet_address')
       .eq('campaign_id', campaignId)
-      .eq('status', 'completed');
+      .eq('status', 'completed') as { data: any; error: any };
 
     if (error) throw error;
 
