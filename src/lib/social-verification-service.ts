@@ -43,7 +43,7 @@ export class SocialVerificationService {
       if (requestError) throw requestError;
 
       // Add social accounts
-      const accountsWithRequestId = socialAccounts.map(account => ({
+      const accountsWithRequestId = socialAccounts.map((account: any) => ({
         ...account,
         request_id: request.id,
         verification_score: this.calculatePlatformScore(
@@ -55,13 +55,13 @@ export class SocialVerificationService {
 
       const { data: accounts, error: accountsError } = await (supabase
         .from('user_social_accounts') as any)
-        .insert(accountsWithRequestId.map(({ request_id, verification_score, ...account }) => account))
+        .insert(accountsWithRequestId.map(({ request_id, verification_score, ...account }: any) => account))
         .select() as { data: any; error: any };
 
       if (accountsError) throw accountsError;
 
       // Link accounts to request
-      const linkData = accounts.map((account, index) => ({
+      const linkData = accounts.map((account: any, index: number) => ({
         request_id: request.id,
         social_account_id: account.id,
         verification_score: accountsWithRequestId[index].verification_score
@@ -100,7 +100,7 @@ export class SocialVerificationService {
         createdAt: new Date(updatedRequest.created_at),
         updatedAt: new Date(updatedRequest.updated_at),
         completedAt: updatedRequest.completed_at ? new Date(updatedRequest.completed_at) : undefined,
-        socialAccounts: accounts.map(account => ({
+        socialAccounts: accounts.map((account: any) => ({
           id: account.id,
           userId: account.user_id,
           walletAddress: account.wallet_address,
