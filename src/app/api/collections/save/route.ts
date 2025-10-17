@@ -31,8 +31,8 @@ const secureHandler = withSecurityValidation(
         layers, 
         collectionConfig,
         collectionId, // Optional: if provided, update existing collection
-        logoFile, // Optional: logo file data
-        bannerFile, // Optional: banner file data
+        logo_url, // Optional: logo URL (base64 data URL)
+        banner_url, // Optional: banner URL (base64 data URL)
         pageLoadId // Required: page load ID for save restriction
       } = body;
 
