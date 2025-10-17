@@ -2039,6 +2039,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
                               placeholder="Enter token contract address (e.g., LOL, SOL, or custom token)"
                               className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                              data-1p-ignore
+                              data-lpignore="true"
+                              autoComplete="off"
                             />
                             <p className="text-xs text-gray-500 mt-1">
                               Popular tokens: LOL, SOL, USDC, or enter any SPL token contract
