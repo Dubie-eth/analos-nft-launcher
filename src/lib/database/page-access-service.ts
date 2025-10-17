@@ -338,7 +338,7 @@ export class UserProfileService {
 
     if (error) throw error;
 
-    return data.map(row => ({
+    return data.map((row: any) => ({
       id: row.id,
       walletAddress: row.wallet_address,
       username: row.username,
