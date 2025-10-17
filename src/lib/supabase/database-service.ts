@@ -231,11 +231,11 @@ export class SupabaseDatabaseService {
       granted_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabaseAdmin
-      .from('access_grants')
+    const { data, error } = await (supabaseAdmin
+      .from('access_grants') as any)
       .insert(grantInsert)
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) throw error;
 
@@ -245,8 +245,8 @@ export class SupabaseDatabaseService {
   }
 
   async getAccessGrants(accessedBy: string, isActive?: boolean): Promise<AccessGrant[]> {
-    let query = supabaseAdmin
-      .from('access_grants')
+    let query = (supabaseAdmin
+      .from('access_grants') as any)
       .select('*')
       .order('granted_at', { ascending: false });
 
@@ -254,13 +254,13 @@ export class SupabaseDatabaseService {
       query = query.eq('is_active', isActive);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query as { data: any; error: any };
 
     if (error) throw error;
 
     await this.logDataAccess(accessedBy, 'read', 'access_grant', 'all', 'Retrieving access grants');
 
-    return data.map(this.mapAccessGrantRowToAccessGrant);
+    return data.map((grant: any) => this.mapAccessGrantRowToAccessGrant(grant));
   }
 
   // Database Statistics
@@ -268,29 +268,29 @@ export class SupabaseDatabaseService {
     await this.logDataAccess(accessedBy, 'read', 'backup', 'stats', 'Retrieving database statistics');
 
     // Get user count
-    const { count: totalUsers } = await supabaseAdmin
-      .from('users')
+    const { count: totalUsers } = await (supabaseAdmin
+      .from('users') as any)
       .select('*', { count: 'exact', head: true });
 
     // Get application counts
-    const { data: applicationStats } = await supabaseAdmin
-      .from('application_stats')
+    const { data: applicationStats } = await (supabaseAdmin
+      .from('application_stats') as any)
       .select('*');
 
     // Get access grant count
-    const { count: activeAccessGrants } = await supabaseAdmin
-      .from('access_grants')
+    const { count: activeAccessGrants } = await (supabaseAdmin
+      .from('access_grants') as any)
       .select('*', { count: 'exact', head: true })
       .eq('is_active', true);
 
     // Get backup count
-    const { count: totalBackups } = await supabaseAdmin
-      .from('database_backups')
+    const { count: totalBackups } = await (supabaseAdmin
+      .from('database_backups') as any)
       .select('*', { count: 'exact', head: true });
 
     // Get last backup
-    const { data: lastBackup } = await supabaseAdmin
-      .from('database_backups')
+    const { data: lastBackup } = await (supabaseAdmin
+      .from('database_backups') as any)
       .select('created_at')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -330,8 +330,8 @@ export class SupabaseDatabaseService {
     resourceId: string,
     reason: string
   ): Promise<void> {
-    await supabaseAdmin
-      .from('data_access_logs')
+    await (supabaseAdmin
+      .from('data_access_logs') as any)
       .insert({
         accessed_by: accessedBy,
         access_type: accessType as any,
@@ -447,8 +447,8 @@ export class SupabaseDatabaseService {
       await this.logDataAccess(accessedBy, 'delete', 'user_profile', userId, `Deleting user data: ${reason}`);
 
       // Delete user and all related data (cascading deletes will handle related records)
-      const { error } = await supabaseAdmin
-        .from('users')
+      const { error } = await (supabaseAdmin
+        .from('users') as any)
         .delete()
         .eq('id', userId);
 
