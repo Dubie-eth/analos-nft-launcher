@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Save collection to database
-    const { data, error } = await supabaseAdmin
-      .from('saved_collections')
+    const { data, error } = await (supabaseAdmin
+      .from('saved_collections') as any)
       .insert({
         user_wallet: userWallet,
         collection_name: collectionName,
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         status: 'draft'
       })
       .select()
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       console.error('Error saving collection:', error);
