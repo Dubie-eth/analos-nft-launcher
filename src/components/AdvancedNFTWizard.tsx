@@ -2680,17 +2680,41 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {savedCollections.map((collection, index) => (
-                    <div key={collection.id || index} className="border border-gray-600 bg-gray-800/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div key={collection.id || index} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                      collection.updated_at && collection.updated_at !== collection.created_at 
+                        ? 'border-blue-500/50 bg-blue-900/20' 
+                        : 'border-gray-600 bg-gray-800/50'
+                    }`}>
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="font-semibold text-white text-lg">{collection.collection_name || 'Unnamed Collection'}</h4>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-white text-lg">{collection.collection_name || 'Unnamed Collection'}</h4>
+                            {collection.updated_at && collection.updated_at !== collection.created_at && (
+                              <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">Updated</span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-300">Symbol: {collection.collection_symbol || 'N/A'}</p>
+                          <p className="text-xs text-gray-500">ID: {collection.id?.slice(-8) || 'N/A'}</p>
                         </div>
                         <div className="text-right">
                           <div className="text-xs text-gray-400 space-y-1">
-                            <div>Created: {new Date(collection.created_at).toLocaleDateString()}</div>
+                            <div>Created: {new Date(collection.created_at).toLocaleString('en-US', {
+                              month: '2-digit',
+                              day: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            })}</div>
                             {collection.updated_at && collection.updated_at !== collection.created_at && (
-                              <div>Updated: {new Date(collection.updated_at).toLocaleDateString()}</div>
+                              <div>Updated: {new Date(collection.updated_at).toLocaleString('en-US', {
+                                month: '2-digit',
+                                day: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}</div>
                             )}
                           </div>
                         </div>
