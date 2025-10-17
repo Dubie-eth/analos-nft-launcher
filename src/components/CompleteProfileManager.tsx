@@ -515,6 +515,9 @@ export default function CompleteProfileManager({
                       }
                     `}
                     placeholder="Enter your username"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                   {errors.username && (
                     <p className="mt-1 text-sm text-red-500">{errors.username}</p>
@@ -576,6 +579,9 @@ export default function CompleteProfileManager({
                     `}
                     placeholder="Tell the community about yourself..."
                     style={{ minHeight: '80px', maxHeight: '120px' }}
+                    data-1p-ignore
+                    data-lpignore="true"
+                    autoComplete="off"
                   />
                   <div className="flex justify-between mt-1">
                     {errors.bio && (

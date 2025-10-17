@@ -294,6 +294,9 @@ export default function SocialLinksManager({
                     }
                     ${platform.key === 'discord' ? 'font-mono' : ''}
                   `}
+                  data-1p-ignore
+                  data-lpignore="true"
+                  autoComplete="off"
                 />
                 
                 {hasError && (

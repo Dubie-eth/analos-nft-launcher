@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function EnhancedLandingPage() {
   const { publicKey, connected } = useWallet();
+  const { theme } = useTheme();
   
   // Admin wallet addresses - only these wallets can see admin links
   const ADMIN_WALLETS = [
@@ -136,7 +138,9 @@ export default function EnhancedLandingPage() {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6">
                   Enterprise-Grade NFT Launchpad v4.2.2
                 </h1>
-                <p className="text-lg md:text-xl lg:text-2xl text-gray-300 leading-relaxed">
+                <p className={`text-lg md:text-xl lg:text-2xl leading-relaxed ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
                   On-chain ticker collision prevention • Automatic fee distribution • Real-time supply tracking • Blind mint & reveal
                 </p>
               </div>
@@ -154,20 +158,28 @@ export default function EnhancedLandingPage() {
               </Link>
               <Link
                 href="/marketplace"
-                className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border border-white/20"
+                className={`px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 border ${
+                  theme === 'dark' 
+                    ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' 
+                    : 'bg-gray-800 hover:bg-gray-700 text-white border-gray-600'
+                }`}
               >
                 🏪 Browse Marketplace
               </Link>
             </div>
             
             {/* Program Information Section */}
-            <div className={`bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 max-w-6xl mx-auto transition-all duration-1000 delay-500 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            <div className={`backdrop-blur-sm rounded-2xl p-8 mb-8 max-w-6xl mx-auto transition-all duration-1000 delay-500 ${
+              theme === 'dark' ? 'bg-white/10' : 'bg-gray-100/80'
+            } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <h2 className={`text-3xl md:text-4xl font-bold mb-6 ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
                 🔗 Smart Contract v4.2.2
               </h2>
-              <p className="text-lg text-gray-300 max-w-3xl mx-auto mb-8">
+              <p className={`text-lg max-w-3xl mx-auto mb-8 ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+              }`}>
                 Deployed on Analos Mainnet with enterprise-grade features
               </p>
 
