@@ -178,6 +178,48 @@ export function getClientIdentifier(request: Request): string {
   return `${ip}:${userAgentHash}`;
 }
 
+// Alias for backward compatibility
+export const getRequestIdentifier = getClientIdentifier;
+
+// Export rate limiters object for backward compatibility
+export const rateLimiters = {
+  admin: {
+    ...RATE_LIMITS.GENERAL_API,
+    check: (identifier: string) => {
+      const rateLimiter = RateLimiter.getInstance();
+      return rateLimiter.checkLimit(identifier, RATE_LIMITS.GENERAL_API);
+    }
+  },
+  standard: {
+    ...RATE_LIMITS.GENERAL_API,
+    check: (identifier: string) => {
+      const rateLimiter = RateLimiter.getInstance();
+      return rateLimiter.checkLimit(identifier, RATE_LIMITS.GENERAL_API);
+    }
+  },
+  applications: {
+    ...RATE_LIMITS.GENERAL_API,
+    check: (identifier: string) => {
+      const rateLimiter = RateLimiter.getInstance();
+      return rateLimiter.checkLimit(identifier, RATE_LIMITS.GENERAL_API);
+    }
+  },
+  collections: {
+    ...RATE_LIMITS.SAVE_COLLECTION,
+    check: (identifier: string) => {
+      const rateLimiter = RateLimiter.getInstance();
+      return rateLimiter.checkLimit(identifier, RATE_LIMITS.SAVE_COLLECTION);
+    }
+  },
+  profiles: {
+    ...RATE_LIMITS.PROFILE_UPDATE,
+    check: (identifier: string) => {
+      const rateLimiter = RateLimiter.getInstance();
+      return rateLimiter.checkLimit(identifier, RATE_LIMITS.PROFILE_UPDATE);
+    }
+  }
+};
+
 // Helper function to get wallet-based identifier
 export function getWalletIdentifier(walletAddress: string): string {
   return `wallet:${walletAddress}`;
@@ -186,7 +228,7 @@ export function getWalletIdentifier(walletAddress: string): string {
 // Rate limiting middleware for API routes
 export function withRateLimit(
   config: RateLimitConfig,
-  getIdentifier: (request: Request) => string = getClientIdentifier
+  getIdentifier: (request: Request | any) => string = getClientIdentifier
 ) {
   return function(handler: Function) {
     return async function(request: Request, ...args: any[]) {

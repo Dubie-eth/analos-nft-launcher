@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/client';
-import { withRateLimit, RATE_LIMITS, getWalletIdentifier } from '@/lib/rate-limiter';
+import { withRateLimit, RATE_LIMITS, getClientIdentifier } from '@/lib/rate-limiter';
 import { withSecurityValidation, SecurityValidator } from '@/lib/security-middleware';
 import { SaveRestriction } from '@/lib/save-restriction';
 import { ImageCleanupService } from '@/lib/image-cleanup-service';
@@ -9,9 +9,8 @@ import { ImageCleanupService } from '@/lib/image-cleanup-service';
 const secureHandler = withSecurityValidation(
   withRateLimit(
     RATE_LIMITS.SAVE_COLLECTION,
-    (request: NextRequest) => {
-      const body = request.json ? request.json() : {};
-      return getWalletIdentifier(request);
+    (request: any) => {
+      return getClientIdentifier(request);
     }
   )(async (request: NextRequest) => {
     try {

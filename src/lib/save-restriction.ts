@@ -110,45 +110,9 @@ export class SaveRestriction {
   }
 }
 
-// React hook for save restriction
-export function useSaveRestriction(userId: string) {
-  const [pageLoadId] = React.useState(() => SaveRestriction.generatePageLoadId());
-  const [hasSaved, setHasSaved] = React.useState(false);
-
-  const canSave = (action: string = 'save_collection') => {
-    if (hasSaved) {
-      return {
-        allowed: false,
-        reason: 'Save already performed for this page load. Please refresh the page to save again.'
-      };
-    }
-
-    const restriction = SaveRestriction.getInstance();
-    return restriction.canSave(userId, pageLoadId, action);
-  };
-
-  const recordSave = (action: string = 'save_collection') => {
-    const restriction = SaveRestriction.getInstance();
-    restriction.recordSaveAttempt(userId, pageLoadId, action);
-    setHasSaved(true);
-  };
-
-  const resetSave = (action?: string) => {
-    const restriction = SaveRestriction.getInstance();
-    restriction.resetSaveRestriction(userId, pageLoadId, action);
-    setHasSaved(false);
-  };
-
-  return {
-    pageLoadId,
-    hasSaved,
-    canSave,
-    recordSave,
-    resetSave
-  };
-}
-
 // Cleanup old entries every 30 minutes
-setInterval(() => {
-  SaveRestriction.getInstance()['cleanup']();
-}, 30 * 60 * 1000);
+if (typeof window === 'undefined') {
+  setInterval(() => {
+    SaveRestriction.getInstance()['cleanup']();
+  }, 30 * 60 * 1000);
+}
