@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS saved_collections (
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'deployed', 'active', 'paused', 'completed')),
   deployed_at TIMESTAMP WITH TIME ZONE,
   collection_address TEXT,
+  logo_url TEXT,
+  banner_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
