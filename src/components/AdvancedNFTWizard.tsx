@@ -54,7 +54,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       { name: 'Community Members', enabled: true, spots: 200 },
       { name: 'Public Access', enabled: false, spots: 200 }
     ],
-    tokenContract: 'So11111111111111111111111111111111111111112', // Default to SOL
+    tokenContract: '', // Default to LOL token contract (to be set by user)
     minTokenBalance: 1000000,
     minNftHoldings: 1,
     socialVerification: {
@@ -1221,11 +1221,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           type="text"
                           value={whitelistConfig.tokenContract}
                           onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
-                          placeholder="Enter token contract address (e.g., ANAL, SOL, or custom token)"
+                          placeholder="Enter token contract address (e.g., LOL, SOL, or custom token)"
                           className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Popular tokens: ANAL, SOL, USDC, or enter any SPL token contract
+                          Popular tokens: LOL, SOL, USDC, or enter any SPL token contract
                         </p>
                       </div>
                       
@@ -1403,7 +1403,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Starting Price (ANAL)
+                          Starting Price (LOL)
                         </label>
                         <input
                           type="number"
@@ -1417,7 +1417,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Max Price (ANAL)
+                          Max Price (LOL)
                         </label>
                         <input
                           type="number"
@@ -1463,7 +1463,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               <div
                                 className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
                                 style={{ height: `${(point.price / Math.max(...generateBondingCurveData().map(p => p.price))) * 200}px` }}
-                                title={`Mint ${index + 1}: ${point.price.toFixed(4)} ANAL`}
+                                title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOL`}
                               />
                               {index % 10 === 0 && (
                                 <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left">
@@ -1486,19 +1486,19 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
                           <div className="text-blue-300 text-sm font-medium">Starting Price</div>
-                          <div className="text-white text-lg font-bold">{bondingCurveConfig.startingPrice.toFixed(4)} ANAL</div>
+                          <div className="text-white text-lg font-bold">{bondingCurveConfig.startingPrice.toFixed(4)} LOL</div>
                         </div>
                         
                         <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
                           <div className="text-purple-300 text-sm font-medium">Current Price (50% sold)</div>
                           <div className="text-white text-lg font-bold">
-                            {generateBondingCurveData()[Math.floor(generateBondingCurveData().length / 2)]?.price.toFixed(4) || '0.0000'} ANAL
+                            {generateBondingCurveData()[Math.floor(generateBondingCurveData().length / 2)]?.price.toFixed(4) || '0.0000'} LOL
                           </div>
                         </div>
                         
                         <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
                           <div className="text-green-300 text-sm font-medium">Max Price</div>
-                          <div className="text-white text-lg font-bold">{bondingCurveConfig.maxPrice.toFixed(4)} ANAL</div>
+                          <div className="text-white text-lg font-bold">{bondingCurveConfig.maxPrice.toFixed(4)} LOL</div>
                         </div>
                       </div>
 
@@ -1513,7 +1513,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <div>
                             <span className="text-gray-400">Projected Revenue:</span>
                             <span className="text-white ml-2">
-                              {generateBondingCurveData().reduce((sum, point) => sum + point.price, 0).toFixed(2)} ANAL
+                              {generateBondingCurveData().reduce((sum, point) => sum + point.price, 0).toFixed(2)} LOL
                             </span>
                           </div>
                         </div>
