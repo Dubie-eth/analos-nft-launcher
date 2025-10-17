@@ -330,7 +330,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   Mint Type *
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/10 border-2 border-purple-500 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                  <div 
+                    className={`bg-white/10 border-2 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all ${
+                      !collectionConfig.bondingCurveEnabled 
+                        ? 'border-purple-500' 
+                        : 'border-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, bondingCurveEnabled: false }))}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
                         <span className="text-white text-xl">🎨</span>
@@ -342,7 +349,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     </div>
                   </div>
                   
-                  <div className="bg-white/10 border-2 border-white/20 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                  <div 
+                    className={`bg-white/10 border-2 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all ${
+                      collectionConfig.bondingCurveEnabled 
+                        ? 'border-blue-500' 
+                        : 'border-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, bondingCurveEnabled: true }))}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                         <span className="text-white text-xl">📈</span>
@@ -361,7 +375,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   Reveal Type *
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/10 border-2 border-purple-500 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                  <div 
+                    className={`bg-white/10 border-2 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all ${
+                      collectionConfig.revealType === 'instant' 
+                        ? 'border-yellow-500' 
+                        : 'border-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, revealType: 'instant' }))}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
                         <span className="text-white text-xl">⚡</span>
@@ -373,7 +394,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     </div>
                   </div>
                   
-                  <div className="bg-white/10 border-2 border-white/20 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all">
+                  <div 
+                    className={`bg-white/10 border-2 rounded-xl p-6 cursor-pointer hover:bg-white/15 transition-all ${
+                      collectionConfig.revealType === 'delayed' 
+                        ? 'border-gray-500' 
+                        : 'border-white/20'
+                    }`}
+                    onClick={() => setCollectionConfig(prev => ({ ...prev, revealType: 'delayed' }))}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
                         <span className="text-white text-xl">🔒</span>
