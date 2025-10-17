@@ -127,43 +127,55 @@ const secureHandler = withSecurityValidation(
       // Get current data for image cleanup if updating
       let currentData = null;
       if (collectionId) {
-        const { data: existingData } = await (supabaseAdmin
-          .from('saved_collections') as any)
+        const { data: existingData, error: fetchError } = await supabaseAdmin
+          .from('saved_collections')
           .select('*')
           .eq('id', collectionId)
           .eq('user_wallet', userWallet)
-          .single() as { data: any; error: any };
-        currentData = existingData;
+          .single();
+        
+        if (fetchError) {
+          console.log('Error fetching existing collection:', fetchError);
+        } else {
+          currentData = existingData;
+        }
       }
 
       // If collectionId is provided, update existing collection, otherwise create new one
       let data, error;
       if (collectionId) {
         // Update existing collection
-        const result = await (supabaseAdmin
-          .from('saved_collections') as any)
+        const result = await supabaseAdmin
+          .from('saved_collections')
           .update(collectionData)
           .eq('id', collectionId)
           .eq('user_wallet', userWallet) // Ensure user can only update their own collections
           .select()
-          .single() as { data: any; error: any };
+          .single();
         data = result.data;
         error = result.error;
       } else {
         // Create new collection
-        const result = await (supabaseAdmin
-          .from('saved_collections') as any)
+        const result = await supabaseAdmin
+          .from('saved_collections')
           .insert(collectionData)
           .select()
-          .single() as { data: any; error: any };
+          .single();
         data = result.data;
         error = result.error;
       }
 
       if (error) {
         console.error('Error saving collection:', error);
+        console.error('Collection data that failed:', collectionData);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         return NextResponse.json(
-          { error: 'Failed to save collection' },
+          { error: 'Failed to save collection', details: error.message },
           { status: 500 }
         );
       }
@@ -185,8 +197,9 @@ const secureHandler = withSecurityValidation(
 
     } catch (error) {
       console.error('Error in save collection API:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       return NextResponse.json(
-        { error: 'Internal server error' },
+        { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
         { status: 500 }
       );
     }
