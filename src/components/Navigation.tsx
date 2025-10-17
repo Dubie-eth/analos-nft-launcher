@@ -147,26 +147,26 @@ export default function Navigation() {
           {/* More Menu for additional items */}
           <div className="hidden lg:flex items-center space-x-2">
             <div className="relative group">
-              <button className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium text-white hover:text-blue-300 hover:bg-white/10 transition-all duration-200">
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-white hover:text-blue-300 hover:bg-white/10 transition-all duration-200">
                 <span className="text-base">⋯</span>
                 <span className="hidden xl:inline">More</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-lg rounded-lg shadow-xl border border-gray-700/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 {navItems.slice(6).map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg mx-1 my-1 ${
+                    className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 rounded-lg mx-1 my-1 whitespace-nowrap ${
                       isActive(item.href)
                         ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
                         : 'text-white hover:text-blue-300 hover:bg-white/10'
                     }`}
                   >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="text-base flex-shrink-0">{item.icon}</span>
+                    <span className="flex-1">{item.label}</span>
                   </Link>
                 ))}
               </div>
