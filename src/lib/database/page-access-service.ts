@@ -92,14 +92,14 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('page_access_configs')
+    const { data, error } = await (supabase
+      .from('page_access_configs') as any)
       .select('*')
-      .order('page_path');
+      .order('page_path') as { data: any; error: any };
 
     if (error) throw error;
 
-    return data.map(row => ({
+    return data.map((row: any) => ({
       id: row.id,
       pagePath: row.page_path,
       pageName: row.page_name,
@@ -125,11 +125,11 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('page_access_configs')
+    const { data, error } = await (supabase
+      .from('page_access_configs') as any)
       .select('*')
       .eq('page_path', pagePath)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       if (error.code === 'PGRST116') return null; // No rows returned
@@ -162,8 +162,8 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { error } = await supabaseAdmin
-      .from('page_access_configs')
+    const { error } = await (supabaseAdmin
+      .from('page_access_configs') as any)
       .update({
         is_locked: isLocked,
         updated_by: updatedBy,
@@ -182,8 +182,8 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { error } = await supabaseAdmin
-      .from('page_access_configs')
+    const { error } = await (supabaseAdmin
+      .from('page_access_configs') as any)
       .update({
         required_level: requiredLevel,
         updated_by: updatedBy,
@@ -202,8 +202,8 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { error } = await supabaseAdmin
-      .from('page_access_configs')
+    const { error } = await (supabaseAdmin
+      .from('page_access_configs') as any)
       .update({
         custom_message: customMessage,
         updated_by: updatedBy,
@@ -222,8 +222,8 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { error } = await supabaseAdmin
-      .from('page_access_configs')
+    const { error } = await (supabaseAdmin
+      .from('page_access_configs') as any)
       .update({
         is_locked: true,
         updated_by: updatedBy,
@@ -242,8 +242,8 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { error } = await supabaseAdmin
-      .from('page_access_configs')
+    const { error } = await (supabaseAdmin
+      .from('page_access_configs') as any)
       .update({
         is_locked: false,
         updated_by: updatedBy,
@@ -264,11 +264,11 @@ export class UserProfileService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await supabase
-      .from('user_profiles')
+    const { data, error } = await (supabase
+      .from('user_profiles') as any)
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single();
+      .single() as { data: any; error: any };
 
     if (error) {
       if (error.code === 'PGRST116') return null;
