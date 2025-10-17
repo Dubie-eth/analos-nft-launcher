@@ -35,6 +35,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [loadingCollections, setLoadingCollections] = useState(false);
   const [savedCollections, setSavedCollections] = useState<any[]>([]);
   const [showCollectionLoader, setShowCollectionLoader] = useState(false);
+  const [deletingCollection, setDeletingCollection] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const layerProcessor = useRef(new LayerProcessor());
 
@@ -232,6 +233,47 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     setShowCollectionLoader(false);
     setUploadMessage('✅ Collection loaded successfully!');
     setTimeout(() => setUploadMessage(''), 3000);
+  };
+
+  const deleteCollection = async (collectionId: string) => {
+    if (!publicKey) {
+      console.log('❌ No wallet connected');
+      return;
+    }
+
+    setDeletingCollection(collectionId);
+    console.log('🔄 Deleting collection:', collectionId);
+
+    try {
+      const response = await fetch('/api/collections/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          collectionId,
+          userWallet: publicKey.toString()
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('✅ Collection deleted successfully');
+        // Remove from local state
+        setSavedCollections(prev => prev.filter(c => c.id !== collectionId));
+        setUploadMessage('✅ Collection deleted successfully!');
+        setTimeout(() => setUploadMessage(''), 3000);
+      } else {
+        console.log('❌ Failed to delete collection:', result.error);
+        setUploadMessage(`❌ Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('💥 Error deleting collection:', error);
+      setUploadMessage('❌ Failed to delete collection');
+    } finally {
+      setDeletingCollection(null);
+    }
   };
 
   const updateTrait = (layerId: string, traitId: string, updates: Partial<Trait>) => {
@@ -1042,12 +1084,29 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <div>Layers: {collection.layers?.length || 0}</div>
                       </div>
                       
-                      <button
-                        onClick={() => loadCollection(collection)}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium"
-                      >
-                        Load Collection
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => loadCollection(collection)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+                        >
+                          Load Collection
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to delete "${collection.collection_name || 'this collection'}"? This action cannot be undone.`)) {
+                              deleteCollection(collection.id);
+                            }
+                          }}
+                          disabled={deletingCollection === collection.id}
+                          className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 px-3 rounded-lg transition-colors text-sm font-medium"
+                        >
+                          {deletingCollection === collection.id ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
