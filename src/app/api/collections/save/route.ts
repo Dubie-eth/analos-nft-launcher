@@ -224,12 +224,6 @@ const secureHandler = withSecurityValidation(
       // Record save attempt with sanitized wallet
       saveRestriction.recordSaveAttempt(sanitizedUserWallet, pageLoadId, 'save_collection');
 
-      // Clean up old images if updating
-      if (collectionId && currentData) {
-        const imageCleanup = ImageCleanupService.getInstance();
-        await imageCleanup.cleanupCollectionImages(collectionId, collectionData, currentData);
-      }
-
       return NextResponse.json({
         success: true,
         collection: data,
