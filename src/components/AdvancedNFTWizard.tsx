@@ -52,9 +52,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [whitelistConfig, setWhitelistConfig] = useState({
     whitelistType: 'token' as 'token' | 'nft' | 'csv', // Toggle between token holders, NFT holders, or CSV upload
     phases: [
-      { name: 'Early Supporters', enabled: true, spots: 100 },
-      { name: 'Community Members', enabled: true, spots: 200 },
-      { name: 'Public Access', enabled: false, spots: 200 }
+      { id: 'early', name: 'Early Supporters', enabled: true, spots: 100, order: 1, description: 'First supporters and early adopters' },
+      { id: 'community', name: 'Community Members', enabled: true, spots: 200, order: 2, description: 'Active community members' },
+      { id: 'public', name: 'Public Access', enabled: false, spots: 200, order: 3, description: 'Open to everyone' }
     ],
     tokenContract: '', // Default to LOL token contract (to be set by user)
     minTokenBalance: 1000000,
@@ -96,6 +96,57 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const totalSteps = 8;
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  // Phase management functions
+  const addPhase = () => {
+    const newPhase = {
+      id: generateId(),
+      name: 'New Phase',
+      enabled: true,
+      spots: 100,
+      order: whitelistConfig.phases.length + 1,
+      description: 'Custom phase'
+    };
+    setWhitelistConfig(prev => ({
+      ...prev,
+      phases: [...prev.phases, newPhase]
+    }));
+  };
+
+  const removePhase = (phaseId: string) => {
+    setWhitelistConfig(prev => ({
+      ...prev,
+      phases: prev.phases.filter(p => p.id !== phaseId)
+    }));
+  };
+
+  const updatePhase = (phaseId: string, updates: any) => {
+    setWhitelistConfig(prev => ({
+      ...prev,
+      phases: prev.phases.map(p => p.id === phaseId ? { ...p, ...updates } : p)
+    }));
+  };
+
+  const reorderPhase = (phaseId: string, direction: 'up' | 'down') => {
+    setWhitelistConfig(prev => {
+      const phases = [...prev.phases].sort((a, b) => a.order - b.order);
+      const index = phases.findIndex(p => p.id === phaseId);
+      
+      if ((direction === 'up' && index === 0) || (direction === 'down' && index === phases.length - 1)) {
+        return prev;
+      }
+      
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+      [phases[index], phases[newIndex]] = [phases[newIndex], phases[index]];
+      
+      // Update order values
+      phases.forEach((phase, idx) => {
+        phase.order = idx + 1;
+      });
+      
+      return { ...prev, phases };
+    });
+  };
 
   const handleFileUpload = useCallback(async (files: FileList) => {
     setUploading(true);
@@ -1443,11 +1494,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
+                              <label className="block text-xs text-gray-400 mb-1">Max Mints per Wallet</label>
                               <input
                                 type="number"
-                                value={whitelistConfig.minNftHoldings}
-                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minNftHoldings: parseInt(e.target.value) || 0 }))}
+                                value={whitelistConfig.maxMintsPerWallet}
+                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, maxMintsPerWallet: parseInt(e.target.value) || 1 }))}
                                 placeholder="1"
                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
                               />
