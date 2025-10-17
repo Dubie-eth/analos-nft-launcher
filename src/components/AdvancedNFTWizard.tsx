@@ -50,6 +50,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
   // Whitelist configuration state
   const [whitelistConfig, setWhitelistConfig] = useState({
+    whitelistType: 'token' as 'token' | 'nft' | 'csv', // Toggle between token holders, NFT holders, or CSV upload
     phases: [
       { name: 'Early Supporters', enabled: true, spots: 100 },
       { name: 'Community Members', enabled: true, spots: 200 },
@@ -58,13 +59,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     tokenContract: '', // Default to LOL token contract (to be set by user)
     minTokenBalance: 1000000,
     minNftHoldings: 1,
+    maxMintsPerWallet: 1, // For NFT holders whitelist
     socialVerification: {
       twitter: false,
       discord: false,
       telegram: false
     },
     startTime: '',
-    endTime: ''
+    endTime: '',
+    csvFile: null as File | null // For CSV upload
   });
 
   // Reveal configuration state
@@ -1370,47 +1373,165 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
 
-                    {/* Token Gate Requirements */}
+                    {/* Whitelist Type Toggle */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">Token Gate Requirements</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">Whitelist Type</label>
                       
-                      {/* Token Contract Selection */}
-                      <div className="mb-4">
-                        <label className="block text-xs text-gray-400 mb-1">Token Contract Address</label>
-                        <input
-                          type="text"
-                          value={whitelistConfig.tokenContract}
-                          onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
-                          placeholder="Enter token contract address (e.g., LOL, SOL, or custom token)"
-                          className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Popular tokens: LOL, SOL, USDC, or enter any SPL token contract
-                        </p>
+                      {/* Toggle Buttons */}
+                      <div className="flex space-x-2 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setWhitelistConfig(prev => ({ ...prev, whitelistType: 'token' }))}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            whitelistConfig.whitelistType === 'token'
+                              ? 'bg-blue-600 text-white shadow-lg'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          🪙 Token Holders
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setWhitelistConfig(prev => ({ ...prev, whitelistType: 'nft' }))}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            whitelistConfig.whitelistType === 'nft'
+                              ? 'bg-blue-600 text-white shadow-lg'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          🖼️ NFT Holders
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setWhitelistConfig(prev => ({ ...prev, whitelistType: 'csv' }))}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            whitelistConfig.whitelistType === 'csv'
+                              ? 'bg-blue-600 text-white shadow-lg'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          📄 CSV Upload
+                        </button>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                      {/* Dynamic Fields Based on Whitelist Type */}
+                      {whitelistConfig.whitelistType === 'token' && (
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Minimum Token Balance</label>
-                          <input
-                            type="number"
-                            value={whitelistConfig.minTokenBalance}
-                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minTokenBalance: parseInt(e.target.value) || 0 }))}
-                            placeholder="1000000"
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                          />
+                          <div className="mb-4">
+                            <label className="block text-xs text-gray-400 mb-1">Token Contract Address</label>
+                            <input
+                              type="text"
+                              value={whitelistConfig.tokenContract}
+                              onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
+                              placeholder="Enter token contract address (e.g., LOL, SOL, or custom token)"
+                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Popular tokens: LOL, SOL, USDC, or enter any SPL token contract
+                            </p>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Minimum Token Balance</label>
+                              <input
+                                type="number"
+                                value={whitelistConfig.minTokenBalance}
+                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minTokenBalance: parseInt(e.target.value) || 0 }))}
+                                placeholder="1000000"
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
+                              <input
+                                type="number"
+                                value={whitelistConfig.minNftHoldings}
+                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minNftHoldings: parseInt(e.target.value) || 0 }))}
+                                placeholder="1"
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                              />
+                            </div>
+                          </div>
                         </div>
+                      )}
+
+                      {whitelistConfig.whitelistType === 'nft' && (
                         <div>
-                          <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
-                          <input
-                            type="number"
-                            value={whitelistConfig.minNftHoldings}
-                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minNftHoldings: parseInt(e.target.value) || 0 }))}
-                            placeholder="1"
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                          />
+                          <div className="mb-4">
+                            <label className="block text-xs text-gray-400 mb-1">NFT Collection Contract</label>
+                            <input
+                              type="text"
+                              value={whitelistConfig.tokenContract}
+                              onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
+                              placeholder="Enter NFT collection contract address"
+                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Contract address of the NFT collection holders need to own
+                            </p>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
+                              <input
+                                type="number"
+                                value={whitelistConfig.minNftHoldings}
+                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minNftHoldings: parseInt(e.target.value) || 0 }))}
+                                placeholder="1"
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-400 mb-1">Max Mints per Wallet</label>
+                              <input
+                                type="number"
+                                value={whitelistConfig.maxMintsPerWallet}
+                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, maxMintsPerWallet: parseInt(e.target.value) || 1 }))}
+                                placeholder="1"
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {whitelistConfig.whitelistType === 'csv' && (
+                        <div>
+                          <div className="mb-4">
+                            <label className="block text-xs text-gray-400 mb-1">Upload CSV File</label>
+                            <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+                              <input
+                                type="file"
+                                accept=".csv"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setWhitelistConfig(prev => ({ ...prev, csvFile: file }));
+                                  }
+                                }}
+                                className="hidden"
+                                id="csv-upload"
+                              />
+                              <label htmlFor="csv-upload" className="cursor-pointer">
+                                <div className="text-gray-400 mb-2">
+                                  📄 {whitelistConfig.csvFile ? whitelistConfig.csvFile.name : 'Choose CSV file'}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                                >
+                                  Choose File
+                                </button>
+                              </label>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Format: wallet_address,phase,tier (one per line)
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Social Verification */}
