@@ -38,8 +38,8 @@ class SecurityMonitor {
 
     // Log to database if configured
     try {
-      const { error } = await supabaseAdmin
-        .from('security_logs')
+      const { error } = await (supabaseAdmin
+        .from('security_logs') as any)
         .insert({
           event_type: securityEvent.event_type,
           severity: securityEvent.severity,
