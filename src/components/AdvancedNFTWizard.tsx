@@ -866,45 +866,167 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 </div>
               )}
 
-              {/* Additional Whitelist Configuration */}
+              {/* Advanced Whitelist Configuration */}
               {collectionConfig.whitelistEnabled && (
-                <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-                  <h4 className="text-lg font-semibold text-white mb-4">Whitelist Configuration</h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Minimum ANAL Tokens
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="1000000"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                <div className="space-y-6">
+                  {/* Basic Whitelist Settings */}
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                    <h4 className="text-lg font-semibold text-white mb-4">Basic Whitelist Settings</h4>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Minimum ANAL Tokens
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="1000000"
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Whitelist Supply
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="100"
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Whitelist Supply
+                        Whitelist Price (ANAL)
                       </label>
                       <input
                         type="number"
-                        placeholder="100"
+                        placeholder="0.05"
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      <p className="text-xs text-gray-400 mt-1">Special price for whitelist holders (0 = free)</p>
                     </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Whitelist Price (ANAL)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="0.05"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">Special price for whitelist holders (0 = free)</p>
+
+                  {/* Advanced Whitelist Structure */}
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
+                    <h4 className="text-lg font-semibold text-white mb-4">Advanced Whitelist Structure</h4>
+                    
+                    {/* Whitelist Phases */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">Whitelist Phases</label>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
+                          <div className="flex items-center gap-3">
+                            <input type="checkbox" className="w-4 h-4 text-blue-600" defaultChecked />
+                            <span className="text-white">Phase 1: Early Supporters</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input type="number" placeholder="50" className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" />
+                            <span className="text-gray-400 text-sm">spots</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
+                          <div className="flex items-center gap-3">
+                            <input type="checkbox" className="w-4 h-4 text-blue-600" defaultChecked />
+                            <span className="text-white">Phase 2: Community Members</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input type="number" placeholder="100" className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" />
+                            <span className="text-gray-400 text-sm">spots</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg border border-gray-600">
+                          <div className="flex items-center gap-3">
+                            <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                            <span className="text-white">Phase 3: Public Access</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input type="number" placeholder="200" className="w-16 px-2 py-1 bg-gray-700 border border-gray-500 rounded text-white text-sm" />
+                            <span className="text-gray-400 text-sm">spots</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Token Gate Requirements */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">Token Gate Requirements</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Minimum ANAL Balance</label>
+                          <input
+                            type="number"
+                            placeholder="1000000"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
+                          <input
+                            type="number"
+                            placeholder="1"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Social Verification */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">Social Verification</label>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2">
+                          <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                          <span className="text-white text-sm">Require Twitter/X verification</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                          <span className="text-white text-sm">Require Discord server membership</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="checkbox" className="w-4 h-4 text-blue-600" />
+                          <span className="text-white text-sm">Require Telegram group membership</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Time-based Access */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">Time-based Access</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Whitelist Start Time</label>
+                          <input
+                            type="datetime-local"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Whitelist End Time</label>
+                          <input
+                            type="datetime-local"
+                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Custom Whitelist Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-3">Custom Whitelist</label>
+                      <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
+                        <p className="text-gray-400 text-sm mb-2">Upload CSV file with wallet addresses</p>
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors">
+                          Choose File
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
