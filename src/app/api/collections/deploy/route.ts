@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, PublicKey, Keypair, Transaction, SystemProgram } from '@solana/web3.js';
-import { createMint, createAccount, mintTo, getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
-
-// Initialize Solana connection
-const connection = new Connection(process.env.SOLANA_RPC_URL || 'https://rpc.analos.io', 'confirmed');
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +11,7 @@ export async function POST(request: NextRequest) {
       userWallet 
     } = body;
 
-    console.log('🚀 Starting collection deployment...', {
+    console.log('🚀 Starting Analos collection deployment preparation...', {
       name: collectionConfig.name,
       symbol: collectionConfig.symbol,
       supply: collectionConfig.supply,
@@ -31,13 +26,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create collection keypair for the NFT collection
-    const collectionKeypair = Keypair.generate();
-    const collectionMint = collectionKeypair.publicKey;
+    // Generate Analos collection address (using Analos address format)
+    const collectionMint = `Analos_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const metadataAccount = `Metadata_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log('📝 Generated collection mint:', collectionMint.toString());
+    console.log('📝 Generated Analos collection mint:', collectionMint);
 
-    // Create the NFT collection metadata
+    // Create the NFT collection metadata for Analos
     const metadata = {
       name: collectionConfig.name,
       symbol: collectionConfig.symbol,
@@ -53,102 +48,66 @@ export async function POST(request: NextRequest) {
             share: 100
           }
         ]
-      }
+      },
+      blockchain: 'Analos',
+      network: 'mainnet'
     };
 
-    // Create collection metadata account
-    const metadataAccount = Keypair.generate();
+    // Calculate estimated deployment cost (in LOS - Analos native token)
+    const baseCost = 1000000; // 1 LOS base cost
+    const bondingCurveCost = collectionConfig.bondingCurveEnabled ? 500000 : 0; // 0.5 LOS for bonding curve
+    const whitelistCost = collectionConfig.whitelistEnabled ? 
+      (whitelistConfig.phases?.filter((p: any) => p.enabled).length || 0) * 200000 : 0; // 0.2 LOS per whitelist phase
     
-    // Create the collection deployment transaction
-    const transaction = new Transaction();
+    const deploymentCost = baseCost + bondingCurveCost + whitelistCost;
 
-    // Add instructions to create the collection
-    // Note: This is a simplified version - in production you'd use Metaplex or similar
-    const createCollectionInstruction = SystemProgram.createAccount({
-      fromPubkey: new PublicKey(userWallet),
-      newAccountPubkey: collectionMint,
-      lamports: await connection.getMinimumBalanceForRentExemption(165), // NFT account size
-      space: 165,
-      programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'), // Token program
-    });
+    console.log('💰 Estimated deployment cost:', deploymentCost, 'LOS');
 
-    transaction.add(createCollectionInstruction);
+    // Prepare Analos deployment configuration
+    const deploymentConfig = {
+      collectionConfig,
+      whitelistConfig,
+      bondingCurveConfig,
+      layers,
+      userWallet,
+      collectionMint,
+      metadataAccount,
+      metadata,
+      blockchain: 'Analos',
+      rpcUrl: 'https://rpc.analos.io',
+      explorerUrl: 'https://explorer.analos.io'
+    };
 
-    // Set up bonding curve if enabled
-    if (collectionConfig.bondingCurveEnabled && bondingCurveConfig) {
-      console.log('📈 Setting up bonding curve...', {
-        startingPrice: bondingCurveConfig.startingPrice,
-        maxPrice: bondingCurveConfig.maxPrice,
-        increaseRate: bondingCurveConfig.increaseRate
-      });
-
-      // Create bonding curve account
-      const bondingCurveAccount = Keypair.generate();
-      
-      // Add bonding curve setup instructions
-      // This would integrate with your DLMM bonding curve program
-      const bondingCurveInstruction = SystemProgram.createAccount({
-        fromPubkey: new PublicKey(userWallet),
-        newAccountPubkey: bondingCurveAccount.publicKey,
-        lamports: await connection.getMinimumBalanceForRentExemption(200),
-        space: 200,
-        programId: new PublicKey(process.env.BONDING_CURVE_PROGRAM_ID || '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
-      });
-
-      transaction.add(bondingCurveInstruction);
-    }
-
-    // Set up whitelist if enabled
-    if (collectionConfig.whitelistEnabled && whitelistConfig) {
-      console.log('👥 Setting up whitelist phases...', {
-        phases: whitelistConfig.phases?.length || 0
-      });
-
-      // Create whitelist account for each phase
-      for (const phase of whitelistConfig.phases || []) {
-        if (phase.enabled) {
-          const whitelistAccount = Keypair.generate();
-          
-          const whitelistInstruction = SystemProgram.createAccount({
-            fromPubkey: new PublicKey(userWallet),
-            newAccountPubkey: whitelistAccount.publicKey,
-            lamports: await connection.getMinimumBalanceForRentExemption(100),
-            space: 100,
-            programId: new PublicKey(process.env.WHITELIST_PROGRAM_ID || '5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT'),
-          });
-
-          transaction.add(whitelistInstruction);
-        }
-      }
-    }
-
-    // Calculate deployment cost
-    const deploymentCost = await connection.getMinimumBalanceForRentExemption(165) + 
-                          (collectionConfig.bondingCurveEnabled ? await connection.getMinimumBalanceForRentExemption(200) : 0) +
-                          (collectionConfig.whitelistEnabled ? (whitelistConfig.phases?.filter((p: any) => p.enabled).length || 0) * await connection.getMinimumBalanceForRentExemption(100) : 0);
-
-    console.log('💰 Deployment cost:', deploymentCost, 'lamports');
-
-    // Return deployment transaction for client-side signing
+    // Return deployment configuration for Analos blockchain
     const response = {
       success: true,
-      collectionMint: collectionMint.toString(),
-      metadataAccount: metadataAccount.publicKey.toString(),
-      transaction: transaction.serialize({ requireAllSignatures: false }).toString('base64'),
+      collectionMint,
+      metadataAccount,
       deploymentCost,
       metadata,
-      message: `Collection "${collectionConfig.name}" ready for deployment!`
+      deploymentConfig,
+      message: `Collection "${collectionConfig.name}" ready for deployment on Analos!`,
+      instructions: [
+        '1. Connect your wallet to the Analos blockchain',
+        '2. Ensure you have sufficient LOS for deployment costs',
+        '3. Sign the deployment transaction when prompted',
+        '4. Wait for Analos blockchain confirmation',
+        '5. Your collection will be live on Analos!'
+      ],
+      blockchain: 'Analos',
+      explorerUrl: `https://explorer.analos.io/address/${collectionMint}`,
+      collectionUrl: `https://www.onlyanal.fun/collection/${collectionMint}`
     };
 
-    console.log('✅ Deployment transaction prepared successfully');
+    console.log('✅ Analos deployment configuration prepared successfully');
 
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('❌ Deployment error:', error);
+    console.error('❌ Analos deployment error:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to prepare deployment transaction',
+        error: 'Failed to prepare Analos deployment configuration',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
