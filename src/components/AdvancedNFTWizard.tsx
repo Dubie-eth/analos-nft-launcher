@@ -426,6 +426,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     setSaving(true);
     setSaveMessage('');
 
+    // Save ALL stages up to current step - complete progress preservation
     const saveData = {
       userWallet: publicKey.toString(),
       collectionName: collectionConfig.name,
@@ -438,6 +439,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       whitelistEnabled: collectionConfig.whitelistEnabled,
       bondingCurveEnabled: collectionConfig.bondingCurveEnabled,
       layers: layers,
+      currentStep: currentStep, // Track which step we're currently on
       collectionConfig: {
         ...collectionConfig,
         layers: layers,
@@ -471,7 +473,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
       if (result.success) {
         console.log('✅ Collection saved successfully to database!');
-        setSaveMessage('✅ Collection saved successfully!');
+        setSaveMessage(`✅ Collection saved successfully! All progress up to Step ${currentStep} preserved.`);
         setHasSaved(true); // Mark as saved to prevent multiple saves
         setTimeout(() => setSaveMessage(''), 3000);
       } else {
@@ -2102,11 +2104,45 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
                                   {/* Right Column - Token Requirements & Pricing */}
                                   <div className="space-y-4">
-                                    <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
-                                      <h5 className="text-lg font-medium text-green-300 mb-4 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                        Token Requirements & Pricing
-                                      </h5>
+                                    {isPublicAccess ? (
+                                      /* Public Access - Read-only with pre-filled values */
+                                      <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                                        <h5 className="text-lg font-medium text-blue-300 mb-4 flex items-center gap-2">
+                                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                          Public Access Settings (Pre-configured)
+                                        </h5>
+                                        <div className="space-y-3 text-sm">
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-300">Token Requirement:</span>
+                                            <span className="text-green-300 font-medium">None (Open to all)</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-300">Payment Token:</span>
+                                            <span className="text-white font-medium">{phase.paymentToken || 'LOL'}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-300">Price per Mint:</span>
+                                            <span className="text-white font-medium">{phase.pricePerMint || collectionConfig.mintPrice} {phase.paymentToken || 'LOL'}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="text-gray-300">Max Mints per Wallet:</span>
+                                            <span className="text-white font-medium">{phase.maxMintsPerWallet || 1}</span>
+                                          </div>
+                                        </div>
+                                        <div className="mt-4 p-3 bg-blue-800/20 border border-blue-500/30 rounded">
+                                          <p className="text-xs text-blue-200">
+                                            💡 Public Access phase is automatically configured based on your collection settings. 
+                                            Only social verification and time-based access can be customized below.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      /* Regular phases - Full editing */
+                                      <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
+                                        <h5 className="text-lg font-medium text-green-300 mb-4 flex items-center gap-2">
+                                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                          Token Requirements & Pricing
+                                        </h5>
                                       
                                       <div className="space-y-4">
                                         <div>
@@ -2197,11 +2233,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                         </div>
                                       </div>
                                     </div>
+                                    )}
                                   </div>
-                                </div>
 
-                                {/* Social Verification & Time Settings */}
-                                <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                  {/* Social Verification & Time Settings */}
+                                  <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
                                   {/* Social Verification */}
                                   <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
                                     <h5 className="text-lg font-medium text-purple-300 mb-4 flex items-center gap-2">
@@ -2329,38 +2365,41 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   </div>
                                 </div>
 
-                                {/* Custom Whitelist Upload */}
-                                <div className="mt-4 bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
-                                  <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-                                    Custom Whitelist Upload
-                                  </h5>
-                                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
-                                    <input
-                                      type="file"
-                                      accept=".csv"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                          updatePhase(phase.id, { csvFile: file });
-                                        }
-                                      }}
-                                      className="hidden"
-                                      id={`csv-upload-${phase.id}`}
-                                    />
-                                    <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
-                                      <div className="text-gray-400 mb-2">
-                                        📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file with wallet addresses'}
+                                  {/* Custom Whitelist Upload - Only for non-Public Access phases */}
+                                  {!isPublicAccess && (
+                                    <div className="bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
+                                      <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                                        Custom Whitelist Upload
+                                      </h5>
+                                      <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
+                                        <input
+                                          type="file"
+                                          accept=".csv"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              updatePhase(phase.id, { csvFile: file });
+                                            }
+                                          }}
+                                          className="hidden"
+                                          id={`csv-upload-${phase.id}`}
+                                        />
+                                        <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
+                                          <div className="text-gray-400 mb-2 text-sm">
+                                            📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file'}
+                                          </div>
+                                          <button
+                                            type="button"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
+                                          >
+                                            Choose File
+                                          </button>
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
                                       </div>
-                                      <button
-                                        type="button"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors"
-                                      >
-                                        Choose File
-                                      </button>
-                                    </label>
-                                    <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
-                                  </div>
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Save Phase Button */}
@@ -2721,12 +2760,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               {generateBondingCurveData().reduce((sum, point) => sum + point.price, 0).toFixed(2)} LOL
                             </span>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                    )}
             </div>
           </div>
         );
