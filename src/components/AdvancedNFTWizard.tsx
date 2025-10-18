@@ -130,6 +130,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   // Whitelist configuration state
   const [whitelistConfig, setWhitelistConfig] = useState({
     whitelistType: 'token' as 'token' | 'nft' | 'csv', // Toggle between token holders, NFT holders, or CSV upload
+    teamMint: {
+      enabled: false,
+      amount: 50, // Number of NFTs for team
+      pricePerMint: 0, // Team mint price (usually free or discounted)
+      description: 'Team allocation minted during whitelist phase',
+      walletAddresses: [] as string[] // Team wallet addresses
+    },
     phases: [
       { 
         id: 'early', 
@@ -662,6 +669,16 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           totalWhitelistRevenue += totalPrice * totalMints;
         });
       
+      // Add team mint allocation if enabled
+      if (whitelistConfig.teamMint.enabled) {
+        const teamSeedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+        const teamPrice = whitelistConfig.teamMint.pricePerMint || 0;
+        const teamTotalPrice = teamPrice + teamSeedAmount;
+        
+        totalWhitelistSpots += whitelistConfig.teamMint.amount;
+        totalWhitelistRevenue += teamTotalPrice * whitelistConfig.teamMint.amount;
+      }
+      
       avgWhitelistPrice = totalWhitelistSpots > 0 ? totalWhitelistRevenue / totalWhitelistSpots : startingPrice;
     }
     
@@ -752,6 +769,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
           return sum + (phase.spots * maxMintsPerWallet);
         }, 0);
+      
+      // Add team mint allocation if enabled
+      if (whitelistConfig.teamMint.enabled) {
+        totalWhitelistSpots += whitelistConfig.teamMint.amount;
+      }
     }
     
     // Calculate prebuy allocation if enabled
@@ -1987,6 +2009,107 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               {collectionConfig.whitelistEnabled && (
                 <div className="space-y-6">
 
+                  {/* Team Mint Configuration */}
+                  <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold">👥</span>
+                      </div>
+                      <h4 className="text-xl font-semibold text-purple-300">Team Mint Configuration</h4>
+                    </div>
+                    <p className="text-purple-200 mb-4">
+                      Configure team allocation that will be minted during the whitelist phase using the same mint funds.
+                    </p>
+                    
+                    <div className="space-y-4">
+                      {/* Enable Team Mint Toggle */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="text-purple-300 font-medium">Enable Team Mint</h5>
+                          <p className="text-purple-200 text-sm">Allow team to mint their allocation during whitelist phase</p>
+                        </div>
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={whitelistConfig.teamMint.enabled}
+                            onChange={(e) => setWhitelistConfig(prev => ({ 
+                              ...prev, 
+                              teamMint: { ...prev.teamMint, enabled: e.target.checked }
+                            }))}
+                            className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                          />
+                        </label>
+                      </div>
+
+                      {whitelistConfig.teamMint.enabled && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Team Mint Amount */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Team Mint Amount
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="1000"
+                              value={whitelistConfig.teamMint.amount}
+                              onChange={(e) => setWhitelistConfig(prev => ({ 
+                                ...prev, 
+                                teamMint: { ...prev.teamMint, amount: parseInt(e.target.value) || 50 }
+                              }))}
+                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Number of NFTs for team allocation</p>
+                          </div>
+
+                          {/* Team Mint Price */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Team Mint Price (LOS)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={whitelistConfig.teamMint.pricePerMint}
+                              onChange={(e) => setWhitelistConfig(prev => ({ 
+                                ...prev, 
+                                teamMint: { ...prev.teamMint, pricePerMint: parseFloat(e.target.value) || 0 }
+                              }))}
+                              className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Price per NFT (usually 0 for free team mints)</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {whitelistConfig.teamMint.enabled && (
+                        <div className="bg-purple-800/20 border border-purple-500/30 rounded-lg p-4">
+                          <h5 className="text-purple-300 font-medium mb-2">Team Mint Details</h5>
+                          <div className="space-y-2 text-sm text-purple-200">
+                            <div className="flex justify-between">
+                              <span>Team Allocation:</span>
+                              <span className="text-white">{whitelistConfig.teamMint.amount} NFTs</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Price per NFT:</span>
+                              <span className="text-white">{whitelistConfig.teamMint.pricePerMint} LOS</span>
+                            </div>
+                            <div className="flex justify-between border-t border-purple-500/30 pt-2">
+                              <span>Total Team Cost:</span>
+                              <span className="text-white font-medium">
+                                {(whitelistConfig.teamMint.amount * whitelistConfig.teamMint.pricePerMint).toFixed(2)} LOS
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-purple-300 mt-3">
+                            💡 Team mints will be processed during the whitelist phase using the same mint funds and infrastructure.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Whitelist Configuration Upload */}
                   {showConfigUpload && (
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
@@ -2658,6 +2781,24 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   </p>
                   
                   <div className="space-y-3">
+                    {/* Team Mint Summary */}
+                    {whitelistConfig.teamMint.enabled && (
+                      <div className="bg-purple-800/20 border border-purple-500/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h5 className="text-purple-300 font-medium">Team Allocation</h5>
+                            <p className="text-purple-200 text-sm">
+                              {whitelistConfig.teamMint.amount} NFTs • {whitelistConfig.teamMint.pricePerMint} LOS each
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-purple-300 font-bold">👥</div>
+                            <div className="text-purple-200 text-xs">Team</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {whitelistConfig.phases
                       .filter(phase => phase.enabled)
                       .sort((a, b) => a.order - b.order)
@@ -2665,8 +2806,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         const totalWhitelistSpots = whitelistConfig.phases
                           .filter((p, i) => p.id !== phase.id && p.enabled)
                           .reduce((sum, p) => sum + (p.spots * (p.maxMintsPerWallet || 1)), 0);
+                        const teamMintSpots = whitelistConfig.teamMint.enabled ? whitelistConfig.teamMint.amount : 0;
                         const totalCollectionSupply = collectionConfig.supply || 1000;
-                        const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+                        const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots - teamMintSpots);
                         const effectiveSpots = phase.name === 'Public Access' ? remainingSpots : phase.spots;
                         
                         return (
@@ -2794,19 +2936,20 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     {/* Collection Supply Distribution */}
                     <div className="mt-3 p-3 bg-blue-900/20 border border-blue-500/30 rounded">
                       <div className="text-blue-300 text-sm font-medium mb-2">📊 Collection Supply Distribution:</div>
-                      {(() => {
-                        const totalWhitelistMints = whitelistConfig.phases
-                          .filter(phase => phase.enabled)
-                          .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
-                        const totalCollectionSupply = collectionConfig.supply || 1000;
-                        const remainingAfterWhitelist = Math.max(0, totalCollectionSupply - totalWhitelistMints);
-                        
-                        // Calculate prebuy allocation if enabled
-                        const prebuyAllocation = bondingCurveConfig.prebuyEnabled 
-                          ? Math.floor(remainingAfterWhitelist * 0.15) 
-                          : 0;
-                        
-                        const bondingCurveMints = Math.max(0, remainingAfterWhitelist - prebuyAllocation);
+              {(() => {
+                const totalWhitelistMints = whitelistConfig.phases
+                  .filter(phase => phase.enabled)
+                  .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
+                const teamMintMints = whitelistConfig.teamMint.enabled ? whitelistConfig.teamMint.amount : 0;
+                const totalCollectionSupply = collectionConfig.supply || 1000;
+                const remainingAfterWhitelist = Math.max(0, totalCollectionSupply - totalWhitelistMints - teamMintMints);
+                
+                // Calculate prebuy allocation if enabled
+                const prebuyAllocation = bondingCurveConfig.prebuyEnabled 
+                  ? Math.floor(remainingAfterWhitelist * 0.15) 
+                  : 0;
+                
+                const bondingCurveMints = Math.max(0, remainingAfterWhitelist - prebuyAllocation);
                         
                         return (
                           <div className="space-y-1 text-xs text-blue-200">
@@ -2814,6 +2957,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               <span>Total Whitelist Mints:</span>
                               <span>{totalWhitelistMints} NFTs</span>
                             </div>
+                            {whitelistConfig.teamMint.enabled && (
+                              <div className="flex justify-between">
+                                <span>Team Mint Allocation:</span>
+                                <span>{teamMintMints} NFTs</span>
+                              </div>
+                            )}
                             {(bondingCurveConfig.prebuyEnabled || false) && (
                               <div className="flex justify-between">
                                 <span>Prebuy Allocation:</span>
