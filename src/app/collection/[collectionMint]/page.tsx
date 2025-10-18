@@ -33,12 +33,46 @@ export default function CollectionPage() {
       try {
         setLoading(true);
         
-        // Try to load collection from saved collections
-        const response = await fetch('/api/collections/load');
-        const collections = await response.json();
+        // For now, create a mock collection for deployed collections
+        // In a real implementation, this would be stored in a database
+        if (collectionMint.startsWith('Analos_')) {
+          // This is a deployed collection from our deployment API
+          const mockCollection: CollectionData = {
+            name: 'Los Bros',
+            symbol: 'LBS',
+            description: 'A collection of Los Bros NFTs with dynamic bonding curve pricing and whitelist phases.',
+            supply: 2222,
+            mintPrice: 999,
+            image: '',
+            deployed: true,
+            collectionMint: collectionMint,
+            deploymentInfo: {
+              collectionMint: collectionMint,
+              metadataAccount: `Metadata_${collectionMint}`,
+              deploymentCost: 1700000, // 1.7 LOS
+              deployedAt: new Date().toISOString()
+            }
+          };
+          
+          setCollection(mockCollection);
+          return;
+        }
+        
+        // Try to load collection from saved collections (for non-deployed collections)
+        const response = await fetch('/api/collections/load?wallet=all');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to load collections');
+        }
         
         // Find collection by mint address
-        const foundCollection = collections.find((col: any) => 
+        const foundCollection = result.collections?.find((col: any) => 
           col.deploymentInfo?.collectionMint === collectionMint ||
           col.collectionMint === collectionMint
         );
@@ -184,7 +218,7 @@ export default function CollectionPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-gray-300">Deployment Cost</span>
                       <span className="text-white text-sm">
-                        {collection.deploymentInfo.deploymentCost} lamports
+                        {(collection.deploymentInfo.deploymentCost / 1000000).toFixed(1)} LOS
                       </span>
                     </div>
                   </>
