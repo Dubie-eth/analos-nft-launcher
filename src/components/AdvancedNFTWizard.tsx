@@ -687,7 +687,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         supply: i,
         totalSupply: effectiveSupply,
         isPrebuy: false,
-        prebuyPrice: bondingCurveConfig.prebuyEnabled ? startingPrice * (1 - (bondingCurveConfig.prebuyDiscount / 100)) : null
+        prebuyPrice: bondingCurveConfig.prebuyEnabled ? startingPrice * (1 - ((bondingCurveConfig.prebuyDiscount || 10) / 100)) : null
       });
     }
     
@@ -2693,7 +2693,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               <span>Total Whitelist Mints:</span>
                               <span>{totalWhitelistMints} NFTs</span>
                             </div>
-                            {bondingCurveConfig.prebuyEnabled && (
+                            {(bondingCurveConfig.prebuyEnabled || false) && (
                               <div className="flex justify-between">
                                 <span>Prebuy Allocation:</span>
                                 <span>{prebuyAllocation} NFTs</span>
@@ -2896,14 +2896,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <label className="flex items-center cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={bondingCurveConfig.dynamicAdjustment}
+                              checked={bondingCurveConfig.dynamicAdjustment || false}
                               onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, dynamicAdjustment: e.target.checked }))}
                               className="w-5 h-5 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
                             />
                           </label>
                         </div>
                         
-                        {bondingCurveConfig.dynamicAdjustment && (
+                        {(bondingCurveConfig.dynamicAdjustment || false) && (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -2913,10 +2913,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 type="number"
                                 min="0"
                                 max="100"
-                                value={bondingCurveConfig.adjustmentTriggers.lowMintRate}
+                                value={bondingCurveConfig.adjustmentTriggers?.lowMintRate || 25}
                                 onChange={(e) => setBondingCurveConfig(prev => ({ 
                                   ...prev, 
-                                  adjustmentTriggers: { ...prev.adjustmentTriggers, lowMintRate: parseInt(e.target.value) || 25 }
+                                  adjustmentTriggers: { 
+                                    highMintRate: 75,
+                                    timeBased: 48,
+                                    ...prev.adjustmentTriggers,
+                                    lowMintRate: parseInt(e.target.value) || 25 
+                                  }
                                 }))}
                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
                               />
@@ -2931,10 +2936,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 type="number"
                                 min="0"
                                 max="100"
-                                value={bondingCurveConfig.adjustmentTriggers.highMintRate}
+                                value={bondingCurveConfig.adjustmentTriggers?.highMintRate || 75}
                                 onChange={(e) => setBondingCurveConfig(prev => ({ 
                                   ...prev, 
-                                  adjustmentTriggers: { ...prev.adjustmentTriggers, highMintRate: parseInt(e.target.value) || 75 }
+                                  adjustmentTriggers: { 
+                                    lowMintRate: 25,
+                                    timeBased: 48,
+                                    ...prev.adjustmentTriggers,
+                                    highMintRate: parseInt(e.target.value) || 75 
+                                  }
                                 }))}
                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
                               />
@@ -2948,10 +2958,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               <input
                                 type="number"
                                 min="1"
-                                value={bondingCurveConfig.adjustmentTriggers.timeBased}
+                                value={bondingCurveConfig.adjustmentTriggers?.timeBased || 48}
                                 onChange={(e) => setBondingCurveConfig(prev => ({ 
                                   ...prev, 
-                                  adjustmentTriggers: { ...prev.adjustmentTriggers, timeBased: parseInt(e.target.value) || 48 }
+                                  adjustmentTriggers: { 
+                                    lowMintRate: 25,
+                                    highMintRate: 75,
+                                    ...prev.adjustmentTriggers,
+                                    timeBased: parseInt(e.target.value) || 48 
+                                  }
                                 }))}
                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
                               />
@@ -2971,14 +2986,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <label className="flex items-center cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={bondingCurveConfig.prebuyEnabled}
+                              checked={bondingCurveConfig.prebuyEnabled || false}
                               onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyEnabled: e.target.checked }))}
                               className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                             />
                           </label>
                         </div>
                         
-                        {bondingCurveConfig.prebuyEnabled && (
+                        {(bondingCurveConfig.prebuyEnabled || false) && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -2988,7 +3003,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 type="number"
                                 min="0"
                                 max="50"
-                                value={bondingCurveConfig.prebuyDiscount}
+                                value={bondingCurveConfig.prebuyDiscount || 10}
                                 onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyDiscount: parseInt(e.target.value) || 10 }))}
                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
                               />
@@ -3003,7 +3018,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 type="number"
                                 min="1"
                                 max="168"
-                                value={bondingCurveConfig.prebuyDuration}
+                                value={bondingCurveConfig.prebuyDuration || 24}
                                 onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyDuration: parseInt(e.target.value) || 24 }))}
                                 className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
                               />
@@ -3080,7 +3095,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
 
                       {/* Creator Adjustment Request Interface */}
-                      {bondingCurveConfig.dynamicAdjustment && (
+                      {(bondingCurveConfig.dynamicAdjustment || false) && (
                         <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-lg p-4">
                           <h6 className="text-green-300 font-medium mb-3 flex items-center gap-2">
                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -3126,7 +3141,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   {(() => {
                                     const now = Date.now();
                                     const lastRequest = bondingCurveConfig.lastAdjustmentRequest;
-                                    const cooldownRemaining = lastRequest ? Math.max(0, bondingCurveConfig.adjustmentCooldown - (now - lastRequest)) : 0;
+                                    const cooldownRemaining = lastRequest ? Math.max(0, (bondingCurveConfig.adjustmentCooldown || 24 * 60 * 60 * 1000) - (now - lastRequest)) : 0;
                                     
                                     if (cooldownRemaining > 0) {
                                       const hours = Math.floor(cooldownRemaining / (1000 * 60 * 60));
@@ -3139,7 +3154,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 
                                 <button
                                   className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  disabled={!!(bondingCurveConfig.lastAdjustmentRequest && (Date.now() - bondingCurveConfig.lastAdjustmentRequest) < bondingCurveConfig.adjustmentCooldown)}
+                                  disabled={!!(bondingCurveConfig.lastAdjustmentRequest && (Date.now() - bondingCurveConfig.lastAdjustmentRequest) < (bondingCurveConfig.adjustmentCooldown || 24 * 60 * 60 * 1000))}
                                 >
                                   Submit Request
                                 </button>
