@@ -699,9 +699,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     
     const price = parseFloat(amount);
     const tokenPrices: { [key: string]: number } = {
-      'lol': 0.0001, // Example: LOL token price in USD
-      'los': 0.05,   // Example: LOS token price in USD
-      'sol': 100,    // Example: SOL price in USD
+      'lol': 0.0001, // LOL token price in USD (example)
+      'los': 0.001,  // LOS token price in USD (based on current market: ~$0.001)
+      'sol': 200,    // SOL price in USD (current market price)
       'usdc': 1,     // USDC is always $1
       'custom': 0.01 // Default custom token price
     };
