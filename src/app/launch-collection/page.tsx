@@ -101,10 +101,16 @@ export default function LaunchCollectionPage() {
     });
     
     // Check if collection was deployed
-    if (wizardConfig.deploymentInfo?.deployed) {
+    if (wizardConfig.deployed || wizardConfig.deploymentInfo?.deployed) {
       // Redirect to collection page
-      const collectionMint = wizardConfig.deploymentInfo.collectionMint;
-      window.location.href = `/collection/${collectionMint}`;
+      const collectionMint = wizardConfig.deploymentInfo?.collectionMint;
+      if (collectionMint) {
+        console.log('🚀 Redirecting to collection page:', `/collection/${collectionMint}`);
+        window.location.href = `/collection/${collectionMint}`;
+      } else {
+        console.error('❌ No collection mint found for redirect');
+        alert('Deployment successful but no collection address found. Please check your collection manually.');
+      }
     } else {
       // Show configuration success message
       alert(`Collection configured successfully!\n\nName: ${wizardConfig.name}\nSymbol: ${wizardConfig.symbol}\nSupply: ${wizardConfig.supply}\nLayers: ${wizardConfig.layers?.length || 0}\nTotal Traits: ${wizardConfig.layers?.reduce((sum: number, layer: any) => sum + layer.traits.length, 0) || 0}\n\nReady to deploy to your existing NFT Launchpad!`);

@@ -4258,7 +4258,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     console.log('✅ Deployment transaction prepared:', result);
 
                     // Show success modal with deployment details
-                    alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\n\nTransaction ready for signing!`);
+                    alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\n\nRedirecting to your collection page...`);
 
                     // Complete the wizard with deployment info
                     onComplete({
@@ -4272,6 +4272,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         deployed: true,
                         deployedAt: new Date().toISOString()
                       },
+                      deployed: true, // Add this flag at the top level too
                       timestamp: new Date().toISOString()
                     });
 
@@ -4457,7 +4458,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       console.log('✅ Deployment transaction prepared:', result);
 
                       // Show success modal with deployment details
-                      alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\n\nTransaction ready for signing!`);
+                      alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\n\nRedirecting to your collection page...`);
 
                       // Complete the wizard with deployment info
                       onComplete({
@@ -4471,6 +4472,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           deployed: true,
                           deployedAt: new Date().toISOString()
                         },
+                        deployed: true, // Add this flag at the top level too
                         timestamp: new Date().toISOString()
                       });
 
