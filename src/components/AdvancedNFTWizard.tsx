@@ -3348,96 +3348,204 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     </h5>
                     
                     <div className="space-y-6">
-                      {/* Dynamic Adjustment Toggle */}
-                      <div className="bg-cyan-900/20 rounded-lg p-4 border border-cyan-500/30">
-                        <div className="flex items-center justify-between mb-3">
+                {/* Dynamic Adjustment Toggle */}
+                <div className="bg-cyan-900/20 rounded-lg p-4 border border-cyan-500/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h6 className="text-cyan-300 font-medium">Dynamic Adjustment</h6>
+                      <p className="text-cyan-200 text-sm">Allow automatic curve adjustments based on minting performance</p>
+                    </div>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={bondingCurveConfig.dynamicAdjustment || false}
+                        onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, dynamicAdjustment: e.target.checked }))}
+                        className="w-5 h-5 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
+                      />
+                    </label>
+                  </div>
+                  
+                  {/* Dynamic Adjustment Explanation */}
+                  <div className="bg-cyan-800/20 border border-cyan-500/30 rounded-lg p-3 mb-4">
+                    <h6 className="text-cyan-300 font-medium mb-2">🎯 How Dynamic Adjustment Works</h6>
+                    <p className="text-cyan-200 text-sm mb-3">
+                      The system monitors your collection's minting performance and automatically adjusts the bonding curve parameters to optimize results.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
                           <div>
-                            <h6 className="text-cyan-300 font-medium">Dynamic Adjustment</h6>
-                            <p className="text-cyan-200 text-sm">Allow automatic curve adjustments based on minting performance</p>
+                            <span className="text-cyan-300 font-medium">Low Performance:</span>
+                            <span className="text-cyan-200 block">If minting is slow, the system will reduce prices and increase incentives to boost demand.</span>
                           </div>
-                          <label className="flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={bondingCurveConfig.dynamicAdjustment || false}
-                              onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, dynamicAdjustment: e.target.checked }))}
-                              className="w-5 h-5 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
-                            />
-                          </label>
                         </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <div>
+                            <span className="text-cyan-300 font-medium">High Performance:</span>
+                            <span className="text-cyan-200 block">If minting is too fast, the system will increase prices to maximize revenue and extend the sale period.</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <div>
+                            <span className="text-cyan-300 font-medium">Time-Based:</span>
+                            <span className="text-cyan-200 block">After a set time period, the system will analyze overall performance and make strategic adjustments.</span>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <div>
+                            <span className="text-cyan-300 font-medium">Multi-Sig Security:</span>
+                            <span className="text-cyan-200 block">All adjustments require both creator and admin approval to protect user funds.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                         
                         {(bondingCurveConfig.dynamicAdjustment || false) && (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Low Mint Rate Threshold (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={bondingCurveConfig.adjustmentTriggers?.lowMintRate || 25}
-                                onChange={(e) => setBondingCurveConfig(prev => ({ 
-                                  ...prev, 
-                                  adjustmentTriggers: { 
-                                    ...prev.adjustmentTriggers,
-                                    lowMintRate: parseInt(e.target.value) || 25 
-                                  }
-                                }))}
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
-                              />
-                              <p className="text-xs text-gray-400 mt-1">Adjust if mint rate drops below this %</p>
+                          <div className="space-y-4">
+                            {/* Threshold Settings */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  Low Mint Rate Threshold (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={bondingCurveConfig.adjustmentTriggers?.lowMintRate || 25}
+                                  onChange={(e) => setBondingCurveConfig(prev => ({ 
+                                    ...prev, 
+                                    adjustmentTriggers: { 
+                                      ...prev.adjustmentTriggers,
+                                      lowMintRate: parseInt(e.target.value) || 25 
+                                    }
+                                  }))}
+                                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Adjust if mint rate drops below this %</p>
+                              </div>
+                              
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  High Mint Rate Threshold (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={bondingCurveConfig.adjustmentTriggers?.highMintRate || 75}
+                                  onChange={(e) => setBondingCurveConfig(prev => ({ 
+                                    ...prev, 
+                                    adjustmentTriggers: { 
+                                      ...prev.adjustmentTriggers,
+                                      highMintRate: parseInt(e.target.value) || 75 
+                                    }
+                                  }))}
+                                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Adjust if mint rate exceeds this %</p>
+                              </div>
+                              
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  Time-based Adjustment (hours)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={bondingCurveConfig.adjustmentTriggers?.timeBased || 48}
+                                  onChange={(e) => setBondingCurveConfig(prev => ({ 
+                                    ...prev, 
+                                    adjustmentTriggers: { 
+                                      ...prev.adjustmentTriggers,
+                                      timeBased: parseInt(e.target.value) || 48 
+                                    }
+                                  }))}
+                                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Force adjustment after this time</p>
+                              </div>
                             </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                High Mint Rate Threshold (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={bondingCurveConfig.adjustmentTriggers?.highMintRate || 75}
-                                onChange={(e) => setBondingCurveConfig(prev => ({ 
-                                  ...prev, 
-                                  adjustmentTriggers: { 
-                                    ...prev.adjustmentTriggers,
-                                    highMintRate: parseInt(e.target.value) || 75 
-                                  }
-                                }))}
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
-                              />
-                              <p className="text-xs text-gray-400 mt-1">Adjust if mint rate exceeds this %</p>
+
+                            {/* Detailed Examples */}
+                            <div className="bg-cyan-800/20 border border-cyan-500/30 rounded-lg p-4">
+                              <h6 className="text-cyan-300 font-medium mb-3">📊 Real-World Examples</h6>
+                              
+                              <div className="space-y-4">
+                                {/* Low Performance Example */}
+                                <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                                    <span className="text-red-300 font-medium text-sm">Low Performance Scenario</span>
+                                  </div>
+                                  <div className="text-xs text-red-200 space-y-1">
+                                    <p><strong>Trigger:</strong> Only 15% of NFTs minted in first 24 hours (below 25% threshold)</p>
+                                    <p><strong>Action:</strong> System automatically reduces starting price from 999 LOS to 799 LOS (-20%)</p>
+                                    <p><strong>Result:</strong> Lower barrier to entry increases demand and minting rate</p>
+                                    <p><strong>Example:</strong> "Los Bros" collection starts at 999 LOS, but slow sales trigger price reduction to boost interest</p>
+                                  </div>
+                                </div>
+
+                                {/* High Performance Example */}
+                                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                                    <span className="text-green-300 font-medium text-sm">High Performance Scenario</span>
+                                  </div>
+                                  <div className="text-xs text-green-200 space-y-1">
+                                    <p><strong>Trigger:</strong> 85% of NFTs minted in first 12 hours (above 75% threshold)</p>
+                                    <p><strong>Action:</strong> System increases starting price from 999 LOS to 1199 LOS (+20%)</p>
+                                    <p><strong>Result:</strong> Higher prices maximize revenue and extend sale duration</p>
+                                    <p><strong>Example:</strong> "Los Bros" collection selling too fast, so system increases prices to capture more value</p>
+                                  </div>
+                                </div>
+
+                                {/* Time-Based Example */}
+                                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                                    <span className="text-yellow-300 font-medium text-sm">Time-Based Adjustment</span>
+                                  </div>
+                                  <div className="text-xs text-yellow-200 space-y-1">
+                                    <p><strong>Trigger:</strong> 48 hours have passed since launch (time threshold reached)</p>
+                                    <p><strong>Action:</strong> System analyzes overall performance and adjusts price increase rate from 0.169% to 0.2%</p>
+                                    <p><strong>Result:</strong> More aggressive pricing strategy to complete remaining sales</p>
+                                    <p><strong>Example:</strong> "Los Bros" collection has been running for 48 hours, system optimizes remaining curve</p>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Time-based Adjustment (hours)
-                              </label>
-                              <input
-                                type="number"
-                                min="1"
-                                value={bondingCurveConfig.adjustmentTriggers?.timeBased || 48}
-                                onChange={(e) => setBondingCurveConfig(prev => ({ 
-                                  ...prev, 
-                                  adjustmentTriggers: { 
-                                    ...prev.adjustmentTriggers,
-                                    timeBased: parseInt(e.target.value) || 48 
-                                  }
-                                }))}
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
-                              />
-                              <p className="text-xs text-gray-400 mt-1">Force adjustment after this time</p>
+
+                            {/* Adjustment Process */}
+                            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                              <h6 className="text-blue-300 font-medium mb-2">🔄 Adjustment Process</h6>
+                              <div className="text-xs text-blue-200 space-y-1">
+                                <p><strong>1. Monitoring:</strong> System continuously tracks minting rate, time elapsed, and market conditions</p>
+                                <p><strong>2. Analysis:</strong> When thresholds are met, system calculates optimal adjustments</p>
+                                <p><strong>3. Request:</strong> Creator receives notification to review and approve proposed changes</p>
+                                <p><strong>4. Approval:</strong> Both creator and admin must sign the adjustment transaction</p>
+                                <p><strong>5. Implementation:</strong> Changes take effect with 24-hour notice to users</p>
+                                <p><strong>6. Transparency:</strong> All adjustments are publicly recorded on-chain</p>
+                              </div>
                             </div>
                           </div>
                         )}
                       </div>
 
-                      {/* Prebuy Configuration */}
+                      {/* Team Prebuy Configuration */}
                       <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <h6 className="text-blue-300 font-medium">Prebuy Functionality</h6>
-                            <p className="text-blue-200 text-sm">Allow users to pre-purchase NFTs before the bonding curve starts</p>
+                            <h6 className="text-blue-300 font-medium">Team Prebuy Functionality</h6>
+                            <p className="text-blue-200 text-sm">Allow team to mint their allocation for free during whitelist phases</p>
                           </div>
                           <label className="flex items-center cursor-pointer">
                             <input
@@ -3449,36 +3557,157 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           </label>
                         </div>
                         
-                        {(bondingCurveConfig.prebuyEnabled || false) && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Prebuy Discount (%)
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="50"
-                                value={bondingCurveConfig.prebuyDiscount || 10}
-                                onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyDiscount: parseInt(e.target.value) || 10 }))}
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
-                              />
-                              <p className="text-xs text-gray-400 mt-1">Discount from bonding curve starting price</p>
+                        {/* Team Prebuy Explanation */}
+                        <div className="bg-blue-800/20 border border-blue-500/30 rounded-lg p-3 mb-4">
+                          <h6 className="text-blue-300 font-medium mb-2">👥 How Team Prebuy Works</h6>
+                          <p className="text-blue-200 text-sm mb-3">
+                            Team prebuy allows your team to mint their allocated NFTs for free during the whitelist phases, before the bonding curve begins. This ensures your team gets their allocation without affecting public pricing.
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div className="space-y-2">
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <div>
+                                  <span className="text-blue-300 font-medium">Team Only:</span>
+                                  <span className="text-blue-200 block">Only verified team wallets can access this feature</span>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <div>
+                                  <span className="text-blue-300 font-medium">Free Minting:</span>
+                                  <span className="text-blue-200 block">Team mints their allocation at 0 LOS cost</span>
+                                </div>
+                              </div>
                             </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Prebuy Duration (hours)
-                              </label>
-                              <input
-                                type="number"
-                                min="1"
-                                max="168"
-                                value={bondingCurveConfig.prebuyDuration || 24}
-                                onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyDuration: parseInt(e.target.value) || 24 }))}
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
-                              />
-                              <p className="text-xs text-gray-400 mt-1">How long prebuy is available before public sale</p>
+                            <div className="space-y-2">
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <div>
+                                  <span className="text-blue-300 font-medium">Whitelist Phase:</span>
+                                  <span className="text-blue-200 block">Team mints during whitelist phases, not public sale</span>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <div>
+                                  <span className="text-blue-300 font-medium">Secure Access:</span>
+                                  <span className="text-blue-200 block">Only authorized team wallets can mint</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {(bondingCurveConfig.prebuyEnabled || false) && (
+                          <div className="space-y-4">
+                            {/* Team Prebuy Settings */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  Team Allocation (NFTs)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="1000"
+                                  value={whitelistConfig.teamMint?.amount || 50}
+                                  onChange={(e) => setWhitelistConfig(prev => ({ 
+                                    ...prev, 
+                                    teamMint: { 
+                                      enabled: prev.teamMint?.enabled || false,
+                                      amount: parseInt(e.target.value) || 50,
+                                      pricePerMint: 0,
+                                      description: 'Team allocation minted during whitelist phase',
+                                      walletAddresses: prev.teamMint?.walletAddresses || []
+                                    }
+                                  }))}
+                                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Number of NFTs for team allocation (free)</p>
+                              </div>
+                              
+                              <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                  Team Wallet Addresses
+                                </label>
+                                <textarea
+                                  placeholder="Enter team wallet addresses (one per line)"
+                                  value={(whitelistConfig.teamMint?.walletAddresses || []).join('\n')}
+                                  onChange={(e) => setWhitelistConfig(prev => ({ 
+                                    ...prev, 
+                                    teamMint: { 
+                                      enabled: prev.teamMint?.enabled || false,
+                                      amount: prev.teamMint?.amount || 50,
+                                      pricePerMint: 0,
+                                      description: 'Team allocation minted during whitelist phase',
+                                      walletAddresses: e.target.value.split('\n').filter(addr => addr.trim())
+                                    }
+                                  }))}
+                                  className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm h-20 resize-none"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Only these wallets can mint team allocation</p>
+                              </div>
+                            </div>
+
+                            {/* Team Prebuy Example */}
+                            <div className="bg-blue-800/20 border border-blue-500/30 rounded-lg p-4">
+                              <h6 className="text-blue-300 font-medium mb-3">👥 Team Prebuy Example: "Los Bros" Collection</h6>
+                              
+                              <div className="space-y-3">
+                                <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                    <span className="text-blue-300 font-medium text-sm">Team Mint Phase (During Whitelist)</span>
+                                  </div>
+                                  <div className="text-xs text-blue-200 space-y-1">
+                                    <p><strong>Timing:</strong> During whitelist phases, before bonding curve starts</p>
+                                    <p><strong>Price:</strong> 0 LOS per NFT (completely free for team)</p>
+                                    <p><strong>Allocation:</strong> 50 NFTs for team allocation</p>
+                                    <p><strong>Access:</strong> Only authorized team wallet addresses can mint</p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                                    <span className="text-green-300 font-medium text-sm">Whitelist Phases</span>
+                                  </div>
+                                  <div className="text-xs text-green-200 space-y-1">
+                                    <p><strong>Early Supporters:</strong> 100 spots at 0 LOS each</p>
+                                    <p><strong>Community Members:</strong> 200 spots at 0 LOS each</p>
+                                    <p><strong>Team Allocation:</strong> 50 spots at 0 LOS each (team only)</p>
+                                    <p><strong>Result:</strong> Team gets their allocation alongside whitelist members</p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                                    <span className="text-purple-300 font-medium text-sm">Bonding Curve Phase</span>
+                                  </div>
+                                  <div className="text-xs text-purple-200 space-y-1">
+                                    <p><strong>Starting Price:</strong> 999 LOS per NFT (full price)</p>
+                                    <p><strong>Remaining Supply:</strong> 650 NFTs (after whitelist + team allocation)</p>
+                                    <p><strong>Price Increase:</strong> 0.169% per mint</p>
+                                    <p><strong>Result:</strong> Public sale with dynamic pricing for remaining supply</p>
+                                  </div>
+                                </div>
+
+                                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                                    <span className="text-yellow-300 font-medium text-sm">Team Benefits</span>
+                                  </div>
+                                  <div className="text-xs text-yellow-200 space-y-1">
+                                    <p><strong>Free Allocation:</strong> Team gets their NFTs at no cost</p>
+                                    <p><strong>Early Access:</strong> Mint during whitelist phases, not public sale</p>
+                                    <p><strong>Secure Access:</strong> Only authorized team wallets can mint</p>
+                                    <p><strong>No Impact:</strong> Team allocation doesn't affect public pricing</p>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         )}
