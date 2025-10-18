@@ -1691,17 +1691,28 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 </div>
               )}
 
-              {/* Advanced Whitelist Configuration */}
+              {/* Integrated Whitelist Configuration */}
               {collectionConfig.whitelistEnabled && (
                 <div className="space-y-6">
-                  {/* Basic Whitelist Settings */}
+                  {/* Global Whitelist Settings */}
                   <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-                    <h4 className="text-lg font-semibold text-white mb-4">Basic Whitelist Settings</h4>
+                    <h4 className="text-lg font-semibold text-white mb-4">🎯 Global Whitelist Settings</h4>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Minimum ANAL Tokens
+                          Default Token Contract
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter token contract (e.g., LOL, SOL)"
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Default Min Balance
                         </label>
                         <input
                           type="number"
@@ -1712,26 +1723,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Whitelist Supply
+                          Default Max Mints/Wallet
                         </label>
                         <input
                           type="number"
-                          placeholder="100"
+                          placeholder="1"
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Whitelist Price (ANAL)
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="0.05"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">Special price for whitelist holders (0 = free)</p>
                     </div>
                   </div>
 
@@ -1902,12 +1901,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         </div>
                       )}
                       
-                      <div className="space-y-3">
+                      <div className="space-y-6">
                         {whitelistConfig.phases
                           .sort((a, b) => a.order - b.order)
                           .map((phase, index) => {
                             const isPublicAccess = phase.name === 'Public Access';
-                            const isSelected = selectedPhaseId === phase.id;
                             const totalWhitelistSpots = whitelistConfig.phases
                               .filter((p, i) => p.id !== phase.id && p.enabled)
                               .reduce((sum, p) => sum + p.spots, 0);
@@ -1915,39 +1913,33 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
                             
                             return (
-                              <div 
-                                key={phase.id} 
-                                className={`p-4 rounded-lg border transition-all cursor-pointer ${
-                                  isSelected 
-                                    ? 'bg-blue-900/30 border-blue-500 ring-2 ring-blue-500/50' 
-                                    : 'bg-gray-800/30 border-gray-600 hover:border-gray-500'
-                                }`}
-                                onClick={() => setSelectedPhaseId(phase.id)}
+                              <div
+                                key={phase.id}
+                                className="p-6 rounded-xl border border-gray-600 bg-gray-800/30 hover:bg-gray-800/50 transition-all duration-200"
                               >
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center gap-3">
-                                    {isSelected && (
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                                    )}
-                                    <input 
-                                      type="checkbox" 
-                                      className="w-4 h-4 text-blue-600" 
+                                {/* Phase Header */}
+                                <div className="flex items-center justify-between mb-6">
+                                  <div className="flex items-center space-x-3">
+                                    <input
+                                      type="checkbox"
                                       checked={phase.enabled}
                                       onChange={(e) => updatePhase(phase.id, { enabled: e.target.checked })}
+                                      className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                                     />
-                                    <span className="text-white font-medium">Phase {phase.order}: {phase.name}</span>
+                                    <h4 className="text-xl font-semibold text-white">Phase {phase.order}: {phase.name}</h4>
                                     {isPublicAccess && (
-                                      <span className="text-xs text-gray-400">(Auto-calculated)</span>
+                                      <span className="px-3 py-1 bg-green-600 text-white text-sm rounded-full">
+                                        Auto-calculated
+                                      </span>
                                     )}
                                   </div>
                                   
-                                  <div className="flex items-center gap-2">
-                                    {/* Reorder buttons */}
+                                  <div className="flex items-center space-x-2">
                                     <button
                                       type="button"
                                       onClick={() => reorderPhase(phase.id, 'up')}
                                       disabled={index === 0}
-                                      className="p-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 rounded"
+                                      className="p-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 rounded"
                                       title="Move up"
                                     >
                                       ↑
@@ -1956,62 +1948,235 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                       type="button"
                                       onClick={() => reorderPhase(phase.id, 'down')}
                                       disabled={index === whitelistConfig.phases.length - 1}
-                                      className="p-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 rounded"
+                                      className="p-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 rounded"
                                       title="Move down"
                                     >
                                       ↓
                                     </button>
-                                    
-                                    {/* Delete button */}
                                     <button
                                       type="button"
                                       onClick={() => removePhase(phase.id)}
-                                      className="p-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                      className="p-2 bg-red-600 hover:bg-red-700 text-white rounded"
                                       title="Delete phase"
                                     >
                                       ×
                                     </button>
                                   </div>
                                 </div>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <label className="block text-xs text-gray-400 mb-1">Phase Name</label>
-                                    <input
-                                      type="text"
-                                      value={phase.name}
-                                      onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
-                                      className="w-full px-3 py-2 bg-gray-700 border border-gray-500 rounded text-white text-sm"
-                                      placeholder="Phase name"
-                                    />
+
+                                {/* Phase Configuration Grid */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                  {/* Left Column - Basic Settings */}
+                                  <div className="space-y-6">
+                                    <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                                      <h5 className="text-lg font-medium text-blue-300 mb-4 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                        Basic Settings
+                                      </h5>
+                                      
+                                      <div className="space-y-4">
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Phase Name
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={phase.name}
+                                            onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
+                                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+                                          />
+                                        </div>
+                                        
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Available Spots
+                                          </label>
+                                          <input
+                                            type="number"
+                                            value={isPublicAccess ? remainingSpots : phase.spots}
+                                            onChange={(e) => {
+                                              if (!isPublicAccess) {
+                                                updatePhase(phase.id, { spots: parseInt(e.target.value) || 0 });
+                                              }
+                                            }}
+                                            disabled={isPublicAccess}
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                                              isPublicAccess
+                                                ? 'bg-gray-600 border-gray-500 text-gray-400'
+                                                : 'bg-gray-700 border-gray-600 text-white'
+                                            }`}
+                                          />
+                                          {isPublicAccess && (
+                                            <p className="text-xs text-gray-400 mt-1">
+                                              Auto-calculated from remaining supply
+                                            </p>
+                                          )}
+                                        </div>
+                                        
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Description
+                                          </label>
+                                          <textarea
+                                            value={phase.description}
+                                            onChange={(e) => updatePhase(phase.id, { description: e.target.value })}
+                                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+                                            rows={3}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
-                                  
-                                  <div>
-                                    <label className="block text-xs text-gray-400 mb-1">Spots</label>
-                                    <input
-                                      type="number"
-                                      value={isPublicAccess ? remainingSpots : phase.spots}
-                                      onChange={(e) => {
-                                        if (!isPublicAccess) {
-                                          updatePhase(phase.id, { spots: parseInt(e.target.value) || 0 });
-                                        }
-                                      }}
-                                      disabled={isPublicAccess}
-                                      className="w-full px-3 py-2 bg-gray-700 border border-gray-500 rounded text-white text-sm disabled:opacity-50"
-                                      placeholder="100"
-                                    />
+
+                                  {/* Right Column - Token Requirements & Pricing */}
+                                  <div className="space-y-6">
+                                    <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
+                                      <h5 className="text-lg font-medium text-green-300 mb-4 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                        Token Requirements & Pricing
+                                      </h5>
+                                      
+                                      <div className="space-y-4">
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Token Contract Address
+                                          </label>
+                                          <input
+                                            type="text"
+                                            placeholder="Enter token contract (e.g., LOL, SOL, USDC)"
+                                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
+                                          />
+                                          <p className="text-xs text-gray-400 mt-1">Popular tokens: LOL, SOL, USDC, or enter any SPL token contract</p>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                              Min Token Balance
+                                            </label>
+                                            <input
+                                              type="number"
+                                              placeholder="1000000"
+                                              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
+                                            />
+                                          </div>
+                                          
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                              Max Mints/Wallet
+                                            </label>
+                                            <input
+                                              type="number"
+                                              placeholder="1"
+                                              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
+                                            />
+                                          </div>
+                                        </div>
+                                        
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Payment Token
+                                          </label>
+                                          <div className="flex flex-wrap gap-2">
+                                            {['LOL', 'LOS', 'SOL', 'USDC', 'Custom'].map((token) => (
+                                              <button
+                                                key={token}
+                                                type="button"
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                  token === 'LOL' 
+                                                    ? 'bg-blue-600 text-white' 
+                                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                                }`}
+                                              >
+                                                {token}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                        
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                                            Price per Mint
+                                          </label>
+                                          <input
+                                            type="number"
+                                            placeholder="1000"
+                                            className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
+                                          />
+                                          <div className="mt-2 p-3 bg-green-900/30 border border-green-500/50 rounded-lg">
+                                            <p className="text-sm text-green-300">
+                                              <span className="font-medium">Estimated USD Value:</span> $0.00
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                                
-                                <div className="mt-3">
-                                  <label className="block text-xs text-gray-400 mb-1">Description</label>
-                                  <input
-                                    type="text"
-                                    value={phase.description}
-                                    onChange={(e) => updatePhase(phase.id, { description: e.target.value })}
-                                    className="w-full px-3 py-2 bg-gray-700 border border-gray-500 rounded text-white text-sm"
-                                    placeholder="Phase description"
-                                  />
+
+                                {/* Social Verification & Time Settings */}
+                                <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                  {/* Social Verification */}
+                                  <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
+                                    <h5 className="text-lg font-medium text-purple-300 mb-4 flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                      Social Verification
+                                    </h5>
+                                    <div className="space-y-3">
+                                      {[
+                                        { label: 'Require Twitter/X verification', icon: '🐦' },
+                                        { label: 'Require Discord server membership', icon: '💬' },
+                                        { label: 'Require Telegram group membership', icon: '📱' }
+                                      ].map((item, idx) => (
+                                        <label key={idx} className="flex items-center space-x-3">
+                                          <input
+                                            type="checkbox"
+                                            className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                                          />
+                                          <span className="text-sm text-gray-300">{item.icon} {item.label}</span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Time-based Access */}
+                                  <div className="bg-orange-900/20 rounded-lg p-4 border border-orange-500/30">
+                                    <h5 className="text-lg font-medium text-orange-300 mb-4 flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                                      Time-based Access
+                                    </h5>
+                                    <div className="space-y-4">
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                          Start Time
+                                        </label>
+                                        <input
+                                          type="datetime-local"
+                                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                                          End Time
+                                        </label>
+                                        <input
+                                          type="datetime-local"
+                                          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-orange-500"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Save Phase Button */}
+                                <div className="mt-8 pt-6 border-t border-gray-600 flex justify-end">
+                                  <button
+                                    type="button"
+                                    className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-3 font-medium"
+                                  >
+                                    <Save className="w-5 h-5" />
+                                    Save Phase Configuration
+                                  </button>
                                 </div>
                               </div>
                             );
@@ -2019,46 +2184,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                     </div>
 
-                    {/* Whitelist Type Toggle */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">Whitelist Type</label>
-                      
-                      {/* Toggle Buttons */}
-                      <div className="flex space-x-2 mb-4">
-                        <button
-                          type="button"
-                          onClick={() => setWhitelistConfig(prev => ({ ...prev, whitelistType: 'token' }))}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            whitelistConfig.whitelistType === 'token'
-                              ? 'bg-blue-600 text-white shadow-lg'
-                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                          }`}
-                        >
-                          🪙 Token Holders
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setWhitelistConfig(prev => ({ ...prev, whitelistType: 'nft' }))}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            whitelistConfig.whitelistType === 'nft'
-                              ? 'bg-blue-600 text-white shadow-lg'
-                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                          }`}
-                        >
-                          🖼️ NFT Holders
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setWhitelistConfig(prev => ({ ...prev, whitelistType: 'csv' }))}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                            whitelistConfig.whitelistType === 'csv'
-                              ? 'bg-blue-600 text-white shadow-lg'
-                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                          }`}
-                        >
-                          📄 CSV Upload
-                        </button>
-                      </div>
+                    {/* Add Phase Button */}
+                    <div className="flex justify-center pt-6">
+                      <button
+                        type="button"
+                        onClick={addPhase}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-medium"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Add New Phase
+                      </button>
+                    </div>
 
                       {/* Dynamic Fields Based on Whitelist Type */}
                       {whitelistConfig.whitelistType === 'token' && (
