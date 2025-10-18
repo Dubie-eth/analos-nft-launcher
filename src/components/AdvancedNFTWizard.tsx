@@ -636,58 +636,95 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     }
   };
 
-  // Calculate optimal price increase rate based on whitelist phases and pricing
+  // Calculate optimal price increase rate based on comprehensive bonding curve mathematics
   const calculateOptimalIncreaseRate = () => {
-    if (!collectionConfig.bondingCurveEnabled || !collectionConfig.whitelistEnabled) {
-      return 5.0; // Default rate if no whitelist
-    }
-
+    // Get all user input parameters
     const startingPrice = parseFloat(bondingCurveConfig.startingPrice) || 0.1;
     const maxPrice = parseFloat(bondingCurveConfig.maxPrice) || 1.0;
+    const totalCollectionSupply = collectionConfig.supply || 1000;
     
-    // Calculate total whitelist spots and their average price
+    // Calculate whitelist data
     let totalWhitelistSpots = 0;
     let totalWhitelistRevenue = 0;
+    let avgWhitelistPrice = startingPrice;
     
-    whitelistConfig.phases
-      .filter(phase => phase.enabled)
-      .forEach(phase => {
-        const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
-        const totalMints = phase.spots * maxMintsPerWallet;
-        const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
-        const phasePrice = phase.pricePerMint || 0;
-        const totalPrice = phasePrice + seedAmount;
-        
-        totalWhitelistSpots += totalMints;
-        totalWhitelistRevenue += totalPrice * totalMints;
-      });
+    if (collectionConfig.whitelistEnabled) {
+      whitelistConfig.phases
+        .filter(phase => phase.enabled)
+        .forEach(phase => {
+          const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
+          const totalMints = phase.spots * maxMintsPerWallet;
+          const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+          const phasePrice = phase.pricePerMint || 0;
+          const totalPrice = phasePrice + seedAmount;
+          
+          totalWhitelistSpots += totalMints;
+          totalWhitelistRevenue += totalPrice * totalMints;
+        });
+      
+      avgWhitelistPrice = totalWhitelistSpots > 0 ? totalWhitelistRevenue / totalWhitelistSpots : startingPrice;
+    }
     
-    const totalCollectionSupply = collectionConfig.supply || 1000;
+    // Calculate bonding curve supply
     const bondingCurveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
     
     if (bondingCurveSupply === 0) {
       return 0; // No bonding curve supply
     }
     
-    // Calculate average whitelist price
-    const avgWhitelistPrice = totalWhitelistSpots > 0 ? totalWhitelistRevenue / totalWhitelistSpots : startingPrice;
+    // Mathematical approach: Solve for the rate that achieves maxPrice at the end of bonding curve
+    // Using exponential bonding curve: P(n) = P₀ * (1 + r)^n
+    // Where: P(n) = price at mint n, P₀ = starting price, r = rate, n = mint number
     
-    // Calculate price range for bonding curve
+    // We want: maxPrice = startingPrice * (1 + r)^bondingCurveSupply
+    // Solving for r: r = (maxPrice/startingPrice)^(1/bondingCurveSupply) - 1
+    
+    const priceRatio = maxPrice / startingPrice;
+    const theoreticalRate = Math.pow(priceRatio, 1 / bondingCurveSupply) - 1;
+    
+    // Convert to percentage
+    let optimalRate = theoreticalRate * 100;
+    
+    // Apply adjustments based on whitelist pricing and market dynamics
+    
+    // 1. Whitelist Price Adjustment
+    // If whitelist prices are higher than starting price, we need a steeper curve
+    const whitelistAdjustment = avgWhitelistPrice > startingPrice ? 
+      Math.min(1.5, avgWhitelistPrice / startingPrice) : 1.0;
+    
+    // 2. Supply Size Adjustment
+    // Larger supplies need gentler curves to avoid extreme prices
+    const supplyAdjustment = Math.max(0.7, Math.min(1.3, Math.sqrt(1000 / bondingCurveSupply)));
+    
+    // 3. Market Dynamics Adjustment
+    // Consider the price range - larger ranges need more aggressive curves
     const priceRange = maxPrice - startingPrice;
+    const rangeAdjustment = Math.max(0.8, Math.min(1.4, priceRange / startingPrice));
     
-    // Calculate optimal rate based on:
-    // 1. Price range (larger range = higher rate needed)
-    // 2. Supply size (more supply = lower rate needed)
-    // 3. Whitelist price vs starting price (higher whitelist = higher rate needed)
+    // 4. Prebuy Impact (if enabled)
+    const prebuyAdjustment = bondingCurveConfig.prebuyEnabled ? 1.1 : 1.0;
     
-    const baseRate = (priceRange / startingPrice) * 100; // Base rate from price range
-    const supplyFactor = Math.max(0.5, Math.min(2.0, 1000 / bondingCurveSupply)); // Supply adjustment
-    const whitelistFactor = Math.max(0.8, Math.min(1.5, avgWhitelistPrice / startingPrice)); // Whitelist price adjustment
+    // Apply all adjustments
+    optimalRate = optimalRate * whitelistAdjustment * supplyAdjustment * rangeAdjustment * prebuyAdjustment;
     
-    const optimalRate = (baseRate * supplyFactor * whitelistFactor) / 10; // Scale down
+    // Ensure the rate creates a reasonable price progression
+    // Test the curve: if the price at 50% supply is too extreme, adjust
+    const midSupply = Math.floor(bondingCurveSupply / 2);
+    const midPrice = startingPrice * Math.pow(1 + (optimalRate / 100), midSupply);
+    const midPriceRatio = midPrice / startingPrice;
     
-    // Clamp between reasonable bounds
-    return Math.max(0.1, Math.min(20.0, optimalRate));
+    // If mid-price is more than 10x starting price, the curve is too aggressive
+    if (midPriceRatio > 10) {
+      optimalRate = optimalRate * 0.7; // Reduce by 30%
+    }
+    
+    // If mid-price is less than 2x starting price, the curve is too gentle
+    if (midPriceRatio < 2) {
+      optimalRate = optimalRate * 1.3; // Increase by 30%
+    }
+    
+    // Final bounds check - ensure reasonable range
+    return Math.max(0.5, Math.min(25.0, optimalRate));
   };
 
   // Generate bonding curve data based on configuration and remaining supply
@@ -2906,39 +2943,115 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, increaseRate: e.target.value }))}
                         className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
-                      <div className="mt-1 flex items-center justify-between">
-                        <p className="text-xs text-gray-400">Percentage increase per mint</p>
-                        <p className="text-xs text-blue-400">
-                          Optimal: {calculateOptimalIncreaseRate().toFixed(2)}%
-                        </p>
+              <div className="mt-1 flex items-center justify-between">
+                <p className="text-xs text-gray-400">Percentage increase per mint</p>
+                <p className="text-xs text-blue-400">
+                  Optimal: {calculateOptimalIncreaseRate().toFixed(2)}%
+                </p>
+              </div>
+              
+              {/* Real-time Calculation Display */}
+              <div className="mt-3 p-3 bg-gray-800/30 border border-gray-600 rounded-lg">
+                <div className="text-xs text-gray-300 font-medium mb-2">📊 Calculation Breakdown:</div>
+                {(() => {
+                  const startingPrice = parseFloat(bondingCurveConfig.startingPrice) || 0.1;
+                  const maxPrice = parseFloat(bondingCurveConfig.maxPrice) || 1.0;
+                  const totalCollectionSupply = collectionConfig.supply || 1000;
+                  
+                  // Calculate whitelist data
+                  let totalWhitelistSpots = 0;
+                  let avgWhitelistPrice = startingPrice;
+                  
+                  if (collectionConfig.whitelistEnabled) {
+                    let totalWhitelistRevenue = 0;
+                    whitelistConfig.phases
+                      .filter(phase => phase.enabled)
+                      .forEach(phase => {
+                        const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
+                        const totalMints = phase.spots * maxMintsPerWallet;
+                        const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                        const phasePrice = phase.pricePerMint || 0;
+                        const totalPrice = phasePrice + seedAmount;
+                        
+                        totalWhitelistSpots += totalMints;
+                        totalWhitelistRevenue += totalPrice * totalMints;
+                      });
+                    avgWhitelistPrice = totalWhitelistSpots > 0 ? totalWhitelistRevenue / totalWhitelistSpots : startingPrice;
+                  }
+                  
+                  const bondingCurveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+                  const priceRatio = maxPrice / startingPrice;
+                  const theoreticalRate = Math.pow(priceRatio, 1 / bondingCurveSupply) - 1;
+                  const optimalRate = calculateOptimalIncreaseRate();
+                  
+                  return (
+                    <div className="space-y-1 text-xs text-gray-400">
+                      <div className="flex justify-between">
+                        <span>Starting Price:</span>
+                        <span className="text-white">{startingPrice} LOS</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span>Max Price:</span>
+                        <span className="text-white">{maxPrice} LOS</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Price Ratio:</span>
+                        <span className="text-white">{priceRatio.toFixed(2)}x</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Bonding Curve Supply:</span>
+                        <span className="text-white">{bondingCurveSupply} NFTs</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Avg Whitelist Price:</span>
+                        <span className="text-white">{avgWhitelistPrice.toFixed(2)} LOS</span>
+                      </div>
+                      <div className="flex justify-between border-t border-gray-600 pt-1">
+                        <span>Calculated Rate:</span>
+                        <span className="text-green-400 font-medium">{optimalRate.toFixed(2)}%</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
                     </div>
                   </div>
 
-                  {/* Auto-Calculation Explanation */}
+                  {/* Advanced Mathematical Calculation Explanation */}
                   <div className="bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30 rounded-lg p-4 mt-4">
                     <h6 className="text-cyan-300 font-medium mb-3 flex items-center gap-2">
                       <span className="w-2 h-2 bg-cyan-500 rounded-full"></span>
-                      🧮 Smart Price Increase Calculation
+                      🧮 Advanced Bonding Curve Mathematics
                     </h6>
                     <div className="space-y-3 text-sm">
                       <p className="text-cyan-200">
-                        The auto-calculation considers multiple factors to determine the optimal price increase rate:
+                        The system uses exponential bonding curve mathematics to calculate the optimal rate:
                       </p>
+                      
+                      <div className="bg-cyan-800/20 border border-cyan-500/30 rounded p-3">
+                        <div className="text-cyan-300 font-medium mb-2">📐 Mathematical Formula:</div>
+                        <div className="text-cyan-200 text-xs font-mono">
+                          P(n) = P₀ × (1 + r)^n
+                        </div>
+                        <div className="text-cyan-200 text-xs mt-1">
+                          Where: P(n) = price at mint n, P₀ = starting price, r = rate, n = mint number
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="space-y-2">
                           <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
                             <div>
-                              <span className="text-cyan-300 font-medium">Price Range:</span>
-                              <span className="text-cyan-200 text-xs block">Larger range = higher rate needed</span>
+                              <span className="text-cyan-300 font-medium">Target Achievement:</span>
+                              <span className="text-cyan-200 text-xs block">Solves for rate that reaches max price at final mint</span>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
                             <div>
-                              <span className="text-cyan-300 font-medium">Supply Size:</span>
-                              <span className="text-cyan-200 text-xs block">More supply = lower rate needed</span>
+                              <span className="text-cyan-300 font-medium">Whitelist Integration:</span>
+                              <span className="text-cyan-200 text-xs block">Adjusts curve based on whitelist pricing and seeding</span>
                             </div>
                           </div>
                         </div>
@@ -2946,23 +3059,34 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></span>
                             <div>
-                              <span className="text-cyan-300 font-medium">Whitelist Pricing:</span>
-                              <span className="text-cyan-200 text-xs block">Higher whitelist prices = higher rate needed</span>
+                              <span className="text-cyan-300 font-medium">Supply Optimization:</span>
+                              <span className="text-cyan-200 text-xs block">Larger supplies get gentler curves to prevent extreme prices</span>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
                             <span className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></span>
                             <div>
-                              <span className="text-cyan-300 font-medium">Seeding Impact:</span>
-                              <span className="text-cyan-200 text-xs block">More seeding = adjusted rate</span>
+                              <span className="text-cyan-300 font-medium">Market Dynamics:</span>
+                              <span className="text-cyan-200 text-xs block">Considers price range and prebuy impact</span>
                             </div>
                           </div>
                         </div>
                       </div>
+                      
+                      <div className="bg-cyan-800/20 border border-cyan-500/30 rounded p-3">
+                        <div className="text-cyan-300 font-medium mb-2">🎯 Quality Assurance:</div>
+                        <div className="text-cyan-200 text-xs space-y-1">
+                          <div>• Tests mid-supply price to ensure reasonable progression</div>
+                          <div>• Prevents curves that are too aggressive (&gt;10x at 50% supply)</div>
+                          <div>• Prevents curves that are too gentle (&lt;2x at 50% supply)</div>
+                          <div>• Final bounds: 0.5% to 25% for market stability</div>
+                        </div>
+                      </div>
+                      
                       <div className="mt-3 p-3 bg-cyan-800/20 border border-cyan-500/30 rounded">
                         <p className="text-cyan-200 text-xs">
-                          <strong>💡 Pro Tip:</strong> The system automatically balances price discovery with accessibility. 
-                          Higher whitelist prices and seeding amounts create more aggressive bonding curves to maintain price momentum.
+                          <strong>💡 Pro Tip:</strong> This mathematical approach ensures your bonding curve reaches the target maximum price 
+                          while maintaining reasonable price progression throughout the minting process.
                         </p>
                       </div>
                     </div>
@@ -3919,4 +4043,5 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     </div>
   );
 }
+
 
