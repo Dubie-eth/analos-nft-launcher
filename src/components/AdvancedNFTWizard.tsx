@@ -2917,8 +2917,6 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 onChange={(e) => setBondingCurveConfig(prev => ({ 
                                   ...prev, 
                                   adjustmentTriggers: { 
-                                    highMintRate: 75,
-                                    timeBased: 48,
                                     ...prev.adjustmentTriggers,
                                     lowMintRate: parseInt(e.target.value) || 25 
                                   }
@@ -2940,8 +2938,6 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 onChange={(e) => setBondingCurveConfig(prev => ({ 
                                   ...prev, 
                                   adjustmentTriggers: { 
-                                    lowMintRate: 25,
-                                    timeBased: 48,
                                     ...prev.adjustmentTriggers,
                                     highMintRate: parseInt(e.target.value) || 75 
                                   }
@@ -2962,8 +2958,6 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 onChange={(e) => setBondingCurveConfig(prev => ({ 
                                   ...prev, 
                                   adjustmentTriggers: { 
-                                    lowMintRate: 25,
-                                    highMintRate: 75,
                                     ...prev.adjustmentTriggers,
                                     timeBased: parseInt(e.target.value) || 48 
                                   }
