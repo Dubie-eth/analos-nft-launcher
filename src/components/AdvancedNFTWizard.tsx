@@ -1791,90 +1791,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     Configure your whitelist phases and requirements. Each phase can have different token requirements, pricing, and access conditions.
                   </p>
                   
-                  {/* Global Whitelist Settings */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4 mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-4">🎯 Global Whitelist Settings</h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Default Token Contract
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Enter token contract (e.g., LOL, SOL)"
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Default Min Balance
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="1000000"
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Default Max Mints/Wallet
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="1"
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
 
               {/* Integrated Whitelist Configuration */}
               {collectionConfig.whitelistEnabled && (
                 <div className="space-y-6">
-                  {/* Global Whitelist Settings */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 space-y-4">
-                    <h4 className="text-lg font-semibold text-white mb-4">🎯 Global Whitelist Settings</h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Default Token Contract
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Enter token contract (e.g., LOL, SOL)"
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Default Min Balance
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="1000000"
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Default Max Mints/Wallet
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="1"
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                  </div>
 
                   {/* Whitelist Configuration Upload */}
                   {showConfigUpload && (
