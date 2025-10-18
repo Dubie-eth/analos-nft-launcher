@@ -94,7 +94,7 @@ export default function CollectionPage() {
               deploymentInfo: {
                 collectionMint: collectionMint,
                 metadataAccount: `Metadata_${collectionMint}`,
-                deploymentCost: 1700000, // 1.7 LOS
+                deploymentCost: 2.5, // 2.5 LOS
                 deployedAt: new Date().toISOString()
               }
             };
@@ -305,7 +305,7 @@ export default function CollectionPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-gray-300">Deployment Cost</span>
                       <span className="text-white text-sm">
-                        {(collection.deploymentInfo.deploymentCost / 1000000).toFixed(1)} LOS
+                        {collection.deploymentInfo.deploymentCost} LOS
                       </span>
                     </div>
                   </>

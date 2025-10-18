@@ -55,10 +55,10 @@ export async function POST(request: NextRequest) {
     };
 
     // Calculate estimated deployment cost (in LOS - Analos native token)
-    const baseCost = 1000000; // 1 LOS base cost
-    const bondingCurveCost = collectionConfig.bondingCurveEnabled ? 500000 : 0; // 0.5 LOS for bonding curve
+    const baseCost = 1; // 1 LOS base cost
+    const bondingCurveCost = collectionConfig.bondingCurveEnabled ? 0.5 : 0; // 0.5 LOS for bonding curve
     const whitelistCost = collectionConfig.whitelistEnabled ? 
-      (whitelistConfig.phases?.filter((p: any) => p.enabled).length || 0) * 200000 : 0; // 0.2 LOS per whitelist phase
+      (whitelistConfig.phases?.filter((p: any) => p.enabled).length || 0) * 0.2 : 0; // 0.2 LOS per whitelist phase
     
     const deploymentCost = baseCost + bondingCurveCost + whitelistCost;
 
