@@ -672,15 +672,19 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       return 0; // No bonding curve supply
     }
     
-    // Mathematical approach: Solve for the rate that achieves maxPrice at the end of bonding curve
+    // Mathematical approach: Calculate rate based on desired percentage increase per mint
     // Using exponential bonding curve: P(n) = P₀ * (1 + r)^n
     // Where: P(n) = price at mint n, P₀ = starting price, r = rate, n = mint number
     
-    // We want: maxPrice = startingPrice * (1 + r)^bondingCurveSupply
-    // Solving for r: r = (maxPrice/startingPrice)^(1/bondingCurveSupply) - 1
+    // For a proper bonding curve, we want a consistent percentage increase per mint
+    // The maxPrice serves as a reference point, not a hard cap
+    // We calculate a rate that provides reasonable growth throughout the curve
     
+    // Start with a base rate that would reach maxPrice at 75% of supply (not 100%)
+    // This ensures the curve continues growing and doesn't flatten early
+    const targetSupplyPoint = Math.floor(bondingCurveSupply * 0.75);
     const priceRatio = maxPrice / startingPrice;
-    const theoreticalRate = Math.pow(priceRatio, 1 / bondingCurveSupply) - 1;
+    const theoreticalRate = Math.pow(priceRatio, 1 / targetSupplyPoint) - 1;
     
     // Convert to percentage
     let optimalRate = theoreticalRate * 100;
@@ -768,11 +772,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       
       for (let i = 1; i <= fallbackSupply; i++) {
         const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
-        const cappedPrice = Math.min(price, maxPrice);
         
         data.push({
           mint: i,
-          price: cappedPrice,
+          price: price, // No capping - let it grow naturally
           supply: i,
           totalSupply: fallbackSupply,
           isPrebuy: false,
@@ -787,12 +790,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       // Calculate price using exponential growth formula
       const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
       
-      // Cap at max price
-      const cappedPrice = Math.min(price, maxPrice);
+      // For proper bonding curve behavior, don't cap the price
+      // The maxPrice is a target/reference, not a hard limit
+      // This allows the curve to continue growing exponentially
       
       data.push({
         mint: i,
-        price: cappedPrice,
+        price: price, // No capping - let it grow naturally
         supply: i,
         totalSupply: effectiveSupply,
         isPrebuy: false,
@@ -3036,6 +3040,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <div className="text-cyan-200 text-xs mt-1">
                           Where: P(n) = price at mint n, P₀ = starting price, r = rate, n = mint number
                         </div>
+                        <div className="text-cyan-200 text-xs mt-1">
+                          <strong>Key:</strong> No price capping - curve grows exponentially throughout entire supply
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -3044,7 +3051,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
                             <div>
                               <span className="text-cyan-300 font-medium">Target Achievement:</span>
-                              <span className="text-cyan-200 text-xs block">Solves for rate that reaches max price at final mint</span>
+                              <span className="text-cyan-200 text-xs block">Calculates rate to reach max price at 75% of supply, then continues growing</span>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
