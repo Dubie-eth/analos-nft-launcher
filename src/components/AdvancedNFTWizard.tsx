@@ -110,7 +110,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     startingPrice: '',
     maxPrice: '',
     increaseRate: '',
-    creatorRoyalty: '' // User can set their royalty percentage
+    creatorRoyalty: '', // User can set their royalty percentage
+    minWhitelistPrice: '' // Minimum price for whitelist phases to seed DLMM
   });
 
   // Whitelist configuration state
@@ -631,12 +632,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     const maxPrice = parseFloat(bondingCurveConfig.maxPrice) || 1.0;
     const increaseRate = parseFloat(bondingCurveConfig.increaseRate) || 5.0;
     
-    // Calculate total whitelist spots from enabled phases
+    // Calculate total whitelist spots from enabled phases (accounting for maxMintsPerWallet)
     let totalWhitelistSpots = 0;
     if (collectionConfig.whitelistEnabled) {
       totalWhitelistSpots = whitelistConfig.phases
         .filter(phase => phase.enabled)
-        .reduce((sum, phase) => sum + phase.spots, 0);
+        .reduce((sum, phase) => {
+          const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
+          return sum + (phase.spots * maxMintsPerWallet);
+        }, 0);
     }
     
     // Get the actual collection supply from collectionConfig
@@ -2446,8 +2450,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h3 className="text-3xl font-bold text-white mb-2">Bonding Curve</h3>
-              <p className="text-white/80 text-lg">Configure dynamic pricing for your collection.</p>
+              <h3 className="text-3xl font-bold text-white mb-2">Bonding Curve & Early Access</h3>
+              <p className="text-white/80 text-lg">Configure whitelist phases as early access, then dynamic pricing for remaining supply.</p>
             </div>
             
             <div className="max-w-2xl mx-auto space-y-6">
@@ -2473,24 +2477,190 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     <h4 className="text-xl font-semibold text-green-300">Bonding Curve Benefits</h4>
                   </div>
                   <p className="text-green-200 mb-4">
-                    Bonding curve pricing will automatically adjust based on supply:
+                    Your collection will use a hybrid approach: whitelist phases for early access, then bonding curve for remaining supply:
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="flex items-center gap-2 text-green-200">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Lower prices when supply is high</span>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span>Whitelist phases get early access at fixed prices</span>
                     </div>
                     <div className="flex items-center gap-2 text-green-200">
                       <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span>Higher prices as supply decreases</span>
+                      <span>Remaining supply uses dynamic bonding curve</span>
                     </div>
                     <div className="flex items-center gap-2 text-green-200">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                       <span>Creates urgency and FOMO</span>
                     </div>
                     <div className="flex items-center gap-2 text-green-200">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
                       <span>Maximizes revenue potential</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Whitelist Phases Summary */}
+              {collectionConfig.whitelistEnabled && collectionConfig.bondingCurveEnabled && (
+                <div className="bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border border-blue-500/30 rounded-xl p-6 backdrop-blur-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">🎯</span>
+                    </div>
+                    <h4 className="text-xl font-semibold text-blue-300">Early Access Phases</h4>
+                  </div>
+                  <p className="text-blue-200 mb-4">
+                    Your whitelist phases will get early access before the bonding curve begins:
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {whitelistConfig.phases
+                      .filter(phase => phase.enabled)
+                      .sort((a, b) => a.order - b.order)
+                      .map((phase, index) => {
+                        const totalWhitelistSpots = whitelistConfig.phases
+                          .filter((p, i) => p.id !== phase.id && p.enabled)
+                          .reduce((sum, p) => sum + (p.spots * (p.maxMintsPerWallet || 1)), 0);
+                        const totalCollectionSupply = collectionConfig.supply || 1000;
+                        const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+                        const effectiveSpots = phase.name === 'Public Access' ? remainingSpots : phase.spots;
+                        
+                        return (
+                          <div key={phase.id} className="bg-blue-800/20 border border-blue-500/30 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h5 className="text-blue-300 font-medium">{phase.name}</h5>
+                                <p className="text-blue-200 text-sm">
+                                  {effectiveSpots} spots • {(() => {
+                                    const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                                    const phasePrice = phase.pricePerMint || 0;
+                                    const finalPrice = Math.max(phasePrice, minPrice);
+                                    return `${finalPrice} LOS each`;
+                                  })()}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-blue-300 font-bold">#{index + 1}</div>
+                                <div className="text-blue-200 text-xs">Phase</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-800/20 border border-blue-500/30 rounded-lg">
+                    <p className="text-blue-200 text-sm">
+                      💡 <strong>How it works:</strong> Whitelist phases mint first at fixed prices, then the bonding curve starts for remaining supply.
+                    </p>
+                  </div>
+                  
+                  {/* Minimum Price Configuration for DLMM */}
+                  <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                    <h5 className="text-yellow-300 font-medium mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      DLMM Bonding Curve Seeding
+                    </h5>
+                    <p className="text-yellow-200 text-sm mb-3">
+                      For optimal DLMM bonding curve performance, whitelist phases should have a minimum price to seed the curve with initial liquidity.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Minimum Whitelist Price (LOS)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.05"
+                          value={bondingCurveConfig.minWhitelistPrice || ''}
+                          onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, minWhitelistPrice: e.target.value }))}
+                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Recommended: 5-10% of starting bonding curve price</p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Seeding Impact
+                        </label>
+                        <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-500 rounded-lg text-gray-300">
+                          {(() => {
+                            const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                            const totalWhitelistSpots = whitelistConfig.phases
+                              .filter(phase => phase.enabled)
+                              .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
+                            const totalSeeding = minPrice * totalWhitelistSpots;
+                            return `${totalSeeding.toFixed(2)} LOS total seeding`;
+                          })()}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Total LOS that will seed the bonding curve</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 p-3 bg-yellow-800/20 border border-yellow-500/30 rounded">
+                      <p className="text-xs text-yellow-200">
+                        <strong>💡 DLMM Tip:</strong> Initial liquidity seeding helps establish a stable price floor and improves price discovery for the bonding curve.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DLMM Bonding Curve Explanation */}
+              {collectionConfig.bondingCurveEnabled && (
+                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-xl p-6 backdrop-blur-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold">📊</span>
+                    </div>
+                    <h4 className="text-xl font-semibold text-indigo-300">DLMM Bonding Curve Mechanics</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h5 className="text-indigo-300 font-medium mb-3">🎯 How It Works</h5>
+                      <div className="space-y-2 text-indigo-200 text-sm">
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Whitelist phases mint first at minimum prices</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>LOS from whitelist mints seeds the bonding curve</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Remaining supply uses dynamic pricing</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Price increases as more NFTs are minted</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h5 className="text-indigo-300 font-medium mb-3">💡 Benefits</h5>
+                      <div className="space-y-2 text-indigo-200 text-sm">
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Initial liquidity for stable price discovery</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Fair early access for community members</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Dynamic pricing maximizes revenue</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="w-2 h-2 bg-yellow-400 rounded-full mt-2 flex-shrink-0"></span>
+                          <span>Creates urgency and FOMO</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2506,7 +2676,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Starting Price (LOL)
+                          Starting Price (LOS)
                         </label>
                     <input
                       type="number"
@@ -2520,7 +2690,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Max Price (LOL)
+                          Max Price (LOS)
                         </label>
                     <input
                       type="number"
@@ -2655,7 +2825,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   <div
                                     className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
                                     style={{ height: `${barHeight}px` }}
-                                    title={`Mint ${originalIndex + 1}: ${point.price.toFixed(4)} LOL`}
+                                    title={`Mint ${originalIndex + 1}: ${point.price.toFixed(4)} LOS`}
                                   />
                                   {index % 5 === 0 && (
                                     <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left whitespace-nowrap">
@@ -2693,7 +2863,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 <div
                                   className="w-full bg-gradient-to-t from-blue-600 to-purple-500 rounded-t transition-all duration-300 hover:from-blue-500 hover:to-purple-400"
                                   style={{ height: `${barHeight}px` }}
-                                  title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOL`}
+                                  title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOS`}
                                 />
                                 {index % Math.ceil(generateBondingCurveData().length / 10) === 0 && (
                                   <div className="text-xs text-gray-400 mt-1 transform -rotate-45 origin-left whitespace-nowrap">
@@ -2727,21 +2897,21 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
                           <div className="text-blue-300 text-sm font-medium">Starting Price</div>
                           <div className="text-white text-lg font-bold">
-                            {bondingCurveConfig.startingPrice ? parseFloat(bondingCurveConfig.startingPrice).toFixed(4) : '0.0000'} LOL
+                            {bondingCurveConfig.startingPrice ? parseFloat(bondingCurveConfig.startingPrice).toFixed(4) : '0.0000'} LOS
                           </div>
                         </div>
                         
                         <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
                           <div className="text-purple-300 text-sm font-medium">Current Price (50% sold)</div>
                           <div className="text-white text-lg font-bold">
-                            {generateBondingCurveData()[Math.floor(generateBondingCurveData().length / 2)]?.price.toFixed(4) || '0.0000'} LOL
+                            {generateBondingCurveData()[Math.floor(generateBondingCurveData().length / 2)]?.price.toFixed(4) || '0.0000'} LOS
                           </div>
                         </div>
                         
                         <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
                           <div className="text-green-300 text-sm font-medium">Max Price</div>
                           <div className="text-white text-lg font-bold">
-                            {bondingCurveConfig.maxPrice ? parseFloat(bondingCurveConfig.maxPrice).toFixed(4) : '0.0000'} LOL
+                            {bondingCurveConfig.maxPrice ? parseFloat(bondingCurveConfig.maxPrice).toFixed(4) : '0.0000'} LOS
                           </div>
                         </div>
                       </div>
@@ -2751,13 +2921,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <h5 className="text-yellow-300 font-medium mb-2">Revenue Projection</h5>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-400">Total Supply:</span>
-                            <span className="text-white ml-2">1,000 NFTs</span>
+                            <span className="text-gray-400">Bonding Curve Supply:</span>
+                            <span className="text-white ml-2">{generateBondingCurveData().length} NFTs</span>
                           </div>
                           <div>
                             <span className="text-gray-400">Projected Revenue:</span>
                             <span className="text-white ml-2">
-                              {generateBondingCurveData().reduce((sum, point) => sum + point.price, 0).toFixed(2)} LOL
+                              {generateBondingCurveData().reduce((sum, point) => sum + point.price, 0).toFixed(2)} LOS
                             </span>
                           </div>
                                         </div>
