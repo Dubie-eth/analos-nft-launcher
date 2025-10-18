@@ -2940,7 +2940,11 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           type="button"
                           onClick={() => {
                             const optimalRate = calculateOptimalIncreaseRate();
-                            setBondingCurveConfig(prev => ({ ...prev, increaseRate: optimalRate.toFixed(2) }));
+                            console.log('Auto-Calculate clicked, optimal rate:', optimalRate);
+                            setBondingCurveConfig(prev => ({ 
+                              ...prev, 
+                              increaseRate: optimalRate.toFixed(2) 
+                            }));
                           }}
                           className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
                         >
@@ -2949,7 +2953,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       </div>
                       <input
                         type="number"
-                        step="0.1"
+                        step="0.01"
+                        min="0"
+                        max="25"
                         placeholder="5"
                         value={bondingCurveConfig.increaseRate}
                         onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, increaseRate: e.target.value }))}
