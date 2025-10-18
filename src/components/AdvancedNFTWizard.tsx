@@ -10,6 +10,54 @@ import { Layer, Trait } from '@/lib/nft-generator';
 
 // Trait and Layer interfaces are now imported from @/lib/nft-generator
 
+// Price Oracle Hook
+const usePriceOracle = () => {
+  const [prices, setPrices] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+
+  const fetchPrice = async (token: string): Promise<number> => {
+    if (loading[token]) return prices[token] || 0;
+    
+    setLoading(prev => ({ ...prev, [token]: true }));
+    
+    try {
+      // Try oracle first
+      let price = 0;
+      
+      if (token === 'LOS') {
+        // Use our LOS oracle
+        const response = await fetch('/api/oracle/los-price');
+        if (response.ok) {
+          const data = await response.json();
+          price = data.price || 0;
+        }
+      } else {
+        // Try CoinMarketCap API for other tokens
+        const cmcResponse = await fetch(`/api/oracle/cmc-price?token=${token}`);
+        if (cmcResponse.ok) {
+          const data = await cmcResponse.json();
+          price = data.price || 0;
+        }
+      }
+      
+      setPrices(prev => ({ ...prev, [token]: price }));
+      return price;
+    } catch (error) {
+      console.error(`Failed to fetch price for ${token}:`, error);
+      return prices[token] || 0;
+    } finally {
+      setLoading(prev => ({ ...prev, [token]: false }));
+    }
+  };
+
+  const getUSDValue = (token: string, amount: number): number => {
+    const price = prices[token] || 0;
+    return price * amount;
+  };
+
+  return { fetchPrice, getUSDValue, prices, loading };
+};
+
 interface AdvancedNFTWizardProps {
   onComplete: (config: any) => void;
   onCancel: () => void;
@@ -18,7 +66,18 @@ interface AdvancedNFTWizardProps {
 export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTWizardProps) {
   const { publicKey } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
+  const { fetchPrice, getUSDValue, prices, loading } = usePriceOracle();
   const [layers, setLayers] = useState<Layer[]>([]);
+
+  // Fetch prices when payment tokens change
+  useEffect(() => {
+    const tokens = ['LOL', 'LOS', 'SOL', 'USDC'];
+    tokens.forEach(token => {
+      if (!prices[token] && !loading[token]) {
+        fetchPrice(token);
+      }
+    });
+  }, [fetchPrice, prices, loading]);
   const [collectionConfig, setCollectionConfig] = useState({
     name: '',
     symbol: '',
@@ -76,7 +135,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         description: 'First supporters and early adopters',
         paymentToken: 'LOL',
         pricePerMint: 0,
-        csvFile: null as File | null
+        csvFile: null as File | null,
+        socialVerification: {
+          twitter: false,
+          discord: false,
+          telegram: false,
+          discordServerId: '',
+          telegramGroupId: ''
+        }
       },
       { 
         id: 'community', 
@@ -87,7 +153,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         description: 'Active community members',
         paymentToken: 'LOL',
         pricePerMint: 0,
-        csvFile: null as File | null
+        csvFile: null as File | null,
+        socialVerification: {
+          twitter: false,
+          discord: false,
+          telegram: false,
+          discordServerId: '',
+          telegramGroupId: ''
+        }
       },
       { 
         id: 'public', 
@@ -98,7 +171,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         description: 'Open to everyone',
         paymentToken: 'LOL',
         pricePerMint: 0,
-        csvFile: null as File | null
+        csvFile: null as File | null,
+        socialVerification: {
+          twitter: false,
+          discord: false,
+          telegram: false,
+          discordServerId: '',
+          telegramGroupId: ''
+        }
       }
     ],
     tokenContract: '', // Default to LOL token contract (to be set by user)
@@ -164,7 +244,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       description: 'Custom phase',
       paymentToken: 'LOL',
       pricePerMint: 0,
-      csvFile: null as File | null
+      csvFile: null as File | null,
+      socialVerification: {
+        twitter: false,
+        discord: false,
+        telegram: false,
+        discordServerId: '',
+        telegramGroupId: ''
+      }
     };
     setWhitelistConfig(prev => ({
       ...prev,
@@ -1970,10 +2057,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             return (
                               <div
                                 key={phase.id}
-                                className="p-6 rounded-xl border border-gray-600 bg-gray-800/30 hover:bg-gray-800/50 transition-all duration-200"
+                                className="p-4 rounded-xl border border-gray-600 bg-gray-800/30 hover:bg-gray-800/50 transition-all duration-200"
                               >
                                 {/* Phase Header */}
-                                <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center justify-between mb-4">
                                   <div className="flex items-center space-x-3">
                                     <input
                                       type="checkbox"
@@ -2020,9 +2107,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 </div>
 
                                 {/* Phase Configuration Grid */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                   {/* Left Column - Basic Settings */}
-                                  <div className="space-y-6">
+                                  <div className="space-y-4">
                                     <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
                                       <h5 className="text-lg font-medium text-blue-300 mb-4 flex items-center gap-2">
                                         <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
@@ -2084,7 +2171,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   </div>
 
                                   {/* Right Column - Token Requirements & Pricing */}
-                                  <div className="space-y-6">
+                                  <div className="space-y-4">
                                     <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
                                       <h5 className="text-lg font-medium text-green-300 mb-4 flex items-center gap-2">
                                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -2162,7 +2249,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                           />
                                           <div className="mt-2 p-3 bg-green-900/30 border border-green-500/50 rounded-lg">
                                             <p className="text-sm text-green-300">
-                                              <span className="font-medium">Estimated USD Value:</span> $0.00
+                                              <span className="font-medium">Estimated USD Value:</span> 
+                                              {loading[phase.paymentToken || 'LOL'] ? (
+                                                <span className="ml-2 text-yellow-400">Loading...</span>
+                                              ) : (
+                                                <span className="ml-2">${getUSDValue(phase.paymentToken || 'LOL', phase.pricePerMint || 0).toFixed(2)}</span>
+                                              )}
                                             </p>
                                           </div>
                                         </div>
@@ -2172,7 +2264,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 </div>
 
                                 {/* Social Verification & Time Settings */}
-                                <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                                   {/* Social Verification */}
                                   <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
                                     <h5 className="text-lg font-medium text-purple-300 mb-4 flex items-center gap-2">
@@ -2180,19 +2272,94 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                       Social Verification
                                     </h5>
                                     <div className="space-y-3">
-                                      {[
-                                        { label: 'Require Twitter/X verification', icon: '🐦' },
-                                        { label: 'Require Discord server membership', icon: '💬' },
-                                        { label: 'Require Telegram group membership', icon: '📱' }
-                                      ].map((item, idx) => (
-                                        <label key={idx} className="flex items-center space-x-3">
+                                      <label className="flex items-center space-x-3">
+                                        <input
+                                          type="checkbox"
+                                          checked={phase.socialVerification?.twitter || false}
+                                          onChange={(e) => updatePhase(phase.id, { 
+                                            socialVerification: { 
+                                              ...phase.socialVerification, 
+                                              twitter: e.target.checked 
+                                            } 
+                                          })}
+                                          className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                                        />
+                                        <span className="text-sm text-gray-300">🐦 Require Twitter/X verification</span>
+                                      </label>
+                                      
+                                      <label className="flex items-center space-x-3">
+                                        <input
+                                          type="checkbox"
+                                          checked={phase.socialVerification?.discord || false}
+                                          onChange={(e) => updatePhase(phase.id, { 
+                                            socialVerification: { 
+                                              ...phase.socialVerification, 
+                                              discord: e.target.checked 
+                                            } 
+                                          })}
+                                          className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                                        />
+                                        <span className="text-sm text-gray-300">💬 Require Discord server membership</span>
+                                      </label>
+                                      
+                                      {/* Discord Server ID Input */}
+                                      {phase.socialVerification?.discord && (
+                                        <div className="ml-6 mt-2">
+                                          <label className="block text-xs text-gray-400 mb-1">Discord Server ID</label>
                                           <input
-                                            type="checkbox"
-                                            className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                                            type="text"
+                                            value={phase.socialVerification?.discordServerId || ''}
+                                            onChange={(e) => updatePhase(phase.id, { 
+                                              socialVerification: { 
+                                                ...phase.socialVerification, 
+                                                discordServerId: e.target.value 
+                                              } 
+                                            })}
+                                            placeholder="123456789012345678"
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
                                           />
-                                          <span className="text-sm text-gray-300">{item.icon} {item.label}</span>
-                                        </label>
-                                      ))}
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            Right-click on your Discord server → Server Settings → Advanced → Server ID
+                                          </p>
+                                        </div>
+                                      )}
+                                      
+                                      <label className="flex items-center space-x-3">
+                                        <input
+                                          type="checkbox"
+                                          checked={phase.socialVerification?.telegram || false}
+                                          onChange={(e) => updatePhase(phase.id, { 
+                                            socialVerification: { 
+                                              ...phase.socialVerification, 
+                                              telegram: e.target.checked 
+                                            } 
+                                          })}
+                                          className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                                        />
+                                        <span className="text-sm text-gray-300">📱 Require Telegram group membership</span>
+                                      </label>
+                                      
+                                      {/* Telegram Group ID Input */}
+                                      {phase.socialVerification?.telegram && (
+                                        <div className="ml-6 mt-2">
+                                          <label className="block text-xs text-gray-400 mb-1">Telegram Group ID</label>
+                                          <input
+                                            type="text"
+                                            value={phase.socialVerification?.telegramGroupId || ''}
+                                            onChange={(e) => updatePhase(phase.id, { 
+                                              socialVerification: { 
+                                                ...phase.socialVerification, 
+                                                telegramGroupId: e.target.value 
+                                              } 
+                                            })}
+                                            placeholder="-1001234567890"
+                                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
+                                          />
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            Use @userinfobot in your Telegram group to get the group ID
+                                          </p>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
 
@@ -2226,7 +2393,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 </div>
 
                                 {/* Custom Whitelist Upload */}
-                                <div className="mt-8 bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
+                                <div className="mt-4 bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
                                   <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
                                     <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
                                     Custom Whitelist Upload
@@ -2260,7 +2427,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 </div>
 
                                 {/* Save Phase Button */}
-                                <div className="mt-8 pt-6 border-t border-gray-600 flex justify-end">
+                                <div className="mt-4 pt-4 border-t border-gray-600 flex justify-end">
                                   <button
                                     type="button"
                                     onClick={() => {
