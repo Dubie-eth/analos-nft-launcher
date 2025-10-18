@@ -282,6 +282,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       collectionConfig: {
         ...collectionConfig,
         layers: layers,
+        whitelistConfig: whitelistConfig, // Include whitelist configuration with phases
+        bondingCurveConfig: bondingCurveConfig, // Include bonding curve configuration
         timestamp: new Date().toISOString()
       },
       collectionId: currentCollectionId, // Include collection ID if updating existing collection
@@ -355,6 +357,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const loadCollection = (collection: any) => {
     console.log('🔄 Loading collection:', collection);
     
+    // Parse collection_config if it's a string
+    let parsedConfig = collection.collection_config;
+    if (typeof parsedConfig === 'string') {
+      try {
+        parsedConfig = JSON.parse(parsedConfig);
+      } catch (e) {
+        console.error('❌ Failed to parse collection_config:', e);
+        parsedConfig = {};
+      }
+    }
+    
     // Load collection config
     setCollectionConfig({
       name: collection.collection_name || '',
@@ -366,6 +379,18 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       whitelistEnabled: collection.whitelist_enabled || false,
       bondingCurveEnabled: collection.bonding_curve_enabled || false
     });
+
+    // Load whitelist configuration if available
+    if (parsedConfig?.whitelistConfig) {
+      console.log('✅ Loading whitelist config:', parsedConfig.whitelistConfig);
+      setWhitelistConfig(parsedConfig.whitelistConfig);
+    }
+
+    // Load bonding curve configuration if available
+    if (parsedConfig?.bondingCurveConfig) {
+      console.log('✅ Loading bonding curve config:', parsedConfig.bondingCurveConfig);
+      setBondingCurveConfig(parsedConfig.bondingCurveConfig);
+    }
 
     // Load layers if available
     if (collection.layers && Array.isArray(collection.layers)) {

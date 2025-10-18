@@ -211,8 +211,10 @@ export default function PublicProfileDisplay({
   if (error || !profile) {
     return (
       <div className={`${className}`}>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">{error || 'Profile not found'}</p>
+        <div className={`rounded-lg shadow p-6 text-center ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
+          <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>{error || 'Profile not found'}</p>
         </div>
       </div>
     );
