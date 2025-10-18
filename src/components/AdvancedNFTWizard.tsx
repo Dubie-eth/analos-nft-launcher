@@ -2532,10 +2532,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 <h5 className="text-blue-300 font-medium">{phase.name}</h5>
                                 <p className="text-blue-200 text-sm">
                                   {effectiveSpots} spots • {(() => {
-                                    const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                                    const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
                                     const phasePrice = phase.pricePerMint || 0;
-                                    const finalPrice = Math.max(phasePrice, minPrice);
-                                    return `${finalPrice} LOS each`;
+                                    const totalPrice = phasePrice + seedAmount;
+                                    return `${totalPrice} LOS each (${phasePrice} + ${seedAmount} seed)`;
                                   })()}
                                 </p>
                               </div>
@@ -2562,24 +2562,24 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       DLMM Bonding Curve Seeding
                     </h5>
                     <p className="text-yellow-200 text-sm mb-3">
-                      For optimal DLMM bonding curve performance, whitelist phases should have a minimum price to seed the curve with initial liquidity. 
-                      The calculation accounts for each phase's spots × maxMintsPerWallet to show total potential seeding.
+                      For optimal DLMM bonding curve performance, an additional seeding amount is added to each whitelist mint to seed the curve with initial liquidity. 
+                      This amount is added on top of the phase's base price. The calculation accounts for each phase's spots × maxMintsPerWallet to show total potential seeding.
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Minimum Whitelist Price (LOS)
+                          Price Seed Amount (LOS)
                         </label>
                         <input
                           type="number"
                           step="0.01"
-                          placeholder="0.05"
+                          placeholder="420"
                           value={bondingCurveConfig.minWhitelistPrice || ''}
                           onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, minWhitelistPrice: e.target.value }))}
                           className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                         />
-                        <p className="text-xs text-gray-400 mt-1">Recommended: 5-10% of starting bonding curve price</p>
+                        <p className="text-xs text-gray-400 mt-1">Additional LOS added to each whitelist mint for bonding curve seeding</p>
                       </div>
                       
                       <div>
@@ -2588,14 +2588,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         </label>
                         <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-500 rounded-lg text-gray-300">
                           {(() => {
-                            const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                            const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
                             const totalSeeding = whitelistConfig.phases
                               .filter(phase => phase.enabled)
                               .reduce((sum, phase) => {
                                 const phasePrice = phase.pricePerMint || 0;
-                                const effectivePrice = Math.max(phasePrice, minPrice);
+                                const totalPrice = phasePrice + seedAmount; // Add seeding amount to phase price
                                 const totalMints = phase.spots * (phase.maxMintsPerWallet || 1);
-                                return sum + (effectivePrice * totalMints);
+                                return sum + (totalPrice * totalMints);
                               }, 0);
                             return `${totalSeeding.toFixed(2)} LOS total seeding`;
                           })()}
@@ -2604,22 +2604,22 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         
                         {/* Seeding Breakdown */}
                         {(() => {
-                          const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
-                          if (minPrice > 0) {
+                          const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                          if (seedAmount > 0) {
                             return (
                               <div className="mt-2 p-2 bg-gray-800/30 rounded text-xs">
                                 <div className="text-gray-300 font-medium mb-1">Seeding Breakdown:</div>
                                 <div className="text-gray-400 mb-2 text-xs">
-                                  Formula: (spots × maxMintsPerWallet) × effectivePrice = totalSeeding
+                                  Formula: (spots × maxMintsPerWallet) × (phasePrice + seedAmount) = totalSeeding
                                 </div>
                                 {whitelistConfig.phases
                                   .filter(phase => phase.enabled)
                                   .map((phase, index) => {
                                     const phasePrice = phase.pricePerMint || 0;
-                                    const effectivePrice = Math.max(phasePrice, minPrice);
+                                    const totalPrice = phasePrice + seedAmount;
                                     const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
                                     const totalMints = phase.spots * maxMintsPerWallet;
-                                    const phaseSeeding = effectivePrice * totalMints;
+                                    const phaseSeeding = totalPrice * totalMints;
                                     
                                     return (
                                       <div key={phase.id} className="space-y-1">
@@ -2628,7 +2628,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                           <span>{phaseSeeding.toFixed(2)} LOS</span>
                                         </div>
                                         <div className="text-gray-500 ml-2 text-xs">
-                                          {phase.spots} spots × {maxMintsPerWallet} mints/wallet × {effectivePrice} LOS = {totalMints} total mints
+                                          {phase.spots} spots × {maxMintsPerWallet} mints/wallet × ({phasePrice} + {seedAmount}) LOS = {totalMints} total mints
                                         </div>
                                       </div>
                                     );
