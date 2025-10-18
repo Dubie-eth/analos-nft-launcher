@@ -724,8 +724,38 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     // The effective supply for bonding curve is total supply minus whitelist spots minus prebuy allocation
     const effectiveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots - prebuyAllocation);
     
+    // Debug logging
+    console.log('Bonding Curve Data Generation:', {
+      totalCollectionSupply,
+      totalWhitelistSpots,
+      prebuyAllocation,
+      effectiveSupply,
+      startingPrice,
+      maxPrice,
+      increaseRate
+    });
+    
     if (effectiveSupply === 0) {
-      return []; // No NFTs left for bonding curve
+      console.log('No bonding curve supply - using fallback calculation');
+      // Fallback: use at least 10% of total supply for bonding curve
+      const fallbackSupply = Math.max(10, Math.floor(totalCollectionSupply * 0.1));
+      console.log('Using fallback supply:', fallbackSupply);
+      
+      for (let i = 1; i <= fallbackSupply; i++) {
+        const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
+        const cappedPrice = Math.min(price, maxPrice);
+        
+        data.push({
+          mint: i,
+          price: cappedPrice,
+          supply: i,
+          totalSupply: fallbackSupply,
+          isPrebuy: false,
+          prebuyPrice: bondingCurveConfig.prebuyEnabled ? startingPrice * (1 - ((bondingCurveConfig.prebuyDiscount || 10) / 100)) : null
+        });
+      }
+      
+      return data;
     }
     
     for (let i = 1; i <= effectiveSupply; i++) {
