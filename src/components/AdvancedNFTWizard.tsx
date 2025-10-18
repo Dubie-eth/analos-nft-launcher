@@ -157,7 +157,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         },
         maxMintsPerWallet: 1,
         minTokenBalance: 1000000,
-        tokenContract: ''
+        tokenContract: '',
+        excludeFromSeedAmount: false
       },
       { 
         id: 'community', 
@@ -178,7 +179,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         },
         maxMintsPerWallet: 1,
         minTokenBalance: 1000000,
-        tokenContract: ''
+        tokenContract: '',
+        excludeFromSeedAmount: false
       },
       { 
         id: 'public', 
@@ -199,7 +201,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         },
         maxMintsPerWallet: 1,
         minTokenBalance: 0, // Public Access has no token requirement
-        tokenContract: ''
+        tokenContract: '',
+        excludeFromSeedAmount: false
       }
     ],
     tokenContract: '', // Default to LOL token contract (to be set by user)
@@ -304,7 +307,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       },
       maxMintsPerWallet: 1,
       minTokenBalance: 1000000,
-      tokenContract: ''
+      tokenContract: '',
+      excludeFromSeedAmount: false
     };
     setWhitelistConfig(prev => ({
       ...prev,
@@ -663,7 +667,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           const totalMints = phase.spots * maxMintsPerWallet;
           const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
           const phasePrice = phase.pricePerMint || 0;
-          const totalPrice = phasePrice + seedAmount;
+          // Only add seed amount if phase is not excluded from seeding
+          const totalPrice = phase.excludeFromSeedAmount ? phasePrice : phasePrice + seedAmount;
           
           totalWhitelistSpots += totalMints;
           totalWhitelistRevenue += totalPrice * totalMints;
@@ -673,6 +678,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       if (whitelistConfig.teamMint?.enabled || false) {
         const teamSeedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
         const teamPrice = whitelistConfig.teamMint?.pricePerMint || 0;
+        // Team mints are typically excluded from seed amount (free for team)
         const teamTotalPrice = teamPrice + teamSeedAmount;
         
         totalWhitelistSpots += whitelistConfig.teamMint?.amount || 50;
@@ -2520,6 +2526,33 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                             </p>
                                           </div>
                                         </div>
+
+                                        {/* Seed Amount Exclusion */}
+                                        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                                          <div className="flex items-center justify-between mb-3">
+                                            <div>
+                                              <h6 className="text-yellow-300 font-medium">Exclude from Seed Amount</h6>
+                                              <p className="text-yellow-200 text-sm">Skip the bonding curve seed amount for this phase</p>
+                                            </div>
+                                            <label className="flex items-center cursor-pointer">
+                                              <input
+                                                type="checkbox"
+                                                checked={phase.excludeFromSeedAmount || false}
+                                                onChange={(e) => updatePhase(phase.id, { excludeFromSeedAmount: e.target.checked })}
+                                                className="w-5 h-5 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500"
+                                              />
+                                            </label>
+                                          </div>
+                                          
+                                          {phase.excludeFromSeedAmount && (
+                                            <div className="mt-3 p-3 bg-yellow-800/20 border border-yellow-500/30 rounded">
+                                              <p className="text-xs text-yellow-200">
+                                                <strong>💡 Note:</strong> This phase will mint at its base price ({phase.pricePerMint || 0} {phase.paymentToken || 'LOL'}) without adding the bonding curve seed amount. 
+                                                This is useful for free phases or special promotional phases.
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
                                     )}
@@ -2838,8 +2871,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   {effectiveSpots} spots • {(() => {
                                     const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
                                     const phasePrice = phase.pricePerMint || 0;
-                                    const totalPrice = phasePrice + seedAmount;
-                                    return `${totalPrice} LOS each (${phasePrice} + ${seedAmount} seed)`;
+                                    const isExcluded = phase.excludeFromSeedAmount || false;
+                                    const totalPrice = isExcluded ? phasePrice : phasePrice + seedAmount;
+                                    
+                                    if (isExcluded) {
+                                      return `${totalPrice} LOS each (excluded from seed)`;
+                                    } else {
+                                      return `${totalPrice} LOS each (${phasePrice} + ${seedAmount} seed)`;
+                                    }
                                   })()}
                                 </p>
                               </div>
@@ -2897,7 +2936,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               .filter(phase => phase.enabled)
                               .reduce((sum, phase) => {
                                 const phasePrice = phase.pricePerMint || 0;
-                                const totalPrice = phasePrice + seedAmount; // Add seeding amount to phase price
+                                // Only add seed amount if phase is not excluded from seeding
+                                const totalPrice = phase.excludeFromSeedAmount ? phasePrice : phasePrice + seedAmount;
                                 const totalMints = phase.spots * (phase.maxMintsPerWallet || 1);
                                 return sum + (totalPrice * totalMints);
                               }, 0);
@@ -2915,12 +2955,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                 <div className="text-gray-300 font-medium mb-1">Seeding Breakdown:</div>
                                 <div className="text-gray-400 mb-2 text-xs">
                                   Formula: (spots × maxMintsPerWallet) × (phasePrice + seedAmount) = totalSeeding
+                                  <br />
+                                  <span className="text-yellow-400">Note: Phases with "Exclude from Seed Amount" enabled skip the seed amount</span>
                                 </div>
                                 {whitelistConfig.phases
                                   .filter(phase => phase.enabled)
                                   .map((phase, index) => {
                                     const phasePrice = phase.pricePerMint || 0;
-                                    const totalPrice = phasePrice + seedAmount;
+                                    const isExcluded = phase.excludeFromSeedAmount || false;
+                                    const totalPrice = isExcluded ? phasePrice : phasePrice + seedAmount;
                                     const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
                                     const totalMints = phase.spots * maxMintsPerWallet;
                                     const phaseSeeding = totalPrice * totalMints;
@@ -2928,11 +2971,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                     return (
                                       <div key={phase.id} className="space-y-1">
                                         <div className="flex justify-between text-gray-400">
-                                          <span>{phase.name}:</span>
-                                          <span>{phaseSeeding.toFixed(2)} LOS</span>
+                                          <span className={isExcluded ? "text-yellow-300" : ""}>
+                                            {phase.name} {isExcluded && "(Excluded from Seed)"}:
+                                          </span>
+                                          <span className={isExcluded ? "text-yellow-300" : ""}>{phaseSeeding.toFixed(2)} LOS</span>
                                         </div>
                                         <div className="text-gray-500 ml-2 text-xs">
-                                          {phase.spots} spots × {maxMintsPerWallet} mints/wallet × ({phasePrice} + {seedAmount}) LOS = {totalMints} total mints
+                                          {phase.spots} spots × {maxMintsPerWallet} mints/wallet × {isExcluded ? phasePrice : `(${phasePrice} + ${seedAmount})`} LOS = {totalMints} total mints
                                         </div>
                                       </div>
                                     );
@@ -3156,7 +3201,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         const totalMints = phase.spots * maxMintsPerWallet;
                         const seedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
                         const phasePrice = phase.pricePerMint || 0;
-                        const totalPrice = phasePrice + seedAmount;
+                        // Only add seed amount if phase is not excluded from seeding
+                        const totalPrice = phase.excludeFromSeedAmount ? phasePrice : phasePrice + seedAmount;
                         
                         totalWhitelistSpots += totalMints;
                         totalWhitelistRevenue += totalPrice * totalMints;
