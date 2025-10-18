@@ -239,7 +239,9 @@ export default function Leaderboard({
         </div>
 
         {/* Category Tabs */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-6">
+        <div className={`flex space-x-1 rounded-lg p-1 mb-6 ${
+          theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+        }`}>
           {LEADERBOARD_CATEGORIES.map((category) => (
             <button
               key={category.key}
@@ -247,8 +249,12 @@ export default function Leaderboard({
               className={`
                 flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors
                 ${selectedCategory === category.key
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? theme === 'dark'
+                    ? 'bg-gray-800 text-blue-400 shadow-sm'
+                    : 'bg-white text-blue-600 shadow-sm'
+                  : theme === 'dark'
+                    ? 'text-gray-300 hover:text-white'
+                    : 'text-gray-600 hover:text-gray-900'
                 }
               `}
             >
@@ -266,8 +272,12 @@ export default function Leaderboard({
               className={`
                 px-3 py-1 rounded-full text-xs font-medium transition-colors
                 ${timeframe === time
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? theme === 'dark'
+                    ? 'bg-blue-900 text-blue-300'
+                    : 'bg-blue-100 text-blue-700'
+                  : theme === 'dark'
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }
               `}
             >
@@ -278,30 +288,52 @@ export default function Leaderboard({
       </div>
 
       {/* Leaderboard List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
+      <div className={`rounded-lg shadow overflow-hidden ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <div className={`px-6 py-4 border-b ${
+          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
             {LEADERBOARD_CATEGORIES.find(c => c.key === selectedCategory)?.name}
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className={`text-sm ${
+            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+          }`}>
             {LEADERBOARD_CATEGORIES.find(c => c.key === selectedCategory)?.description}
           </p>
         </div>
 
-        <div className="divide-y divide-gray-200">
+        <div className={`divide-y ${
+          theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'
+        }`}>
           {sortedData.map((user, index) => (
             <div
               key={user.walletAddress}
               className={`
                 px-6 py-4 flex items-center space-x-4 transition-colors leaderboard-entry
-                ${user.isCurrentUser ? 'bg-blue-50 border-l-4 border-blue-500' : 'hover:bg-gray-50'}
+                ${user.isCurrentUser 
+                  ? theme === 'dark'
+                    ? 'bg-blue-900/30 border-l-4 border-blue-500'
+                    : 'bg-blue-50 border-l-4 border-blue-500'
+                  : theme === 'dark'
+                    ? 'hover:bg-gray-700'
+                    : 'hover:bg-gray-50'
+                }
               `}
             >
               {/* Rank */}
               <div className="flex-shrink-0 w-12 text-center">
                 <span className={`
                   text-lg font-bold
-                  ${user.rank <= 3 ? 'text-yellow-600' : 'text-gray-600'}
+                  ${user.rank <= 3 
+                    ? 'text-yellow-500' 
+                    : theme === 'dark'
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }
                 `}>
                   {getRankIcon(user.rank)}
                 </span>
@@ -329,7 +361,14 @@ export default function Leaderboard({
                 <div className="flex items-center space-x-2">
                   <p className={`
                     text-sm font-medium username
-                    ${user.isCurrentUser ? 'text-blue-900' : 'text-gray-900'}
+                    ${user.isCurrentUser 
+                      ? theme === 'dark'
+                        ? 'text-blue-400'
+                        : 'text-blue-900'
+                      : theme === 'dark'
+                        ? 'text-white'
+                        : 'text-gray-900'
+                    }
                   `}>
                     {user.username}
                   </p>
@@ -339,20 +378,26 @@ export default function Leaderboard({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 wallet-address">
+                <p className={`text-xs wallet-address ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
                 </p>
               </div>
 
               {/* Stats */}
               <div className="flex-shrink-0 text-right">
-                <div className="text-lg font-bold text-gray-900 points">
+                <div className={`text-lg font-bold points ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}>
                   {selectedCategory === 'referrals' 
                     ? user.totalReferrals 
                     : formatNumber(getPointsForCategory(user, selectedCategory))
                   }
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className={`text-xs ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   {selectedCategory === 'referrals' ? 'referrals' : 'points'}
                 </div>
               </div>
@@ -361,8 +406,14 @@ export default function Leaderboard({
         </div>
 
         {/* View All Button */}
-        <div className="px-6 py-4 bg-gray-50 text-center">
-          <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        <div className={`px-6 py-4 text-center ${
+          theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+        }`}>
+          <button className={`text-sm font-medium ${
+            theme === 'dark' 
+              ? 'text-blue-400 hover:text-blue-300' 
+              : 'text-blue-600 hover:text-blue-700'
+          }`}>
             View Complete Leaderboard →
           </button>
         </div>
