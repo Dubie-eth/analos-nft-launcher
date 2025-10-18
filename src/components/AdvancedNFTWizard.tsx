@@ -2235,9 +2235,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                     </div>
                                     )}
                                   </div>
+                                </div>
 
-                                  {/* Social Verification & Time Settings */}
-                                  <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                {/* Social Verification & Time Settings */}
+                                <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
                                   {/* Social Verification */}
                                   <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
                                     <h5 className="text-lg font-medium text-purple-300 mb-4 flex items-center gap-2">
@@ -2365,42 +2366,41 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   </div>
                                 </div>
 
-                                  {/* Custom Whitelist Upload - Only for non-Public Access phases */}
-                                  {!isPublicAccess && (
-                                    <div className="bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
-                                      <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-                                        Custom Whitelist Upload
-                                      </h5>
-                                      <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
-                                        <input
-                                          type="file"
-                                          accept=".csv"
-                                          onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                              updatePhase(phase.id, { csvFile: file });
-                                            }
-                                          }}
-                                          className="hidden"
-                                          id={`csv-upload-${phase.id}`}
-                                        />
-                                        <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
-                                          <div className="text-gray-400 mb-2 text-sm">
-                                            📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file'}
-                                          </div>
-                                          <button
-                                            type="button"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
-                                          >
-                                            Choose File
-                                          </button>
-                                        </label>
-                                        <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
-                                      </div>
+                                {/* Custom Whitelist Upload - Only for non-Public Access phases */}
+                                {!isPublicAccess && (
+                                  <div className="mt-4 bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
+                                    <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
+                                      <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                                      Custom Whitelist Upload
+                                    </h5>
+                                    <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
+                                      <input
+                                        type="file"
+                                        accept=".csv"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            updatePhase(phase.id, { csvFile: file });
+                                          }
+                                        }}
+                                        className="hidden"
+                                        id={`csv-upload-${phase.id}`}
+                                      />
+                                      <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
+                                        <div className="text-gray-400 mb-2 text-sm">
+                                          📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file'}
+                                        </div>
+                                        <button
+                                          type="button"
+                                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
+                                        >
+                                          Choose File
+                                        </button>
+                                      </label>
+                                      <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
                                     </div>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
 
                                 {/* Save Phase Button */}
                                 <div className="mt-4 pt-4 border-t border-gray-600 flex justify-end">
