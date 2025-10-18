@@ -67,9 +67,39 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const [whitelistConfig, setWhitelistConfig] = useState({
     whitelistType: 'token' as 'token' | 'nft' | 'csv', // Toggle between token holders, NFT holders, or CSV upload
     phases: [
-      { id: 'early', name: 'Early Supporters', enabled: true, spots: 100, order: 1, description: 'First supporters and early adopters' },
-      { id: 'community', name: 'Community Members', enabled: true, spots: 200, order: 2, description: 'Active community members' },
-      { id: 'public', name: 'Public Access', enabled: false, spots: 200, order: 3, description: 'Open to everyone' }
+      { 
+        id: 'early', 
+        name: 'Early Supporters', 
+        enabled: true, 
+        spots: 100, 
+        order: 1, 
+        description: 'First supporters and early adopters',
+        paymentToken: 'LOL',
+        pricePerMint: 0,
+        csvFile: null as File | null
+      },
+      { 
+        id: 'community', 
+        name: 'Community Members', 
+        enabled: true, 
+        spots: 200, 
+        order: 2, 
+        description: 'Active community members',
+        paymentToken: 'LOL',
+        pricePerMint: 0,
+        csvFile: null as File | null
+      },
+      { 
+        id: 'public', 
+        name: 'Public Access', 
+        enabled: false, 
+        spots: 200, 
+        order: 3, 
+        description: 'Open to everyone',
+        paymentToken: 'LOL',
+        pricePerMint: 0,
+        csvFile: null as File | null
+      }
     ],
     tokenContract: '', // Default to LOL token contract (to be set by user)
     minTokenBalance: 1000000,
@@ -131,7 +161,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       enabled: true,
       spots: 100,
       order: whitelistConfig.phases.length + 1,
-      description: 'Custom phase'
+      description: 'Custom phase',
+      paymentToken: 'LOL',
+      pricePerMint: 0,
+      csvFile: null as File | null
     };
     setWhitelistConfig(prev => ({
       ...prev,
@@ -2122,6 +2155,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                           </label>
                                           <input
                                             type="number"
+                                            value={phase.pricePerMint || ''}
+                                            onChange={(e) => updatePhase(phase.id, { pricePerMint: parseFloat(e.target.value) || 0 })}
                                             placeholder="1000"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
                                           />
@@ -2190,10 +2225,50 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   </div>
                                 </div>
 
+                                {/* Custom Whitelist Upload */}
+                                <div className="mt-8 bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
+                                  <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                                    Custom Whitelist Upload
+                                  </h5>
+                                  <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+                                    <input
+                                      type="file"
+                                      accept=".csv"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          updatePhase(phase.id, { csvFile: file });
+                                        }
+                                      }}
+                                      className="hidden"
+                                      id={`csv-upload-${phase.id}`}
+                                    />
+                                    <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
+                                      <div className="text-gray-400 mb-2">
+                                        📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file with wallet addresses'}
+                                      </div>
+                                      <button
+                                        type="button"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors"
+                                      >
+                                        Choose File
+                                      </button>
+                                    </label>
+                                    <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
+                                  </div>
+                                </div>
+
                                 {/* Save Phase Button */}
                                 <div className="mt-8 pt-6 border-t border-gray-600 flex justify-end">
                                   <button
                                     type="button"
+                                    onClick={() => {
+                                      console.log('💾 Saving phase configuration:', phase);
+                                      // Phase is already saved in state via updatePhase calls
+                                      // Show success message
+                                      alert(`Phase "${phase.name}" configuration saved successfully!`);
+                                    }}
                                     className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-3 font-medium"
                                   >
                                     <Save className="w-5 h-5" />
@@ -2217,339 +2292,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         Add New Phase
                       </button>
                     </div>
-
-                      {/* Dynamic Fields Based on Whitelist Type */}
-                      {whitelistConfig.whitelistType === 'token' && (
-                        <div>
-                          <div className="mb-4">
-                            <label className="block text-xs text-gray-400 mb-1">Token Contract Address</label>
-                            <input
-                              type="text"
-                              value={whitelistConfig.tokenContract}
-                              onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
-                              placeholder="Enter token contract address (e.g., LOL, SOL, or custom token)"
-                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                              data-1p-ignore
-                              data-lpignore="true"
-                              autoComplete="off"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Popular tokens: LOL, SOL, USDC, or enter any SPL token contract
-                            </p>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Minimum Token Balance</label>
-                              <input
-                                type="number"
-                                value={whitelistConfig.minTokenBalance}
-                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minTokenBalance: parseInt(e.target.value) || 0 }))}
-                                placeholder="1000000"
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Max Mints per Wallet</label>
-                              <input
-                                type="number"
-                                value={whitelistConfig.maxMintsPerWallet}
-                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, maxMintsPerWallet: parseInt(e.target.value) || 1 }))}
-                                placeholder="1"
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {whitelistConfig.whitelistType === 'nft' && (
-                        <div>
-                          <div className="mb-4">
-                            <label className="block text-xs text-gray-400 mb-1">NFT Collection Contract</label>
-                            <input
-                              type="text"
-                              value={whitelistConfig.tokenContract}
-                              onChange={(e) => setWhitelistConfig(prev => ({ ...prev, tokenContract: e.target.value }))}
-                              placeholder="Enter NFT collection contract address"
-                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Contract address of the NFT collection holders need to own
-                            </p>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Minimum NFT Holdings</label>
-                              <input
-                                type="number"
-                                value={whitelistConfig.minNftHoldings}
-                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, minNftHoldings: parseInt(e.target.value) || 0 }))}
-                                placeholder="1"
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-400 mb-1">Max Mints per Wallet</label>
-                              <input
-                                type="number"
-                                value={whitelistConfig.maxMintsPerWallet}
-                                onChange={(e) => setWhitelistConfig(prev => ({ ...prev, maxMintsPerWallet: parseInt(e.target.value) || 1 }))}
-                                placeholder="1"
-                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {whitelistConfig.whitelistType === 'csv' && (
-                        <div>
-                          <div className="mb-4">
-                            <label className="block text-xs text-gray-400 mb-1">Upload CSV File</label>
-                            <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
-                              <input
-                                type="file"
-                                accept=".csv"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    setWhitelistConfig(prev => ({ ...prev, csvFile: file }));
-                                  }
-                                }}
-                                className="hidden"
-                                id="csv-upload"
-                              />
-                              <label htmlFor="csv-upload" className="cursor-pointer">
-                                <div className="text-gray-400 mb-2">
-                                  📄 {whitelistConfig.csvFile ? whitelistConfig.csvFile.name : 'Choose CSV file'}
-                                </div>
-                                <button
-                                  type="button"
-                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-                                >
-                                  Choose File
-                                </button>
-                              </label>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">
-                              Format: wallet_address,phase,tier (one per line)
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Whitelist Pricing Configuration */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">💰 Whitelist Pricing</label>
-                      <p className="text-xs text-gray-400 mb-4">Set the price per mint for different tokens</p>
-                      
-                      <div className="space-y-4">
-                        {/* Token Selection */}
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-2">Payment Token</label>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              { id: 'lol', name: 'LOL', description: 'LOL Token' },
-                              { id: 'los', name: 'LOS', description: 'Native Analos Token' },
-                              { id: 'sol', name: 'SOL', description: 'Solana' },
-                              { id: 'usdc', name: 'USDC', description: 'USD Coin' },
-                              { id: 'custom', name: 'Custom', description: 'Custom Token' }
-                            ].map((token) => (
-                              <button
-                                key={token.id}
-                                onClick={() => setWhitelistConfig(prev => ({ 
-                                  ...prev, 
-                                  pricing: { ...prev.pricing, selectedToken: token.id as any }
-                                }))}
-                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                  whitelistConfig.pricing.selectedToken === token.id
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                }`}
-                              >
-                                {token.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Price Input */}
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">
-                            Price in {whitelistConfig.pricing.selectedToken.toUpperCase()}
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type="number"
-                              step={whitelistConfig.pricing.selectedToken === 'usdc' ? '0.01' : '0.001'}
-                              value={whitelistConfig.pricing[`${whitelistConfig.pricing.selectedToken}Price` as keyof typeof whitelistConfig.pricing] as string}
-                              onChange={(e) => setWhitelistConfig(prev => ({ 
-                                ...prev, 
-                                pricing: { 
-                                  ...prev.pricing, 
-                                  [`${prev.pricing.selectedToken}Price`]: e.target.value 
-                                }
-                              }))}
-                              placeholder={
-                                whitelistConfig.pricing.selectedToken === 'lol' ? '1000' :
-                                whitelistConfig.pricing.selectedToken === 'los' ? '100' :
-                                whitelistConfig.pricing.selectedToken === 'sol' ? '0.1' :
-                                whitelistConfig.pricing.selectedToken === 'usdc' ? '10.00' : '100'
-                              }
-                              className="flex-1 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                            />
-                            {whitelistConfig.pricing.selectedToken === 'custom' && (
-                              <input
-                                type="text"
-                                value={whitelistConfig.pricing.customTokenSymbol}
-                                onChange={(e) => setWhitelistConfig(prev => ({ 
-                                  ...prev, 
-                                  pricing: { ...prev.pricing, customTokenSymbol: e.target.value }
-                                }))}
-                                placeholder="SYMBOL"
-                                className="w-24 px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm text-center"
-                              />
-                            )}
-                          </div>
-                          
-                          {/* USD Estimate */}
-                          <div className="mt-2 p-2 bg-green-900/20 border border-green-500/30 rounded">
-                            <p className="text-xs text-green-300">
-                              <span className="font-medium">Estimated USD Value:</span>{' '}
-                              {getUSDPrice(
-                                whitelistConfig.pricing.selectedToken, 
-                                whitelistConfig.pricing[`${whitelistConfig.pricing.selectedToken}Price` as keyof typeof whitelistConfig.pricing] as string
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Social Verification */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">Social Verification</label>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2">
-                          <input 
-                            type="checkbox" 
-                            className="w-4 h-4 text-blue-600"
-                            checked={whitelistConfig.socialVerification.twitter}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              socialVerification: { ...prev.socialVerification, twitter: e.target.checked }
-                            }))}
-                          />
-                          <span className="text-white text-sm">Require Twitter/X verification</span>
-                        </label>
-                        <label className="flex items-center gap-2">
-                          <input 
-                            type="checkbox" 
-                            className="w-4 h-4 text-blue-600"
-                            checked={whitelistConfig.socialVerification.discord}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              socialVerification: { ...prev.socialVerification, discord: e.target.checked }
-                            }))}
-                          />
-                          <span className="text-white text-sm">Require Discord server membership</span>
-                        </label>
-                        
-                        {/* Discord Server ID Input */}
-                        {whitelistConfig.socialVerification.discord && (
-                          <div className="ml-6 mt-2">
-                            <label className="block text-xs text-gray-400 mb-1">Discord Server ID</label>
-                            <input
-                              type="text"
-                              value={whitelistConfig.socialVerification.discordServerId}
-                              onChange={(e) => setWhitelistConfig(prev => ({ 
-                                ...prev, 
-                                socialVerification: { ...prev.socialVerification, discordServerId: e.target.value }
-                              }))}
-                              placeholder="123456789012345678"
-                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Right-click on your Discord server → Server Settings → Advanced → Server ID
-                            </p>
-                          </div>
-                        )}
-                        
-                        <label className="flex items-center gap-2">
-                          <input 
-                            type="checkbox" 
-                            className="w-4 h-4 text-blue-600"
-                            checked={whitelistConfig.socialVerification.telegram}
-                            onChange={(e) => setWhitelistConfig(prev => ({ 
-                              ...prev, 
-                              socialVerification: { ...prev.socialVerification, telegram: e.target.checked }
-                            }))}
-                          />
-                          <span className="text-white text-sm">Require Telegram group membership</span>
-                        </label>
-                        
-                        {/* Telegram Group ID Input */}
-                        {whitelistConfig.socialVerification.telegram && (
-                          <div className="ml-6 mt-2">
-                            <label className="block text-xs text-gray-400 mb-1">Telegram Group ID</label>
-                            <input
-                              type="text"
-                              value={whitelistConfig.socialVerification.telegramGroupId}
-                              onChange={(e) => setWhitelistConfig(prev => ({ 
-                                ...prev, 
-                                socialVerification: { ...prev.socialVerification, telegramGroupId: e.target.value }
-                              }))}
-                              placeholder="-1001234567890"
-                              className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white placeholder-gray-400 text-sm"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Use @userinfobot in your Telegram group to get the group ID
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Time-based Access */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">Time-based Access</label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Whitelist Start Time</label>
-                          <input
-                            type="datetime-local"
-                            value={whitelistConfig.startTime}
-                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, startTime: e.target.value }))}
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Whitelist End Time</label>
-                          <input
-                            type="datetime-local"
-                            value={whitelistConfig.endTime}
-                            onChange={(e) => setWhitelistConfig(prev => ({ ...prev, endTime: e.target.value }))}
-                            className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded text-white text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Custom Whitelist Upload */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-3">Custom Whitelist</label>
-                      <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
-                        <p className="text-gray-400 text-sm mb-2">Upload CSV file with wallet addresses</p>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors">
-                          Choose File
-                        </button>
-                        <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
-                      </div>
-                    </div>
                   </div>
+                </div>
               )}
             </div>
           </div>
