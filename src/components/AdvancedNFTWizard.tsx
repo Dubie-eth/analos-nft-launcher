@@ -4227,11 +4227,59 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 Your collection is configured and ready to be deployed to the Analos blockchain.
               </p>
               <button
-                onClick={() => onComplete({
-                  ...collectionConfig,
-                  layers,
-                  timestamp: new Date().toISOString()
-                })}
+                onClick={async () => {
+                  try {
+                    console.log('🚀 Starting collection deployment...');
+                    
+                    // Prepare deployment data
+                    const deploymentData = {
+                      collectionConfig,
+                      whitelistConfig,
+                      bondingCurveConfig,
+                      layers,
+                      userWallet: publicKey?.toString()
+                    };
+
+                    // Call deployment API
+                    const response = await fetch('/api/collections/deploy', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(deploymentData),
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                      throw new Error(result.error || 'Deployment failed');
+                    }
+
+                    console.log('✅ Deployment transaction prepared:', result);
+
+                    // Show success modal with deployment details
+                    alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} lamports\n\nTransaction ready for signing!`);
+
+                    // Complete the wizard with deployment info
+                    onComplete({
+                      ...collectionConfig,
+                      layers,
+                      deploymentInfo: {
+                        collectionMint: result.collectionMint,
+                        metadataAccount: result.metadataAccount,
+                        deploymentCost: result.deploymentCost,
+                        transactionData: result.transaction,
+                        deployed: true,
+                        deployedAt: new Date().toISOString()
+                      },
+                      timestamp: new Date().toISOString()
+                    });
+
+                  } catch (error) {
+                    console.error('❌ Deployment error:', error);
+                    alert(`Deployment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                  }
+                }}
                 className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
               >
                 Deploy Collection
@@ -4378,11 +4426,59 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 </button>
               ) : (
                 <button
-                  onClick={() => onComplete({
-                    ...collectionConfig,
-                    layers,
-                    timestamp: new Date().toISOString()
-                  })}
+                  onClick={async () => {
+                    try {
+                      console.log('🚀 Starting collection deployment...');
+                      
+                      // Prepare deployment data
+                      const deploymentData = {
+                        collectionConfig,
+                        whitelistConfig,
+                        bondingCurveConfig,
+                        layers,
+                        userWallet: publicKey?.toString()
+                      };
+
+                      // Call deployment API
+                      const response = await fetch('/api/collections/deploy', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(deploymentData),
+                      });
+
+                      const result = await response.json();
+
+                      if (!response.ok) {
+                        throw new Error(result.error || 'Deployment failed');
+                      }
+
+                      console.log('✅ Deployment transaction prepared:', result);
+
+                      // Show success modal with deployment details
+                      alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} lamports\n\nTransaction ready for signing!`);
+
+                      // Complete the wizard with deployment info
+                      onComplete({
+                        ...collectionConfig,
+                        layers,
+                        deploymentInfo: {
+                          collectionMint: result.collectionMint,
+                          metadataAccount: result.metadataAccount,
+                          deploymentCost: result.deploymentCost,
+                          transactionData: result.transaction,
+                          deployed: true,
+                          deployedAt: new Date().toISOString()
+                        },
+                        timestamp: new Date().toISOString()
+                      });
+
+                    } catch (error) {
+                      console.error('❌ Deployment error:', error);
+                      alert(`Deployment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                  }}
                   className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold"
                 >
                   Deploy Collection
