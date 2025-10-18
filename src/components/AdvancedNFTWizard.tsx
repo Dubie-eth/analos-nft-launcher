@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, Plus, Settings, Eye, EyeOff, ArrowUp, ArrowDown, Trash2, Save } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useWallet } from '@solana/wallet-adapter-react';
 import AdvancedLayerManager from './AdvancedLayerManager';
 import ThemeToggle from './ThemeToggle';
@@ -724,22 +725,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     // The effective supply for bonding curve is total supply minus whitelist spots minus prebuy allocation
     const effectiveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots - prebuyAllocation);
     
-    // Debug logging
-    console.log('Bonding Curve Data Generation:', {
-      totalCollectionSupply,
-      totalWhitelistSpots,
-      prebuyAllocation,
-      effectiveSupply,
-      startingPrice,
-      maxPrice,
-      increaseRate
-    });
-    
     if (effectiveSupply === 0) {
-      console.log('No bonding curve supply - using fallback calculation');
       // Fallback: use at least 10% of total supply for bonding curve
       const fallbackSupply = Math.max(10, Math.floor(totalCollectionSupply * 0.1));
-      console.log('Using fallback supply:', fallbackSupply);
       
       for (let i = 1; i <= fallbackSupply; i++) {
         const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
@@ -3007,7 +2995,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           Platform Fee (%)
                         </label>
                         <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-500 rounded-lg text-gray-300 cursor-not-allowed">
-                          2.5% (Fixed)
+                          1.8% (Fixed)
                         </div>
                         <p className="text-xs text-gray-400 mt-1">Analos platform fee - non-negotiable</p>
                       </div>
@@ -3021,12 +3009,20 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           <span>{bondingCurveConfig.creatorRoyalty || '0'}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Platform Fee:</span>
-                          <span>2.5%</span>
+                          <span>Analos Fee:</span>
+                          <span>1.0%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Referral Fee:</span>
+                          <span>0.5%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Treasury:</span>
+                          <span>0.3%</span>
                         </div>
                         <div className="flex justify-between border-t border-blue-500/30 pt-1 font-medium">
                           <span>Total Fees:</span>
-                          <span>{(parseFloat(bondingCurveConfig.creatorRoyalty) || 0) + 2.5}%</span>
+                          <span>{(parseFloat(bondingCurveConfig.creatorRoyalty) || 0) + 1.8}%</span>
                         </div>
                       </div>
                     </div>
@@ -3386,7 +3382,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     </div>
                     
                     <div className="space-y-4">
-                  {/* Professional Chart Container - Losscreener Style */}
+                  {/* Professional Chart Container - Recharts Implementation */}
                   <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
                     {/* Chart Header */}
                     <div className="bg-gray-800/50 px-4 py-3 border-b border-gray-700">
@@ -3404,156 +3400,96 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
                     {/* Chart Area */}
                     <div className="relative">
-                    {chartViewMode === 'compact' ? (
-                        // Compact view - Losscreener style
-                        <div className="h-80 relative">
-                          {/* Y-Axis Price Labels */}
-                          <div className="absolute left-0 top-0 bottom-0 w-16 flex flex-col justify-between py-4">
-                          {(() => {
-                            const data = generateBondingCurveData();
-                            const maxPrice = Math.max(...data.map(p => p.price));
-                              const minPrice = Math.min(...data.map(p => p.price));
-                              const priceRange = maxPrice - minPrice;
-                              const steps = 5;
-                              
-                              return Array.from({ length: steps + 1 }, (_, i) => {
-                                const price = maxPrice - (priceRange * i / steps);
-                                return (
-                                  <div key={i} className="text-xs text-gray-400 text-right pr-2">
-                                    {price.toFixed(4)}
-                                  </div>
-                                );
-                              });
-                            })()}
-                          </div>
-
-                          {/* Grid Lines */}
-                          <div className="absolute left-16 right-0 top-0 bottom-0">
-                            {Array.from({ length: 6 }, (_, i) => (
-                              <div
-                                key={i}
-                                className="absolute w-full border-t border-gray-700/50"
-                                style={{ top: `${(i * 100) / 5}%` }}
-                              />
-                            ))}
-                          </div>
-
-                          {/* Chart Bars */}
-                          <div className="absolute left-16 right-0 top-0 bottom-0 flex items-end justify-between gap-1 px-2 py-4">
-                            {(() => {
-                              const data = generateBondingCurveData();
-                              const maxPrice = Math.max(...data.map(p => p.price));
-                              const minPrice = Math.min(...data.map(p => p.price));
-                              const priceRange = maxPrice - minPrice;
-                              const step = Math.max(1, Math.floor(data.length / 50));
-                            const compactData = data.filter((_, index) => index % step === 0);
-                            
-                            return compactData.map((point, index) => {
-                                const barHeight = ((point.price - minPrice) / priceRange) * 100;
-                              const originalIndex = index * step;
-                              
-                              return (
-                                <div
-                                  key={originalIndex}
-                                  className="flex flex-col items-center group cursor-pointer relative flex-1"
-                                >
-                                  <div
-                                      className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t transition-all duration-300 hover:from-green-500 hover:to-green-300 relative"
-                                      style={{ height: `${barHeight}%` }}
-                                      title={`Mint ${originalIndex + 1}: ${point.price.toFixed(4)} LOS`}
-                                    >
-                                      {/* Hover tooltip */}
-                                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                        {point.price.toFixed(4)} LOS
-                                    </div>
-                                    </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                        
-                          {/* X-Axis Labels */}
-                          <div className="absolute bottom-0 left-16 right-0 flex justify-between px-2 pb-2">
-                            <span className="text-xs text-gray-400">Mint #1</span>
-                            <span className="text-xs text-gray-400">Supply: {generateBondingCurveData().length} NFTs</span>
-                            <span className="text-xs text-gray-400">Mint #{generateBondingCurveData().length}</span>
-                        </div>
-                      </div>
-                    ) : (
-                        // Full view - Losscreener style with scroll
-                        <div className="h-80 relative overflow-x-auto">
-                          <div className="min-w-max">
-                            {/* Y-Axis Price Labels */}
-                            <div className="absolute left-0 top-0 bottom-0 w-16 flex flex-col justify-between py-4 z-10">
-                              {(() => {
+                      <div className="h-80 p-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          {chartViewMode === 'compact' ? (
+                            <BarChart
+                              data={(() => {
                                 const data = generateBondingCurveData();
-                                const maxPrice = Math.max(...data.map(p => p.price));
-                                const minPrice = Math.min(...data.map(p => p.price));
-                                const priceRange = maxPrice - minPrice;
-                                const steps = 5;
-                                
-                                return Array.from({ length: steps + 1 }, (_, i) => {
-                                  const price = maxPrice - (priceRange * i / steps);
-                                  return (
-                                    <div key={i} className="text-xs text-gray-400 text-right pr-2">
-                                      {price.toFixed(4)}
-                                    </div>
-                                  );
-                                });
+                                const step = Math.max(1, Math.floor(data.length / 50));
+                                return data.filter((_, index) => index % step === 0);
                               })()}
-                            </div>
-
-                            {/* Grid Lines */}
-                            <div className="absolute left-16 right-0 top-0 bottom-0">
-                              {Array.from({ length: 6 }, (_, i) => (
-                                <div
-                                  key={i}
-                                  className="absolute w-full border-t border-gray-700/50"
-                                  style={{ top: `${(i * 100) / 5}%` }}
-                                />
-                              ))}
-                            </div>
-
-                            {/* Chart Bars */}
-                            <div className="absolute left-16 right-0 top-0 bottom-0 flex items-end gap-0.5 px-2 py-4 min-w-max">
-                          {generateBondingCurveData().map((point, index) => {
-                            const maxPrice = Math.max(...generateBondingCurveData().map(p => p.price));
-                                const minPrice = Math.min(...generateBondingCurveData().map(p => p.price));
-                                const priceRange = maxPrice - minPrice;
-                                const barHeight = ((point.price - minPrice) / priceRange) * 100;
-                                const barWidth = Math.max(2, Math.min(6, 800 / generateBondingCurveData().length));
-                            
-                            return (
-                              <div
-                                key={index}
-                                className="flex flex-col items-center group cursor-pointer relative"
-                                style={{ width: `${barWidth}px` }}
-                              >
-                                <div
-                                      className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t transition-all duration-300 hover:from-green-500 hover:to-green-300 relative"
-                                      style={{ height: `${barHeight}%` }}
-                                      title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOS`}
-                                    >
-                                      {/* Hover tooltip */}
-                                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                        {point.price.toFixed(4)} LOS
-                                  </div>
-                                    </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                            {/* X-Axis Labels */}
-                            <div className="absolute bottom-0 left-16 right-0 flex justify-between px-2 pb-2 min-w-max">
-                              <span className="text-xs text-gray-400">Mint #1</span>
-                              <span className="text-xs text-gray-400">Supply: {generateBondingCurveData().length} NFTs</span>
-                              <span className="text-xs text-gray-400">Mint #{generateBondingCurveData().length}</span>
-                        </div>
-                          </div>
-                        </div>
-                      )}
+                              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                              <XAxis 
+                                dataKey="mint" 
+                                stroke="#9CA3AF"
+                                fontSize={12}
+                                tickFormatter={(value) => `#${value}`}
+                              />
+                              <YAxis 
+                                stroke="#9CA3AF"
+                                fontSize={12}
+                                tickFormatter={(value) => `${value.toFixed(2)}`}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1F2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                  color: '#F9FAFB'
+                                }}
+                                formatter={(value: number, name: string) => [
+                                  `${value.toFixed(4)} LOS`,
+                                  'Price'
+                                ]}
+                                labelFormatter={(label) => `Mint #${label}`}
+                              />
+                              <Bar 
+                                dataKey="price" 
+                                fill="url(#colorGradient)"
+                                radius={[2, 2, 0, 0]}
+                              />
+                              <defs>
+                                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#10B981" />
+                                  <stop offset="100%" stopColor="#059669" />
+                                </linearGradient>
+                              </defs>
+                            </BarChart>
+                          ) : (
+                            <LineChart
+                              data={generateBondingCurveData()}
+                              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                              <XAxis 
+                                dataKey="mint" 
+                                stroke="#9CA3AF"
+                                fontSize={12}
+                                tickFormatter={(value) => `#${value}`}
+                              />
+                              <YAxis 
+                                stroke="#9CA3AF"
+                                fontSize={12}
+                                tickFormatter={(value) => `${value.toFixed(2)}`}
+                              />
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: '#1F2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                  color: '#F9FAFB'
+                                }}
+                                formatter={(value: number, name: string) => [
+                                  `${value.toFixed(4)} LOS`,
+                                  'Price'
+                                ]}
+                                labelFormatter={(label) => `Mint #${label}`}
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="price" 
+                                stroke="#10B981" 
+                                strokeWidth={2}
+                                dot={{ fill: '#10B981', strokeWidth: 2, r: 3 }}
+                                activeDot={{ r: 6, stroke: '#10B981', strokeWidth: 2 }}
+                              />
+                            </LineChart>
+                          )}
+                        </ResponsiveContainer>
+                      </div>
 
                       {/* Current Price Indicator */}
                       <div className="absolute top-4 right-4 bg-gray-800/90 backdrop-blur-sm border border-gray-600 rounded-lg px-3 py-2">
@@ -3580,11 +3516,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             return `${min.toFixed(4)} - ${max.toFixed(4)} LOS`;
                           })()}</span>
                         </div>
-                        {generateBondingCurveData().length > 50 && (
-                          <div className="text-gray-500">
-                            ← Scroll horizontally to see full curve →
-                          </div>
-                        )}
+                        <div className="text-gray-500">
+                          {chartViewMode === 'compact' ? 'Bar Chart View' : 'Line Chart View'}
+                        </div>
                       </div>
                     </div>
                   </div>
