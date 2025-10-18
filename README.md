@@ -95,3 +95,4 @@ The frontend uses IDL files to interact with these programs. Currently running i
 ---
 
 **⚠️ Important**: This repository is for validation purposes. Always verify program IDs and deployment status before using in production.
+# Trigger deployment - 10/18/2025 15:02:35
