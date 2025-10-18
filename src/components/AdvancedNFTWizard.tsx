@@ -176,7 +176,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           discordServerId: '',
           telegramGroupId: ''
         },
-        maxMintsPerWallet: 1
+        maxMintsPerWallet: 1,
+        minTokenBalance: 0, // Public Access has no token requirement
+        tokenContract: ''
       }
     ],
     tokenContract: '', // Default to LOL token contract (to be set by user)
@@ -2129,8 +2131,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                             <input
                                               type="number"
                                               value={phase.minTokenBalance || 1000000}
-                                              onChange={(e) => updatePhase(phase.id, { minTokenBalance: parseInt(e.target.value) || 1000000 })}
-                                              placeholder="1000000"
+                                              onChange={(e) => updatePhase(phase.id, { minTokenBalance: parseInt(e.target.value) || 0 })}
+                                              placeholder="0 (no requirement) or amount"
                                               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
                                             />
                                           </div>
