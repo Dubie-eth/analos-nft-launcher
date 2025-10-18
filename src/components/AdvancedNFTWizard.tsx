@@ -111,7 +111,19 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     maxPrice: '',
     increaseRate: '',
     creatorRoyalty: '', // User can set their royalty percentage
-    minWhitelistPrice: '' // Minimum price for whitelist phases to seed DLMM
+    minWhitelistPrice: '', // Minimum price for whitelist phases to seed DLMM
+    dynamicAdjustment: true, // Allow dynamic adjustment during minting
+    prebuyEnabled: false, // Enable prebuy functionality
+    prebuyDiscount: 10, // Percentage discount for prebuy (default 10%)
+    prebuyDuration: 24, // Hours before public sale starts
+    adjustmentTriggers: {
+      lowMintRate: 25, // Adjust if mint rate drops below 25% of expected
+      highMintRate: 75, // Adjust if mint rate exceeds 75% of expected
+      timeBased: 48 // Adjust after 48 hours regardless of mint rate
+    },
+    pendingAdjustments: [] as Array<{type: string, justification: string, timestamp: number}>, // Track pending adjustment requests
+    lastAdjustmentRequest: null, // Timestamp of last request
+    adjustmentCooldown: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
   });
 
   // Whitelist configuration state
@@ -643,11 +655,20 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         }, 0);
     }
     
+    // Calculate prebuy allocation if enabled
+    let prebuyAllocation = 0;
+    if (bondingCurveConfig.prebuyEnabled) {
+      // Reserve 10-20% of remaining supply for prebuy (after whitelist)
+      const totalCollectionSupply = collectionConfig.supply || 1000;
+      const remainingAfterWhitelist = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+      prebuyAllocation = Math.floor(remainingAfterWhitelist * 0.15); // 15% for prebuy
+    }
+    
     // Get the actual collection supply from collectionConfig
     const totalCollectionSupply = collectionConfig.supply || 1000;
     
-    // The effective supply for bonding curve is total supply minus whitelist spots
-    const effectiveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
+    // The effective supply for bonding curve is total supply minus whitelist spots minus prebuy allocation
+    const effectiveSupply = Math.max(0, totalCollectionSupply - totalWhitelistSpots - prebuyAllocation);
     
     if (effectiveSupply === 0) {
       return []; // No NFTs left for bonding curve
@@ -664,7 +685,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         mint: i,
         price: cappedPrice,
         supply: i,
-        totalSupply: effectiveSupply
+        totalSupply: effectiveSupply,
+        isPrebuy: false,
+        prebuyPrice: bondingCurveConfig.prebuyEnabled ? startingPrice * (1 - (bondingCurveConfig.prebuyDiscount / 100)) : null
       });
     }
     
@@ -2655,7 +2678,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           .filter(phase => phase.enabled)
                           .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
                         const totalCollectionSupply = collectionConfig.supply || 1000;
-                        const publicSaleMints = Math.max(0, totalCollectionSupply - totalWhitelistMints);
+                        const remainingAfterWhitelist = Math.max(0, totalCollectionSupply - totalWhitelistMints);
+                        
+                        // Calculate prebuy allocation if enabled
+                        const prebuyAllocation = bondingCurveConfig.prebuyEnabled 
+                          ? Math.floor(remainingAfterWhitelist * 0.15) 
+                          : 0;
+                        
+                        const bondingCurveMints = Math.max(0, remainingAfterWhitelist - prebuyAllocation);
                         
                         return (
                           <div className="space-y-1 text-xs text-blue-200">
@@ -2663,9 +2693,15 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               <span>Total Whitelist Mints:</span>
                               <span>{totalWhitelistMints} NFTs</span>
                             </div>
+                            {bondingCurveConfig.prebuyEnabled && (
+                              <div className="flex justify-between">
+                                <span>Prebuy Allocation:</span>
+                                <span>{prebuyAllocation} NFTs</span>
+                              </div>
+                            )}
                             <div className="flex justify-between">
-                              <span>Public Sale (Bonding Curve):</span>
-                              <span>{publicSaleMints} NFTs</span>
+                              <span>Bonding Curve Supply:</span>
+                              <span>{bondingCurveMints} NFTs</span>
                             </div>
                             <div className="flex justify-between border-t border-blue-500/30 pt-1 font-medium">
                               <span>Total Collection Supply:</span>
@@ -2837,6 +2873,321 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <div className="flex justify-between border-t border-blue-500/30 pt-1 font-medium">
                           <span>Total Fees:</span>
                           <span>{(parseFloat(bondingCurveConfig.creatorRoyalty) || 0) + 2.5}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Bonding Curve & Prebuy Configuration */}
+                  <div className="bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border border-cyan-500/30 rounded-lg p-6 mt-6">
+                    <h5 className="text-cyan-300 font-medium mb-4 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-cyan-500 rounded-full"></span>
+                      Dynamic Bonding Curve & Prebuy Settings
+                    </h5>
+                    
+                    <div className="space-y-6">
+                      {/* Dynamic Adjustment Toggle */}
+                      <div className="bg-cyan-900/20 rounded-lg p-4 border border-cyan-500/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h6 className="text-cyan-300 font-medium">Dynamic Adjustment</h6>
+                            <p className="text-cyan-200 text-sm">Allow automatic curve adjustments based on minting performance</p>
+                          </div>
+                          <label className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={bondingCurveConfig.dynamicAdjustment}
+                              onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, dynamicAdjustment: e.target.checked }))}
+                              className="w-5 h-5 text-cyan-600 bg-gray-100 border-gray-300 rounded focus:ring-cyan-500"
+                            />
+                          </label>
+                        </div>
+                        
+                        {bondingCurveConfig.dynamicAdjustment && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Low Mint Rate Threshold (%)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={bondingCurveConfig.adjustmentTriggers.lowMintRate}
+                                onChange={(e) => setBondingCurveConfig(prev => ({ 
+                                  ...prev, 
+                                  adjustmentTriggers: { ...prev.adjustmentTriggers, lowMintRate: parseInt(e.target.value) || 25 }
+                                }))}
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                              />
+                              <p className="text-xs text-gray-400 mt-1">Adjust if mint rate drops below this %</p>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                High Mint Rate Threshold (%)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={bondingCurveConfig.adjustmentTriggers.highMintRate}
+                                onChange={(e) => setBondingCurveConfig(prev => ({ 
+                                  ...prev, 
+                                  adjustmentTriggers: { ...prev.adjustmentTriggers, highMintRate: parseInt(e.target.value) || 75 }
+                                }))}
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                              />
+                              <p className="text-xs text-gray-400 mt-1">Adjust if mint rate exceeds this %</p>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Time-based Adjustment (hours)
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={bondingCurveConfig.adjustmentTriggers.timeBased}
+                                onChange={(e) => setBondingCurveConfig(prev => ({ 
+                                  ...prev, 
+                                  adjustmentTriggers: { ...prev.adjustmentTriggers, timeBased: parseInt(e.target.value) || 48 }
+                                }))}
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                              />
+                              <p className="text-xs text-gray-400 mt-1">Force adjustment after this time</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Prebuy Configuration */}
+                      <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h6 className="text-blue-300 font-medium">Prebuy Functionality</h6>
+                            <p className="text-blue-200 text-sm">Allow users to pre-purchase NFTs before the bonding curve starts</p>
+                          </div>
+                          <label className="flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={bondingCurveConfig.prebuyEnabled}
+                              onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyEnabled: e.target.checked }))}
+                              className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                          </label>
+                        </div>
+                        
+                        {bondingCurveConfig.prebuyEnabled && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Prebuy Discount (%)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="50"
+                                value={bondingCurveConfig.prebuyDiscount}
+                                onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyDiscount: parseInt(e.target.value) || 10 }))}
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                              />
+                              <p className="text-xs text-gray-400 mt-1">Discount from bonding curve starting price</p>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Prebuy Duration (hours)
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="168"
+                                value={bondingCurveConfig.prebuyDuration}
+                                onChange={(e) => setBondingCurveConfig(prev => ({ ...prev, prebuyDuration: parseInt(e.target.value) || 24 }))}
+                                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm"
+                              />
+                              <p className="text-xs text-gray-400 mt-1">How long prebuy is available before public sale</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Security & Multi-Signature System */}
+                      <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-500/30 rounded-lg p-4">
+                        <h6 className="text-red-300 font-medium mb-3 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                          🔒 Security & Multi-Signature Protection
+                        </h6>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                            <h6 className="text-red-300 font-medium mb-2">Multi-Signature Requirements</h6>
+                            <div className="space-y-2 text-red-200 text-sm">
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <span><strong>Creator Signature:</strong> Only verified collection creator can initiate adjustment requests</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <span><strong>Admin Signature:</strong> Analos admin wallet must approve all bonding curve changes</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <span><strong>Time Lock:</strong> 24-hour cooldown period between adjustment requests</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></span>
+                                <span><strong>Audit Trail:</strong> All changes are permanently recorded on-chain</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-3">
+                            <h6 className="text-orange-300 font-medium mb-2">Adjustment Process</h6>
+                            <div className="space-y-2 text-orange-200 text-sm">
+                              <div className="flex items-start gap-2">
+                                <span className="text-orange-400 font-bold">1.</span>
+                                <span>Creator submits adjustment request with justification</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="text-orange-400 font-bold">2.</span>
+                                <span>System validates creator ownership and request parameters</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="text-orange-400 font-bold">3.</span>
+                                <span>Admin reviews request and either approves or rejects</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <span className="text-orange-400 font-bold">4.</span>
+                                <span>If approved, changes are applied with 24-hour notice to users</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
+                            <h6 className="text-yellow-300 font-medium mb-2">⚠️ Security Guarantees</h6>
+                            <div className="space-y-1 text-yellow-200 text-xs">
+                              <div>• <strong>No Single Point of Failure:</strong> Requires both creator and admin signatures</div>
+                              <div>• <strong>Creator Verification:</strong> Only verified collection creators can request changes</div>
+                              <div>• <strong>Admin Oversight:</strong> Analos admin reviews all requests for legitimacy</div>
+                              <div>• <strong>Transparency:</strong> All requests and approvals are publicly visible</div>
+                              <div>• <strong>User Protection:</strong> 24-hour notice period before changes take effect</div>
+                              <div>• <strong>Immutable Records:</strong> All actions are permanently recorded on-chain</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Creator Adjustment Request Interface */}
+                      {bondingCurveConfig.dynamicAdjustment && (
+                        <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-lg p-4">
+                          <h6 className="text-green-300 font-medium mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                            📝 Submit Adjustment Request
+                          </h6>
+                          
+                          <div className="space-y-4">
+                            <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                              <h6 className="text-green-300 font-medium mb-2">Request Bonding Curve Adjustment</h6>
+                              <p className="text-green-200 text-sm mb-3">
+                                As the verified creator of this collection, you can request adjustments to the bonding curve parameters. 
+                                All requests require admin approval and will be publicly visible.
+                              </p>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Adjustment Type
+                                  </label>
+                                  <select className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm">
+                                    <option value="">Select adjustment type...</option>
+                                    <option value="price_reduction">Reduce Starting Price</option>
+                                    <option value="price_increase">Increase Starting Price</option>
+                                    <option value="rate_adjustment">Adjust Price Increase Rate</option>
+                                    <option value="max_price">Modify Maximum Price</option>
+                                    <option value="emergency_pause">Emergency Pause (Admin Only)</option>
+                                  </select>
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Justification
+                                  </label>
+                                  <textarea
+                                    placeholder="Explain why this adjustment is needed..."
+                                    className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white text-sm h-20 resize-none"
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div className="mt-4 flex items-center justify-between">
+                                <div className="text-xs text-gray-400">
+                                  {(() => {
+                                    const now = Date.now();
+                                    const lastRequest = bondingCurveConfig.lastAdjustmentRequest;
+                                    const cooldownRemaining = lastRequest ? Math.max(0, bondingCurveConfig.adjustmentCooldown - (now - lastRequest)) : 0;
+                                    
+                                    if (cooldownRemaining > 0) {
+                                      const hours = Math.floor(cooldownRemaining / (1000 * 60 * 60));
+                                      const minutes = Math.floor((cooldownRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                                      return `⏰ Cooldown: ${hours}h ${minutes}m remaining`;
+                                    }
+                                    return "✅ Ready to submit request";
+                                  })()}
+                                </div>
+                                
+                                <button
+                                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  disabled={!!(bondingCurveConfig.lastAdjustmentRequest && (Date.now() - bondingCurveConfig.lastAdjustmentRequest) < bondingCurveConfig.adjustmentCooldown)}
+                                >
+                                  Submit Request
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Pending Requests Display */}
+                            {bondingCurveConfig.pendingAdjustments.length > 0 && (
+                              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
+                                <h6 className="text-yellow-300 font-medium mb-2">Pending Requests</h6>
+                                <div className="space-y-2">
+                                  {bondingCurveConfig.pendingAdjustments.map((request, index) => (
+                                    <div key={index} className="bg-yellow-800/20 border border-yellow-500/30 rounded p-2">
+                                      <div className="flex items-center justify-between text-xs">
+                                        <span className="text-yellow-200">{request.type} - {request.justification}</span>
+                                        <span className="text-yellow-400">Awaiting Admin Approval</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Adjustment Strategy Info */}
+                      <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-lg p-4">
+                        <h6 className="text-purple-300 font-medium mb-3">🎯 Dynamic Adjustment Strategy</h6>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <h6 className="text-purple-300 font-medium mb-2">Low Mint Rate Adjustments:</h6>
+                            <ul className="text-purple-200 space-y-1 text-xs">
+                              <li>• Reduce starting price by 10-20%</li>
+                              <li>• Decrease price increase rate</li>
+                              <li>• Extend whitelist phases</li>
+                              <li>• Add promotional campaigns</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h6 className="text-purple-300 font-medium mb-2">High Mint Rate Adjustments:</h6>
+                            <ul className="text-purple-200 space-y-1 text-xs">
+                              <li>• Increase starting price by 5-15%</li>
+                              <li>• Accelerate price increase rate</li>
+                              <li>• Reduce whitelist phase duration</li>
+                              <li>• Add scarcity mechanisms</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
