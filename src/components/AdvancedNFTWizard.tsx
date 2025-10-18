@@ -69,15 +69,6 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const { fetchPrice, getUSDValue, prices, loading } = usePriceOracle();
   const [layers, setLayers] = useState<Layer[]>([]);
 
-  // Fetch prices when payment tokens change
-  useEffect(() => {
-    const tokens = ['LOL', 'LOS', 'SOL', 'USDC'];
-    tokens.forEach(token => {
-      if (!prices[token] && !loading[token]) {
-        fetchPrice(token);
-      }
-    });
-  }, [fetchPrice, prices, loading]);
   const [collectionConfig, setCollectionConfig] = useState({
     name: '',
     symbol: '',
@@ -176,7 +167,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         order: 3, 
         description: 'Open to everyone',
         paymentToken: 'LOL',
-        pricePerMint: 1000, // Set to predetermined mint price
+        pricePerMint: 0, // Will be set to user's predetermined mint price
         csvFile: null as File | null,
         socialVerification: {
           twitter: false,
@@ -237,6 +228,35 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
   const layerProcessor = useRef(new LayerProcessor());
 
   const totalSteps = 8;
+
+  // Fetch prices when payment tokens change
+  useEffect(() => {
+    const tokens = ['LOL', 'LOS', 'SOL', 'USDC'];
+    tokens.forEach(token => {
+      if (!prices[token] && !loading[token]) {
+        fetchPrice(token);
+      }
+    });
+  }, [fetchPrice, prices, loading]);
+
+  // Auto-set Public Access phase price to user's predetermined mint price
+  useEffect(() => {
+    if (collectionConfig.mintPrice > 0) {
+      setWhitelistConfig(prev => ({
+        ...prev,
+        phases: prev.phases.map(phase => 
+          phase.name === 'Public Access' 
+            ? { ...phase, pricePerMint: collectionConfig.mintPrice }
+            : phase
+        )
+      }));
+    }
+  }, [collectionConfig.mintPrice]);
+
+  // Sync reveal configurations
+  useEffect(() => {
+    setCollectionConfig(prev => ({ ...prev, revealType: revealConfig.revealType as 'instant' | 'delayed' }));
+  }, [revealConfig.revealType]);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -421,6 +441,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         layers: layers,
         whitelistConfig: whitelistConfig, // Include whitelist configuration with phases
         bondingCurveConfig: bondingCurveConfig, // Include bonding curve configuration
+        revealConfig: revealConfig, // Include detailed reveal configuration
         timestamp: new Date().toISOString()
       },
       collectionId: currentCollectionId, // Include collection ID if updating existing collection
@@ -527,6 +548,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     if (parsedConfig?.bondingCurveConfig) {
       console.log('✅ Loading bonding curve config:', parsedConfig.bondingCurveConfig);
       setBondingCurveConfig(parsedConfig.bondingCurveConfig);
+    }
+
+    // Load reveal configuration if available
+    if (parsedConfig?.revealConfig) {
+      console.log('✅ Loading reveal config:', parsedConfig.revealConfig);
+      setRevealConfig(parsedConfig.revealConfig);
     }
 
     // Load layers if available
@@ -2152,7 +2179,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                             type="number"
                                             value={phase.pricePerMint || ''}
                                             onChange={(e) => updatePhase(phase.id, { pricePerMint: parseFloat(e.target.value) || 0 })}
-                                            placeholder="1000"
+                                            placeholder="0 (free) or amount"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
                                           />
                                           <div className="mt-2 p-3 bg-green-900/30 border border-green-500/50 rounded-lg">
