@@ -670,13 +670,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         });
       
       // Add team mint allocation if enabled
-      if (whitelistConfig.teamMint.enabled) {
+      if (whitelistConfig.teamMint?.enabled || false) {
         const teamSeedAmount = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
-        const teamPrice = whitelistConfig.teamMint.pricePerMint || 0;
+        const teamPrice = whitelistConfig.teamMint?.pricePerMint || 0;
         const teamTotalPrice = teamPrice + teamSeedAmount;
         
-        totalWhitelistSpots += whitelistConfig.teamMint.amount;
-        totalWhitelistRevenue += teamTotalPrice * whitelistConfig.teamMint.amount;
+        totalWhitelistSpots += whitelistConfig.teamMint?.amount || 50;
+        totalWhitelistRevenue += teamTotalPrice * (whitelistConfig.teamMint?.amount || 50);
       }
       
       avgWhitelistPrice = totalWhitelistSpots > 0 ? totalWhitelistRevenue / totalWhitelistSpots : startingPrice;
@@ -771,8 +771,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         }, 0);
       
       // Add team mint allocation if enabled
-      if (whitelistConfig.teamMint.enabled) {
-        totalWhitelistSpots += whitelistConfig.teamMint.amount;
+      if (whitelistConfig.teamMint?.enabled || false) {
+        totalWhitelistSpots += whitelistConfig.teamMint?.amount || 50;
       }
     }
     
@@ -2031,17 +2031,23 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <label className="flex items-center cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={whitelistConfig.teamMint.enabled}
+                            checked={whitelistConfig.teamMint?.enabled || false}
                             onChange={(e) => setWhitelistConfig(prev => ({ 
                               ...prev, 
-                              teamMint: { ...prev.teamMint, enabled: e.target.checked }
+                              teamMint: { 
+                                enabled: e.target.checked,
+                                amount: prev.teamMint?.amount || 50,
+                                pricePerMint: prev.teamMint?.pricePerMint || 0,
+                                description: prev.teamMint?.description || 'Team allocation minted during whitelist phase',
+                                walletAddresses: prev.teamMint?.walletAddresses || []
+                              }
                             }))}
                             className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
                           />
                         </label>
                       </div>
 
-                      {whitelistConfig.teamMint.enabled && (
+                      {(whitelistConfig.teamMint?.enabled || false) && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {/* Team Mint Amount */}
                           <div>
@@ -2052,10 +2058,16 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               type="number"
                               min="1"
                               max="1000"
-                              value={whitelistConfig.teamMint.amount}
+                              value={whitelistConfig.teamMint?.amount || 50}
                               onChange={(e) => setWhitelistConfig(prev => ({ 
                                 ...prev, 
-                                teamMint: { ...prev.teamMint, amount: parseInt(e.target.value) || 50 }
+                                teamMint: { 
+                                  enabled: prev.teamMint?.enabled || false,
+                                  amount: parseInt(e.target.value) || 50,
+                                  pricePerMint: prev.teamMint?.pricePerMint || 0,
+                                  description: prev.teamMint?.description || 'Team allocation minted during whitelist phase',
+                                  walletAddresses: prev.teamMint?.walletAddresses || []
+                                }
                               }))}
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
@@ -2071,10 +2083,16 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               type="number"
                               step="0.01"
                               min="0"
-                              value={whitelistConfig.teamMint.pricePerMint}
+                              value={whitelistConfig.teamMint?.pricePerMint || 0}
                               onChange={(e) => setWhitelistConfig(prev => ({ 
                                 ...prev, 
-                                teamMint: { ...prev.teamMint, pricePerMint: parseFloat(e.target.value) || 0 }
+                                teamMint: { 
+                                  enabled: prev.teamMint?.enabled || false,
+                                  amount: prev.teamMint?.amount || 50,
+                                  pricePerMint: parseFloat(e.target.value) || 0,
+                                  description: prev.teamMint?.description || 'Team allocation minted during whitelist phase',
+                                  walletAddresses: prev.teamMint?.walletAddresses || []
+                                }
                               }))}
                               className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
@@ -2083,22 +2101,22 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         </div>
                       )}
 
-                      {whitelistConfig.teamMint.enabled && (
+                      {(whitelistConfig.teamMint?.enabled || false) && (
                         <div className="bg-purple-800/20 border border-purple-500/30 rounded-lg p-4">
                           <h5 className="text-purple-300 font-medium mb-2">Team Mint Details</h5>
                           <div className="space-y-2 text-sm text-purple-200">
                             <div className="flex justify-between">
                               <span>Team Allocation:</span>
-                              <span className="text-white">{whitelistConfig.teamMint.amount} NFTs</span>
+                              <span className="text-white">{whitelistConfig.teamMint?.amount || 50} NFTs</span>
                             </div>
                             <div className="flex justify-between">
                               <span>Price per NFT:</span>
-                              <span className="text-white">{whitelistConfig.teamMint.pricePerMint} LOS</span>
+                              <span className="text-white">{whitelistConfig.teamMint?.pricePerMint || 0} LOS</span>
                             </div>
                             <div className="flex justify-between border-t border-purple-500/30 pt-2">
                               <span>Total Team Cost:</span>
                               <span className="text-white font-medium">
-                                {(whitelistConfig.teamMint.amount * whitelistConfig.teamMint.pricePerMint).toFixed(2)} LOS
+                                {((whitelistConfig.teamMint?.amount || 50) * (whitelistConfig.teamMint?.pricePerMint || 0)).toFixed(2)} LOS
                               </span>
                             </div>
                           </div>
@@ -2782,13 +2800,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                   
                   <div className="space-y-3">
                     {/* Team Mint Summary */}
-                    {whitelistConfig.teamMint.enabled && (
+                    {(whitelistConfig.teamMint?.enabled || false) && (
                       <div className="bg-purple-800/20 border border-purple-500/30 rounded-lg p-3">
                         <div className="flex items-center justify-between">
                           <div>
                             <h5 className="text-purple-300 font-medium">Team Allocation</h5>
                             <p className="text-purple-200 text-sm">
-                              {whitelistConfig.teamMint.amount} NFTs • {whitelistConfig.teamMint.pricePerMint} LOS each
+                              {whitelistConfig.teamMint?.amount || 50} NFTs • {whitelistConfig.teamMint?.pricePerMint || 0} LOS each
                             </p>
                           </div>
                           <div className="text-right">
@@ -2806,7 +2824,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         const totalWhitelistSpots = whitelistConfig.phases
                           .filter((p, i) => p.id !== phase.id && p.enabled)
                           .reduce((sum, p) => sum + (p.spots * (p.maxMintsPerWallet || 1)), 0);
-                        const teamMintSpots = whitelistConfig.teamMint.enabled ? whitelistConfig.teamMint.amount : 0;
+                        const teamMintSpots = (whitelistConfig.teamMint?.enabled || false) ? (whitelistConfig.teamMint?.amount || 50) : 0;
                         const totalCollectionSupply = collectionConfig.supply || 1000;
                         const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots - teamMintSpots);
                         const effectiveSpots = phase.name === 'Public Access' ? remainingSpots : phase.spots;
@@ -2940,7 +2958,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 const totalWhitelistMints = whitelistConfig.phases
                   .filter(phase => phase.enabled)
                   .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
-                const teamMintMints = whitelistConfig.teamMint.enabled ? whitelistConfig.teamMint.amount : 0;
+                const teamMintMints = (whitelistConfig.teamMint?.enabled || false) ? (whitelistConfig.teamMint?.amount || 50) : 0;
                 const totalCollectionSupply = collectionConfig.supply || 1000;
                 const remainingAfterWhitelist = Math.max(0, totalCollectionSupply - totalWhitelistMints - teamMintMints);
                 
@@ -2957,7 +2975,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               <span>Total Whitelist Mints:</span>
                               <span>{totalWhitelistMints} NFTs</span>
                             </div>
-                            {whitelistConfig.teamMint.enabled && (
+                            {(whitelistConfig.teamMint?.enabled || false) && (
                               <div className="flex justify-between">
                                 <span>Team Mint Allocation:</span>
                                 <span>{teamMintMints} NFTs</span>
@@ -3083,8 +3101,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="block text-sm font-medium text-gray-300">
-                          Price Increase Rate (%)
-                        </label>
+                        Price Increase Rate (%)
+                      </label>
                         <button
                           type="button"
                           onClick={() => {
@@ -3684,13 +3702,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <div className="flex items-center gap-3">
                           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                           <h5 className="text-white font-medium">Bonding Curve / LOS</h5>
-                        </div>
+                                    </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-400">Chart by</span>
                           <span className="text-xs text-blue-400 font-medium">Analos</span>
+                                </div>
                         </div>
-                      </div>
-                    </div>
+                        </div>
 
                     {/* Chart Area */}
                     <div className="relative">
@@ -3783,8 +3801,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             </LineChart>
                           )}
                         </ResponsiveContainer>
-                      </div>
-
+                        </div>
+                        
                       {/* Current Price Indicator */}
                       <div className="absolute top-4 right-4 bg-gray-800/90 backdrop-blur-sm border border-gray-600 rounded-lg px-3 py-2">
                         <div className="text-xs text-gray-400">Current Price</div>
@@ -3796,8 +3814,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           })()} LOS
                         </div>
                       </div>
-                    </div>
-
+                        </div>
+                        
                     {/* Chart Footer */}
                     <div className="bg-gray-800/50 px-4 py-2 border-t border-gray-700">
                       <div className="flex items-center justify-between text-xs text-gray-400">
@@ -3809,10 +3827,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             const max = Math.max(...data.map(p => p.price));
                             return `${min.toFixed(4)} - ${max.toFixed(4)} LOS`;
                           })()}</span>
-                        </div>
+                          </div>
                         <div className="text-gray-500">
                           {chartViewMode === 'compact' ? 'Bar Chart View' : 'Line Chart View'}
-                        </div>
+                      </div>
                       </div>
                     </div>
                   </div>
