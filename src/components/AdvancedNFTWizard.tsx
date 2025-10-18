@@ -142,7 +142,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           telegram: false,
           discordServerId: '',
           telegramGroupId: ''
-        }
+        },
+        maxMintsPerWallet: 1
       },
       { 
         id: 'community', 
@@ -160,7 +161,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           telegram: false,
           discordServerId: '',
           telegramGroupId: ''
-        }
+        },
+        maxMintsPerWallet: 1
       },
       { 
         id: 'public', 
@@ -170,7 +172,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         order: 3, 
         description: 'Open to everyone',
         paymentToken: 'LOL',
-        pricePerMint: 0,
+        pricePerMint: 1000, // Set to predetermined mint price
         csvFile: null as File | null,
         socialVerification: {
           twitter: false,
@@ -178,7 +180,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           telegram: false,
           discordServerId: '',
           telegramGroupId: ''
-        }
+        },
+        maxMintsPerWallet: 1
       }
     ],
     tokenContract: '', // Default to LOL token contract (to be set by user)
@@ -251,7 +254,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         telegram: false,
         discordServerId: '',
         telegramGroupId: ''
-      }
+      },
+      maxMintsPerWallet: 1
     };
     setWhitelistConfig(prev => ({
       ...prev,
@@ -1928,51 +1932,20 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         </button>
                       </div>
                       
-                      {/* Phase Selection */}
-                      {whitelistConfig.phases.length > 0 && (
-                        <div className="mb-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                          <label className="block text-sm font-medium text-white mb-2">
-                            🎯 Select Phase to Configure:
-                          </label>
-                          <select
-                            value={selectedPhaseId || ''}
-                            onChange={(e) => setSelectedPhaseId(e.target.value || null)}
-                            className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="">Choose a phase to configure...</option>
-                            {whitelistConfig.phases
-                              .sort((a, b) => a.order - b.order)
-                              .map((phase) => (
-                                <option key={phase.id} value={phase.id}>
-                                  {phase.name} (Order: {phase.order})
-                                </option>
-                              ))}
-                          </select>
-                          {selectedPhaseId ? (
-                            <div className="mt-2 p-2 bg-blue-900/20 border border-blue-500/30 rounded">
-                              <p className="text-xs text-blue-300">
-                                ✅ <strong>Phase Selected:</strong> {whitelistConfig.phases.find(p => p.id === selectedPhaseId)?.name}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                Use the configuration panel below to modify this phase. Changes apply only to the selected phase.
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-xs text-gray-400 mt-1">
-                              Select a phase above to configure its individual settings.
-                            </p>
-                          )}
-                        </div>
-                      )}
                       
                       <div className="space-y-6">
                         {whitelistConfig.phases
                           .sort((a, b) => a.order - b.order)
                           .map((phase, index) => {
                             const isPublicAccess = phase.name === 'Public Access';
+                            // Calculate total spots needed accounting for multiple NFTs per wallet
                             const totalWhitelistSpots = whitelistConfig.phases
                               .filter((p, i) => p.id !== phase.id && p.enabled)
-                              .reduce((sum, p) => sum + p.spots, 0);
+                              .reduce((sum, p) => {
+                                // Each spot can mint multiple NFTs based on maxMintsPerWallet
+                                const maxMintsPerWallet = p.maxMintsPerWallet || 1;
+                                return sum + (p.spots * maxMintsPerWallet);
+                              }, 0);
                             const totalCollectionSupply = collectionConfig.supply || 1000;
                             const remainingSpots = Math.max(0, totalCollectionSupply - totalWhitelistSpots);
                             
@@ -2131,6 +2104,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                             </label>
                                             <input
                                               type="number"
+                                              value={phase.maxMintsPerWallet || 1}
+                                              onChange={(e) => updatePhase(phase.id, { maxMintsPerWallet: parseInt(e.target.value) || 1 })}
                                               placeholder="1"
                                               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
                                             />
