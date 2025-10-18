@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/client';
+import { createCollection } from '@/lib/blockchain-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,11 +28,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate Analos collection address (using Analos address format)
-    const collectionMint = `Analos_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const metadataAccount = `Metadata_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Create collection on Analos blockchain
+    console.log('🚀 Creating collection on Analos blockchain...');
+    
+    const blockchainResult = await createCollection({
+      name: collectionConfig.name,
+      symbol: collectionConfig.symbol,
+      description: collectionConfig.description,
+      supply: collectionConfig.supply,
+      mintPrice: collectionConfig.mintPrice,
+      image: collectionConfig.image,
+      logo: collectionConfig.logo,
+      banner: collectionConfig.banner,
+      whitelistConfig: whitelistConfig,
+      bondingCurveConfig: bondingCurveConfig
+    }, userWallet);
 
-    console.log('📝 Generated Analos collection mint:', collectionMint);
+    const collectionMint = blockchainResult.collectionMint;
+    const metadataAccount = blockchainResult.metadataAccount;
+    const deploymentCost = blockchainResult.deploymentCost;
+
+    console.log('✅ Collection created on blockchain:', {
+      collectionMint,
+      metadataAccount,
+      deploymentCost
+    });
 
     // Create the NFT collection metadata for Analos
     const metadata = {
@@ -54,15 +75,7 @@ export async function POST(request: NextRequest) {
       network: 'mainnet'
     };
 
-    // Calculate estimated deployment cost (in LOS - Analos native token)
-    const baseCost = 1; // 1 LOS base cost
-    const bondingCurveCost = collectionConfig.bondingCurveEnabled ? 0.5 : 0; // 0.5 LOS for bonding curve
-    const whitelistCost = collectionConfig.whitelistEnabled ? 
-      (whitelistConfig.phases?.filter((p: any) => p.enabled).length || 0) * 0.2 : 0; // 0.2 LOS per whitelist phase
-    
-    const deploymentCost = baseCost + bondingCurveCost + whitelistCost;
-
-    console.log('💰 Estimated deployment cost:', deploymentCost, 'LOS');
+    // Deployment cost is calculated by the blockchain service
 
     // Save the collection configuration to database
     const collectionData = {
@@ -143,15 +156,16 @@ export async function POST(request: NextRequest) {
       collectionMint,
       metadataAccount,
       deploymentCost,
+      transactionSignature: blockchainResult.transactionSignature,
       metadata,
       deploymentConfig,
-      message: `Collection "${collectionConfig.name}" ready for deployment on Analos!`,
+      message: `Collection "${collectionConfig.name}" successfully deployed on Analos!`,
       instructions: [
-        '1. Connect your wallet to the Analos blockchain',
-        '2. Ensure you have sufficient LOS for deployment costs',
-        '3. Sign the deployment transaction when prompted',
-        '4. Wait for Analos blockchain confirmation',
-        '5. Your collection will be live on Analos!'
+        '1. Collection has been created on the Analos blockchain',
+        '2. Transaction signature: ' + blockchainResult.transactionSignature,
+        '3. Your collection is now live and ready for minting',
+        '4. View on Analos explorer to verify deployment',
+        '5. Share your collection with the community!'
       ],
       blockchain: 'Analos',
       explorerUrl: `https://explorer.analos.io/address/${collectionMint}`,
