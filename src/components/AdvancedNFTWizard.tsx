@@ -680,14 +680,17 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     // The maxPrice serves as a reference point, not a hard cap
     // We calculate a rate that provides reasonable growth throughout the curve
     
-    // Start with a base rate that would reach maxPrice at 75% of supply (not 100%)
-    // This ensures the curve continues growing and doesn't flatten early
-    const targetSupplyPoint = Math.floor(bondingCurveSupply * 0.75);
-    const priceRatio = maxPrice / startingPrice;
+    // Calculate a more conservative rate that reaches maxPrice at 90% of supply
+    // This provides reasonable growth without extreme prices
+    const targetSupplyPoint = Math.floor(bondingCurveSupply * 0.9);
+    const priceRatio = Math.min(maxPrice / startingPrice, 20); // Cap ratio at 20x for realism
     const theoreticalRate = Math.pow(priceRatio, 1 / targetSupplyPoint) - 1;
     
-    // Convert to percentage
+    // Convert to percentage and apply conservative bounds
     let optimalRate = theoreticalRate * 100;
+    
+    // Ensure the rate is reasonable (0.1% to 2% for most cases)
+    optimalRate = Math.max(0.1, Math.min(2.0, optimalRate));
     
     // Apply adjustments based on whitelist pricing and market dynamics
     
@@ -773,9 +776,13 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       for (let i = 1; i <= fallbackSupply; i++) {
         const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
         
+        // Apply reasonable bounds to prevent unrealistic prices
+        const maxReasonablePrice = startingPrice * 50;
+        const boundedPrice = Math.min(price, maxReasonablePrice);
+        
         data.push({
           mint: i,
-          price: price, // No capping - let it grow naturally
+          price: boundedPrice,
           supply: i,
           totalSupply: fallbackSupply,
           isPrebuy: false,
@@ -790,13 +797,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
       // Calculate price using exponential growth formula
       const price = startingPrice * Math.pow(1 + (increaseRate / 100), i - 1);
       
-      // For proper bonding curve behavior, don't cap the price
-      // The maxPrice is a target/reference, not a hard limit
-      // This allows the curve to continue growing exponentially
+      // Apply reasonable bounds to prevent unrealistic prices
+      // Cap at a reasonable multiple of starting price (e.g., 50x max)
+      const maxReasonablePrice = startingPrice * 50;
+      const boundedPrice = Math.min(price, maxReasonablePrice);
       
       data.push({
         mint: i,
-        price: price, // No capping - let it grow naturally
+        price: boundedPrice,
         supply: i,
         totalSupply: effectiveSupply,
         isPrebuy: false,
@@ -3041,7 +3049,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           Where: P(n) = price at mint n, P₀ = starting price, r = rate, n = mint number
                         </div>
                         <div className="text-cyan-200 text-xs mt-1">
-                          <strong>Key:</strong> No price capping - curve grows exponentially throughout entire supply
+                          <strong>Key:</strong> Reasonable bounds applied - curve grows exponentially with 50x max cap
                         </div>
                       </div>
                       
@@ -3051,7 +3059,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             <span className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></span>
                             <div>
                               <span className="text-cyan-300 font-medium">Target Achievement:</span>
-                              <span className="text-cyan-200 text-xs block">Calculates rate to reach max price at 75% of supply, then continues growing</span>
+                              <span className="text-cyan-200 text-xs block">Calculates conservative rate to reach max price at 90% of supply</span>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
@@ -3083,10 +3091,10 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       <div className="bg-cyan-800/20 border border-cyan-500/30 rounded p-3">
                         <div className="text-cyan-300 font-medium mb-2">🎯 Quality Assurance:</div>
                         <div className="text-cyan-200 text-xs space-y-1">
-                          <div>• Tests mid-supply price to ensure reasonable progression</div>
-                          <div>• Prevents curves that are too aggressive (&gt;10x at 50% supply)</div>
-                          <div>• Prevents curves that are too gentle (&lt;2x at 50% supply)</div>
-                          <div>• Final bounds: 0.5% to 25% for market stability</div>
+                          <div>• Caps price ratio at 20x for realistic calculations</div>
+                          <div>• Limits rate to 0.1% to 2% for reasonable growth</div>
+                          <div>• Applies 50x starting price cap to prevent extreme values</div>
+                          <div>• Conservative approach for market stability</div>
                         </div>
                       </div>
                       
