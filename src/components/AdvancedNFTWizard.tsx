@@ -143,7 +143,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           discordServerId: '',
           telegramGroupId: ''
         },
-        maxMintsPerWallet: 1
+        maxMintsPerWallet: 1,
+        minTokenBalance: 1000000,
+        tokenContract: ''
       },
       { 
         id: 'community', 
@@ -162,7 +164,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
           discordServerId: '',
           telegramGroupId: ''
         },
-        maxMintsPerWallet: 1
+        maxMintsPerWallet: 1,
+        minTokenBalance: 1000000,
+        tokenContract: ''
       },
       { 
         id: 'public', 
@@ -255,7 +259,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
         discordServerId: '',
         telegramGroupId: ''
       },
-      maxMintsPerWallet: 1
+      maxMintsPerWallet: 1,
+      minTokenBalance: 1000000,
+      tokenContract: ''
     };
     setWhitelistConfig(prev => ({
       ...prev,
@@ -2080,6 +2086,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                           </label>
                                           <input
                                             type="text"
+                                            value={phase.tokenContract || ''}
+                                            onChange={(e) => updatePhase(phase.id, { tokenContract: e.target.value })}
                                             placeholder="Enter token contract (e.g., LOL, SOL, USDC)"
                                             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
                                           />
@@ -2093,6 +2101,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                             </label>
                                             <input
                                               type="number"
+                                              value={phase.minTokenBalance || 1000000}
+                                              onChange={(e) => updatePhase(phase.id, { minTokenBalance: parseInt(e.target.value) || 1000000 })}
                                               placeholder="1000000"
                                               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500"
                                             />
@@ -2121,8 +2131,9 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                               <button
                                                 key={token}
                                                 type="button"
+                                                onClick={() => updatePhase(phase.id, { paymentToken: token })}
                                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                  token === 'LOL' 
+                                                  (phase.paymentToken || 'LOL') === token
                                                     ? 'bg-blue-600 text-white' 
                                                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                                 }`}
