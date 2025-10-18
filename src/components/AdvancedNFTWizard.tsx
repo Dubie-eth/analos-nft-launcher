@@ -2393,41 +2393,41 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                   </div>
                                 </div>
 
-                                {/* Custom Whitelist Upload - Only for non-Public Access phases */}
-                                {!isPublicAccess && (
+                                  {/* Custom Whitelist Upload - Only for non-Public Access phases */}
+                                  {!isPublicAccess && (
                                   <div className="mt-4 bg-indigo-900/20 rounded-lg p-4 border border-indigo-500/30">
-                                    <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
-                                      <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-                                      Custom Whitelist Upload
-                                    </h5>
-                                    <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
-                                      <input
-                                        type="file"
-                                        accept=".csv"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            updatePhase(phase.id, { csvFile: file });
-                                          }
-                                        }}
-                                        className="hidden"
-                                        id={`csv-upload-${phase.id}`}
-                                      />
-                                      <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
-                                        <div className="text-gray-400 mb-2 text-sm">
-                                          📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file'}
-                                        </div>
-                                        <button
-                                          type="button"
-                                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
-                                        >
-                                          Choose File
-                                        </button>
-                                      </label>
-                                      <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
+                                      <h5 className="text-lg font-medium text-indigo-300 mb-4 flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                                        Custom Whitelist Upload
+                                      </h5>
+                                      <div className="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center">
+                                        <input
+                                          type="file"
+                                          accept=".csv"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                              updatePhase(phase.id, { csvFile: file });
+                                            }
+                                          }}
+                                          className="hidden"
+                                          id={`csv-upload-${phase.id}`}
+                                        />
+                                        <label htmlFor={`csv-upload-${phase.id}`} className="cursor-pointer">
+                                          <div className="text-gray-400 mb-2 text-sm">
+                                            📄 {phase.csvFile ? phase.csvFile.name : 'Upload CSV file'}
+                                          </div>
+                                          <button
+                                            type="button"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
+                                          >
+                                            Choose File
+                                          </button>
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-2">Format: wallet_address,phase,tier</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
                                 {/* Save Phase Button */}
                                 <div className="mt-4 pt-4 border-t border-gray-600 flex justify-end">
@@ -3241,14 +3241,14 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
                     {/* Chart Area */}
                     <div className="relative">
-                      {chartViewMode === 'compact' ? (
+                    {chartViewMode === 'compact' ? (
                         // Compact view - Losscreener style
                         <div className="h-80 relative">
                           {/* Y-Axis Price Labels */}
                           <div className="absolute left-0 top-0 bottom-0 w-16 flex flex-col justify-between py-4">
-                            {(() => {
-                              const data = generateBondingCurveData();
-                              const maxPrice = Math.max(...data.map(p => p.price));
+                          {(() => {
+                            const data = generateBondingCurveData();
+                            const maxPrice = Math.max(...data.map(p => p.price));
                               const minPrice = Math.min(...data.map(p => p.price));
                               const priceRange = maxPrice - minPrice;
                               const steps = 5;
@@ -3283,18 +3283,18 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                               const minPrice = Math.min(...data.map(p => p.price));
                               const priceRange = maxPrice - minPrice;
                               const step = Math.max(1, Math.floor(data.length / 50));
-                              const compactData = data.filter((_, index) => index % step === 0);
-                              
-                              return compactData.map((point, index) => {
+                            const compactData = data.filter((_, index) => index % step === 0);
+                            
+                            return compactData.map((point, index) => {
                                 const barHeight = ((point.price - minPrice) / priceRange) * 100;
-                                const originalIndex = index * step;
-                                
-                                return (
+                              const originalIndex = index * step;
+                              
+                              return (
+                                <div
+                                  key={originalIndex}
+                                  className="flex flex-col items-center group cursor-pointer relative flex-1"
+                                >
                                   <div
-                                    key={originalIndex}
-                                    className="flex flex-col items-center group cursor-pointer relative flex-1"
-                                  >
-                                    <div
                                       className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t transition-all duration-300 hover:from-green-500 hover:to-green-300 relative"
                                       style={{ height: `${barHeight}%` }}
                                       title={`Mint ${originalIndex + 1}: ${point.price.toFixed(4)} LOS`}
@@ -3302,22 +3302,22 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                       {/* Hover tooltip */}
                                       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                         {point.price.toFixed(4)} LOS
-                                      </div>
                                     </div>
-                                  </div>
-                                );
-                              });
-                            })()}
-                          </div>
-
+                                    </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                        
                           {/* X-Axis Labels */}
                           <div className="absolute bottom-0 left-16 right-0 flex justify-between px-2 pb-2">
                             <span className="text-xs text-gray-400">Mint #1</span>
                             <span className="text-xs text-gray-400">Supply: {generateBondingCurveData().length} NFTs</span>
                             <span className="text-xs text-gray-400">Mint #{generateBondingCurveData().length}</span>
-                          </div>
                         </div>
-                      ) : (
+                      </div>
+                    ) : (
                         // Full view - Losscreener style with scroll
                         <div className="h-80 relative overflow-x-auto">
                           <div className="min-w-max">
@@ -3354,20 +3354,20 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
                             {/* Chart Bars */}
                             <div className="absolute left-16 right-0 top-0 bottom-0 flex items-end gap-0.5 px-2 py-4 min-w-max">
-                              {generateBondingCurveData().map((point, index) => {
-                                const maxPrice = Math.max(...generateBondingCurveData().map(p => p.price));
+                          {generateBondingCurveData().map((point, index) => {
+                            const maxPrice = Math.max(...generateBondingCurveData().map(p => p.price));
                                 const minPrice = Math.min(...generateBondingCurveData().map(p => p.price));
                                 const priceRange = maxPrice - minPrice;
                                 const barHeight = ((point.price - minPrice) / priceRange) * 100;
                                 const barWidth = Math.max(2, Math.min(6, 800 / generateBondingCurveData().length));
-                                
-                                return (
-                                  <div
-                                    key={index}
-                                    className="flex flex-col items-center group cursor-pointer relative"
-                                    style={{ width: `${barWidth}px` }}
-                                  >
-                                    <div
+                            
+                            return (
+                              <div
+                                key={index}
+                                className="flex flex-col items-center group cursor-pointer relative"
+                                style={{ width: `${barWidth}px` }}
+                              >
+                                <div
                                       className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t transition-all duration-300 hover:from-green-500 hover:to-green-300 relative"
                                       style={{ height: `${barHeight}%` }}
                                       title={`Mint ${index + 1}: ${point.price.toFixed(4)} LOS`}
@@ -3375,19 +3375,19 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                                       {/* Hover tooltip */}
                                       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                         {point.price.toFixed(4)} LOS
-                                      </div>
-                                    </div>
                                   </div>
-                                );
-                              })}
-                            </div>
-
+                                    </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
                             {/* X-Axis Labels */}
                             <div className="absolute bottom-0 left-16 right-0 flex justify-between px-2 pb-2 min-w-max">
                               <span className="text-xs text-gray-400">Mint #1</span>
                               <span className="text-xs text-gray-400">Supply: {generateBondingCurveData().length} NFTs</span>
                               <span className="text-xs text-gray-400">Mint #{generateBondingCurveData().length}</span>
-                            </div>
+                        </div>
                           </div>
                         </div>
                       )}
