@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, Plus, Settings, Eye, EyeOff, ArrowUp, ArrowDown, Trash2, Save } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import AdvancedLayerManager from './AdvancedLayerManager';
@@ -3159,3 +3159,4 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     </div>
   );
 }
+
