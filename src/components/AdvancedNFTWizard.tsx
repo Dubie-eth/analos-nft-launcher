@@ -244,6 +244,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
 
   const handleSaveCollection = async () => {
     console.log('🔄 Starting collection save process...');
+    console.log('🔍 Current collectionConfig:', collectionConfig);
+    console.log('🔍 Current step:', currentStep);
     
     if (!publicKey) {
       console.log('❌ No wallet connected');
@@ -252,7 +254,12 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
     }
 
     if (!collectionConfig.name || !collectionConfig.symbol) {
-      console.log('❌ Missing required fields:', { name: collectionConfig.name, symbol: collectionConfig.symbol });
+      console.log('❌ Missing required fields:', { 
+        name: collectionConfig.name, 
+        symbol: collectionConfig.symbol,
+        fullConfig: collectionConfig,
+        currentStep: currentStep
+      });
       setSaveMessage('Please fill in collection name and symbol');
       return;
     }
