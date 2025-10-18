@@ -4268,23 +4268,34 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
+                          userWallet: publicKey.toString(),
+                          collectionName: collectionConfig.name,
+                          collectionSymbol: collectionConfig.symbol,
+                          description: collectionConfig.description,
+                          totalSupply: collectionConfig.supply,
+                          mintPrice: collectionConfig.mintPrice,
+                          revealType: collectionConfig.revealType,
+                          whitelistEnabled: collectionConfig.whitelistEnabled,
+                          bondingCurveEnabled: collectionConfig.bondingCurveEnabled,
+                          layers: layers,
                           collectionConfig: {
                             ...collectionConfig,
                             logo: logoPreview,
-                            banner: bannerPreview
+                            banner: bannerPreview,
+                            whitelistConfig,
+                            bondingCurveConfig,
+                            deploymentInfo: {
+                              collectionMint: result.collectionMint,
+                              metadataAccount: result.metadataAccount,
+                              deploymentCost: result.deploymentCost,
+                              transactionSignature: result.transactionSignature,
+                              deployed: true,
+                              deployedAt: new Date().toISOString()
+                            }
                           },
-                          whitelistConfig,
-                          bondingCurveConfig,
-                          layers,
-                          userWallet: publicKey.toString(),
-                          deploymentInfo: {
-                            collectionMint: result.collectionMint,
-                            metadataAccount: result.metadataAccount,
-                            deploymentCost: result.deploymentCost,
-                            transactionSignature: result.transactionSignature,
-                            deployed: true,
-                            deployedAt: new Date().toISOString()
-                          }
+                          logo_url: logoPreview,
+                          banner_url: bannerPreview,
+                          pageLoadId: `deploy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                         }),
                       });
 
@@ -4506,23 +4517,34 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                             'Content-Type': 'application/json',
                           },
                           body: JSON.stringify({
+                            userWallet: publicKey.toString(),
+                            collectionName: collectionConfig.name,
+                            collectionSymbol: collectionConfig.symbol,
+                            description: collectionConfig.description,
+                            totalSupply: collectionConfig.supply,
+                            mintPrice: collectionConfig.mintPrice,
+                            revealType: collectionConfig.revealType,
+                            whitelistEnabled: collectionConfig.whitelistEnabled,
+                            bondingCurveEnabled: collectionConfig.bondingCurveEnabled,
+                            layers: layers,
                             collectionConfig: {
                               ...collectionConfig,
                               logo: logoPreview,
-                              banner: bannerPreview
+                              banner: bannerPreview,
+                              whitelistConfig,
+                              bondingCurveConfig,
+                              deploymentInfo: {
+                                collectionMint: result.collectionMint,
+                                metadataAccount: result.metadataAccount,
+                                deploymentCost: result.deploymentCost,
+                                transactionSignature: result.transactionSignature,
+                                deployed: true,
+                                deployedAt: new Date().toISOString()
+                              }
                             },
-                            whitelistConfig,
-                            bondingCurveConfig,
-                            layers,
-                            userWallet: publicKey.toString(),
-                            deploymentInfo: {
-                              collectionMint: result.collectionMint,
-                              metadataAccount: result.metadataAccount,
-                              deploymentCost: result.deploymentCost,
-                              transactionSignature: result.transactionSignature,
-                              deployed: true,
-                              deployedAt: new Date().toISOString()
-                            }
+                            logo_url: logoPreview,
+                            banner_url: bannerPreview,
+                            pageLoadId: `deploy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                           }),
                         });
 

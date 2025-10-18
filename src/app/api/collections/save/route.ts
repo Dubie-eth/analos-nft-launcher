@@ -160,11 +160,19 @@ const secureHandler = withSecurityValidation(
       bonding_curve_enabled: bondingCurveEnabled || false,
       layers: layers,
       collection_config: collectionConfig || {},
-      status: 'draft',
+      status: collectionConfig?.deploymentInfo ? 'deployed' : 'draft',
       updated_at: new Date().toISOString(),
       // Use cleaned image data
       logo_url: cleanedImageData.logo_url,
-      banner_url: cleanedImageData.banner_url
+      banner_url: cleanedImageData.banner_url,
+      // Add deployment info if present
+      ...(collectionConfig?.deploymentInfo && {
+        deployed: true,
+        collection_mint: collectionConfig.deploymentInfo.collectionMint,
+        metadata_account: collectionConfig.deploymentInfo.metadataAccount,
+        deployment_cost: collectionConfig.deploymentInfo.deploymentCost,
+        deployment_info: collectionConfig.deploymentInfo
+      })
     };
 
     // Sanitize collection data to ensure user isolation
