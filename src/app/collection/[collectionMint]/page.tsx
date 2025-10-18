@@ -11,6 +11,8 @@ interface CollectionData {
   supply: number;
   mintPrice: number;
   image?: string;
+  logo?: string;
+  banner?: string;
   deployed: boolean;
   collectionMint: string;
   deploymentInfo?: {
@@ -19,6 +21,9 @@ interface CollectionData {
     deploymentCost: number;
     deployedAt: string;
   };
+  whitelistConfig?: any;
+  bondingCurveConfig?: any;
+  layers?: any[];
 }
 
 export default function CollectionPage() {
@@ -33,32 +38,7 @@ export default function CollectionPage() {
       try {
         setLoading(true);
         
-        // For now, create a mock collection for deployed collections
-        // In a real implementation, this would be stored in a database
-        if (collectionMint.startsWith('Analos_')) {
-          // This is a deployed collection from our deployment API
-          const mockCollection: CollectionData = {
-            name: 'Los Bros',
-            symbol: 'LBS',
-            description: 'A collection of Los Bros NFTs with dynamic bonding curve pricing and whitelist phases.',
-            supply: 2222,
-            mintPrice: 999,
-            image: '',
-            deployed: true,
-            collectionMint: collectionMint,
-            deploymentInfo: {
-              collectionMint: collectionMint,
-              metadataAccount: `Metadata_${collectionMint}`,
-              deploymentCost: 1700000, // 1.7 LOS
-              deployedAt: new Date().toISOString()
-            }
-          };
-          
-          setCollection(mockCollection);
-          return;
-        }
-        
-        // Try to load collection from saved collections (for non-deployed collections)
+        // Try to load collection from saved collections
         const response = await fetch('/api/collections/load?wallet=all');
         
         if (!response.ok) {
@@ -73,14 +53,56 @@ export default function CollectionPage() {
         
         // Find collection by mint address
         const foundCollection = result.collections?.find((col: any) => 
-          col.deploymentInfo?.collectionMint === collectionMint ||
-          col.collectionMint === collectionMint
+          col.collection_mint === collectionMint ||
+          col.deployment_info?.collectionMint === collectionMint ||
+          col.deploymentInfo?.collectionMint === collectionMint
         );
 
         if (foundCollection) {
-          setCollection(foundCollection);
+          // Convert database format to CollectionData format
+          const collectionData: CollectionData = {
+            name: foundCollection.collection_name || foundCollection.name,
+            symbol: foundCollection.collection_symbol || foundCollection.symbol,
+            description: foundCollection.description,
+            supply: foundCollection.supply,
+            mintPrice: foundCollection.mint_price || foundCollection.mintPrice,
+            image: foundCollection.image_url || foundCollection.cover_image_url || foundCollection.image,
+            logo: foundCollection.logo_url || foundCollection.logo,
+            banner: foundCollection.banner_url || foundCollection.banner,
+            deployed: foundCollection.deployed || false,
+            collectionMint: foundCollection.collection_mint || foundCollection.collectionMint,
+            deploymentInfo: foundCollection.deployment_info || foundCollection.deploymentInfo,
+            whitelistConfig: foundCollection.whitelist_config || foundCollection.whitelistConfig,
+            bondingCurveConfig: foundCollection.bonding_curve_config || foundCollection.bondingCurveConfig,
+            layers: foundCollection.layers
+          };
+          
+          setCollection(collectionData);
         } else {
-          setError('Collection not found');
+          // Fallback to mock data for deployed collections that might not be in database yet
+          if (collectionMint.startsWith('Analos_')) {
+            console.log('Collection not found in database, using fallback data for:', collectionMint);
+            const mockCollection: CollectionData = {
+              name: 'Los Bros',
+              symbol: 'LBS',
+              description: 'A collection of Los Bros NFTs with dynamic bonding curve pricing and whitelist phases.',
+              supply: 2222,
+              mintPrice: 999,
+              image: '',
+              deployed: true,
+              collectionMint: collectionMint,
+              deploymentInfo: {
+                collectionMint: collectionMint,
+                metadataAccount: `Metadata_${collectionMint}`,
+                deploymentCost: 1700000, // 1.7 LOS
+                deployedAt: new Date().toISOString()
+              }
+            };
+            
+            setCollection(mockCollection);
+          } else {
+            setError('Collection not found');
+          }
         }
       } catch (err) {
         console.error('Error loading collection:', err);
@@ -153,7 +175,13 @@ export default function CollectionPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Collection Image */}
             <div className="bg-gray-800/50 rounded-2xl p-8 border border-gray-700">
-              {collection.image ? (
+              {collection.banner ? (
+                <img 
+                  src={collection.banner} 
+                  alt={`${collection.name} banner`}
+                  className="w-full h-64 object-cover rounded-xl"
+                />
+              ) : collection.image ? (
                 <img 
                   src={collection.image} 
                   alt={collection.name}
@@ -161,7 +189,15 @@ export default function CollectionPage() {
                 />
               ) : (
                 <div className="w-full h-64 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-4xl font-bold">{collection.symbol}</span>
+                  {collection.logo ? (
+                    <img 
+                      src={collection.logo} 
+                      alt={`${collection.name} logo`}
+                      className="w-32 h-32 object-contain"
+                    />
+                  ) : (
+                    <span className="text-white text-4xl font-bold">{collection.symbol}</span>
+                  )}
                 </div>
               )}
             </div>
@@ -188,6 +224,57 @@ export default function CollectionPage() {
                 </div>
               </div>
             </div>
+
+            {/* Whitelist Configuration */}
+            {collection.whitelistConfig && (
+              <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <h2 className="text-xl font-semibold text-white mb-4">Whitelist Configuration</h2>
+                <div className="space-y-3">
+                  {collection.whitelistConfig.phases?.filter((phase: any) => phase.enabled).map((phase: any, index: number) => (
+                    <div key={phase.id} className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-blue-300 font-medium">{phase.name}</h3>
+                          <p className="text-blue-200 text-sm">
+                            {phase.spots} spots • {phase.pricePerMint || 0} LOS each
+                            {phase.maxMintsPerWallet && ` • Max ${phase.maxMintsPerWallet} per wallet`}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-blue-300 font-bold">#{index + 1}</div>
+                          <div className="text-blue-200 text-xs">Phase</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bonding Curve Configuration */}
+            {collection.bondingCurveConfig && (
+              <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <h2 className="text-xl font-semibold text-white mb-4">Bonding Curve Configuration</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm text-gray-400">Starting Price</div>
+                    <div className="text-lg font-bold text-white">{collection.bondingCurveConfig.startingPrice} LOS</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Max Price</div>
+                    <div className="text-lg font-bold text-white">{collection.bondingCurveConfig.maxPrice} LOS</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Increase Rate</div>
+                    <div className="text-lg font-bold text-white">{collection.bondingCurveConfig.increaseRate}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Creator Royalty</div>
+                    <div className="text-lg font-bold text-white">{collection.bondingCurveConfig.creatorRoyalty}%</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
