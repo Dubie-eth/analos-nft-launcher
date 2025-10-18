@@ -2562,7 +2562,8 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       DLMM Bonding Curve Seeding
                     </h5>
                     <p className="text-yellow-200 text-sm mb-3">
-                      For optimal DLMM bonding curve performance, whitelist phases should have a minimum price to seed the curve with initial liquidity.
+                      For optimal DLMM bonding curve performance, whitelist phases should have a minimum price to seed the curve with initial liquidity. 
+                      The calculation accounts for each phase's spots × maxMintsPerWallet to show total potential seeding.
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2588,14 +2589,55 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         <div className="w-full px-4 py-3 bg-gray-700/50 border border-gray-500 rounded-lg text-gray-300">
                           {(() => {
                             const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
-                            const totalWhitelistSpots = whitelistConfig.phases
+                            const totalSeeding = whitelistConfig.phases
                               .filter(phase => phase.enabled)
-                              .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
-                            const totalSeeding = minPrice * totalWhitelistSpots;
+                              .reduce((sum, phase) => {
+                                const phasePrice = phase.pricePerMint || 0;
+                                const effectivePrice = Math.max(phasePrice, minPrice);
+                                const totalMints = phase.spots * (phase.maxMintsPerWallet || 1);
+                                return sum + (effectivePrice * totalMints);
+                              }, 0);
                             return `${totalSeeding.toFixed(2)} LOS total seeding`;
                           })()}
                         </div>
                         <p className="text-xs text-gray-400 mt-1">Total LOS that will seed the bonding curve</p>
+                        
+                        {/* Seeding Breakdown */}
+                        {(() => {
+                          const minPrice = parseFloat(bondingCurveConfig.minWhitelistPrice) || 0;
+                          if (minPrice > 0) {
+                            return (
+                              <div className="mt-2 p-2 bg-gray-800/30 rounded text-xs">
+                                <div className="text-gray-300 font-medium mb-1">Seeding Breakdown:</div>
+                                <div className="text-gray-400 mb-2 text-xs">
+                                  Formula: (spots × maxMintsPerWallet) × effectivePrice = totalSeeding
+                                </div>
+                                {whitelistConfig.phases
+                                  .filter(phase => phase.enabled)
+                                  .map((phase, index) => {
+                                    const phasePrice = phase.pricePerMint || 0;
+                                    const effectivePrice = Math.max(phasePrice, minPrice);
+                                    const maxMintsPerWallet = phase.maxMintsPerWallet || 1;
+                                    const totalMints = phase.spots * maxMintsPerWallet;
+                                    const phaseSeeding = effectivePrice * totalMints;
+                                    
+                                    return (
+                                      <div key={phase.id} className="space-y-1">
+                                        <div className="flex justify-between text-gray-400">
+                                          <span>{phase.name}:</span>
+                                          <span>{phaseSeeding.toFixed(2)} LOS</span>
+                                        </div>
+                                        <div className="text-gray-500 ml-2 text-xs">
+                                          {phase.spots} spots × {maxMintsPerWallet} mints/wallet × {effectivePrice} LOS = {totalMints} total mints
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </div>
                     
@@ -2603,6 +2645,35 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                       <p className="text-xs text-yellow-200">
                         <strong>💡 DLMM Tip:</strong> Initial liquidity seeding helps establish a stable price floor and improves price discovery for the bonding curve.
                       </p>
+                    </div>
+                    
+                    {/* Collection Supply Distribution */}
+                    <div className="mt-3 p-3 bg-blue-900/20 border border-blue-500/30 rounded">
+                      <div className="text-blue-300 text-sm font-medium mb-2">📊 Collection Supply Distribution:</div>
+                      {(() => {
+                        const totalWhitelistMints = whitelistConfig.phases
+                          .filter(phase => phase.enabled)
+                          .reduce((sum, phase) => sum + (phase.spots * (phase.maxMintsPerWallet || 1)), 0);
+                        const totalCollectionSupply = collectionConfig.supply || 1000;
+                        const publicSaleMints = Math.max(0, totalCollectionSupply - totalWhitelistMints);
+                        
+                        return (
+                          <div className="space-y-1 text-xs text-blue-200">
+                            <div className="flex justify-between">
+                              <span>Total Whitelist Mints:</span>
+                              <span>{totalWhitelistMints} NFTs</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Public Sale (Bonding Curve):</span>
+                              <span>{publicSaleMints} NFTs</span>
+                            </div>
+                            <div className="flex justify-between border-t border-blue-500/30 pt-1 font-medium">
+                              <span>Total Collection Supply:</span>
+                              <span>{totalCollectionSupply} NFTs</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
