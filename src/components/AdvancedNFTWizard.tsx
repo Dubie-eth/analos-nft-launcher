@@ -65,7 +65,7 @@ interface AdvancedNFTWizardProps {
 }
 
 export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTWizardProps) {
-  const { publicKey } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
   const [currentStep, setCurrentStep] = useState(1);
   const { fetchPrice, getUSDValue, prices, loading } = usePriceOracle();
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -4229,36 +4229,74 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
               <button
                 onClick={async () => {
                   try {
-                    console.log('🚀 Starting collection deployment...');
-                    
-                    // Prepare deployment data
-                    const deploymentData = {
-                      collectionConfig,
-                      whitelistConfig,
-                      bondingCurveConfig,
-                      layers,
-                      userWallet: publicKey?.toString()
-                    };
-
-                    // Call deployment API
-                    const response = await fetch('/api/collections/deploy', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify(deploymentData),
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                      throw new Error(result.error || 'Deployment failed');
+                    // MANDATORY: Check wallet connection and signing capability
+                    if (!publicKey) {
+                      alert('❌ Wallet connection required!\n\nPlease connect your wallet to deploy a collection.');
+                      return;
                     }
 
-                    console.log('✅ Deployment transaction prepared:', result);
+                    if (!signTransaction) {
+                      alert('❌ Wallet signing required!\n\nYour wallet must support transaction signing to deploy a collection.');
+                      return;
+                    }
 
-                    // Show success modal with deployment details
-                    alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\n\nRedirecting to your collection page...`);
+                    console.log('🚀 Starting collection deployment with wallet signing...');
+                    
+                    // Create the collection directly with wallet signing (no API fallback)
+                    const { createCollection } = await import('@/lib/blockchain-service');
+                    
+                    const result = await createCollection({
+                      name: collectionConfig.name,
+                      symbol: collectionConfig.symbol,
+                      description: collectionConfig.description,
+                      supply: collectionConfig.supply,
+                      mintPrice: collectionConfig.mintPrice,
+                      image: logoPreview || bannerPreview || null,
+                      logo: logoPreview || null,
+                      banner: bannerPreview || null,
+                      whitelistConfig: whitelistConfig,
+                      bondingCurveConfig: bondingCurveConfig
+                    }, publicKey.toString(), signTransaction);
+                    
+                    console.log('✅ Collection deployed to blockchain:', result);
+
+                    // Save collection data to database
+                    try {
+                      const saveResponse = await fetch('/api/collections/save', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          collectionConfig: {
+                            ...collectionConfig,
+                            logo: logoPreview,
+                            banner: bannerPreview
+                          },
+                          whitelistConfig,
+                          bondingCurveConfig,
+                          layers,
+                          userWallet: publicKey.toString(),
+                          deploymentInfo: {
+                            collectionMint: result.collectionMint,
+                            metadataAccount: result.metadataAccount,
+                            deploymentCost: result.deploymentCost,
+                            transactionSignature: result.transactionSignature,
+                            deployed: true,
+                            deployedAt: new Date().toISOString()
+                          }
+                        }),
+                      });
+
+                      if (saveResponse.ok) {
+                        console.log('✅ Collection data saved to database');
+                      }
+                    } catch (saveError) {
+                      console.error('⚠️ Failed to save collection data:', saveError);
+                      // Continue anyway - the collection is deployed
+                    }
+                    
+                    alert(`Collection "${collectionConfig.name}" deployed successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\nTransaction: ${result.transactionSignature}\n\nRedirecting to your collection page...`);
 
                     // Complete the wizard with deployment info
                     onComplete({
@@ -4268,7 +4306,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                         collectionMint: result.collectionMint,
                         metadataAccount: result.metadataAccount,
                         deploymentCost: result.deploymentCost,
-                        transactionData: result.transaction,
+                        transactionData: result.transactionSignature,
                         deployed: true,
                         deployedAt: new Date().toISOString()
                       },
@@ -4429,36 +4467,74 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                 <button
                   onClick={async () => {
                     try {
-                      console.log('🚀 Starting collection deployment...');
-                      
-                      // Prepare deployment data
-                      const deploymentData = {
-                        collectionConfig,
-                        whitelistConfig,
-                        bondingCurveConfig,
-                        layers,
-                        userWallet: publicKey?.toString()
-                      };
-
-                      // Call deployment API
-                      const response = await fetch('/api/collections/deploy', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(deploymentData),
-                      });
-
-                      const result = await response.json();
-
-                      if (!response.ok) {
-                        throw new Error(result.error || 'Deployment failed');
+                      // MANDATORY: Check wallet connection and signing capability
+                      if (!publicKey) {
+                        alert('❌ Wallet connection required!\n\nPlease connect your wallet to deploy a collection.');
+                        return;
                       }
 
-                      console.log('✅ Deployment transaction prepared:', result);
+                      if (!signTransaction) {
+                        alert('❌ Wallet signing required!\n\nYour wallet must support transaction signing to deploy a collection.');
+                        return;
+                      }
 
-                      // Show success modal with deployment details
-                      alert(`Collection "${collectionConfig.name}" deployment prepared successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\n\nRedirecting to your collection page...`);
+                      console.log('🚀 Starting collection deployment with wallet signing...');
+                      
+                      // Create the collection directly with wallet signing (no API fallback)
+                      const { createCollection } = await import('@/lib/blockchain-service');
+                      
+                      const result = await createCollection({
+                        name: collectionConfig.name,
+                        symbol: collectionConfig.symbol,
+                        description: collectionConfig.description,
+                        supply: collectionConfig.supply,
+                        mintPrice: collectionConfig.mintPrice,
+                        image: logoPreview || bannerPreview || null,
+                        logo: logoPreview || null,
+                        banner: bannerPreview || null,
+                        whitelistConfig: whitelistConfig,
+                        bondingCurveConfig: bondingCurveConfig
+                      }, publicKey.toString(), signTransaction);
+                      
+                      console.log('✅ Collection deployed to blockchain:', result);
+
+                      // Save collection data to database
+                      try {
+                        const saveResponse = await fetch('/api/collections/save', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            collectionConfig: {
+                              ...collectionConfig,
+                              logo: logoPreview,
+                              banner: bannerPreview
+                            },
+                            whitelistConfig,
+                            bondingCurveConfig,
+                            layers,
+                            userWallet: publicKey.toString(),
+                            deploymentInfo: {
+                              collectionMint: result.collectionMint,
+                              metadataAccount: result.metadataAccount,
+                              deploymentCost: result.deploymentCost,
+                              transactionSignature: result.transactionSignature,
+                              deployed: true,
+                              deployedAt: new Date().toISOString()
+                            }
+                          }),
+                        });
+
+                        if (saveResponse.ok) {
+                          console.log('✅ Collection data saved to database');
+                        }
+                      } catch (saveError) {
+                        console.error('⚠️ Failed to save collection data:', saveError);
+                        // Continue anyway - the collection is deployed
+                      }
+                      
+                      alert(`Collection "${collectionConfig.name}" deployed successfully!\n\nCollection Mint: ${result.collectionMint}\nDeployment Cost: ${result.deploymentCost} LOS\nBlockchain: Analos\nTransaction: ${result.transactionSignature}\n\nRedirecting to your collection page...`);
 
                       // Complete the wizard with deployment info
                       onComplete({
@@ -4468,7 +4544,7 @@ export default function AdvancedNFTWizard({ onComplete, onCancel }: AdvancedNFTW
                           collectionMint: result.collectionMint,
                           metadataAccount: result.metadataAccount,
                           deploymentCost: result.deploymentCost,
-                          transactionData: result.transaction,
+                          transactionData: result.transactionSignature,
                           deployed: true,
                           deployedAt: new Date().toISOString()
                         },

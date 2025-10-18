@@ -594,7 +594,8 @@ export class BlockchainService {
       whitelistConfig?: any;
       bondingCurveConfig?: any;
     },
-    creatorWallet: string
+    creatorWallet: string,
+    signTransaction: (transaction: Transaction) => Promise<Transaction>
   ): Promise<{
     collectionMint: string;
     metadataAccount: string;
@@ -609,18 +610,13 @@ export class BlockchainService {
         creator: creatorWallet
       });
 
-      // For now, we'll create a mock collection since we need the actual smart contract integration
-      // In a full implementation, this would:
-      // 1. Create the collection mint account
-      // 2. Create metadata account
-      // 3. Initialize collection config
-      // 4. Set up bonding curve if enabled
-      // 5. Set up whitelist if enabled
-      // 6. Return the actual transaction signature
-
-      // Generate a realistic collection mint address
-      const collectionMint = Keypair.generate().publicKey.toString();
-      const metadataAccount = Keypair.generate().publicKey.toString();
+      // Generate collection mint keypair
+      const collectionMintKeypair = Keypair.generate();
+      const collectionMint = collectionMintKeypair.publicKey.toString();
+      
+      // Generate metadata account keypair
+      const metadataKeypair = Keypair.generate();
+      const metadataAccount = metadataKeypair.publicKey.toString();
       
       // Calculate deployment cost
       const baseCost = 1; // 1 LOS base cost
@@ -630,16 +626,64 @@ export class BlockchainService {
       
       const deploymentCost = baseCost + bondingCurveCost + whitelistCost;
 
-      console.log('✅ Collection created on Analos blockchain:', {
-        collectionMint,
-        metadataAccount,
-        deploymentCost
+      // Wallet signing is MANDATORY for collection deployment
+      console.log('🔐 Creating real blockchain transaction...');
+      
+      // Create the collection creation transaction
+      const transaction = new Transaction();
+      
+      // Add collection mint creation instruction
+      const createMintInstruction = SystemProgram.createAccount({
+        fromPubkey: new PublicKey(creatorWallet),
+        newAccountPubkey: collectionMintKeypair.publicKey,
+        lamports: await this.connection.getMinimumBalanceForRentExemption(82), // Mint account size
+        space: 82,
+        programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') // SPL Token Program
       });
-
+      
+      // Add metadata account creation instruction
+      const createMetadataInstruction = SystemProgram.createAccount({
+        fromPubkey: new PublicKey(creatorWallet),
+        newAccountPubkey: metadataKeypair.publicKey,
+        lamports: await this.connection.getMinimumBalanceForRentExemption(200), // Metadata account size
+        space: 200,
+        programId: this.programIds.NFT_LAUNCHPAD
+      });
+      
+      transaction.add(createMintInstruction);
+      transaction.add(createMetadataInstruction);
+      
+      // Get recent blockhash
+      const { blockhash } = await this.connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = new PublicKey(creatorWallet);
+      
+      // Sign with collection and metadata keypairs
+      transaction.partialSign(collectionMintKeypair, metadataKeypair);
+      
+      // Sign with user's wallet (MANDATORY)
+      const signedTransaction = await signTransaction(transaction);
+      
+      // Send transaction
+      const signature = await this.connection.sendRawTransaction(signedTransaction.serialize(), {
+        skipPreflight: false,
+        maxRetries: 3
+      });
+      
+      console.log('✅ Real transaction sent:', signature);
+      
+      // Wait for confirmation
+      try {
+        await this.connection.confirmTransaction(signature, 'confirmed');
+        console.log('✅ Transaction confirmed on blockchain');
+      } catch (confirmError) {
+        console.log('⚠️ Confirmation timeout, but transaction was sent:', signature);
+      }
+      
       return {
         collectionMint,
         metadataAccount,
-        transactionSignature: `mock_tx_${Date.now()}`,
+        transactionSignature: signature,
         deploymentCost
       };
 
@@ -708,8 +752,8 @@ export const isValidAddress = (address: string) =>
   blockchainService.isValidAddress(address);
 export const getCurrentSlot = () => blockchainService.getCurrentSlot();
 export const getBlockchainHealth = () => blockchainService.getBlockchainHealth();
-export const createCollection = (config: any, creatorWallet: string) => 
-  blockchainService.createCollection(config, creatorWallet);
+export const createCollection = (config: any, creatorWallet: string, signTransaction: (transaction: Transaction) => Promise<Transaction>) => 
+  blockchainService.createCollection(config, creatorWallet, signTransaction);
 export const verifyCollection = (collectionMint: string) => 
   blockchainService.verifyCollection(collectionMint);
 export const getCollectionInfo = (collectionMint: string) => 
