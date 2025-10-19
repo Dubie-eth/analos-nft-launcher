@@ -144,8 +144,13 @@ export async function POST(request: NextRequest) {
 
     // Generate social sharing URLs
     const nftGenerator = new ProfileNFTGenerator(connection);
-    const shareUrls = nftGenerator.generateSocialShareUrls(profileData, mintResult.mintAddress.toString(), explorerUrl);
-    const shareText = nftGenerator.generateSocialShareText(profileData, mintResult.mintAddress.toString());
+    // Convert profileData to generator format (wallet as string)
+    const generatorProfileData = {
+      ...profileData,
+      wallet: profileData.wallet.toString()
+    };
+    const shareUrls = nftGenerator.generateSocialShareUrls(generatorProfileData as any, mintResult.mintAddress.toString(), explorerUrl);
+    const shareText = nftGenerator.generateSocialShareText(generatorProfileData as any, mintResult.mintAddress.toString());
 
     return NextResponse.json({
       success: true,
