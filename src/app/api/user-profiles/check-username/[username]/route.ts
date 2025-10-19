@@ -36,6 +36,14 @@ export async function GET(
       );
     }
 
+    // Check if database is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { available: false, error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
     // Check if username exists in database
     const { data, error } = await supabaseAdmin
       .from('user_profiles')
