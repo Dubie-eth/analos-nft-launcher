@@ -255,6 +255,31 @@ export const PAGE_ACCESS: PageAccess[] = [
     requiresWallet: true,
     isLocked: true,
     customMessage: 'Connect your wallet to view your created collections'
+  },
+  {
+    path: '/collection/[collectionMint]',
+    name: 'Collection Details',
+    description: 'View specific collection details and minting page',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
+  },
+  {
+    path: '/mint/[collectionName]',
+    name: 'Mint Collection',
+    description: 'Mint NFTs from a specific collection',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to mint NFTs'
+  },
+  {
+    path: '/user/[username]',
+    name: 'User Profile',
+    description: 'View public user profile',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
   }
 ];
 
@@ -337,7 +362,10 @@ export async function hasPageAccess(userWallet: string | null, userAccessLevel: 
 
 // Get user's access level from database
 export async function getUserAccessLevel(userWallet: string): Promise<string> {
+  console.log(`🔍 Getting access level for wallet: ${userWallet.slice(0, 8)}...`);
+  
   if (ADMIN_WALLETS.includes(userWallet)) {
+    console.log(`✅ Admin wallet detected: ${userWallet.slice(0, 8)}...`);
     return 'admin';
   }
 
@@ -346,12 +374,18 @@ export async function getUserAccessLevel(userWallet: string): Promise<string> {
     const response = await fetch(`/api/user-profiles/${userWallet}`);
     if (response.ok) {
       const profile = await response.json();
-      return profile.accessLevel || DEFAULT_ACCESS_LEVEL;
+      console.log(`📋 Profile response:`, profile);
+      // The user profile API doesn't include accessLevel, so we'll use default for now
+      // In the future, we might want to add accessLevel to the user profile schema
+      return DEFAULT_ACCESS_LEVEL;
+    } else {
+      console.log(`❌ Profile API response not ok:`, response.status);
     }
   } catch (error) {
     console.warn('Failed to fetch user access level from database:', error);
   }
 
+  console.log(`🔄 Returning default access level: ${DEFAULT_ACCESS_LEVEL}`);
   return DEFAULT_ACCESS_LEVEL;
 }
 
