@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if verification already exists
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && supabaseAdmin) {
       const { data: existingVerification } = await (supabaseAdmin
         .from('social_verifications') as any)
         .select('*')
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
 async function awardVerificationRewards(walletAddress: string, platform: string): Promise<void> {
   try {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured || !supabaseAdmin) return;
 
     // Award points for social verification
     const { error } = await (supabaseAdmin
