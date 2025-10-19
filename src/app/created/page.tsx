@@ -18,6 +18,8 @@ interface SavedCollection {
   status: string;
   created_at: string;
   updated_at: string;
+  collection_mint?: string;
+  deployed?: boolean;
 }
 
 interface CreatorReward {
