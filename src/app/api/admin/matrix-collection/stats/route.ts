@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     // Check admin authorization (you can add proper auth here)
     
-    if (!isSupabaseConfigured()) {
+    if (!isSupabaseConfigured) {
       // Return mock data if Supabase is not configured
       return NextResponse.json({
         stats: {

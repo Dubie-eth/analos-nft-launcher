@@ -8,7 +8,7 @@ import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function GET(request: NextRequest) {
   try {
-    if (!isSupabaseConfigured()) {
+    if (!isSupabaseConfigured) {
       return NextResponse.json({
         nfts: []
       });
