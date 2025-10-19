@@ -37,18 +37,33 @@ export interface ProfileNFTData {
   mintPrice: number;
 }
 
-// NFT Collection metadata
+// NFT Collection metadata for master open edition
 export interface NFTCollectionData {
   name: string;
   symbol: string;
   description: string;
   image: string;
   external_url?: string;
+  collection?: {
+    name: string;
+    family: string;
+  };
   attributes: Array<{
     trait_type: string;
     value: string | number;
   }>;
 }
+
+// Master Open Edition Collection Configuration
+export const MASTER_OPEN_EDITION_CONFIG = {
+  collectionName: 'Analos Profile Cards',
+  collectionSymbol: 'APC',
+  collectionDescription: 'Official profile card NFTs for the Analos NFT Launchpad community. Each card represents a unique user and includes their referral code for the platform.',
+  collectionFamily: 'Analos NFT Launchpad',
+  totalSupply: 'Open Edition', // Unlimited minting
+  mintPrice: 4.20, // 4.20 LOS
+  royalty: 2.5, // 2.5% royalty to platform
+};
 
 export class AnalosNFTMintingService {
   private connection: Connection;
@@ -100,18 +115,26 @@ export class AnalosNFTMintingService {
   }
 
   /**
-   * Create a profile NFT collection metadata
+   * Create a profile NFT collection metadata for the master open edition
    */
   createProfileNFTCollection(profileData: ProfileNFTData): NFTCollectionData {
     const referralCode = generateReferralCode(profileData.username);
     
     return {
       name: `${profileData.displayName} Profile Card`,
-      symbol: 'PROFILE',
-      description: `${profileData.bio || 'Profile card NFT for ' + profileData.displayName}. Referral Code: ${referralCode}`,
+      symbol: MASTER_OPEN_EDITION_CONFIG.collectionSymbol,
+      description: `${MASTER_OPEN_EDITION_CONFIG.collectionDescription} This card belongs to ${profileData.displayName} (@${profileData.username}). Referral Code: ${referralCode}`,
       image: this.generateProfileCardImage(profileData),
       external_url: `https://onlyanal.fun/profile/${profileData.username}`,
+      collection: {
+        name: MASTER_OPEN_EDITION_CONFIG.collectionName,
+        family: MASTER_OPEN_EDITION_CONFIG.collectionFamily
+      },
       attributes: [
+        {
+          trait_type: 'Collection',
+          value: MASTER_OPEN_EDITION_CONFIG.collectionName
+        },
         {
           trait_type: 'Username',
           value: profileData.username
@@ -129,12 +152,20 @@ export class AnalosNFTMintingService {
           value: profileData.twitterVerified ? 'Yes' : 'No'
         },
         {
-          trait_type: 'Profile Type',
-          value: 'User Profile Card'
+          trait_type: 'Edition Type',
+          value: 'Open Edition'
         },
         {
           trait_type: 'Mint Price',
-          value: `${profileData.mintPrice / LAMPORTS_PER_SOL} LOS`
+          value: `${MASTER_OPEN_EDITION_CONFIG.mintPrice} LOS`
+        },
+        {
+          trait_type: 'Platform',
+          value: 'Analos NFT Launchpad'
+        },
+        {
+          trait_type: 'Card Type',
+          value: 'Profile Card'
         }
       ]
     };
@@ -163,11 +194,14 @@ export class AnalosNFTMintingService {
         
         <!-- Header -->
         <rect x="20" y="20" width="360" height="80" fill="rgba(255,255,255,0.1)" rx="10"/>
-        <text x="200" y="45" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
-          PROFILE CARD
+        <text x="200" y="40" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+          ANALOS PROFILE CARDS
         </text>
-        <text x="200" y="65" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">
-          Analos NFT Launchpad
+        <text x="200" y="55" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">
+          Master Open Edition Collection
+        </text>
+        <text x="200" y="70" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="10">
+          onlyanal.fun
         </text>
         
         <!-- Avatar Circle -->
@@ -201,7 +235,7 @@ export class AnalosNFTMintingService {
         
         <!-- Footer -->
         <text x="200" y="550" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="Arial, sans-serif" font-size="10">
-          Minted on Analos • onlyanal.fun
+          Open Edition • Minted on Analos • onlyanal.fun
         </text>
       </svg>
     `;

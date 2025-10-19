@@ -97,15 +97,11 @@ export async function POST(request: NextRequest) {
     try {
       mintResult = await nftService.mintProfileNFT(nftProfileData, userWallet);
     } catch (error) {
-      console.error('NFT minting failed, falling back to simulation:', error);
-      
-      // Fallback to simulation if real minting fails
-      const mockMintAddress = generateMockMintAddress();
-      mintResult = {
-        mintAddress: new PublicKey(mockMintAddress),
-        signature: 'simulated_signature',
-        metadata: nftService.createProfileNFTCollection(nftProfileData)
-      };
+      console.error('NFT minting failed:', error);
+      return NextResponse.json(
+        { error: `Failed to mint profile NFT on Analos blockchain: ${error.message}` },
+        { status: 500 }
+      );
     }
 
     const explorerUrl = ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD;
@@ -152,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Profile NFT minted successfully on Analos blockchain!',
+      message: 'Profile NFT minted successfully as part of the Analos Profile Cards Master Open Edition!',
       nft: {
         mintAddress: mintResult.mintAddress.toString(),
         explorerUrl,
@@ -167,9 +163,19 @@ export async function POST(request: NextRequest) {
         urls: shareUrls
       },
       profileData,
+      collectionInfo: {
+        name: 'Analos Profile Cards',
+        type: 'Master Open Edition',
+        symbol: 'APC',
+        family: 'Analos NFT Launchpad',
+        mintPrice: '4.20 LOS',
+        supply: 'Open Edition (Unlimited)',
+        royalty: '2.5%'
+      },
       programInfo: {
         programId: ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD,
-        network: 'Analos Mainnet'
+        network: 'Analos Mainnet',
+        verified: true
       }
     });
 

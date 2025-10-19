@@ -266,9 +266,16 @@ export default function ProfileNFTCreator({
         <h2 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
           🎴 Create Your Profile NFT
         </h2>
-        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
           Mint your first NFT - a personalized profile card with your info and referral code!
         </p>
+        <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-purple-900/20 border-purple-700' : 'bg-purple-50 border-purple-200'}`}>
+          <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
+            <strong>🏆 Master Open Edition Collection:</strong><br/>
+            Your profile NFT will be part of the official "Analos Profile Cards" master open edition collection. 
+            Each NFT includes your personalized referral code and becomes part of the Analos NFT Launchpad ecosystem.
+          </p>
+        </div>
       </div>
 
       {error && (
