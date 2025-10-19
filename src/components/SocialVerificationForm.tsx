@@ -12,6 +12,7 @@ interface VerificationResult {
     points: number;
     message: string;
   };
+  note?: string;
   details?: any;
 }
 

@@ -16,10 +16,16 @@ export function useWalletCookies() {
       document.cookie = `connected-wallet=${publicKey.toString()}; path=/; max-age=86400; SameSite=Lax`;
       
       // Get and set user access level cookie
-      const accessLevel = getUserAccessLevel(publicKey.toString());
-      document.cookie = `access-level-${publicKey.toString()}=${accessLevel}; path=/; max-age=86400; SameSite=Lax`;
-      
-      console.log(`🔒 Access Control: Wallet ${publicKey.toString().slice(0, 8)}... connected with ${accessLevel} access`);
+      getUserAccessLevel(publicKey.toString()).then(accessLevel => {
+        document.cookie = `access-level-${publicKey.toString()}=${accessLevel}; path=/; max-age=86400; SameSite=Lax`;
+        console.log(`🔒 Access Control: Wallet ${publicKey.toString().slice(0, 8)}... connected with ${accessLevel} access`);
+      }).catch(error => {
+        console.error('Failed to get user access level:', error);
+        // Fallback to default access level
+        const defaultLevel = 'public';
+        document.cookie = `access-level-${publicKey.toString()}=${defaultLevel}; path=/; max-age=86400; SameSite=Lax`;
+        console.log(`🔒 Access Control: Wallet ${publicKey.toString().slice(0, 8)}... connected with ${defaultLevel} access (fallback)`);
+      });
     } else {
       // Clear cookies when wallet disconnects
       document.cookie = 'connected-wallet=; path=/; max-age=0';

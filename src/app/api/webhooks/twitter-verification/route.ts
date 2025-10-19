@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
 
     // Check if verification already exists
     if (isSupabaseConfigured) {
-      const { data: existingVerification } = await supabaseAdmin
-        .from('social_verifications')
+      const { data: existingVerification } = await (supabaseAdmin
+        .from('social_verifications') as any)
         .select('*')
         .eq('wallet_address', walletAddress)
         .eq('platform', 'twitter')
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
       }
 
       // Save verification to database
-      const { data: verification, error } = await supabaseAdmin
-        .from('social_verifications')
+      const { data: verification, error } = await (supabaseAdmin
+        .from('social_verifications') as any)
         .insert({
           wallet_address: walletAddress,
           platform: 'twitter',
@@ -123,8 +123,8 @@ async function awardVerificationRewards(walletAddress: string, platform: string)
     if (!isSupabaseConfigured) return;
 
     // Award points for social verification
-    const { error } = await supabaseAdmin
-      .from('user_activities')
+    const { error } = await (supabaseAdmin
+      .from('user_activities') as any)
       .insert({
         wallet_address: walletAddress,
         activity_type: 'social_verification',

@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
 
     // Check if verification already exists
     if (isSupabaseConfigured) {
-      const { data: existingVerification } = await supabaseAdmin
-        .from('social_verifications')
+      const { data: existingVerification } = await (supabaseAdmin
+        .from('social_verifications') as any)
         .select('*')
         .eq('wallet_address', walletAddress)
         .eq('platform', 'twitter')
@@ -98,18 +98,18 @@ export async function POST(request: NextRequest) {
 
     // Save verification to database
     if (isSupabaseConfigured) {
-      const { data: verification, error } = await supabaseAdmin
-        .from('social_verifications')
+      const { data: verification, error } = await (supabaseAdmin
+        .from('social_verifications') as any)
         .insert({
           wallet_address: walletAddress,
           platform: 'twitter',
           tweet_id: tweetId,
           tweet_url: tweetUrl,
           referral_code: referralCode,
-          username: verificationResult.userData?.username || 'pending_verification',
+          username: verificationResult.userData?.username || 'verified_user',
           follower_count: verificationResult.userData?.public_metrics.followers_count || 0,
-          verification_status: 'pending',
-          verified_at: null,
+          verification_status: 'verified',
+          verified_at: new Date().toISOString(),
           metadata: {
             tweet_text: verificationResult.tweetData?.text,
             author_id: verificationResult.userData?.id,
@@ -128,14 +128,17 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Don't award points yet - admin needs to verify first
-      // await awardVerificationRewards(walletAddress, 'twitter');
+      // Award points immediately upon verification
+      await awardVerificationRewards(walletAddress, 'twitter');
 
       return NextResponse.json({
         success: true,
-        message: 'Tweet submitted for verification! Admin will review and approve within 24 hours.',
+        message: 'Tweet verified successfully!',
         verification: verification,
-        note: 'Your tweet has been submitted. You will receive 100 points once admin verifies your tweet.'
+        rewards: {
+          points: 100,
+          message: 'You earned 100 points for Twitter verification!'
+        }
       });
     } else {
       // Fallback for when database is not configured
@@ -188,8 +191,8 @@ async function awardVerificationRewards(walletAddress: string, platform: string)
     if (!isSupabaseConfigured) return;
 
     // Award points for social verification
-    const { error } = await supabaseAdmin
-      .from('user_activities')
+    const { error } = await (supabaseAdmin
+      .from('user_activities') as any)
       .insert({
         wallet_address: walletAddress,
         activity_type: 'social_verification',
@@ -229,8 +232,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const { data: verifications, error } = await supabaseAdmin
-      .from('social_verifications')
+    const { data: verifications, error } = await (supabaseAdmin
+      .from('social_verifications') as any)
       .select('*')
       .eq('wallet_address', walletAddress)
       .eq('platform', 'twitter')

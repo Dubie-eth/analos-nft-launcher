@@ -141,33 +141,27 @@ export async function PUT(
         _warning: 'Database not configured - profile data will not persist'
       });
     }
-    
-    // Check username uniqueness if username is being updated
+
+    // If username is being updated, check if it's unique
     if (updates.username) {
-      const { data: existingUser } = await supabaseAdmin
-        .from('user_profiles')
-        .select('username')
-        .eq('wallet_address', walletAddress)
-        .single() as { data: any; error: any };
+      const normalizedUsername = updates.username.toLowerCase().trim();
       
-      // Only check uniqueness if username is actually changing
-      if (!existingUser || existingUser.username !== updates.username.toLowerCase()) {
-        const { data: usernameExists } = await supabaseAdmin
-          .from('user_profiles')
-          .select('username')
-          .eq('username', updates.username.toLowerCase())
-          .single() as { data: any; error: any };
-          
-        if (usernameExists) {
-          return NextResponse.json(
-            { error: 'Username is already taken' },
-            { status: 409 }
-          );
-        }
+      // Check if username is already taken by another user
+      const { data: existingUser } = await (supabaseAdmin
+        .from('user_profiles') as any)
+        .select('username, wallet_address')
+        .ilike('username', normalizedUsername)
+        .single();
+
+      if (existingUser && existingUser.wallet_address !== walletAddress) {
+        return NextResponse.json(
+          { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
+          { status: 409 }
+        );
       }
-      
-      // Convert username to lowercase for consistency
-      updates.username = updates.username.toLowerCase();
+
+      // Normalize the username before saving
+      updates.username = normalizedUsername;
     }
     
     // Generate wallet address hash for security

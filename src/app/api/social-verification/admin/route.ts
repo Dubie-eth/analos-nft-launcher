@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch pending verifications
-    const { data: verifications, error } = await supabaseAdmin
-      .from('social_verifications')
+    const { data: verifications, error } = await (supabaseAdmin
+      .from('social_verifications') as any)
       .select('*')
       .eq('verification_status', status)
       .order('created_at', { ascending: false });
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the verification record
-    const { data: verification, error: fetchError } = await supabaseAdmin
-      .from('social_verifications')
+    const { data: verification, error: fetchError } = await (supabaseAdmin
+      .from('social_verifications') as any)
       .select('*')
       .eq('id', verificationId)
       .single();
@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
       updateData.rejected_reason = rejectedReason || 'Rejected by admin';
     }
 
-    const { data: updatedVerification, error: updateError } = await supabaseAdmin
-      .from('social_verifications')
+    const { data: updatedVerification, error: updateError } = await (supabaseAdmin
+      .from('social_verifications') as any)
       .update(updateData)
       .eq('id', verificationId)
       .select()
@@ -168,8 +168,8 @@ async function awardVerificationRewards(walletAddress: string, platform: string)
     if (!isSupabaseConfigured) return;
 
     // Award points for social verification
-    const { error } = await supabaseAdmin
-      .from('user_activities')
+    const { error } = await (supabaseAdmin
+      .from('user_activities') as any)
       .insert({
         wallet_address: walletAddress,
         activity_type: 'social_verification',

@@ -19,7 +19,7 @@ interface PendingVerification {
 
 export default function AdminSocialVerificationPanel() {
   const { publicKey } = useWallet();
-  const [pendingVerifications, setP endingVerifications] = useState<PendingVerification[]>([]);
+  const [pendingVerifications, setPendingVerifications] = useState<PendingVerification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'pending' | 'verified' | 'rejected'>('pending');

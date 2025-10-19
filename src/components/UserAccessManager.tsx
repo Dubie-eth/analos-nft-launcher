@@ -10,6 +10,7 @@ import { ANALOS_RPC_URL } from '../config/analos-programs';
 import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel } from '@/config/access-control';
 import { pageAccessService, PageAccessConfig } from '@/lib/database/page-access-service';
 import { updateAccessLevelCookie } from '@/hooks/useWalletCookies';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface UserAccess {
   address: string;
@@ -33,6 +34,7 @@ interface AccessRule {
 }
 
 const UserAccessManager: React.FC = () => {
+  const { theme } = useTheme();
   const [connection] = useState(() => new Connection(ANALOS_RPC_URL, 'confirmed'));
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'rules' | 'pages' | 'analytics'>('users');
@@ -536,15 +538,20 @@ const UserAccessManager: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
+      <div className={`${theme === 'dark' 
+        ? 'bg-gradient-to-r from-purple-800 to-blue-800' 
+        : 'bg-gradient-to-r from-purple-600 to-blue-600'
+      } rounded-lg p-6 text-white`}>
         <h1 className="text-3xl font-bold mb-2">👥 User Access Management</h1>
-        <p className="text-purple-100">
+        <p className={theme === 'dark' ? 'text-purple-200' : 'text-purple-100'}>
           Manage beta user access based on address, token holdings, or NFT ownership
         </p>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+      <div className={`flex space-x-1 p-1 rounded-lg ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'
+      }`}>
         {[
           { id: 'users', label: 'User Access', icon: '👥' },
           { id: 'rules', label: 'Access Rules', icon: '📋' },
@@ -556,8 +563,12 @@ const UserAccessManager: React.FC = () => {
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
               activeTab === tab.id
-                ? 'bg-white text-purple-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? theme === 'dark' 
+                  ? 'bg-gray-700 text-purple-400 shadow-sm' 
+                  : 'bg-white text-purple-600 shadow-sm'
+                : theme === 'dark'
+                  ? 'text-gray-300 hover:text-gray-100'
+                  : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <span>{tab.icon}</span>
@@ -666,31 +677,43 @@ const UserAccessManager: React.FC = () => {
       {activeTab === 'users' && (
         <div className="space-y-6">
           {/* Grant Access Form */}
-          <div className="bg-white p-6 rounded-lg border">
-            <h2 className="text-xl font-bold mb-4">Grant New Access</h2>
+          <div className={`${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} p-6 rounded-lg border`}>
+            <h2 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Grant New Access</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Solana Address *
                   </label>
                   <input
                     type="text"
                     value={newUserForm.address}
                     onChange={(e) => setNewUserForm(prev => ({ ...prev, address: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      theme === 'dark' 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
                     placeholder="Enter Solana address"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Access Type
                   </label>
                   <select
                     value={newUserForm.type}
                     onChange={(e) => setNewUserForm(prev => ({ ...prev, type: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      theme === 'dark' 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                   >
                     <option value="address">👤 Address-based</option>
                     <option value="token">💰 Token Holdings</option>
@@ -699,13 +722,19 @@ const UserAccessManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Access Level
                   </label>
                   <select
                     value={newUserForm.accessLevel}
                     onChange={(e) => setNewUserForm(prev => ({ ...prev, accessLevel: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+                      theme === 'dark' 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                   >
                     <option value="beta">🟢 Beta Access</option>
                     <option value="creator">🔵 Creator Access</option>

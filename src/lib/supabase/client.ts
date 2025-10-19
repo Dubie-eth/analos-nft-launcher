@@ -19,13 +19,13 @@ let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 
 // Client for user operations (with RLS) - Singleton pattern
 export const supabase = (() => {
-  if (!supabaseInstance) {
+  if (!supabaseInstance && typeof window !== 'undefined') {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        storage: window.localStorage,
         storageKey: 'analos-auth'
       },
       db: {
