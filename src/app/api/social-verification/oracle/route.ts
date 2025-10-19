@@ -149,6 +149,7 @@ export async function GET(request: NextRequest) {
         verification: result.data,
       });
     }
+    */
 
   } catch (error) {
     console.error('Oracle query error:', error);
