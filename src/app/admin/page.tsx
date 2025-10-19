@@ -27,7 +27,7 @@ import CreatorAirdropManager from '@/components/CreatorAirdropManager';
 import PlatformFeeAnalytics from '@/components/PlatformFeeAnalytics';
 import DatabaseManager from '@/components/DatabaseManager';
 import SocialVerificationManager from '@/components/SocialVerificationManager';
-import SecureWalletConnection from '@/components/SecureWalletConnection';
+import CleanWalletConnection from '@/components/CleanWalletConnection';
 
 interface CollectionStats {
   name: string;
@@ -323,30 +323,97 @@ export default function AdminDashboard() {
   const handlePauseCollection = async (collectionName: string) => {
     try {
       console.log('⏸️ Pausing collection:', collectionName);
-      // TODO: Implement actual pause functionality with smart contract
-      alert(`Collection ${collectionName} paused successfully! (Demo mode)`);
+      
+      // Find the collection to get its address
+      const collection = collections.find(col => col.name === collectionName);
+      if (!collection) {
+        alert('Collection not found');
+        return;
+      }
+
+      if (!publicKey || !signTransaction) {
+        alert('Wallet not connected');
+        return;
+      }
+
+      // Call the smart contract to pause the collection
+      const { smartContractService } = await import('@/lib/smart-contract-service');
+      
+      const result = await smartContractService.pauseCollection({
+        collectionConfigAddress: collection.address,
+        authorityWallet: publicKey.toString(),
+        paused: true,
+        signTransaction
+      });
+
+      if (result.success) {
+        alert(`Collection ${collectionName} paused successfully! Transaction: ${result.signature}`);
+        // Refresh collections data
+        setCollections(prev => prev.map(col => 
+          col.name === collectionName ? { ...col, isActive: false } : col
+        ));
+      } else {
+        alert(`Failed to pause collection: ${result.error}`);
+      }
     } catch (error) {
       console.error('❌ Error pausing collection:', error);
-      alert('Failed to pause collection');
+      alert(`Failed to pause collection: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleResumeCollection = async (collectionName: string) => {
     try {
       console.log('▶️ Resuming collection:', collectionName);
-      // TODO: Implement actual resume functionality with smart contract
-      alert(`Collection ${collectionName} resumed successfully! (Demo mode)`);
+      
+      // Find the collection to get its address
+      const collection = collections.find(col => col.name === collectionName);
+      if (!collection) {
+        alert('Collection not found');
+        return;
+      }
+
+      if (!publicKey || !signTransaction) {
+        alert('Wallet not connected');
+        return;
+      }
+
+      // Call the smart contract to resume the collection
+      const { smartContractService } = await import('@/lib/smart-contract-service');
+      
+      const result = await smartContractService.pauseCollection({
+        collectionConfigAddress: collection.address,
+        authorityWallet: publicKey.toString(),
+        paused: false,
+        signTransaction
+      });
+
+      if (result.success) {
+        alert(`Collection ${collectionName} resumed successfully! Transaction: ${result.signature}`);
+        // Refresh collections data
+        setCollections(prev => prev.map(col => 
+          col.name === collectionName ? { ...col, isActive: true } : col
+        ));
+      } else {
+        alert(`Failed to resume collection: ${result.error}`);
+      }
     } catch (error) {
       console.error('❌ Error resuming collection:', error);
-      alert('Failed to resume collection');
+      alert(`Failed to resume collection: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleUpdateOracle = async () => {
     try {
       console.log('💰 Updating Price Oracle...');
+      
+      if (!publicKey || !signTransaction) {
+        alert('Wallet not connected');
+        return;
+      }
+
       // TODO: Implement actual oracle update with smart contract
-      alert('Price Oracle updated successfully! (Demo mode)');
+      // For now, show a demo message
+      alert('Price Oracle update functionality will be implemented with the Price Oracle smart contract integration.');
     } catch (error) {
       console.error('❌ Error updating oracle:', error);
       alert('Failed to update Price Oracle');
@@ -461,7 +528,7 @@ export default function AdminDashboard() {
             </h1>
             <div className="flex-1 flex justify-end space-x-2 items-center">
               <div className="mobile-btn-fix relative z-50">
-                <SecureWalletConnection />
+                <CleanWalletConnection variant="prominent" size="lg" />
               </div>
               <button
                 onClick={handleLogout}

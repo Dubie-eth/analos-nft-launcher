@@ -1,6 +1,6 @@
 'use client';
 
-import SecureWalletConnection from './SecureWalletConnection';
+import CleanWalletConnection from './CleanWalletConnection';
 import ThemeToggle from './ThemeToggle';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -51,32 +51,39 @@ export default function Navigation() {
     fetchUserBanner();
   }, [connected, publicKey]);
 
-  // Base navigation items (always visible)
-    const baseNavItems = [
-        { href: '/', label: 'Home', icon: '🏠' },
-        { href: '/how-it-works', label: 'How It Works', icon: '📖' },
-        { href: '/faq', label: 'FAQ', icon: '❓' },
-        { href: '/launch-collection', label: 'Launch Collection', icon: '🚀' },
-        { href: '/marketplace', label: 'Marketplace', icon: '🏪' },
-        { href: '/swap', label: 'Swap', icon: '🔄' },
-        { href: '/otc-marketplace', label: 'OTC Trading', icon: '💱' },
-        { href: '/airdrops', label: 'Airdrops', icon: '🎁' },
-        { href: '/vesting', label: 'Vesting', icon: '⏰' },
-        { href: '/token-lock', label: 'Token Lock', icon: '🔒' },
-        { href: '/explorer', label: 'Explorer', icon: '🔍' },
-        { href: '/profile', label: 'Profile', icon: '👤' },
-        { href: '/created', label: 'My Collections', icon: '📦' },
-            { href: '/adaptive-collection', label: 'Adaptive NFTs', icon: '🧬' },
-            { href: '/living-portfolio', label: 'Living Portfolio', icon: '🚀' },
-      ];
+  // All possible navigation items
+  const allNavItems = [
+    { href: '/', label: 'Home', icon: '🏠', requiresWallet: false },
+    { href: '/how-it-works', label: 'How It Works', icon: '📖', requiresWallet: false },
+    { href: '/faq', label: 'FAQ', icon: '❓', requiresWallet: false },
+    { href: '/features', label: 'Features', icon: '⭐', requiresWallet: false },
+    { href: '/launch-collection', label: 'Launch Collection', icon: '🚀', requiresWallet: true },
+    { href: '/marketplace', label: 'Marketplace', icon: '🏪', requiresWallet: true },
+    { href: '/swap', label: 'Swap', icon: '🔄', requiresWallet: true },
+    { href: '/otc-marketplace', label: 'OTC Trading', icon: '💱', requiresWallet: true },
+    { href: '/airdrops', label: 'Airdrops', icon: '🎁', requiresWallet: true },
+    { href: '/vesting', label: 'Vesting', icon: '⏰', requiresWallet: true },
+    { href: '/token-lock', label: 'Token Lock', icon: '🔒', requiresWallet: true },
+    { href: '/explorer', label: 'Explorer', icon: '🔍', requiresWallet: true },
+    { href: '/profile', label: 'Profile', icon: '👤', requiresWallet: true },
+    { href: '/created', label: 'My Collections', icon: '📦', requiresWallet: true },
+    { href: '/adaptive-collection', label: 'Adaptive NFTs', icon: '🧬', requiresWallet: true },
+    { href: '/living-portfolio', label: 'Living Portfolio', icon: '🚀', requiresWallet: true },
+  ];
 
   // Admin-only navigation items
   const adminNavItems = isAdmin ? [
-    { href: '/admin', label: 'Admin Dashboard', icon: '🎛️' },
+    { href: '/admin', label: 'Admin Dashboard', icon: '🎛️', requiresWallet: true },
   ] : [];
 
-  // Navigation items - show admin link only for admin wallets
-  const navItems = [...baseNavItems, ...adminNavItems];
+  // Filter navigation items based on wallet connection status
+  // Only show public pages when wallet is not connected
+  const filteredNavItems = connected 
+    ? [...allNavItems, ...adminNavItems] // Show all items when wallet is connected
+    : allNavItems.filter(item => !item.requiresWallet); // Only show public items when wallet not connected
+
+  // Navigation items - filtered based on wallet connection
+  const navItems = filteredNavItems;
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -180,7 +187,7 @@ export default function Navigation() {
           {/* Theme Toggle and Wallet Connection */}
           <div className="flex items-center space-x-4 wallet-connection-container">
             <ThemeToggle />
-            <SecureWalletConnection className="mobile-btn-fix" />
+            <CleanWalletConnection variant="default" size="md" className="mobile-btn-fix" />
           </div>
         </div>
 
@@ -234,7 +241,7 @@ export default function Navigation() {
               
               {/* Mobile Secure Wallet Connection */}
               <div className="pt-3 border-t border-gray-200">
-                <SecureWalletConnection />
+                <CleanWalletConnection variant="minimal" size="sm" />
               </div>
             </div>
           </div>

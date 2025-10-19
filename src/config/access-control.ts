@@ -21,6 +21,7 @@ export interface PageAccess {
   customMessage?: string;
   allowPublicAccess?: boolean;
   requireVerification?: boolean;
+  requiresWallet?: boolean; // New field for wallet requirement
 }
 
 // Access Levels
@@ -58,113 +59,202 @@ export const PAGE_ACCESS: PageAccess[] = [
     name: 'Home',
     description: 'Main landing page',
     requiredLevel: 'public',
-    publicAccess: true
+    publicAccess: true,
+    requiresWallet: false
   },
   {
     path: '/how-it-works',
     name: 'How It Works',
     description: 'Platform explanation and features',
     requiredLevel: 'public',
-    publicAccess: true
-  },
-  {
-    path: '/create-collection',
-    name: 'Create Collection',
-    description: 'NFT collection creation wizard',
-    requiredLevel: 'beta_user'
-  },
-  {
-    path: '/collections',
-    name: 'Collections',
-    description: 'Browse and manage collections',
-    requiredLevel: 'beta_user'
-  },
-  {
-    path: '/staking',
-    name: 'NFT Staking',
-    description: 'Stake NFTs for rewards',
-    requiredLevel: 'premium_user'
-  },
-  {
-    path: '/referrals',
-    name: 'Referral System',
-    description: 'Manage referrals and rewards',
-    requiredLevel: 'premium_user'
-  },
-  {
-    path: '/profile',
-    name: 'User Profile',
-    description: 'User account and settings',
-    requiredLevel: 'beta_user'
-  },
-  {
-    path: '/admin',
-    name: 'Admin Dashboard',
-    description: 'Administrative controls and monitoring',
-    requiredLevel: 'admin',
-    adminOnly: true
-  },
-  {
-    path: '/admin-login',
-    name: 'Admin Login',
-    description: 'Admin authentication page',
-    requiredLevel: 'public', // Allow anyone to access login page
-    publicAccess: true
-  },
-  {
-    path: '/marketplace',
-    name: 'NFT Marketplace',
-    description: 'Buy and sell NFTs',
-    requiredLevel: 'beta_user'
-  },
-  {
-    path: '/launch-collection',
-    name: 'Launch Collection',
-    description: 'Launch new NFT collection',
-    requiredLevel: 'beta_user'
-  },
-  {
-    path: '/explorer',
-    name: 'Explorer',
-    description: 'Explore collections and NFTs',
-    requiredLevel: 'beta_user'
-  },
-  {
-    path: '/swap',
-    name: 'Token Swap',
-    description: 'Swap tokens',
-    requiredLevel: 'premium_user'
-  },
-  {
-    path: '/vesting',
-    name: 'Token Vesting',
-    description: 'Manage token vesting',
-    requiredLevel: 'premium_user'
-  },
-  {
-    path: '/token-lock',
-    name: 'Token Lock',
-    description: 'Lock tokens for security',
-    requiredLevel: 'premium_user'
-  },
-  {
-    path: '/otc-marketplace',
-    name: 'OTC Marketplace',
-    description: 'Over-the-counter trading',
-    requiredLevel: 'premium_user'
-  },
-  {
-    path: '/airdrops',
-    name: 'Airdrops',
-    description: 'Claim airdrops',
-    requiredLevel: 'beta_user'
+    publicAccess: true,
+    requiresWallet: false
   },
   {
     path: '/beta-signup',
     name: 'Beta Signup',
     description: 'Apply for beta access',
     requiredLevel: 'public',
-    publicAccess: true
+    publicAccess: true,
+    requiresWallet: false
+  },
+  {
+    path: '/faq',
+    name: 'FAQ',
+    description: 'Frequently asked questions',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
+  },
+  {
+    path: '/create-collection',
+    name: 'Create Collection',
+    description: 'NFT collection creation wizard',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access collection creation features'
+  },
+  {
+    path: '/collections',
+    name: 'Collections',
+    description: 'Browse and manage collections',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to browse collections'
+  },
+  {
+    path: '/staking',
+    name: 'NFT Staking',
+    description: 'Stake NFTs for rewards',
+    requiredLevel: 'premium_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access staking features'
+  },
+  {
+    path: '/referrals',
+    name: 'Referral System',
+    description: 'Manage referrals and rewards',
+    requiredLevel: 'premium_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access referral features'
+  },
+  {
+    path: '/profile',
+    name: 'User Profile',
+    description: 'User account and settings',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access your profile'
+  },
+  {
+    path: '/admin',
+    name: 'Admin Dashboard',
+    description: 'Administrative controls and monitoring',
+    requiredLevel: 'admin',
+    adminOnly: true,
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Admin access required'
+  },
+  {
+    path: '/admin-login',
+    name: 'Admin Login',
+    description: 'Admin authentication page',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
+  },
+  {
+    path: '/marketplace',
+    name: 'NFT Marketplace',
+    description: 'Buy and sell NFTs',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access the marketplace'
+  },
+  {
+    path: '/launch-collection',
+    name: 'Launch Collection',
+    description: 'Launch new NFT collection',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to launch collections'
+  },
+  {
+    path: '/explorer',
+    name: 'Explorer',
+    description: 'Explore collections and NFTs',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to explore collections'
+  },
+  {
+    path: '/swap',
+    name: 'Token Swap',
+    description: 'Swap tokens',
+    requiredLevel: 'premium_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access token swap'
+  },
+  {
+    path: '/vesting',
+    name: 'Token Vesting',
+    description: 'Manage token vesting',
+    requiredLevel: 'premium_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access vesting features'
+  },
+  {
+    path: '/token-lock',
+    name: 'Token Lock',
+    description: 'Lock tokens for security',
+    requiredLevel: 'premium_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access token lock features'
+  },
+  {
+    path: '/otc-marketplace',
+    name: 'OTC Marketplace',
+    description: 'Over-the-counter trading',
+    requiredLevel: 'premium_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access OTC trading'
+  },
+  {
+    path: '/airdrops',
+    name: 'Airdrops',
+    description: 'Claim airdrops',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to claim airdrops'
+  },
+  {
+    path: '/features',
+    name: 'Features',
+    description: 'Platform features overview',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
+  },
+  {
+    path: '/evolving-nfts',
+    name: 'Evolving NFTs',
+    description: 'Evolving NFT features',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access evolving NFT features'
+  },
+  {
+    path: '/living-portfolio',
+    name: 'Living Portfolio',
+    description: 'Dynamic portfolio tracking',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to access your living portfolio'
+  },
+  {
+    path: '/created',
+    name: 'Created Collections',
+    description: 'View created collections',
+    requiredLevel: 'beta_user',
+    requiresWallet: true,
+    isLocked: true,
+    customMessage: 'Connect your wallet to view your created collections'
   }
 ];
 
@@ -204,11 +294,6 @@ export async function hasPageAccess(userWallet: string | null, userAccessLevel: 
     // No localStorage fallback - use database only for security
   }
 
-  // Check if page is locked (redirect to beta signup)
-  if (pageConfig?.isLocked && pagePath !== '/beta-signup') {
-    return false; // This will trigger redirect to beta signup
-  }
-
   // If no page config found, deny access by default
   if (!pageConfig) {
     return false;
@@ -217,6 +302,16 @@ export async function hasPageAccess(userWallet: string | null, userAccessLevel: 
   // Public pages are always accessible
   if (pageConfig.publicAccess) {
     return true;
+  }
+
+  // Check if page requires wallet connection
+  if (pageConfig.requiresWallet && !userWallet) {
+    return false; // Wallet required but not connected
+  }
+
+  // Check if page is locked (redirect to beta signup)
+  if (pageConfig?.isLocked && pagePath !== '/beta-signup') {
+    return false; // This will trigger redirect to beta signup
   }
 
   // Check if user has required access level

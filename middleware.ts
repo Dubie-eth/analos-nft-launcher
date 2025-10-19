@@ -4,8 +4,6 @@ import type { NextRequest } from 'next/server';
 // Import access control configuration
 import { 
   ADMIN_WALLETS, 
-  hasPageAccess, 
-  getUserAccessLevel, 
   isAdminOnlyPage,
   PAGE_ACCESS,
   DEFAULT_ACCESS_LEVEL 
@@ -44,8 +42,16 @@ export function middleware(request: NextRequest) {
   // Get user wallet from cookies (set by client after wallet connection)
   const userWallet = request.cookies.get('connected-wallet')?.value || null;
   
+  // Check if page requires wallet connection
+  if (pageConfig.requiresWallet && !userWallet) {
+    const signupUrl = new URL('/beta-signup', request.url);
+    signupUrl.searchParams.set('locked_page', pathname);
+    signupUrl.searchParams.set('message', pageConfig.customMessage || 'Please connect your wallet to access this page.');
+    return NextResponse.redirect(signupUrl);
+  }
+
   // If page requires authentication but no wallet is connected, redirect to home
-  if (!userWallet && pageConfig.requiredLevel !== 'public') {
+  if (!userWallet && pageConfig.requiredLevel !== 'public' && !pageConfig.publicAccess) {
     const homeUrl = new URL('/', request.url);
     homeUrl.searchParams.set('access_denied', 'true');
     homeUrl.searchParams.set('required_page', pathname);
@@ -56,7 +62,19 @@ export function middleware(request: NextRequest) {
   const userAccessLevel = request.cookies.get(`access-level-${userWallet}`)?.value || DEFAULT_ACCESS_LEVEL;
   
   // Check if user has access to the requested page
-  const hasAccess = hasPageAccess(userWallet, userAccessLevel, pathname);
+  // Note: hasPageAccess is async, but middleware can't be async, so we do a synchronous check
+  
+  // Admin wallets always have full access
+  const isAdminWallet = userWallet && ADMIN_WALLETS.includes(userWallet);
+  
+  // Check if page is locked (from static config - database check will be done client-side)
+  const isPageLocked = pageConfig?.isLocked;
+  
+  // Check access level requirements synchronously
+  // For middleware, we'll do a simple check based on the access level from cookies
+  const hasRequiredLevel = pageConfig.requiredLevel === 'public' || userAccessLevel !== 'public';
+  
+  const hasAccess = isAdminWallet || (!isPageLocked && hasRequiredLevel);
   
   if (!hasAccess) {
     // Admin-only pages redirect to admin login

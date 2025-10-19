@@ -3,10 +3,10 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import SecureWalletProvider from '@/components/SecureWalletProvider'
 import ClientNavigation from '@/components/ClientNavigation'
-import { WalletProvider } from '@/contexts/WalletContext'
 import AccessControlManager from '@/components/AccessControlManager'
 import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import PageAccessGuard from '@/components/PageAccessGuard'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -43,21 +43,21 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <SecureWalletProvider>
-            <WalletProvider>
-              {/* Access Control Manager - syncs wallet state with cookies */}
-              <AccessControlManager />
-              
-              <div className="navigation-container">
-                <ClientNavigation />
-              </div>
-              
-              <div className="min-h-screen theme-bg">
+            {/* Access Control Manager - syncs wallet state with cookies */}
+            <AccessControlManager />
+            
+            <div className="navigation-container">
+              <ClientNavigation />
+            </div>
+            
+            <div className="min-h-screen theme-bg">
+              <PageAccessGuard>
                 {children}
-              </div>
-              
-              {/* Customer Service Bot */}
-              <CustomerServiceBotProvider />
-            </WalletProvider>
+              </PageAccessGuard>
+            </div>
+            
+            {/* Customer Service Bot */}
+            <CustomerServiceBotProvider />
           </SecureWalletProvider>
         </ThemeProvider>
       </body>
