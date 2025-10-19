@@ -27,6 +27,7 @@ import CreatorAirdropManager from '@/components/CreatorAirdropManager';
 import PlatformFeeAnalytics from '@/components/PlatformFeeAnalytics';
 import DatabaseManager from '@/components/DatabaseManager';
 import SocialVerificationManager from '@/components/SocialVerificationManager';
+import AdminSocialVerificationPanel from '@/components/AdminSocialVerificationPanel';
 import CleanWalletConnection from '@/components/CleanWalletConnection';
 
 interface CollectionStats {
@@ -1041,11 +1042,11 @@ export default function AdminDashboard() {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-white mb-4">🔐 Social Verification Manager</h2>
               <p className="text-gray-300 max-w-3xl mx-auto">
-                Manage social media verification and whitelist eligibility. Verify user social accounts,
-                configure verification settings, and monitor verification requests.
+                Review and approve pending social verification requests. Users submit tweets with their referral codes,
+                and you can manually verify and approve them to award points.
               </p>
             </div>
-            <SocialVerificationManager />
+            <AdminSocialVerificationPanel />
           </div>
         )}
 

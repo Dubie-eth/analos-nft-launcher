@@ -39,9 +39,9 @@ export default function SocialVerificationPage() {
 
           <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6 text-center">
             <Zap className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">Instant Verification</h3>
+            <h3 className="text-xl font-bold mb-2">Quick Review</h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Our automated system verifies your tweets instantly. No waiting, no manual review.
+              Submit your tweet and our admin team will review it within 24 hours. Get verified and earn rewards!
             </p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function SocialVerificationPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
-                  <span className="text-gray-700 dark:text-gray-300">Get instantly verified and earn 100 points!</span>
+                  <span className="text-gray-700 dark:text-gray-300">Wait for admin approval (24 hours) and earn 100 points!</span>
                 </li>
               </ol>
             </div>
@@ -81,7 +81,7 @@ export default function SocialVerificationPage() {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <span className="text-green-500 text-xl">✓</span>
-                  <span className="text-gray-700 dark:text-gray-300">Automated tweet content verification</span>
+                  <span className="text-gray-700 dark:text-gray-300">Manual admin review for quality control</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-500 text-xl">✓</span>
@@ -93,7 +93,7 @@ export default function SocialVerificationPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-500 text-xl">✓</span>
-                  <span className="text-gray-700 dark:text-gray-300">Instant reward distribution</span>
+                  <span className="text-gray-700 dark:text-gray-300">Reward distribution upon approval</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-500 text-xl">✓</span>
@@ -123,7 +123,8 @@ export default function SocialVerificationPage() {
               <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
                 <li>• One verification per wallet address</li>
                 <li>• Tweet must be from a real Twitter account</li>
-                <li>• Verification is instant and automated</li>
+                <li>• Admin reviews within 24 hours</li>
+                <li>• No Twitter API fees - simple and cost-effective</li>
               </ul>
             </div>
           </div>

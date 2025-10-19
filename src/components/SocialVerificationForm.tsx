@@ -245,10 +245,10 @@ export default function SocialVerificationForm() {
                 {result.message}
               </p>
               
-              {result.rewards && (
-                <div className="mt-2 p-2 bg-green-100 dark:bg-green-800/30 rounded">
-                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
-                    🎉 {result.rewards.message}
+              {result.note && (
+                <div className="mt-2 p-2 bg-blue-100 dark:bg-blue-800/30 rounded">
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    ℹ️ {result.note}
                   </p>
                 </div>
               )}

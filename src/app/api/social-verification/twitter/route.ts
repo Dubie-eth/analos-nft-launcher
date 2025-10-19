@@ -106,10 +106,10 @@ export async function POST(request: NextRequest) {
           tweet_id: tweetId,
           tweet_url: tweetUrl,
           referral_code: referralCode,
-          username: verificationResult.userData?.username || 'unknown',
+          username: verificationResult.userData?.username || 'pending_verification',
           follower_count: verificationResult.userData?.public_metrics.followers_count || 0,
-          verification_status: 'verified',
-          verified_at: new Date().toISOString(),
+          verification_status: 'pending',
+          verified_at: null,
           metadata: {
             tweet_text: verificationResult.tweetData?.text,
             author_id: verificationResult.userData?.id,
@@ -128,17 +128,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Award verification points/rewards
-      await awardVerificationRewards(walletAddress, 'twitter');
+      // Don't award points yet - admin needs to verify first
+      // await awardVerificationRewards(walletAddress, 'twitter');
 
       return NextResponse.json({
         success: true,
-        message: 'Tweet verification successful!',
+        message: 'Tweet submitted for verification! Admin will review and approve within 24 hours.',
         verification: verification,
-        rewards: {
-          points: 100,
-          message: 'You earned 100 points for Twitter verification!'
-        }
+        note: 'Your tweet has been submitted. You will receive 100 points once admin verifies your tweet.'
       });
     } else {
       // Fallback for when database is not configured
