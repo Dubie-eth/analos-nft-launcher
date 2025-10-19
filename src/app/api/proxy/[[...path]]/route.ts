@@ -38,6 +38,23 @@ export async function DELETE(
   return handleProxyRequest(request, resolvedParams.path || [], 'DELETE');
 }
 
+// Optional support for additional methods commonly used by backends
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ path?: string[] }> }
+) {
+  const resolvedParams = await params;
+  return handleProxyRequest(request, resolvedParams.path || [], 'PATCH');
+}
+
+export async function OPTIONS(
+  request: NextRequest,
+  { params }: { params: Promise<{ path?: string[] }> }
+) {
+  const resolvedParams = await params;
+  return handleProxyRequest(request, resolvedParams.path || [], 'OPTIONS');
+}
+
 async function handleProxyRequest(
   request: NextRequest,
   pathSegments: string[],
@@ -54,37 +71,25 @@ async function handleProxyRequest(
       url.searchParams.set(key, value);
     });
 
-    // Prepare headers
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    // Prepare headers: start from incoming headers to preserve content-type and others
+    const headers = new Headers(request.headers);
 
-    // Add API key if available
+    // Remove hop-by-hop headers that should not be forwarded
+    headers.delete('host');
+    headers.delete('connection');
+    headers.delete('content-length');
+
+    // Add API key to both common header names if provided (backend may expect either)
     if (API_KEY) {
-      headers['Authorization'] = `Bearer ${API_KEY}`;
+      headers.set('authorization', `Bearer ${API_KEY}`);
+      headers.set('x-api-key', API_KEY);
     }
 
-    // Copy relevant headers from the original request
-    const forwardHeaders = ['user-agent', 'accept', 'accept-language'];
-    forwardHeaders.forEach(header => {
-      const value = request.headers.get(header);
-      if (value) {
-        headers[header] = value;
-      }
-    });
-
-    // Prepare request body for POST/PUT requests
-    let body: string | undefined;
-    if (method === 'POST' || method === 'PUT') {
-      try {
-        body = await request.text();
-      } catch (error) {
-        console.error('Error reading request body:', error);
-        return NextResponse.json(
-          { error: 'Invalid request body' },
-          { status: 400 }
-        );
-      }
+    // Prepare request body for methods that support a body. Use the original stream to avoid corruption.
+    let body: ReadableStream<Uint8Array> | undefined;
+    const methodHasBody = method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
+    if (methodHasBody) {
+      body = request.body || undefined;
     }
 
     // Make the proxied request
@@ -94,23 +99,28 @@ async function handleProxyRequest(
       body,
     });
 
-    // Get response data
+    // Get response data (text to preserve backend error body as-is)
     const responseData = await response.text();
-    
+
     // Create response with same status and headers
     const nextResponse = new NextResponse(responseData, {
       status: response.status,
       statusText: response.statusText,
     });
 
-    // Copy relevant response headers
-    const responseHeaders = ['content-type', 'cache-control'];
+    // Copy relevant response headers and pass through error details when present
+    const responseHeaders = ['content-type', 'cache-control', 'www-authenticate'];
     responseHeaders.forEach(header => {
       const value = response.headers.get(header);
       if (value) {
         nextResponse.headers.set(header, value);
       }
     });
+
+    // For JSON error bodies, ensure content-type is application/json
+    if (!nextResponse.headers.get('content-type') && responseData?.trim().startsWith('{')) {
+      nextResponse.headers.set('content-type', 'application/json');
+    }
 
     return nextResponse;
 
