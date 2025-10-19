@@ -13,7 +13,7 @@ import BlockchainProfileManager from './BlockchainProfileManager';
 import ProfileNFTCreator from './ProfileNFTCreator';
 import ProfileNFTUpdater from './ProfileNFTUpdater';
 import { logger } from '@/lib/logger';
-import { getFreshExample } from '@/lib/wallet-examples';
+import { getFreshExample, generateReferralCode } from '@/lib/wallet-examples';
 import { useTheme } from '@/contexts/ThemeContext';
 import { BlockchainProfile } from '@/lib/blockchain-profile-service';
 import styles from './CompleteProfileManager.module.css';
