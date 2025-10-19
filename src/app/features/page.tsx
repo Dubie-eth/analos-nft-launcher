@@ -1,21 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useWallet } from '@solana/wallet-adapter-react';
+
+interface Feature {
+  id: string;
+  feature_key: string;
+  feature_name: string;
+  description: string;
+  icon: string;
+  completion_percentage: number;
+  access_level: 'locked' | 'beta' | 'public';
+  status: 'development' | 'testing' | 'live' | 'deprecated';
+  is_visible: boolean;
+  details: string[];
+  deployment_info?: any;
+}
 
 export default function FeaturesPage() {
   const { theme } = useTheme();
   const { publicKey, connected } = useWallet();
   const [activeFeature, setActiveFeature] = useState(0);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const features = [
+  // Fallback features if API fails
+  const fallbackFeatures: Feature[] = [
     {
-      title: 'NFT Collection Creation',
+      id: '1',
+      feature_key: 'nft_collection_creation',
+      feature_name: 'NFT Collection Creation',
       description: 'Create and deploy your own NFT collections with custom traits, rarity systems, and metadata.',
       icon: '🎨',
-      completion: 95, // NFT Launchpad Core is deployed and functional
+      completion_percentage: 95, // NFT Launchpad Core is deployed and functional
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Custom trait layers and rarity weights',
         'Automated metadata generation',
@@ -25,11 +46,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Advanced Marketplace',
+      id: '2',
+      feature_key: 'advanced_marketplace',
+      feature_name: 'Advanced Marketplace',
       description: 'Trade NFTs with advanced features including auctions, offers, and OTC trading.',
       icon: '🏪',
-      completion: 85, // OTC Enhanced program is deployed
+      completion_percentage: 85,
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Auction and fixed-price listings',
         'Make offers and counter-offers',
@@ -39,11 +64,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Token Swapping',
+      id: '3',
+      feature_key: 'token_swapping',
+      feature_name: 'Token Swapping',
       description: 'Swap between different tokens with our integrated DEX functionality.',
       icon: '🔄',
-      completion: 70, // Token Launch program is deployed
+      completion_percentage: 70,
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Multi-token support',
         'Slippage protection',
@@ -53,11 +82,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'NFT Staking',
+      id: '4',
+      feature_key: 'nft_staking',
+      feature_name: 'NFT Staking',
       description: 'Stake your NFTs to earn rewards and participate in governance.',
       icon: '💰',
-      completion: 90, // Built into NFT Launchpad Core
+      completion_percentage: 90,
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Flexible staking periods',
         'Reward calculation algorithms',
@@ -67,11 +100,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Token Vesting',
+      id: '5',
+      feature_key: 'token_vesting',
+      feature_name: 'Token Vesting',
       description: 'Manage token vesting schedules for team members and investors.',
       icon: '⏰',
-      completion: 80, // Vesting Enhanced program is deployed
+      completion_percentage: 80,
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Custom vesting schedules',
         'Cliff periods and linear release',
@@ -81,11 +118,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Token Locking',
+      id: '6',
+      feature_key: 'token_locking',
+      feature_name: 'Token Locking',
       description: 'Lock tokens for security, governance, or liquidity provision.',
       icon: '🔒',
-      completion: 75, // Token Lock Enhanced program is deployed
+      completion_percentage: 75,
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Flexible lock periods',
         'Multi-token support',
@@ -95,11 +136,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Evolving NFTs',
+      id: '7',
+      feature_key: 'evolving_nfts',
+      feature_name: 'Evolving NFTs',
       description: 'Create NFTs that evolve and change based on external data and user interactions.',
       icon: '🧬',
-      completion: 40, // In development
+      completion_percentage: 40,
+      access_level: 'locked',
       status: 'development',
+      is_visible: true,
       details: [
         'Dynamic metadata updates',
         'External data integration',
@@ -109,11 +154,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Living Portfolio',
+      id: '8',
+      feature_key: 'living_portfolio',
+      feature_name: 'Living Portfolio',
       description: 'Track your NFT and token portfolio with real-time updates and analytics.',
       icon: '📊',
-      completion: 60, // Basic implementation exists
+      completion_percentage: 60,
+      access_level: 'locked',
       status: 'development',
+      is_visible: true,
       details: [
         'Real-time portfolio tracking',
         'Performance analytics',
@@ -123,11 +172,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: 'Airdrop System',
+      id: '9',
+      feature_key: 'airdrop_system',
+      feature_name: 'Airdrop System',
       description: 'Distribute tokens and NFTs to your community with our airdrop platform.',
       icon: '🎁',
-      completion: 85, // Airdrop Enhanced program is deployed
+      completion_percentage: 85,
+      access_level: 'public',
       status: 'live',
+      is_visible: true,
       details: [
         'Whitelist management',
         'Batch distribution',
@@ -137,6 +190,36 @@ export default function FeaturesPage() {
       ]
     }
   ];
+
+  // Fetch features from API
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      try {
+        const response = await fetch('/api/features');
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          setFeatures(data.features);
+        } else {
+          setFeatures(fallbackFeatures);
+        }
+      } catch (error) {
+        console.error('Failed to fetch features:', error);
+        setFeatures(fallbackFeatures);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatures();
+  }, []);
+
+  // Filter features based on completion and access level
+  const getFilteredFeatures = () => {
+    return features.filter(feature => feature.is_visible);
+  };
+
+  const filteredFeatures = getFilteredFeatures();
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -152,148 +235,185 @@ export default function FeaturesPage() {
         </div>
 
         {/* Feature Navigation */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {features.map((feature, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveFeature(index)}
-              className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 border ${
-                activeFeature === index
-                  ? theme === 'dark'
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
-                    : 'bg-blue-500 text-white border-blue-400 shadow-lg'
-                  : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-600'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300'
-              }`}
-            >
-              <span className="mr-2">{feature.icon}</span>
-              <span className="text-sm sm:text-base">{feature.title}</span>
-              {feature.status === 'live' && (
-                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                  theme === 'dark' 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-green-500 text-white'
-                }`}>
-                  LIVE
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className={`ml-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              Loading features...
+            </span>
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            {filteredFeatures.map((feature, index) => (
+              <button
+                key={feature.id}
+                onClick={() => setActiveFeature(index)}
+                className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 border ${
+                  activeFeature === index
+                    ? theme === 'dark'
+                      ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
+                      : 'bg-blue-500 text-white border-blue-400 shadow-lg'
+                    : theme === 'dark'
+                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300'
+                }`}
+              >
+                <span className="mr-2">{feature.icon}</span>
+                <span className="text-sm sm:text-base">{feature.feature_name}</span>
+                {feature.access_level === 'public' && feature.status === 'live' && (
+                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                    theme === 'dark' 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-green-500 text-white'
+                  }`}>
+                    LIVE
+                  </span>
+                )}
+                {feature.access_level === 'beta' && (
+                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                    theme === 'dark' 
+                      ? 'bg-yellow-600 text-white' 
+                      : 'bg-yellow-500 text-white'
+                  }`}>
+                    BETA
+                  </span>
+                )}
+                {feature.access_level === 'locked' && (
+                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                    theme === 'dark' 
+                      ? 'bg-gray-600 text-white' 
+                      : 'bg-gray-500 text-white'
+                  }`}>
+                    DEV
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Active Feature Display */}
-        <div className={`max-w-4xl mx-auto ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-xl p-8 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
-          <div className="text-center mb-8">
-            <div className="text-6xl mb-4">{features[activeFeature].icon}</div>
-            <h2 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              {features[activeFeature].title}
-            </h2>
-            <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              {features[activeFeature].description}
-            </p>
-            
-            {/* Status Badge */}
-            <div className="mt-4">
-              {features[activeFeature].status === 'live' ? (
-                <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-                  theme === 'dark' 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-green-500 text-white'
-                }`}>
-                  <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
-                  LIVE ON ANALOS BLOCKCHAIN
-                </span>
-              ) : (
-                <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-                  theme === 'dark' 
-                    ? 'bg-yellow-600 text-white' 
-                    : 'bg-yellow-500 text-white'
-                }`}>
-                  🚧 IN DEVELOPMENT
-                </span>
-              )}
+        {!loading && filteredFeatures.length > 0 && (
+          <div className={`max-w-4xl mx-auto ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-xl p-8 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">{filteredFeatures[activeFeature]?.icon}</div>
+              <h2 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                {filteredFeatures[activeFeature]?.feature_name}
+              </h2>
+              <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                {filteredFeatures[activeFeature]?.description}
+              </p>
+              
+              {/* Status Badge */}
+              <div className="mt-4">
+                {filteredFeatures[activeFeature]?.access_level === 'public' && filteredFeatures[activeFeature]?.status === 'live' ? (
+                  <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                    theme === 'dark' 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-green-500 text-white'
+                  }`}>
+                    <span className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+                    LIVE ON ANALOS BLOCKCHAIN
+                  </span>
+                ) : filteredFeatures[activeFeature]?.access_level === 'beta' ? (
+                  <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                    theme === 'dark' 
+                      ? 'bg-yellow-600 text-white' 
+                      : 'bg-yellow-500 text-white'
+                  }`}>
+                    🧪 BETA ACCESS
+                  </span>
+                ) : (
+                  <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
+                    theme === 'dark' 
+                      ? 'bg-gray-600 text-white' 
+                      : 'bg-gray-500 text-white'
+                  }`}>
+                    🚧 IN DEVELOPMENT
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                Key Features
-              </h3>
-              <ul className="space-y-3">
-                {features[activeFeature].details.map((detail, index) => (
-                  <li key={index} className={`flex items-start ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <span className="text-green-500 mr-3 mt-1">✓</span>
-                    {detail}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-6 border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
-              <h3 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                {features[activeFeature].status === 'live' ? 'Deployment Status' : 'Development Progress'}
-              </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Key Features
+                </h3>
+                <ul className="space-y-3">
+                  {filteredFeatures[activeFeature]?.details.map((detail, index) => (
+                    <li key={index} className={`flex items-start ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <span className="text-green-500 mr-3 mt-1">✓</span>
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               
-              {features[activeFeature].status === 'live' ? (
-                <div>
-                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
-                    This feature is fully deployed on the Analos blockchain and ready for use.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Deployment Status</span>
-                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
-                        {features[activeFeature].completion}% Complete
-                      </span>
+              <div className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-6 border ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}>
+                <h3 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  {filteredFeatures[activeFeature]?.status === 'live' ? 'Deployment Status' : 'Development Progress'}
+                </h3>
+                
+                {filteredFeatures[activeFeature]?.status === 'live' ? (
+                  <div>
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
+                      This feature is fully deployed on the Analos blockchain and ready for use.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Deployment Status</span>
+                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                          {filteredFeatures[activeFeature]?.completion_percentage}% Complete
+                        </span>
+                      </div>
+                      <div className={`w-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} rounded-full h-3`}>
+                        <div 
+                          className="bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out" 
+                          style={{ width: `${filteredFeatures[activeFeature]?.completion_percentage}%` }}
+                        ></div>
+                      </div>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                        ✅ Program deployed and verified on Analos mainnet
+                      </p>
                     </div>
-                    <div className={`w-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} rounded-full h-3`}>
-                      <div 
-                        className="bg-green-500 h-3 rounded-full transition-all duration-1000 ease-out" 
-                        style={{ width: `${features[activeFeature].completion}%` }}
-                      ></div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
+                      This feature is currently in development and will be available soon.
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Development Progress</span>
+                        <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                          {filteredFeatures[activeFeature]?.completion_percentage}% Complete
+                        </span>
+                      </div>
+                      <div className={`w-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} rounded-full h-3`}>
+                        <div 
+                          className="bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out" 
+                          style={{ width: `${filteredFeatures[activeFeature]?.completion_percentage}%` }}
+                        ></div>
+                      </div>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+                        🚧 In active development
+                      </p>
                     </div>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                      ✅ Program deployed and verified on Analos mainnet
+                  </div>
+                )}
+                
+                {!connected && (
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                      💡 Connect your wallet to access this feature when available
                     </p>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4`}>
-                    This feature is currently in development and will be available soon.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Development Progress</span>
-                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {features[activeFeature].completion}% Complete
-                      </span>
-                    </div>
-                    <div className={`w-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} rounded-full h-3`}>
-                      <div 
-                        className="bg-blue-500 h-3 rounded-full transition-all duration-1000 ease-out" 
-                        style={{ width: `${features[activeFeature].completion}%` }}
-                      ></div>
-                    </div>
-                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
-                      🚧 In active development
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {!connected && (
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                    💡 Connect your wallet to access this feature when available
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Call to Action */}
         <div className="text-center mt-16">
@@ -346,15 +466,24 @@ export default function FeaturesPage() {
           
           {/* Live Features Summary */}
           <div className="mt-12">
-            <div className={`inline-flex items-center px-6 py-3 rounded-full text-sm font-medium ${
-              theme === 'dark' 
-                ? 'bg-green-900/30 text-green-300 border border-green-700' 
-                : 'bg-green-100 text-green-800 border border-green-200'
-            }`}>
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-              <span className="mr-2">7 Features Live</span>
-              <span className="text-xs opacity-75">• 2 In Development</span>
-            </div>
+            {!loading && filteredFeatures.length > 0 && (
+              <div className={`inline-flex items-center px-6 py-3 rounded-full text-sm font-medium ${
+                theme === 'dark' 
+                  ? 'bg-green-900/30 text-green-300 border border-green-700' 
+                  : 'bg-green-100 text-green-800 border border-green-200'
+              }`}>
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                <span className="mr-2">
+                  {filteredFeatures.filter(f => f.access_level === 'public' && f.status === 'live').length} Features Live
+                </span>
+                <span className="text-xs opacity-75">
+                  • {filteredFeatures.filter(f => f.access_level === 'beta').length} Beta
+                </span>
+                <span className="text-xs opacity-75">
+                  • {filteredFeatures.filter(f => f.access_level === 'locked').length} In Development
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -28,6 +28,7 @@ import PlatformFeeAnalytics from '@/components/PlatformFeeAnalytics';
 import DatabaseManager from '@/components/DatabaseManager';
 import SocialVerificationManager from '@/components/SocialVerificationManager';
 import AdminSocialVerificationPanel from '@/components/AdminSocialVerificationPanel';
+import FeatureManagementPanel from '@/components/FeatureManagementPanel';
 import CleanWalletConnection from '@/components/CleanWalletConnection';
 
 interface CollectionStats {
@@ -81,7 +82,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'settings'>('program-init');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'settings'>('program-init');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -589,6 +590,7 @@ export default function AdminDashboard() {
               { id: 'platform-fees', label: 'Platform Fees', icon: '💰' },
               { id: 'database-manager', label: 'Database Manager', icon: '🗄️' },
               { id: 'social-verification', label: 'Social Verification', icon: '🔐' },
+              { id: 'feature-management', label: 'Feature Management', icon: '🎛️' },
               { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
@@ -1047,6 +1049,19 @@ export default function AdminDashboard() {
               </p>
             </div>
             <AdminSocialVerificationPanel />
+          </div>
+        )}
+
+        {activeTab === 'feature-management' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">🎛️ Feature Management</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Manage feature completion status, access levels, and visibility. Adjust progress bars, 
+                move features from locked → beta → public as you complete development and testing.
+              </p>
+            </div>
+            <FeatureManagementPanel />
           </div>
         )}
 
