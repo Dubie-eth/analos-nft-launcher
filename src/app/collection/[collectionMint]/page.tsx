@@ -3,6 +3,8 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { PublicKey } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
+import InlineSocialVerification from '@/components/InlineSocialVerification';
 
 interface CollectionData {
   name: string;
@@ -29,9 +31,11 @@ interface CollectionData {
 export default function CollectionPage() {
   const params = useParams();
   const collectionMint = params.collectionMint as string;
+  const { publicKey, connected } = useWallet();
   const [collection, setCollection] = useState<CollectionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showVerification, setShowVerification] = useState(false);
 
   useEffect(() => {
     const loadCollection = async () => {
@@ -323,6 +327,44 @@ export default function CollectionPage() {
                 Connect Wallet to Mint
               </button>
             </div>
+
+            {/* Collection Verification */}
+            {connected && (
+              <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">Verify Collection</h3>
+                  <button
+                    onClick={() => setShowVerification(!showVerification)}
+                    className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    {showVerification ? 'Hide' : 'Verify Ownership'}
+                  </button>
+                </div>
+                
+                {showVerification && (
+                  <div className="mt-4">
+                    <InlineSocialVerification
+                      walletAddress={publicKey?.toString() || ''}
+                      referralCode={collectionMint.slice(0, 8).toUpperCase()}
+                      entityType="collection"
+                      entityId={collectionMint}
+                      onVerificationComplete={(success, data) => {
+                        if (success) {
+                          alert('✅ Collection verified! You now have a verified badge.');
+                          setShowVerification(false);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {!showVerification && (
+                  <p className="text-gray-400 text-sm">
+                    Verify ownership of this collection to get a verified badge ✅
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Collection Links */}
             <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">

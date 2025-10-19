@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
+import InlineSocialVerification from '@/components/InlineSocialVerification';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -28,7 +29,7 @@ const BetaSignupPage: React.FC = () => {
   const { theme } = useTheme();
   const { publicKey, connected, connect } = useWallet();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'connect' | 'profile' | 'socials' | 'complete'>('connect');
+  const [step, setStep] = useState<'connect' | 'profile' | 'socials' | 'verify' | 'complete'>('connect');
   const [lockedPage, setLockedPage] = useState<string | null>(null);
   const [customMessage, setCustomMessage] = useState<string | null>(null);
 
@@ -214,6 +215,7 @@ const BetaSignupPage: React.FC = () => {
               { id: 'connect', label: 'Connect Wallet', icon: '🔗' },
               { id: 'profile', label: 'Profile Setup', icon: '👤' },
               { id: 'socials', label: 'Social Links', icon: '📱' },
+              { id: 'verify', label: 'Verify Twitter', icon: '🐦' },
               { id: 'complete', label: 'Complete', icon: '✅' }
             ].map((stepItem, index) => (
               <div key={stepItem.id} className="flex items-center flex-shrink-0">
@@ -230,7 +232,7 @@ const BetaSignupPage: React.FC = () => {
                   <span className="hidden sm:inline">{stepItem.label}</span>
                   <span className="sm:hidden">{stepItem.label.split(' ')[0]}</span>
                 </span>
-                {index < 3 && (
+                {index < 4 && (
                   <div className={`w-4 sm:w-8 h-0.5 mx-1 sm:mx-4 ${
                     step === stepItem.id ? 'bg-purple-400' : 'bg-gray-400'
                   }`} />
@@ -527,18 +529,58 @@ const BetaSignupPage: React.FC = () => {
                     Back
                   </button>
                   <button
-                    onClick={() => setStep('complete')}
+                    onClick={() => setStep('verify')}
                     disabled={!validateRequiredSocial()}
                     className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors"
                   >
-                    Review Application
+                    Next: Verify Twitter
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 4: Complete */}
+          {/* Step 4: Twitter Verification */}
+          {step === 'verify' && (
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-6">
+                🐦 Verify Your Twitter Account
+              </h1>
+              <p className="text-gray-300 mb-8">
+                Verify your Twitter account to earn 100 points and unlock exclusive features!
+                This is optional but highly recommended.
+              </p>
+
+              <InlineSocialVerification
+                walletAddress={publicKey?.toString() || ''}
+                referralCode={profile.username || publicKey?.toString().slice(0, 8).toUpperCase()}
+                entityType="user"
+                entityId={publicKey?.toString()}
+                onVerificationComplete={(success, data) => {
+                  if (success) {
+                    console.log('✅ Twitter verification successful:', data);
+                  }
+                }}
+              />
+
+              <div className="flex justify-between mt-8">
+                <button
+                  onClick={() => setStep('socials')}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep('complete')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  Skip / Continue to Review
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Complete */}
           {step === 'complete' && (
             <div className="text-center">
               <h1 className="text-3xl font-bold text-white mb-6">
