@@ -209,28 +209,29 @@ const BetaSignupPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center justify-center space-x-1 sm:space-x-4 overflow-x-auto pb-2">
             {[
               { id: 'connect', label: 'Connect Wallet', icon: '🔗' },
               { id: 'profile', label: 'Profile Setup', icon: '👤' },
               { id: 'socials', label: 'Social Links', icon: '📱' },
               { id: 'complete', label: 'Complete', icon: '✅' }
             ].map((stepItem, index) => (
-              <div key={stepItem.id} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+              <div key={stepItem.id} className="flex items-center flex-shrink-0">
+                <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${
                   step === stepItem.id 
                     ? 'border-purple-400 bg-purple-400 text-white' 
                     : 'border-gray-400 text-gray-400'
                 }`}>
-                  <span className="text-sm">{stepItem.icon}</span>
+                  <span className="text-xs sm:text-sm">{stepItem.icon}</span>
                 </div>
-                <span className={`ml-2 text-sm ${
+                <span className={`ml-1 sm:ml-2 text-xs sm:text-sm whitespace-nowrap ${
                   step === stepItem.id ? 'text-white' : 'text-gray-400'
                 }`}>
-                  {stepItem.label}
+                  <span className="hidden sm:inline">{stepItem.label}</span>
+                  <span className="sm:hidden">{stepItem.label.split(' ')[0]}</span>
                 </span>
                 {index < 3 && (
-                  <div className={`w-8 h-0.5 mx-4 ${
+                  <div className={`w-4 sm:w-8 h-0.5 mx-1 sm:mx-4 ${
                     step === stepItem.id ? 'bg-purple-400' : 'bg-gray-400'
                   }`} />
                 )}
@@ -550,7 +551,9 @@ const BetaSignupPage: React.FC = () => {
                 <div className="space-y-3">
                   <div>
                     <span className="text-gray-300">Wallet Address:</span>
-                    <p className="text-white font-mono text-sm">{profile.walletAddress}</p>
+                    <p className="text-white font-mono text-sm break-all">
+                      {profile.walletAddress.slice(0, 8)}...{profile.walletAddress.slice(-8)}
+                    </p>
                   </div>
                   
                   <div>

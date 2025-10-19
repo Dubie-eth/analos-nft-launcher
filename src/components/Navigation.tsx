@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { PAGE_ACCESS } from '@/config/access-control';
 
 // Add static property to track warning logging
 Navigation._contextWarningLogged = false;
@@ -76,11 +77,29 @@ export default function Navigation() {
     { href: '/admin', label: 'Admin Dashboard', icon: '🎛️', requiresWallet: true },
   ] : [];
 
-  // Filter navigation items based on wallet connection status
-  // Only show public pages when wallet is not connected
-  const filteredNavItems = connected 
-    ? [...allNavItems, ...adminNavItems] // Show all items when wallet is connected
-    : allNavItems.filter(item => !item.requiresWallet); // Only show public items when wallet not connected
+  // Filter navigation items based on wallet connection status and access control
+  const filteredNavItems = (() => {
+    if (!connected) {
+      // Only show public items when wallet not connected
+      return allNavItems.filter(item => !item.requiresWallet);
+    }
+    
+    // When wallet is connected, check access control for locked items
+    const availableItems = [...allNavItems, ...adminNavItems];
+    return availableItems.filter(item => {
+      // Find the page access configuration for this item
+      const pageConfig = PAGE_ACCESS.find(page => page.path === item.href);
+      
+      // If no page config found, allow access (fallback for new pages)
+      if (!pageConfig) return true;
+      
+      // If page is locked, hide it from navigation
+      if (pageConfig.isLocked) return false;
+      
+      // Show the item if it's not locked
+      return true;
+    });
+  })();
 
   // Navigation items - filtered based on wallet connection
   const navItems = filteredNavItems;
