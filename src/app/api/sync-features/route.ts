@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
 // GET - Get sync status
 export async function GET(request: NextRequest) {
   try {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       return NextResponse.json({
         message: 'Database not configured',
         syncAvailable: false
