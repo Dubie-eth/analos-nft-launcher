@@ -88,7 +88,7 @@ export class PageAccessService {
    * Get all page access configurations
    */
   async getPageAccessConfigs(): Promise<PageAccessConfig[]> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -121,7 +121,7 @@ export class PageAccessService {
    * Get page access configuration for a specific page
    */
   async getPageAccessConfig(pagePath: string): Promise<PageAccessConfig | null> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -158,7 +158,7 @@ export class PageAccessService {
    * Update page lock status
    */
   async updatePageLock(pagePath: string, isLocked: boolean, updatedBy: string): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -178,7 +178,7 @@ export class PageAccessService {
    * Update page access level
    */
   async updatePageAccessLevel(pagePath: string, requiredLevel: string, updatedBy: string): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -198,7 +198,7 @@ export class PageAccessService {
    * Update page custom message
    */
   async updatePageCustomMessage(pagePath: string, customMessage: string, updatedBy: string): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -218,7 +218,7 @@ export class PageAccessService {
    * Lock all pages (emergency function)
    */
   async lockAllPages(updatedBy: string): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -238,7 +238,7 @@ export class PageAccessService {
    * Unlock all pages
    */
   async unlockAllPages(updatedBy: string): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -260,7 +260,7 @@ export class UserProfileService {
    * Get user profile by wallet address
    */
   async getUserProfile(walletAddress: string): Promise<UserProfile | null> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -282,7 +282,7 @@ export class UserProfileService {
    * Create or update user profile
    */
   async upsertUserProfile(profile: Partial<UserProfile>, walletAddress: string): Promise<UserProfile> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -326,7 +326,7 @@ export class UserProfileService {
    * Get leaderboard
    */
   async getLeaderboard(limit: number = 50): Promise<LeaderboardEntry[]> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -354,7 +354,7 @@ export class UserProfileService {
    * Award points for activity
    */
   async awardActivityPoints(walletAddress: string, activityType: string, points: number, description?: string, metadata?: Record<string, any>): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -382,7 +382,7 @@ export class UserProfileService {
    * Award referral points
    */
   async awardReferralPoints(referrerWallet: string, referredWallet: string, points: number = 100): Promise<void> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
