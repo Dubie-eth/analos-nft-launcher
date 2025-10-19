@@ -452,7 +452,7 @@ export class UserProfileService {
   }
 
   async checkUsernameAvailability(username: string): Promise<{ available: boolean; error?: string }> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Database not configured');
     }
 
