@@ -69,3 +69,29 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
 }
+
+export interface SocialVerification {
+  id: string;
+  wallet_address: string;
+  platform: 'twitter' | 'discord' | 'telegram';
+  tweet_id?: string;
+  tweet_url?: string;
+  referral_code: string;
+  username: string;
+  follower_count?: number;
+  verification_status: 'pending' | 'verified' | 'rejected';
+  verified_at?: string;
+  rejected_reason?: string;
+  metadata?: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserActivity {
+  id: string;
+  wallet_address: string;
+  activity_type: string;
+  activity_data: any;
+  points_earned?: number;
+  created_at: string;
+}
