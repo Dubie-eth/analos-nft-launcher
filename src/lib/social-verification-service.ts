@@ -28,7 +28,7 @@ export class SocialVerificationService {
 
     try {
       // Create verification request
-      const { data: request, error: requestError } = await (supabase
+      const { data: request, error: requestError } = await (supabaseAdmin
         .from('social_verification_requests') as any)
         .insert({
           wallet_address: walletAddress,
@@ -53,7 +53,7 @@ export class SocialVerificationService {
         )
       }));
 
-      const { data: accounts, error: accountsError } = await (supabase
+      const { data: accounts, error: accountsError } = await (supabaseAdmin
         .from('user_social_accounts') as any)
         .insert(accountsWithRequestId.map(({ request_id, verification_score, ...account }: any) => account))
         .select() as { data: any; error: any };
@@ -67,7 +67,7 @@ export class SocialVerificationService {
         verification_score: accountsWithRequestId[index].verification_score
       }));
 
-      const { error: linkError } = await (supabase
+      const { error: linkError } = await (supabaseAdmin
         .from('verification_request_accounts') as any)
         .insert(linkData);
 
@@ -77,7 +77,7 @@ export class SocialVerificationService {
       const totalScore = accountsWithRequestId.reduce((sum, acc) => sum + acc.verification_score, 0);
       
       // Update request with calculated score
-      const { data: updatedRequest, error: updateError } = await (supabase
+      const { data: updatedRequest, error: updateError } = await (supabaseAdmin
         .from('social_verification_requests') as any)
         .update({
           total_score: totalScore,
@@ -138,7 +138,7 @@ export class SocialVerificationService {
     adminId?: string
   ): Promise<SocialAccount> {
     try {
-      const { data: account, error } = await (supabase
+      const { data: account, error } = await (supabaseAdmin
         .from('user_social_accounts') as any)
         .update({
           verification_status: 'verified',
@@ -152,7 +152,7 @@ export class SocialVerificationService {
       if (error) throw error;
 
       // Log verification action
-      await (supabase
+      await (supabaseAdmin
         .from('social_verification_audit') as any)
         .insert({
           social_account_id: accountId,
@@ -180,7 +180,7 @@ export class SocialVerificationService {
     adminId: string
   ): Promise<void> {
     try {
-      const { data: account, error: fetchError } = await (supabase
+      const { data: account, error: fetchError } = await (supabaseAdmin
         .from('user_social_accounts') as any)
         .select('*')
         .eq('id', accountId)
@@ -188,7 +188,7 @@ export class SocialVerificationService {
 
       if (fetchError) throw fetchError;
 
-      const { error: updateError } = await (supabase
+      const { error: updateError } = await (supabaseAdmin
         .from('user_social_accounts') as any)
         .update({
           verification_status: 'revoked'
@@ -198,7 +198,7 @@ export class SocialVerificationService {
       if (updateError) throw updateError;
 
       // Log revocation
-      await (supabase
+      await (supabaseAdmin
         .from('social_verification_audit') as any)
         .insert({
           social_account_id: accountId,
@@ -221,7 +221,7 @@ export class SocialVerificationService {
    */
   async checkVerificationEligibility(walletAddress: string): Promise<VerificationEligibility> {
     try {
-      const { data, error } = await (supabase.rpc as any)('check_verification_eligibility', { wallet_addr: walletAddress });
+      const { data, error } = await (supabaseAdminAdmin.rpc as any)('check_verification_eligibility', { wallet_addr: walletAddress });
 
       if (error) throw error;
 
@@ -256,7 +256,7 @@ export class SocialVerificationService {
    */
   async getWalletSocialAccounts(walletAddress: string): Promise<SocialAccount[]> {
     try {
-      const { data, error } = await (supabase
+      const { data, error } = await (supabaseAdmin
         .from('user_social_accounts') as any)
         .select('*')
         .eq('wallet_address', walletAddress)
@@ -277,7 +277,7 @@ export class SocialVerificationService {
    */
   async getVerificationConfigs(collectionId: string): Promise<SocialVerificationConfig[]> {
     try {
-      const { data, error } = await (supabase
+      const { data, error } = await (supabaseAdmin
         .from('social_verification_configs') as any)
         .select('*')
         .eq('collection_id', collectionId)
@@ -315,7 +315,7 @@ export class SocialVerificationService {
       const eligibility = await this.checkVerificationEligibility(walletAddress);
       
       // Update user's verification level
-      const { data: user, error } = await (supabase
+      const { data: user, error } = await (supabaseAdmin
         .from('users') as any)
         .update({
           verification_level: eligibility.eligible ? 'verified' : 'basic',
@@ -419,7 +419,7 @@ export class SocialVerificationService {
    */
   async getAllVerificationRequests(): Promise<SocialVerificationRequest[]> {
     try {
-      const { data, error } = await (supabase
+      const { data, error } = await (supabaseAdmin
         .from('social_verification_requests') as any)
         .select(`
           *,

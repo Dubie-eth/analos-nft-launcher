@@ -99,7 +99,7 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('airdrop_campaigns') as any)
       .select('*')
       .order('created_at', { ascending: false }) as { data: any; error: any };
@@ -117,7 +117,7 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('airdrop_campaigns') as any)
       .select('*')
       .eq('id', campaignId)
@@ -307,7 +307,7 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('airdrop_claims') as any)
       .select('*')
       .eq('campaign_id', campaignId)
@@ -335,7 +335,7 @@ export class DatabaseAirdropService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('airdrop_claims') as any)
       .select('amount, wallet_address')
       .eq('campaign_id', campaignId)

@@ -92,7 +92,7 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('page_access_configs') as any)
       .select('*')
       .order('page_path') as { data: any; error: any };
@@ -125,7 +125,7 @@ export class PageAccessService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('page_access_configs') as any)
       .select('*')
       .eq('page_path', pagePath)
@@ -264,7 +264,7 @@ export class UserProfileService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('user_profiles') as any)
       .select('*')
       .eq('wallet_address', walletAddress)
@@ -311,7 +311,7 @@ export class UserProfileService {
       last_login_at: new Date().toISOString()
     };
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('user_profiles') as any)
       .upsert(profileData, { onConflict: 'wallet_address' })
       .select()
@@ -330,7 +330,7 @@ export class UserProfileService {
       throw new Error('Supabase is not configured');
     }
 
-    const { data, error } = await (supabase
+    const { data, error } = await (supabaseAdmin
       .from('leaderboard') as any)
       .select('*')
       .order('total_points', { ascending: false })

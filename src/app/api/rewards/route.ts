@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's rewards
-    const { data: rewards, error: rewardsError } = await (supabase
+    const { data: rewards, error: rewardsError } = await (supabaseAdmin
       .from('creator_rewards') as any)
       .select(`
         *,
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total rewards summary
-    const { data: summary, error: summaryError } = await (supabase
+    const { data: summary, error: summaryError } = await (supabaseAdmin
       .rpc as any)('get_user_total_rewards', { user_wallet_param: userWallet }) as { data: any; error: any };
 
     if (summaryError) {
