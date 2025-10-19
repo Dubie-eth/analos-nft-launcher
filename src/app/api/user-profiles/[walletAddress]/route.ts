@@ -202,7 +202,8 @@ export async function PUT(
     
     // Create referral tracking entry if username changed
     if (updates.username && updatedProfile) {
-      const referralCode = updates.username.toUpperCase();
+      const { generateReferralCode } = await import('@/lib/wallet-examples');
+      const referralCode = generateReferralCode(updates.username);
       
       console.log(`📊 New referral code created: ${referralCode} for wallet ${walletAddress}`);
       

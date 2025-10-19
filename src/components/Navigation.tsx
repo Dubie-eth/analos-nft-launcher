@@ -15,6 +15,8 @@ Navigation._contextWarningLogged = false;
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userBannerImage, setUserBannerImage] = useState<string | null>(null);
+  const [userAccessLevel, setUserAccessLevel] = useState<string>('public');
+  const [pageConfigs, setPageConfigs] = useState<any[]>([]);
   const { publicKey, connected } = useWallet();
   const { theme } = useTheme();
   
@@ -29,28 +31,60 @@ export default function Navigation() {
 
   const isAdmin = connected && publicKey && ADMIN_WALLETS.includes(publicKey.toString());
 
-  // Fetch user's banner image when wallet connects
+  // Fetch user's banner image and access level when wallet connects
   useEffect(() => {
-    const fetchUserBanner = async () => {
+    const fetchUserData = async () => {
       if (connected && publicKey) {
         try {
-          const response = await fetch(`/api/user-profiles/${publicKey.toString()}`);
-          if (response.ok) {
-            const profile = await response.json();
+          // Fetch user profile for banner image and access level
+          const profileResponse = await fetch(`/api/user-profiles/${publicKey.toString()}`);
+          if (profileResponse.ok) {
+            const profile = await profileResponse.json();
             if (profile.banner_image_url) {
               setUserBannerImage(profile.banner_image_url);
             }
+            if (profile.access_level) {
+              setUserAccessLevel(profile.access_level);
+            }
+          }
+
+          // Fetch current page configurations from database
+          const pageConfigResponse = await fetch('/api/page-access');
+          if (pageConfigResponse.ok) {
+            const configs = await pageConfigResponse.json();
+            setPageConfigs(configs);
           }
         } catch (error) {
-          console.log('Could not fetch user banner image:', error);
+          console.log('Could not fetch user data:', error);
         }
       } else {
         setUserBannerImage(null);
+        setUserAccessLevel('public');
+        setPageConfigs([]);
       }
     };
 
-    fetchUserBanner();
+    fetchUserData();
   }, [connected, publicKey]);
+
+  // Refresh page configs periodically to stay in sync with admin changes
+  useEffect(() => {
+    if (!connected) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/page-access');
+        if (response.ok) {
+          const configs = await response.json();
+          setPageConfigs(configs);
+        }
+      } catch (error) {
+        console.log('Could not refresh page configs:', error);
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [connected]);
 
   // All possible navigation items
   const allNavItems = [
@@ -77,6 +111,25 @@ export default function Navigation() {
     { href: '/admin', label: 'Admin Dashboard', icon: '🎛️', requiresWallet: true },
   ] : [];
 
+  // Helper function to check if user has access to a page
+  const hasPageAccess = (pagePath: string, userLevel: string, pageConfig: any): boolean => {
+    // Admin always has access
+    if (isAdmin) return true;
+    
+    // Public pages are always accessible
+    if (pageConfig.publicAccess) return true;
+    
+    // Check if page is locked
+    if (pageConfig.isLocked) return false;
+    
+    // Check access level hierarchy
+    const levelHierarchy = ['public', 'beta_user', 'premium_user', 'admin'];
+    const userLevelIndex = levelHierarchy.indexOf(userLevel);
+    const requiredLevelIndex = levelHierarchy.indexOf(pageConfig.requiredLevel);
+    
+    return userLevelIndex >= requiredLevelIndex;
+  };
+
   // Filter navigation items based on wallet connection status and access control
   const filteredNavItems = (() => {
     if (!connected) {
@@ -87,20 +140,17 @@ export default function Navigation() {
     // When wallet is connected, check access control for locked items
     const availableItems = [...allNavItems, ...adminNavItems];
     return availableItems.filter(item => {
-      // Find the page access configuration for this item
-      const pageConfig = PAGE_ACCESS.find(page => page.path === item.href);
+      // Find the page access configuration for this item (check database first, then fallback to static config)
+      let pageConfig = pageConfigs.find(page => page.pagePath === item.href);
+      if (!pageConfig) {
+        pageConfig = PAGE_ACCESS.find(page => page.path === item.href);
+      }
       
       // If no page config found, allow access (fallback for new pages)
       if (!pageConfig) return true;
       
-      // If user is admin, show ALL items regardless of lock status
-      if (isAdmin) return true;
-      
-      // If page is locked, hide it from navigation for non-admin users
-      if (pageConfig.isLocked) return false;
-      
-      // Show the item if it's not locked
-      return true;
+      // Check if user has access to this page
+      return hasPageAccess(item.href, userAccessLevel, pageConfig);
     });
   })();
 

@@ -9,9 +9,12 @@ import React, { useState, useEffect } from 'react';
 import ProfilePictureUpload from './ProfilePictureUpload';
 import SocialLinksManager from './SocialLinksManager';
 import Leaderboard from './Leaderboard';
+import BlockchainProfileManager from './BlockchainProfileManager';
+import ProfileNFTCreator from './ProfileNFTCreator';
 import { logger } from '@/lib/logger';
 import { getFreshExample } from '@/lib/wallet-examples';
 import { useTheme } from '@/contexts/ThemeContext';
+import { BlockchainProfile } from '@/lib/blockchain-profile-service';
 import styles from './CompleteProfileManager.module.css';
 
 interface UserProfile {
@@ -60,7 +63,9 @@ export default function CompleteProfileManager({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'social' | 'leaderboard' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'blockchain' | 'nft' | 'social' | 'leaderboard' | 'settings'>('profile');
+  const [blockchainProfile, setBlockchainProfile] = useState<BlockchainProfile | null>(null);
+  const [showNFTCreator, setShowNFTCreator] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
@@ -225,7 +230,8 @@ export default function CompleteProfileManager({
       }
 
       // Generate personalized referral code based on username
-      const personalizedReferralCode = formData.username.toUpperCase();
+      const { generateReferralCode } = await import('@/lib/wallet-examples');
+      const personalizedReferralCode = generateReferralCode(formData.username);
 
       // Save profile to database
       const response = await fetch(`/api/user-profiles/${userWallet}`, {
@@ -463,6 +469,8 @@ export default function CompleteProfileManager({
           <nav className="flex px-4 overflow-x-auto">
             {[
               { key: 'profile', label: 'Profile', icon: '👤' },
+              { key: 'blockchain', label: 'Blockchain Profile', icon: '🔗' },
+              { key: 'nft', label: 'Profile NFT', icon: '🎴' },
               { key: 'social', label: 'Social Links', icon: '🔗' },
               { key: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
               { key: 'settings', label: 'Settings', icon: '⚙️' }
@@ -605,6 +613,115 @@ export default function CompleteProfileManager({
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Blockchain Profile Tab */}
+          {activeTab === 'blockchain' && (
+            <div>
+              <div className="mb-6">
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  🔗 Blockchain Profile
+                </h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Create and manage your profile on the Analos blockchain. Your username will be globally unique across the entire platform.
+                </p>
+              </div>
+              
+              <BlockchainProfileManager
+                onProfileUpdate={(blockchainProfile) => {
+                  setBlockchainProfile(blockchainProfile);
+                  // Sync blockchain profile with local profile
+                  if (profile) {
+                    setProfile({
+                      ...profile,
+                      username: blockchainProfile.username,
+                      bio: blockchainProfile.bio,
+                      profilePictureUrl: blockchainProfile.avatarUrl,
+                      bannerImageUrl: blockchainProfile.bannerUrl,
+                      socials: {
+                        ...profile.socials,
+                        twitter: blockchainProfile.twitterHandle,
+                        telegram: blockchainProfile.telegram,
+                        discord: blockchainProfile.discord,
+                        website: blockchainProfile.website,
+                        github: blockchainProfile.github
+                      }
+                    });
+                  }
+                }}
+                onSocialVerification={() => {
+                  // Handle social verification - could open a modal or redirect
+                  console.log('Social verification requested');
+                }}
+              />
+            </div>
+          )}
+
+          {/* Profile NFT Tab */}
+          {activeTab === 'nft' && (
+            <div>
+              <div className="mb-6">
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  🎴 Profile NFT
+                </h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Create your first NFT - a personalized profile card with your info and referral code that you can share on social media!
+                </p>
+              </div>
+              
+              {showNFTCreator ? (
+                <ProfileNFTCreator
+                  profileData={profile ? {
+                    username: profile.username,
+                    displayName: profile.username, // Using username as display name for now
+                    bio: profile.bio,
+                    avatarUrl: profile.profilePictureUrl,
+                    bannerUrl: profile.bannerImageUrl,
+                    referralCode: profile.referralCode || profile.username?.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8),
+                    twitterHandle: profile.socials?.twitter,
+                    twitterVerified: false // This would be determined by social verification
+                  } : undefined}
+                  onNFTCreated={(nftData) => {
+                    console.log('Profile NFT created:', nftData);
+                    setShowNFTCreator(false);
+                    // You could update the profile state here if needed
+                  }}
+                  onClose={() => setShowNFTCreator(false)}
+                />
+              ) : (
+                <div className={`p-6 rounded-lg border ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="text-center">
+                    <div className="text-6xl mb-4">🎴</div>
+                    <h4 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Create Your Profile NFT
+                    </h4>
+                    <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                      Mint your first NFT - a personalized profile card with your info and referral code!
+                    </p>
+                    <div className={`p-4 rounded-lg mb-6 ${theme === 'dark' ? 'bg-blue-900/20 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
+                      <div className="flex items-center justify-center mb-2">
+                        <span className={`font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-800'}`}>
+                          💰 Mint Price: 4.20 LOS
+                        </span>
+                      </div>
+                      <p className={`text-sm text-center ${theme === 'dark' ? 'text-blue-200' : 'text-blue-700'}`}>
+                        Your first NFT will be a beautiful profile card perfect for sharing on social media!
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowNFTCreator(true)}
+                      className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                        theme === 'dark'
+                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
+                          : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600'
+                      }`}
+                    >
+                      🎴 Create Profile NFT
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

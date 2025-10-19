@@ -6,6 +6,7 @@ import { PublicKey } from '@solana/web3.js';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 import InlineSocialVerification from '@/components/InlineSocialVerification';
+import BlockchainProfileManager from '@/components/BlockchainProfileManager';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ const BetaSignupPage: React.FC = () => {
   const { theme } = useTheme();
   const { publicKey, connected, connect } = useWallet();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'connect' | 'profile' | 'socials' | 'verify' | 'complete'>('connect');
+  const [step, setStep] = useState<'connect' | 'profile' | 'blockchain' | 'socials' | 'verify' | 'complete'>('connect');
   const [lockedPage, setLockedPage] = useState<string | null>(null);
   const [customMessage, setCustomMessage] = useState<string | null>(null);
 
@@ -426,18 +427,73 @@ const BetaSignupPage: React.FC = () => {
                     Back
                   </button>
                   <button
-                    onClick={() => setStep('socials')}
+                    onClick={() => setStep('blockchain')}
                     disabled={!profile.username.trim()}
                     className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors"
                   >
-                    Continue to Socials
+                    Continue to Blockchain Profile
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 3: Social Links */}
+          {/* Step 3: Blockchain Profile */}
+          {step === 'blockchain' && (
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-6">
+                🔗 Create Blockchain Profile
+              </h1>
+              
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
+                <p className="text-blue-300 text-sm">
+                  💡 Your profile will be stored permanently on the Analos blockchain. 
+                  Choose a unique username that will be globally unique across the entire platform.
+                </p>
+              </div>
+
+              <BlockchainProfileManager
+                onProfileUpdate={(blockchainProfile) => {
+                  console.log('Blockchain profile updated:', blockchainProfile);
+                  // Update local profile with blockchain data
+                  setProfile(prev => ({
+                    ...prev,
+                    username: blockchainProfile.username,
+                    bio: blockchainProfile.bio,
+                    profilePicture: blockchainProfile.avatarUrl,
+                    bannerImage: blockchainProfile.bannerUrl,
+                    socials: {
+                      twitter: blockchainProfile.twitterHandle,
+                      telegram: blockchainProfile.telegram,
+                      discord: blockchainProfile.discord,
+                      website: blockchainProfile.website,
+                      github: blockchainProfile.github
+                    }
+                  }));
+                }}
+                onSocialVerification={() => {
+                  setStep('verify');
+                }}
+              />
+
+              <div className="flex justify-between mt-8">
+                <button
+                  onClick={() => setStep('profile')}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep('socials')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
+                >
+                  Continue to Social Links
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Social Links */}
           {step === 'socials' && (
             <div>
               <h1 className="text-3xl font-bold text-white mb-6">

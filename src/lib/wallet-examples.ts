@@ -70,9 +70,28 @@ export function generateExampleUsername(): string {
 
 /**
  * Generate a referral code based on username
+ * Ensures it's unique and follows platform rules
  */
 export function generateReferralCode(username: string): string {
-  return username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+  // Clean username and convert to uppercase
+  let cleanUsername = username.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  
+  // If username is too short, pad with numbers
+  if (cleanUsername.length < 3) {
+    cleanUsername = cleanUsername + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  }
+  
+  // If username is too long, truncate
+  if (cleanUsername.length > 8) {
+    cleanUsername = cleanUsername.slice(0, 8);
+  }
+  
+  // Ensure it's not empty
+  if (cleanUsername.length === 0) {
+    cleanUsername = 'USER' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  }
+  
+  return cleanUsername;
 }
 
 /**

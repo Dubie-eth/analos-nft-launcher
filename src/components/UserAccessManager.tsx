@@ -407,6 +407,30 @@ const UserAccessManager: React.FC = () => {
     }
   };
 
+  const syncFeaturesWithPages = async () => {
+    try {
+      if (!publicKey) {
+        console.error('No admin wallet connected');
+        return;
+      }
+
+      const response = await fetch('/api/sync-features', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminWallet: publicKey.toString() })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Features synced with page access:', result);
+      } else {
+        console.error('Failed to sync features with pages');
+      }
+    } catch (error) {
+      console.error('Error syncing features with pages:', error);
+    }
+  };
+
   const updatePageAccessLevel = async (pagePath: string, newLevel: string) => {
     try {
       setLoading(true);
@@ -417,8 +441,11 @@ const UserAccessManager: React.FC = () => {
       // Reload page configs
       await loadPageConfigs();
       
+      // Auto-sync features after page access level change
+      await syncFeaturesWithPages();
+      
       const pageName = pageConfigs.find(p => p.pagePath === pagePath)?.pageName || pagePath;
-      alert(`✅ ${pageName} access level updated to: ${newLevel}`);
+      alert(`✅ ${pageName} access level updated to: ${newLevel} and features synced!`);
       
     } catch (error) {
       console.error('Failed to update page access level:', error);
@@ -1070,22 +1097,43 @@ const UserAccessManager: React.FC = () => {
                 Use these buttons for emergency situations. Lock All Pages will lock everything except Home, How It Works, and Beta Signup.
               </p>
             </div>
+
+            {/* Features Sync Controls */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">🔄 Features Sync</h3>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={syncFeaturesWithPages}
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  🔄 Sync Features with Pages
+                </button>
+              </div>
+              <p className="text-sm text-blue-700 mt-2">
+                Automatically updates the features page based on current page access levels. Features will show as LIVE/BETA/DEV based on page configuration.
+              </p>
+            </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {pageConfigs.map((page) => (
                 <div key={page.pagePath} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">{page.pageName}</h3>
-                    <button
-                      onClick={() => togglePageLock(page.pagePath)}
-                      className={`px-3 py-1 text-sm rounded transition-colors ${
-                        page.isLocked
-                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200'
-                      }`}
-                    >
-                      {page.isLocked ? '🔒 Locked' : '🔓 Unlocked'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => togglePageLock(page.pagePath)}
+                        className={`px-3 py-1 text-sm rounded transition-colors font-medium ${
+                          page.isLocked
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
+                            : page.requiredLevel === 'beta_user'
+                            ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300'
+                            : 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                        }`}
+                      >
+                        {page.isLocked ? '🔒 Locked' : page.requiredLevel === 'beta_user' ? '🧪 Beta' : '🔓 Unlocked'}
+                      </button>
+                    </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{page.description}</p>
                   <div className="text-xs text-gray-500">
@@ -1112,12 +1160,63 @@ const UserAccessManager: React.FC = () => {
                       <p className="text-sm text-gray-600">{page.description}</p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 text-xs rounded ${
-                        page.isLocked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                      <span className={`px-2 py-1 text-xs rounded font-medium ${
+                        page.isLocked 
+                          ? 'bg-red-100 text-red-700 border border-red-300' 
+                          : page.requiredLevel === 'beta_user'
+                          ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                          : 'bg-green-100 text-green-700 border border-green-300'
                       }`}>
-                        {page.isLocked ? 'Locked' : 'Unlocked'}
+                        {page.isLocked ? '🔒 Locked' : page.requiredLevel === 'beta_user' ? '🧪 Beta' : '🔓 Unlocked'}
                       </span>
                     </div>
+                  </div>
+                  
+                  {/* Quick Action Buttons */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <button
+                      onClick={() => togglePageLock(page.pagePath)}
+                      className={`px-3 py-1 text-xs rounded font-medium transition-colors ${
+                        page.isLocked
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                      }`}
+                    >
+                      {page.isLocked ? '🔒 Lock Page' : '🔓 Unlock Page'}
+                    </button>
+                    
+                    <button
+                      onClick={() => updatePageAccessLevel(page.pagePath, 'public')}
+                      className={`px-3 py-1 text-xs rounded font-medium transition-colors ${
+                        page.requiredLevel === 'public'
+                          ? 'bg-green-100 text-green-700 border border-green-300'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                      }`}
+                    >
+                      🔓 Make Public
+                    </button>
+                    
+                    <button
+                      onClick={() => updatePageAccessLevel(page.pagePath, 'beta_user')}
+                      className={`px-3 py-1 text-xs rounded font-medium transition-colors ${
+                        page.requiredLevel === 'beta_user'
+                          ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                      }`}
+                    >
+                      🧪 Make Beta
+                    </button>
+                    
+                    <button
+                      onClick={() => updatePageAccessLevel(page.pagePath, 'premium_user')}
+                      className={`px-3 py-1 text-xs rounded font-medium transition-colors ${
+                        page.requiredLevel === 'premium_user'
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                      }`}
+                    >
+                      ⭐ Make Premium
+                    </button>
                   </div>
                   
                   <div className="grid md:grid-cols-2 gap-4">

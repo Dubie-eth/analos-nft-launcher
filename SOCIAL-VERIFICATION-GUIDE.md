@@ -6,7 +6,7 @@ Simple tweet-based social verification system with manual admin review. No expen
 ## How It Works
 
 ### For Users:
-1. **Connect Wallet** → Get unique referral code (e.g., `86OK6FA5`)
+1. **Connect Wallet & Create Profile** → Get unique referral code based on your username (e.g., `DUBIE` for username "dubie")
 2. **Tweet Referral Code** → Post on Twitter with your code and @onlyanal.fun mention
 3. **Submit Tweet URL** → Paste tweet URL in the verification form
 4. **Wait for Admin Review** → Admin reviews within 24 hours

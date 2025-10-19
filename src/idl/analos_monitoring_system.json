@@ -1,0 +1,626 @@
+{
+  "version": "0.1.0",
+  "name": "analos_monitoring_system",
+  "instructions": [
+    {
+      "name": "initializeUserProfile",
+      "accounts": [
+        {
+          "name": "profile",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "username",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "displayName",
+          "type": "string"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string"
+        },
+        {
+          "name": "bannerUrl",
+          "type": "string"
+        },
+        {
+          "name": "twitterHandle",
+          "type": "string"
+        },
+        {
+          "name": "website",
+          "type": "string"
+        },
+        {
+          "name": "discord",
+          "type": "string"
+        },
+        {
+          "name": "telegram",
+          "type": "string"
+        },
+        {
+          "name": "github",
+          "type": "string"
+        },
+        {
+          "name": "isAnonymous",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "updateUserProfile",
+      "accounts": [
+        {
+          "name": "profile",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "displayName",
+          "type": "string"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string"
+        },
+        {
+          "name": "bannerUrl",
+          "type": "string"
+        },
+        {
+          "name": "twitterHandle",
+          "type": "string"
+        },
+        {
+          "name": "website",
+          "type": "string"
+        },
+        {
+          "name": "discord",
+          "type": "string"
+        },
+        {
+          "name": "telegram",
+          "type": "string"
+        },
+        {
+          "name": "github",
+          "type": "string"
+        },
+        {
+          "name": "isAnonymous",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "verifySocialPlatform",
+      "accounts": [
+        {
+          "name": "profile",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "verifier",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "platform",
+          "type": {
+            "defined": "SocialPlatform"
+          }
+        },
+        {
+          "name": "verified",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "createProfileNft",
+      "accounts": [
+        {
+          "name": "profileNft",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "displayName",
+          "type": "string"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string"
+        },
+        {
+          "name": "bannerUrl",
+          "type": "string"
+        },
+        {
+          "name": "referralCode",
+          "type": "string"
+        },
+        {
+          "name": "twitterHandle",
+          "type": "string"
+        },
+        {
+          "name": "twitterVerified",
+          "type": "bool"
+        },
+        {
+          "name": "website",
+          "type": "string"
+        },
+        {
+          "name": "discord",
+          "type": "string"
+        },
+        {
+          "name": "telegram",
+          "type": "string"
+        },
+        {
+          "name": "github",
+          "type": "string"
+        },
+        {
+          "name": "nftMetadata",
+          "type": "string"
+        },
+        {
+          "name": "mintPrice",
+          "type": "u64"
+        },
+        {
+          "name": "explorerUrl",
+          "type": "string"
+        },
+        {
+          "name": "mintSignature",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "updateProfileNft",
+      "accounts": [
+        {
+          "name": "profileNft",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "displayName",
+          "type": "string"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        },
+        {
+          "name": "avatarUrl",
+          "type": "string"
+        },
+        {
+          "name": "bannerUrl",
+          "type": "string"
+        },
+        {
+          "name": "twitterHandle",
+          "type": "string"
+        },
+        {
+          "name": "twitterVerified",
+          "type": "bool"
+        },
+        {
+          "name": "website",
+          "type": "string"
+        },
+        {
+          "name": "discord",
+          "type": "string"
+        },
+        {
+          "name": "telegram",
+          "type": "string"
+        },
+        {
+          "name": "github",
+          "type": "string"
+        },
+        {
+          "name": "nftMetadata",
+          "type": "string"
+        },
+        {
+          "name": "explorerUrl",
+          "type": "string"
+        },
+        {
+          "name": "mintSignature",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "UserProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "publicKey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "displayName",
+            "type": "string"
+          },
+          {
+            "name": "bio",
+            "type": "string"
+          },
+          {
+            "name": "avatarUrl",
+            "type": "string"
+          },
+          {
+            "name": "bannerUrl",
+            "type": "string"
+          },
+          {
+            "name": "twitterHandle",
+            "type": "string"
+          },
+          {
+            "name": "twitterVerified",
+            "type": "bool"
+          },
+          {
+            "name": "website",
+            "type": "string"
+          },
+          {
+            "name": "discord",
+            "type": "string"
+          },
+          {
+            "name": "telegram",
+            "type": "string"
+          },
+          {
+            "name": "github",
+            "type": "string"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "updatedAt",
+            "type": "i64"
+          },
+          {
+            "name": "isAnonymous",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UsernameRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProfileNFT",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "publicKey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "displayName",
+            "type": "string"
+          },
+          {
+            "name": "bio",
+            "type": "string"
+          },
+          {
+            "name": "avatarUrl",
+            "type": "string"
+          },
+          {
+            "name": "bannerUrl",
+            "type": "string"
+          },
+          {
+            "name": "referralCode",
+            "type": "string"
+          },
+          {
+            "name": "twitterHandle",
+            "type": "string"
+          },
+          {
+            "name": "twitterVerified",
+            "type": "bool"
+          },
+          {
+            "name": "website",
+            "type": "string"
+          },
+          {
+            "name": "discord",
+            "type": "string"
+          },
+          {
+            "name": "telegram",
+            "type": "string"
+          },
+          {
+            "name": "github",
+            "type": "string"
+          },
+          {
+            "name": "nftMetadata",
+            "type": "string"
+          },
+          {
+            "name": "mintPrice",
+            "type": "u64"
+          },
+          {
+            "name": "explorerUrl",
+            "type": "string"
+          },
+          {
+            "name": "mintSignature",
+            "type": "string"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "updatedAt",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "SocialPlatform",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Twitter"
+          },
+          {
+            "name": "Website"
+          },
+          {
+            "name": "Github"
+          },
+          {
+            "name": "Telegram"
+          },
+          {
+            "name": "Discord"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "UserProfileCreatedEvent",
+      "fields": [
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "UserProfileUpdatedEvent",
+      "fields": [
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SocialPlatformVerifiedEvent",
+      "fields": [
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "platform",
+          "type": {
+            "defined": "SocialPlatform"
+          },
+          "index": false
+        },
+        {
+          "name": "verified",
+          "type": "bool",
+          "index": false
+        },
+        {
+          "name": "timestamp",
+          "type": "i64",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 7000,
+      "name": "UsernameTooShort",
+      "msg": "Username must be at least 3 characters long"
+    },
+    {
+      "code": 7001,
+      "name": "UsernameTooLong",
+      "msg": "Username must be 20 characters or less"
+    },
+    {
+      "code": 7002,
+      "name": "UsernameInvalidFormat",
+      "msg": "Username contains invalid characters"
+    },
+    {
+      "code": 7003,
+      "name": "UsernameReserved",
+      "msg": "This username is reserved and cannot be used"
+    },
+    {
+      "code": 7004,
+      "name": "UsernameTaken",
+      "msg": "This username is already taken"
+    },
+    {
+      "code": 7005,
+      "name": "ProfileAlreadyExists",
+      "msg": "User profile already exists"
+    },
+    {
+      "code": 7006,
+      "name": "ProfileNotFound",
+      "msg": "User profile not found"
+    },
+    {
+      "code": 7007,
+      "name": "Unauthorized",
+      "msg": "Unauthorized to perform this action"
+    },
+    {
+      "code": 7008,
+      "name": "InvalidSocialPlatform",
+      "msg": "Invalid social platform specified"
+    }
+  ]
+}
