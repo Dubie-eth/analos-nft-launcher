@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 interface Feature {
@@ -24,6 +24,17 @@ export default function FeaturesPage() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   // Fallback features if API fails
   const fallbackFeatures: Feature[] = [
