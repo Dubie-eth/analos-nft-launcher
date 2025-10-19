@@ -137,6 +137,10 @@ export class AnalosNFTMintingService {
         {
           trait_type: 'Card Type',
           value: 'Profile Card'
+        },
+        {
+          trait_type: 'Matrix Variant',
+          value: profileData.matrixVariant || 'normal'
         }
       ]
     };

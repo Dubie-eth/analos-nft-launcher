@@ -199,8 +199,8 @@ export default function CompleteProfileManager({
       
       if (!formData.username.trim()) {
         newErrors.username = 'Username is required';
-      } else if (formData.username.length < 3) {
-        newErrors.username = 'Username must be at least 3 characters';
+      } else if (formData.username.length < 4) {
+        newErrors.username = 'Username must be at least 4 characters';
       } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
         newErrors.username = 'Username can only contain letters, numbers, and underscores';
       }

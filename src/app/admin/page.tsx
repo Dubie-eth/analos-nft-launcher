@@ -30,6 +30,7 @@ import SocialVerificationManager from '@/components/SocialVerificationManager';
 import AdminSocialVerificationPanel from '@/components/AdminSocialVerificationPanel';
 import FeatureManagementPanel from '@/components/FeatureManagementPanel';
 import CleanWalletConnection from '@/components/CleanWalletConnection';
+import MatrixCollectionAdmin from '@/components/MatrixCollectionAdmin';
 
 interface CollectionStats {
   name: string;
@@ -582,6 +583,7 @@ export default function AdminDashboard() {
         <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-2 border border-white/20 dark:border-gray-700 mb-8">
           <div className="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {[
+              { id: 'matrix-collection', label: 'Matrix Collection', icon: '🎴' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
@@ -620,6 +622,12 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab Content */}
+        {activeTab === 'matrix-collection' && (
+          <div className="space-y-8">
+            <MatrixCollectionAdmin />
+          </div>
+        )}
+
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Platform Statistics */}

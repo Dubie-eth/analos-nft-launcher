@@ -5,8 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Connection, PublicKey, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { ProfileNFTGenerator, ProfileNFTData } from '@/lib/profile-nft-generator';
-import { AnalosNFTMintingService } from '@/lib/analos-nft-minting-service';
+import { ProfileNFTGenerator } from '@/lib/profile-nft-generator';
+import { AnalosNFTMintingService, ProfileNFTData } from '@/lib/analos-nft-minting-service';
 import { ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 

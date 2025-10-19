@@ -29,7 +29,7 @@ export interface BlockchainProfile {
 
 // Username validation rules (same as token names)
 export const USERNAME_RULES = {
-  minLength: 3,
+  minLength: 4,
   maxLength: 20,
   pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/,
   reserved: [
