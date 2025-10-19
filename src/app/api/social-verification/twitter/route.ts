@@ -90,7 +90,7 @@ function extractTweetIdFromUrl(tweetUrl: string): string | null {
 }
 
 // Function to generate referral text for users to share
-export function generateReferralText(referralCode: string, walletAddress: string): string {
+function generateReferralText(referralCode: string, walletAddress: string): string {
   return `🚀 Join me on Analos NFT Launcher! 
 
 Use my referral code: ${referralCode}
