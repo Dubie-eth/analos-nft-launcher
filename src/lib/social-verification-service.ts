@@ -3,7 +3,7 @@
  * Integrates with Supabase database for social media verification
  */
 
-import { supabase, isSupabaseConfigured } from './supabase/client';
+import { supabase, supabaseAdmin, isSupabaseConfigured } from './supabase/client';
 import { 
   SocialAccount, 
   SocialVerificationRequest, 
@@ -221,7 +221,7 @@ export class SocialVerificationService {
    */
   async checkVerificationEligibility(walletAddress: string): Promise<VerificationEligibility> {
     try {
-      const { data, error } = await (supabaseAdminAdmin.rpc as any)('check_verification_eligibility', { wallet_addr: walletAddress });
+      const { data, error } = await (supabaseAdmin.rpc as any)('check_verification_eligibility', { wallet_addr: walletAddress });
 
       if (error) throw error;
 
