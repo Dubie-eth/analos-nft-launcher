@@ -43,13 +43,19 @@ export default function ProfileNFTCreator({
   const [hasExistingNFT, setHasExistingNFT] = useState(false);
   const [mintPrice] = useState(4.20); // 4.20 LOS
   const [showCelebration, setShowCelebration] = useState(false);
+  const [pricingInfo, setPricingInfo] = useState<{
+    price: number;
+    tier: string;
+    available: boolean;
+  } | null>(null);
 
-  // Check if user already has a profile NFT
+  // Check if user already has a profile NFT and get pricing info
   useEffect(() => {
     if (connected && publicKey) {
       checkExistingNFT();
+      fetchPricingInfo();
     }
-  }, [connected, publicKey]);
+  }, [connected, publicKey, profileData?.username]);
 
   const checkExistingNFT = async () => {
     try {
@@ -60,6 +66,47 @@ export default function ProfileNFTCreator({
       }
     } catch (error) {
       console.error('Error checking existing NFT:', error);
+    }
+  };
+
+  const fetchPricingInfo = async () => {
+    if (!profileData?.username) return;
+    
+    try {
+      const response = await fetch(`/api/admin/matrix-collection/pricing-config`);
+      if (response.ok) {
+        const data = await response.json();
+        const config = data.config;
+        
+        // Calculate price based on username length
+        const length = profileData.username.length;
+        let price = 4.20;
+        let tier = '5+ Characters (Common)';
+        let available = config.enabled;
+        
+        if (length >= 5) {
+          price = config.pricingTiers.tier5Plus;
+          tier = '5+ Characters (Common)';
+        } else if (length === 4) {
+          price = config.pricingTiers.tier4;
+          tier = '4 Characters (Premium)';
+        } else if (length === 3) {
+          price = config.pricingTiers.tier3;
+          tier = '3 Characters (Ultra Premium)';
+        } else if (length === 2) {
+          price = config.pricingTiers.tier2;
+          tier = '2 Characters (Reserved)';
+          available = config.enabled && !config.reservedTiers.tier2;
+        } else if (length === 1) {
+          price = config.pricingTiers.tier1;
+          tier = '1 Character (Reserved)';
+          available = config.enabled && !config.reservedTiers.tier1;
+        }
+        
+        setPricingInfo({ price, tier, available });
+      }
+    } catch (error) {
+      console.error('Error fetching pricing info:', error);
     }
   };
 
@@ -306,26 +353,37 @@ export default function ProfileNFTCreator({
         </div>
       )}
 
-      {/* Pricing */}
-      <div className={`p-4 rounded-lg mb-6 ${theme === 'dark' ? 'bg-blue-900/20 border border-blue-700' : 'bg-blue-50 border border-blue-200'}`}>
-        <div className="flex items-center justify-center mb-2">
-          <Coins className="w-6 h-6 text-yellow-500 mr-2" />
-          <span className={`font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-800'}`}>
-            Mint Price: {mintPrice} LOS
-          </span>
+      {/* Dynamic Pricing */}
+      {pricingInfo && (
+        <div className={`p-4 rounded-lg mb-6 ${
+          !pricingInfo.available 
+            ? 'bg-red-900/20 border border-red-700' 
+            : theme === 'dark' 
+              ? 'bg-blue-900/20 border border-blue-700' 
+              : 'bg-blue-50 border border-blue-200'
+        }`}>
+          <div className="flex items-center justify-center mb-2">
+            <Coins className={`w-6 h-6 mr-2 ${!pricingInfo.available ? 'text-red-500' : 'text-yellow-500'}`} />
+            <span className={`font-semibold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-800'}`}>
+              {!pricingInfo.available ? 'Minting Disabled' : `Mint Price: ${pricingInfo.price} LOS`}
+            </span>
+          </div>
+          <p className={`text-sm text-center ${theme === 'dark' ? 'text-blue-200' : 'text-blue-700'}`}>
+            {!pricingInfo.available 
+              ? 'This username tier is currently reserved or minting is disabled'
+              : `${pricingInfo.tier} - This is your first NFT - a personalized profile card you can share on social media!`
+            }
+          </p>
         </div>
-        <p className={`text-sm text-center ${theme === 'dark' ? 'text-blue-200' : 'text-blue-700'}`}>
-          This is your first NFT - a personalized profile card you can share on social media!
-        </p>
-      </div>
+      )}
 
       {/* Mint Button */}
       <div className="text-center">
         <button
           onClick={mintProfileNFT}
-          disabled={loading || !connected || !profileData}
+          disabled={loading || !connected || !profileData || !pricingInfo?.available}
           className={`px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 ${
-            loading || !connected || !profileData
+            loading || !connected || !profileData || !pricingInfo?.available
               ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
               : theme === 'dark'
               ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'

@@ -17,8 +17,10 @@ import {
   Settings,
   RefreshCw,
   Download,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from 'lucide-react';
+import ProfileNFTPricingConfig from './ProfileNFTPricingConfig';
 
 interface CollectionStats {
   totalMinted: number;
@@ -35,6 +37,8 @@ interface MatrixCollectionAdminProps {
   onClose?: () => void;
 }
 
+type AdminTab = 'overview' | 'pricing';
+
 export default function MatrixCollectionAdmin({ onClose }: MatrixCollectionAdminProps) {
   const { theme } = useTheme();
   const [stats, setStats] = useState<CollectionStats>({
@@ -50,6 +54,7 @@ export default function MatrixCollectionAdmin({ onClose }: MatrixCollectionAdmin
   const [loading, setLoading] = useState(true);
   const [minUsernameLength, setMinUsernameLength] = useState(4);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
   useEffect(() => {
     loadCollectionStats();
@@ -155,8 +160,41 @@ export default function MatrixCollectionAdmin({ onClose }: MatrixCollectionAdmin
         </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Tab Navigation */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`px-4 py-2 rounded font-semibold transition-all ${
+            activeTab === 'overview'
+              ? 'bg-blue-600 text-white'
+              : theme === 'dark'
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <Activity className="w-4 h-4 inline mr-2" />
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('pricing')}
+          className={`px-4 py-2 rounded font-semibold transition-all ${
+            activeTab === 'pricing'
+              ? 'bg-blue-600 text-white'
+              : theme === 'dark'
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <CreditCard className="w-4 h-4 inline mr-2" />
+          Pricing Config
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Total Minted */}
         <div className={`p-4 rounded-lg ${
           theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
@@ -389,21 +427,28 @@ export default function MatrixCollectionAdmin({ onClose }: MatrixCollectionAdmin
         </button>
       </div>
 
-      {/* Alert */}
-      <div className={`mt-6 p-4 rounded border flex gap-3 ${
-        theme === 'dark'
-          ? 'bg-yellow-900/20 border-yellow-600 text-yellow-400'
-          : 'bg-yellow-50 border-yellow-300 text-yellow-800'
-      }`}>
-        <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="font-bold">Matrix Variant Distribution</p>
-          <p className="text-sm mt-1">
-            Matrix variants are automatically distributed by the rarity oracle. 
-            The percentages shown are actual distribution rates and may vary from target rates.
-          </p>
-        </div>
-      </div>
+          {/* Alert */}
+          <div className={`mt-6 p-4 rounded border flex gap-3 ${
+            theme === 'dark'
+              ? 'bg-yellow-900/20 border-yellow-600 text-yellow-400'
+              : 'bg-yellow-50 border-yellow-300 text-yellow-800'
+          }`}>
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Matrix Variant Distribution</p>
+              <p className="text-sm mt-1">
+                Matrix variants are automatically distributed by the rarity oracle. 
+                The percentages shown are actual distribution rates and may vary from target rates.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Pricing Configuration Tab */}
+      {activeTab === 'pricing' && (
+        <ProfileNFTPricingConfig />
+      )}
     </div>
   );
 }
