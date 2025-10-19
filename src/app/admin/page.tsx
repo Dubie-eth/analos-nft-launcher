@@ -560,7 +560,7 @@ export default function AdminDashboard() {
               href="/how-it-works" 
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white/20 hover:bg-white/30 rounded-lg px-6 py-2 transition-colors flex items-center space-x-2 text-sm"
+              className="bg-white/20 dark:bg-gray-700/50 hover:bg-white/30 dark:hover:bg-gray-600/50 rounded-lg px-6 py-2 transition-colors flex items-center space-x-2 text-sm text-gray-900 dark:text-white"
             >
               <span>📚</span>
               <span>How It Works</span>
@@ -569,7 +569,7 @@ export default function AdminDashboard() {
               href="https://github.com/Dubie-eth/analos-programs" 
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white/20 hover:bg-white/30 rounded-lg px-6 py-2 transition-colors flex items-center space-x-2 text-sm"
+              className="bg-white/20 dark:bg-gray-700/50 hover:bg-white/30 dark:hover:bg-gray-600/50 rounded-lg px-6 py-2 transition-colors flex items-center space-x-2 text-sm text-gray-900 dark:text-white"
             >
               <span>🔍</span>
               <span>Verify Programs</span>
@@ -578,7 +578,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
+        <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-2 border border-white/20 dark:border-gray-700 mb-8">
           <div className="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {[
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
@@ -607,7 +607,7 @@ export default function AdminDashboard() {
                 className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap text-xs sm:text-sm ${
                   activeTab === tab.id
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    : 'text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-gray-700/30'
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -622,25 +622,25 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             {/* Platform Statistics */}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
                 <div className="text-3xl mb-2">📦</div>
                 <h3 className="text-lg font-semibold text-white mb-1">Total Collections</h3>
                 <p className="text-2xl font-bold text-purple-400">{adminStats.totalCollections}</p>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
                 <div className="text-3xl mb-2">🎨</div>
                 <h3 className="text-lg font-semibold text-white mb-1">Total NFTs Minted</h3>
                 <p className="text-2xl font-bold text-blue-400">{adminStats.totalNFTsMinted.toLocaleString()}</p>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
                 <div className="text-3xl mb-2">💎</div>
                 <h3 className="text-lg font-semibold text-white mb-1">Total Volume</h3>
                 <p className="text-2xl font-bold text-green-400">${adminStats.totalVolume.toLocaleString()}</p>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
                 <div className="text-3xl mb-2">💰</div>
                 <h3 className="text-lg font-semibold text-white mb-1">LOS Price</h3>
                 <p className="text-2xl font-bold text-orange-400">${adminStats.losPrice}</p>
@@ -648,11 +648,11 @@ export default function AdminDashboard() {
             </div>
 
             {/* Program Status */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-white mb-6">Program Status</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 {programStatus.map((program) => (
-                  <div key={program.programId} className="bg-gray-800/50 rounded-lg p-4">
+                  <div key={program.programId} className="bg-gray-800/50 dark:bg-gray-700/50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-lg font-semibold text-white">{program.name}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -671,7 +671,7 @@ export default function AdminDashboard() {
                         <span className="text-white">{new Date(program.lastActivity).toLocaleDateString()}</span>
                       </div>
                       <div className="mt-3">
-                        <code className="text-xs bg-gray-900/50 px-2 py-1 rounded break-all">
+                        <code className="text-xs bg-gray-900/50 dark:bg-gray-800/70 px-2 py-1 rounded break-all text-gray-300 dark:text-gray-400">
                           {program.programId}
                         </code>
                       </div>
@@ -694,7 +694,7 @@ export default function AdminDashboard() {
             
             <div className="grid gap-6">
               {collections.map((collection) => (
-                <div key={collection.name} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div key={collection.name} className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-white mb-1">{collection.name}</h3>
@@ -729,7 +729,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   
-                  <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+                  <div className="w-full bg-gray-700 dark:bg-gray-600 rounded-full h-2 mb-4">
                     <div 
                       className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${collection.mintedPercentage}%` }}
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
                     >
                       {collection.isActive ? 'Pause' : 'Resume'}
                     </button>
-                    <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-200 border border-white/20">
+                    <button className="px-4 py-2 bg-white/10 dark:bg-gray-700/50 hover:bg-white/20 dark:hover:bg-gray-600/50 text-white rounded-lg font-semibold transition-all duration-200 border border-white/20 dark:border-gray-600">
                       Configure
                     </button>
                     <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all duration-200">
@@ -766,7 +766,7 @@ export default function AdminDashboard() {
             
             <div className="grid md:grid-cols-2 gap-6">
               {programStatus.map((program) => (
-                <div key={program.programId} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <div key={program.programId} className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-white">{program.name}</h3>
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -796,7 +796,7 @@ export default function AdminDashboard() {
                   <div className="flex space-x-3">
                     <button
                       onClick={() => window.open(`https://explorer.analos.io/address/${program.programId}`, '_blank')}
-                      className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all duration-200 border border-white/20"
+                      className="flex-1 px-4 py-2 bg-white/10 dark:bg-gray-700/50 hover:bg-white/20 dark:hover:bg-gray-600/50 text-white rounded-lg font-semibold transition-all duration-200 border border-white/20 dark:border-gray-600"
                     >
                       View Explorer
                     </button>
@@ -889,7 +889,7 @@ export default function AdminDashboard() {
             <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-2xl p-6 border border-green-500/30">
               <h3 className="text-2xl font-bold text-white mb-4">📊 Program Status Overview</h3>
               <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div className="bg-gray-800/50 dark:bg-gray-700/50 rounded-lg p-4">
                   <h4 className="text-lg font-semibold text-blue-400 mb-2">Core Programs</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex items-center space-x-2 text-yellow-400">
@@ -911,7 +911,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div className="bg-gray-800/50 dark:bg-gray-700/50 rounded-lg p-4">
                   <h4 className="text-lg font-semibold text-purple-400 mb-2">Enhanced Programs</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex items-center space-x-2 text-green-400">
@@ -937,7 +937,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div className="bg-gray-800/50 dark:bg-gray-700/50 rounded-lg p-4">
                   <h4 className="text-lg font-semibold text-orange-400 mb-2">Integration</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex items-center space-x-2 text-blue-400">
@@ -1087,7 +1087,7 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-white">Platform Settings</h2>
             
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 dark:border-gray-700">
               <h3 className="text-xl font-bold text-white mb-4">System Configuration</h3>
               
               <div className="space-y-4">
@@ -1099,7 +1099,7 @@ export default function AdminDashboard() {
                     type="number"
                     step="0.1"
                     defaultValue="2.5"
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-3 bg-gray-800/50 dark:bg-gray-700/50 border border-gray-600 dark:border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 
@@ -1111,7 +1111,7 @@ export default function AdminDashboard() {
                     type="number"
                     step="0.1"
                     defaultValue="1.5"
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-3 bg-gray-800/50 dark:bg-gray-700/50 border border-gray-600 dark:border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 
@@ -1123,7 +1123,7 @@ export default function AdminDashboard() {
                     type="number"
                     step="0.1"
                     defaultValue="1.0"
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-3 bg-gray-800/50 dark:bg-gray-700/50 border border-gray-600 dark:border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
               </div>

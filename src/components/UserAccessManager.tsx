@@ -365,7 +365,7 @@ const UserAccessManager: React.FC = () => {
       case 'admin': return 'text-red-600 bg-red-100';
       case 'creator': return 'text-blue-600 bg-blue-100';
       case 'beta': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700';
     }
   };
 
@@ -581,34 +581,34 @@ const UserAccessManager: React.FC = () => {
       {activeTab === 'analytics' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Total Users</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Users</h3>
               <p className="text-2xl font-bold text-purple-600">{analytics.totalUsers}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Beta Users</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Beta Users</h3>
               <p className="text-2xl font-bold text-green-600">{analytics.betaUsers}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Creator Users</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Creator Users</h3>
               <p className="text-2xl font-bold text-blue-600">{analytics.creatorUsers}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Admin Users</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Admin Users</h3>
               <p className="text-2xl font-bold text-red-600">{analytics.adminUsers}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Access Requests</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Access Requests</h3>
               <p className="text-2xl font-bold text-orange-600">{analytics.totalAccessRequests}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="text-sm font-medium text-gray-500 mb-1">Active Rules</h3>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Active Rules</h3>
               <p className="text-2xl font-bold text-cyan-600">{analytics.activeRules}</p>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg border">
-            <h2 className="text-xl font-bold mb-4">📈 Access Trends</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">📈 Access Trends</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold mb-3">Access by Type</h3>
@@ -789,13 +789,13 @@ const UserAccessManager: React.FC = () => {
           </div>
 
           {/* User Access List */}
-          <div className="bg-white rounded-lg border">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">Current User Access</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       User
@@ -820,7 +820,7 @@ const UserAccessManager: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {userAccess.map((user) => (
                     <tr key={user.address}>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -890,8 +890,8 @@ const UserAccessManager: React.FC = () => {
       {activeTab === 'rules' && (
         <div className="space-y-6">
           {/* Create Rule Form */}
-          <div className="bg-white p-6 rounded-lg border">
-            <h2 className="text-xl font-bold mb-4">Create Access Rule</h2>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Create Access Rule</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
@@ -982,7 +982,7 @@ const UserAccessManager: React.FC = () => {
           </div>
 
           {/* Access Rules List */}
-          <div className="bg-white rounded-lg border">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">Access Rules</h2>
             </div>
@@ -1000,7 +1000,7 @@ const UserAccessManager: React.FC = () => {
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           rule.isActive 
                             ? 'text-green-800 bg-green-100' 
-                            : 'text-gray-800 bg-gray-100'
+                            : 'text-gray-800 dark:text-gray-300 bg-gray-100 dark:bg-gray-700'
                         }`}>
                           {rule.isActive ? 'Active' : 'Inactive'}
                         </span>
@@ -1041,7 +1041,7 @@ const UserAccessManager: React.FC = () => {
       {activeTab === 'pages' && (
         <div className="space-y-6">
           {/* Quick Lock Controls */}
-          <div className="bg-white p-6 rounded-lg border">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
             <h2 className="text-xl font-bold mb-4">🔒 Quick Lock Controls</h2>
             <p className="text-gray-600 mb-6">
               Instantly lock down any page to redirect users to the beta access signup page.
@@ -1097,7 +1097,7 @@ const UserAccessManager: React.FC = () => {
           </div>
 
           {/* Per-Page Customization */}
-          <div className="bg-white p-6 rounded-lg border">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
             <h2 className="text-xl font-bold mb-4">⚙️ Per-Page Customization</h2>
             <p className="text-gray-600 mb-6">
               Customize access requirements and settings for individual pages.
@@ -1196,7 +1196,7 @@ const UserAccessManager: React.FC = () => {
       )}
 
       {/* Page Access Management Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">📄 Page Access Management</h2>
@@ -1233,7 +1233,7 @@ const UserAccessManager: React.FC = () => {
         {/* Page Access Details */}
         {selectedPage && (
           <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Page Access Details
               </h3>
@@ -1275,7 +1275,7 @@ const UserAccessManager: React.FC = () => {
               ) : (
                 <div className="space-y-2">
                   {pageAccessUsers.map((user) => (
-                    <div key={user.address} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={user.address} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <span className="text-lg">{getAccessTypeIcon(user.type)}</span>
                         <div>
@@ -1314,7 +1314,7 @@ const UserAccessManager: React.FC = () => {
 
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl">
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
               <span>Processing...</span>

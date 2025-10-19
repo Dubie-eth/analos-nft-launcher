@@ -3,7 +3,7 @@
  * Secure admin access and URL generation
  */
 
-import crypto from 'crypto-js';
+import crypto from 'crypto';
 
 // Admin wallet addresses - only these wallets can access admin
 const ADMIN_WALLETS = [
@@ -20,8 +20,13 @@ const ADMIN_SECRET_KEY = process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY || 'analos-adm
 export function generateSecureAdminURL(): string {
   const timestamp = Date.now().toString();
   const data = `${timestamp}-${ADMIN_WALLETS[0]}`;
-  const token = crypto.AES.encrypt(data, ADMIN_SECRET_KEY).toString();
-  return `/admin-secure/${encodeURIComponent(token)}`;
+  
+  // Use Node.js crypto for encryption
+  const cipher = crypto.createCipher('aes-256-cbc', ADMIN_SECRET_KEY);
+  let encrypted = cipher.update(data, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  return `/admin-secure/${encodeURIComponent(encrypted)}`;
 }
 
 /**
@@ -29,7 +34,11 @@ export function generateSecureAdminURL(): string {
  */
 export function validateAdminToken(token: string): boolean {
   try {
-    const decrypted = crypto.AES.decrypt(token, ADMIN_SECRET_KEY).toString(crypto.enc.Utf8);
+    // Use Node.js crypto for decryption
+    const decipher = crypto.createDecipher('aes-256-cbc', ADMIN_SECRET_KEY);
+    let decrypted = decipher.update(token, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    
     const [timestamp, walletAddress] = decrypted.split('-');
     
     // Check if token is not older than 24 hours
