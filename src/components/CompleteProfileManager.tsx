@@ -685,7 +685,16 @@ export default function CompleteProfileManager({
                   onNFTCreated={(nftData) => {
                     console.log('Profile NFT created:', nftData);
                     setShowNFTCreator(false);
-                    // You could update the profile state here if needed
+                    
+                    // Auto-populate profile with NFT data
+                    if (profile && nftData.nft) {
+                      setProfile({
+                        ...profile,
+                        profilePictureUrl: nftData.nft.imageUrl,
+                        bio: nftData.nft.description || profile.bio,
+                        referralCode: nftData.profileData.referralCode
+                      });
+                    }
                   }}
                   onClose={() => setShowNFTCreator(false)}
                 />

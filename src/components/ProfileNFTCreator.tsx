@@ -10,6 +10,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ProfileNFTData } from '@/lib/profile-nft-generator';
 import { Loader2, CheckCircle, XCircle, Twitter, Share2, ExternalLink, Coins, Zap } from 'lucide-react';
+import NFTMintCelebration from './NFTMintCelebration';
 
 interface ProfileNFTCreatorProps {
   profileData?: {
@@ -40,6 +41,7 @@ export default function ProfileNFTCreator({
   const [nftData, setNftData] = useState<any>(null);
   const [hasExistingNFT, setHasExistingNFT] = useState(false);
   const [mintPrice] = useState(4.20); // 4.20 LOS
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Check if user already has a profile NFT
   useEffect(() => {
@@ -92,6 +94,10 @@ export default function ProfileNFTCreator({
       if (response.ok && data.success) {
         setNftData(data);
         setSuccess(true);
+        
+        // Show Matrix celebration popup
+        setShowCelebration(true);
+        
         if (onNFTCreated) {
           onNFTCreated(data);
         }
@@ -371,6 +377,27 @@ export default function ProfileNFTCreator({
           </p>
         )}
       </div>
+
+      {/* Matrix Celebration Popup */}
+      {showCelebration && nftData && (
+        <NFTMintCelebration
+          isOpen={showCelebration}
+          onClose={() => setShowCelebration(false)}
+          nftData={{
+            mintAddress: nftData.nft.mintAddress,
+            explorerUrl: nftData.nft.explorerUrl,
+            name: nftData.nft.name,
+            imageUrl: nftData.nft.imageUrl,
+            referralCode: nftData.profileData.referralCode,
+            matrixVariant: nftData.nft.matrixVariant,
+            isMatrixVariant: nftData.nft.isMatrixVariant
+          }}
+          profileData={{
+            username: profileData?.username || '',
+            displayName: profileData?.displayName || ''
+          }}
+        />
+      )}
     </div>
   );
 }

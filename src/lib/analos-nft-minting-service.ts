@@ -8,6 +8,12 @@ import { Program, AnchorProvider, BorshCoder } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { generateReferralCode } from './wallet-examples';
 import IDL from '@/idl/analos_nft_launchpad.json';
+import { 
+  checkMatrixVariantEligibility, 
+  generateMatrixVariantSVG, 
+  MATRIX_VARIANT_RARITY,
+  MatrixVariantType 
+} from './matrix-rare-variant';
 
 // Profile NFT data structure
 export interface ProfileNFTData {
@@ -26,6 +32,7 @@ export interface ProfileNFTData {
   github?: string;
   createdAt: number;
   mintPrice: number;
+  matrixVariant?: MatrixVariantType;
 }
 
 // NFT Collection metadata for master open edition
@@ -136,10 +143,15 @@ export class AnalosNFTMintingService {
   }
 
   /**
-   * Generate profile card image (SVG)
+   * Generate profile card image (SVG) with Matrix variant support
    */
   private generateProfileCardImage(profileData: ProfileNFTData): string {
     const referralCode = generateReferralCode(profileData.username);
+    
+    // Use Matrix variant system if variant is specified
+    if (profileData.matrixVariant) {
+      return generateMatrixVariantSVG(profileData, profileData.matrixVariant, referralCode);
+    }
     
     const svg = `
       <svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
@@ -215,6 +227,18 @@ export class AnalosNFTMintingService {
     userWallet: Keypair
   ): Promise<{ mintAddress: PublicKey; signature: string; metadata: NFTCollectionData }> {
     try {
+      // Check for Matrix variant eligibility using rarity oracle
+      const matrixVariant = await checkMatrixVariantEligibility(
+        profileData.wallet.toString(),
+        profileData.username
+      );
+      
+      // Update profile data with Matrix variant if applicable
+      if (matrixVariant !== MATRIX_VARIANT_RARITY.NORMAL) {
+        profileData.matrixVariant = matrixVariant;
+        console.log(`🎆 MATRIX VARIANT DETECTED: ${matrixVariant} for ${profileData.username}`);
+      }
+
       // Generate mint keypair
       const mintKeypair = Keypair.generate();
       const mintAddress = mintKeypair.publicKey;

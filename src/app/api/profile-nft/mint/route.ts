@@ -157,7 +157,9 @@ export async function POST(request: NextRequest) {
         metadata: mintResult.metadata,
         imageUrl: mintResult.metadata.image,
         name: mintResult.metadata.name,
-        description: mintResult.metadata.description
+        description: mintResult.metadata.description,
+        matrixVariant: profileData.matrixVariant || 'normal',
+        isMatrixVariant: profileData.matrixVariant && profileData.matrixVariant !== 'normal'
       },
       socialSharing: {
         shareText,
