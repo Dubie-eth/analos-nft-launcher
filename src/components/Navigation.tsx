@@ -93,7 +93,10 @@ export default function Navigation() {
       // If no page config found, allow access (fallback for new pages)
       if (!pageConfig) return true;
       
-      // If page is locked, hide it from navigation
+      // If user is admin, show ALL items regardless of lock status
+      if (isAdmin) return true;
+      
+      // If page is locked, hide it from navigation for non-admin users
       if (pageConfig.isLocked) return false;
       
       // Show the item if it's not locked
