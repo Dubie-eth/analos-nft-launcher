@@ -177,29 +177,32 @@ export default function AdminDashboard() {
 
   // Validate admin session on mount
   useEffect(() => {
+    // Only check session if user is not an admin wallet (to prevent loops)
+    if (!isAdmin) {
+      router.push('/admin-login');
+      return;
+    }
+
     const adminSession = document.cookie
       .split('; ')
       .find(row => row.startsWith('admin-session='));
     
     if (!adminSession) {
-      // No admin session, redirect to login
-      router.push('/admin-login');
+      // No admin session, but user is admin wallet, allow access to 2FA flow
       return;
     }
     
     try {
       const sessionData = JSON.parse(decodeURIComponent(adminSession.split('=')[1]));
       if (!sessionData.walletAddress || !ADMIN_WALLETS.includes(sessionData.walletAddress)) {
-        // Invalid admin session, redirect to login
-        router.push('/admin-login');
+        // Invalid admin session, but user is admin wallet, allow access to 2FA flow
         return;
       }
     } catch (error) {
-      // Invalid session data, redirect to login
-      router.push('/admin-login');
+      // Invalid session data, but user is admin wallet, allow access to 2FA flow
       return;
     }
-  }, [router]);
+  }, [router, isAdmin]);
 
   // Load admin data
   useEffect(() => {

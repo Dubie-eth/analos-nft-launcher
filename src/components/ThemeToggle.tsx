@@ -10,13 +10,13 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-lg border border-white/20"
+      className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       {theme === 'dark' ? (
-        <Sun className="w-5 h-5 text-white" />
+        <Sun className="w-5 h-5 text-gray-800 dark:text-yellow-400" />
       ) : (
-        <Moon className="w-5 h-5 text-white" />
+        <Moon className="w-5 h-5 text-gray-800 dark:text-blue-400" />
       )}
     </button>
   );

@@ -51,10 +51,16 @@ const AdminLoginPage: React.FC = () => {
         createAdminSession();
       } else if (is2FASetup && !isSessionAuth) {
         // 2FA is set up but session not authenticated, go to 2FA verification
-        router.push('/admin');
+        // Only redirect if not already on admin page to prevent loops
+        if (window.location.pathname !== '/admin') {
+          router.push('/admin');
+        }
       } else {
         // 2FA not set up yet, go to admin dashboard to trigger 2FA setup
-        router.push('/admin');
+        // Only redirect if not already on admin page to prevent loops
+        if (window.location.pathname !== '/admin') {
+          router.push('/admin');
+        }
       }
     }
   }, [isAdmin]);
