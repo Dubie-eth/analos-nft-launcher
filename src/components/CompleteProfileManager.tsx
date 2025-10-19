@@ -757,7 +757,7 @@ export default function CompleteProfileManager({
                     name: `@${profile.username} - Analos Profile Card`,
                     imageUrl: profile.profilePictureUrl || '/default-avatar.png',
                     metadata: {
-                      displayName: profile.displayName,
+                      displayName: profile.username,
                       bio: profile.bio,
                       avatarUrl: profile.profilePictureUrl,
                       bannerUrl: profile.bannerImageUrl,
@@ -773,7 +773,6 @@ export default function CompleteProfileManager({
                     if (profile && updatedData.nft) {
                       setProfile({
                         ...profile,
-                        displayName: updatedData.nft.metadata.displayName || profile.displayName,
                         bio: updatedData.nft.metadata.bio || profile.bio,
                         profilePictureUrl: updatedData.nft.metadata.avatarUrl || profile.profilePictureUrl,
                         bannerImageUrl: updatedData.nft.metadata.bannerUrl || profile.bannerImageUrl,
