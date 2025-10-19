@@ -1,4 +1,4 @@
-# Analos NFT Launcher - Minimal Frontend
+# Analos NFT Launcher - Profile NFT System Ready
 
 Clean, minimal frontend for the Analos NFT Launcher with essential features only.
 
