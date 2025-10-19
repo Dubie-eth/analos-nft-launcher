@@ -167,7 +167,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       return NextResponse.json({
         success: true,
         message: 'Username reserved (database not configured)',
