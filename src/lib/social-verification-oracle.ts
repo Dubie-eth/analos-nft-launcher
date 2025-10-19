@@ -1,6 +1,6 @@
 /**
  * SOCIAL VERIFICATION ORACLE
- * Transaction-based verification system that stores user social data on-chain
+ * Transaction-based verification system that stores user social data on Analos blockchain
  * Similar to a price oracle but for social verification data
  */
 
@@ -68,15 +68,16 @@ export class SocialVerificationOracle {
     programId?: string
   ) {
     this.connection = connection;
-    // Use your deployed social verification oracle program ID
-    // For now, using a placeholder
+    // Use your deployed social verification oracle program ID on Analos blockchain
+    // For now, using a placeholder - will be deployed on Analos
     this.programId = new PublicKey(
-      programId || process.env.NEXT_PUBLIC_SOCIAL_ORACLE_PROGRAM_ID || 'SociAL11111111111111111111111111111111111111'
+      programId || process.env.NEXT_PUBLIC_SOCIAL_ORACLE_PROGRAM_ID || 'AnaL1111111111111111111111111111111111111111'
     );
   }
 
   /**
    * Submit verification data on-chain via transaction
+   * SECURITY: Only accepts PUBLIC wallet addresses, never private keys
    */
   async submitVerification(
     userWallet: PublicKey,
@@ -87,6 +88,17 @@ export class SocialVerificationOracle {
     followerCount: number = 0
   ): Promise<{ success: boolean; signature?: string; error?: string }> {
     try {
+      // SECURITY CHECK: Validate wallet address is public key format
+      if (!userWallet || userWallet.toString().length < 32) {
+        throw new Error('Invalid wallet address format');
+      }
+      
+      // SECURITY CHECK: Ensure no private key data
+      if (platform.toLowerCase().includes('private') || 
+          username.toLowerCase().includes('private') ||
+          tweetId.toLowerCase().includes('private')) {
+        throw new Error('Private key data not allowed');
+      }
       // Derive PDA for storing user's verification data
       const [verificationAccount] = await PublicKey.findProgramAddress(
         [
@@ -111,12 +123,12 @@ export class SocialVerificationOracle {
         referralCode: referralCode,
       };
 
-      // For now, we'll return mock data since the program needs to be deployed
-      // In production, this would create a real transaction
-      console.log('✅ Verification data prepared:', verificationData);
+      // For now, we'll return mock data since the program needs to be deployed on Analos
+      // In production, this would create a real transaction on Analos blockchain
+      console.log('✅ Verification data prepared for Analos blockchain:', verificationData);
 
-      // Simulate transaction submission
-      const mockSignature = `verification_${Date.now()}_${userWallet.toString().slice(0, 8)}`;
+      // Simulate transaction submission to Analos
+      const mockSignature = `analos_verification_${Date.now()}_${userWallet.toString().slice(0, 8)}`;
 
       return {
         success: true,
@@ -155,18 +167,18 @@ export class SocialVerificationOracle {
 
       console.log('🔍 Querying verification account:', verificationAccount.toString());
 
-      // Fetch account data
+      // Fetch account data from Analos blockchain
       const accountInfo = await this.connection.getAccountInfo(verificationAccount);
 
       if (!accountInfo) {
         return {
           success: false,
-          error: 'No verification data found for this user',
+          error: 'No verification data found for this user on Analos blockchain',
         };
       }
 
-      // Deserialize account data
-      // For now, return mock data since program needs to be deployed
+      // Deserialize account data from Analos
+      // For now, return mock data since program needs to be deployed on Analos
       const mockData = {
         wallet: userWallet.toString(),
         platform: platform,
@@ -176,6 +188,7 @@ export class SocialVerificationOracle {
         timestamp: Date.now(),
         followerCount: 0,
         referralCode: '',
+        blockchain: 'analos', // Specify it's from Analos blockchain
       };
 
       return {

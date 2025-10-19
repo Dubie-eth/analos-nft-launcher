@@ -1,7 +1,7 @@
 /**
  * SOCIAL VERIFICATION ORACLE API
- * Transaction-based verification that stores data on-chain
- * Query user verification data from blockchain
+ * Transaction-based verification that stores data on Analos blockchain
+ * Query user verification data from Analos blockchain
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { walletAddress, platform, username, tweetId, referralCode, followerCount } = body;
 
+    // SECURITY VALIDATION
     if (!walletAddress || !platform || !username || !tweetId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -23,13 +24,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create connection to Solana
+    // SECURITY CHECK: Validate wallet address format (must be public key)
+    if (walletAddress.length < 32 || walletAddress.length > 44) {
+      return NextResponse.json(
+        { error: 'Invalid wallet address format' },
+        { status: 400 }
+      );
+    }
+
+    // SECURITY CHECK: Ensure no private key data in any field
+    const privateKeyPatterns = ['private', 'secret', 'seed', 'mnemonic', 'key'];
+    const allFields = [walletAddress, platform, username, tweetId, referralCode].join(' ').toLowerCase();
+    
+    if (privateKeyPatterns.some(pattern => allFields.includes(pattern))) {
+      return NextResponse.json(
+        { error: 'Private key data not allowed' },
+        { status: 400 }
+      );
+    }
+
+    // Create connection to Analos blockchain
     const connection = new Connection(RPC_URL, 'confirmed');
 
     // Get oracle instance
     const oracle = getSocialVerificationOracle(connection);
 
-    // Submit verification to on-chain oracle
+    // Submit verification to on-chain oracle on Analos blockchain
     const result = await oracle.submitVerification(
       new PublicKey(walletAddress),
       platform,
@@ -48,9 +68,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Verification submitted to on-chain oracle',
+      message: 'Verification submitted to on-chain oracle on Analos blockchain',
       signature: result.signature,
       explorerUrl: `https://explorer.analos.io/tx/${result.signature}`,
+      blockchain: 'analos',
     });
 
   } catch (error) {
@@ -77,7 +98,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create connection to Solana
+    // Create connection to Analos blockchain
     const connection = new Connection(RPC_URL, 'confirmed');
 
     // Get oracle instance
