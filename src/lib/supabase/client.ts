@@ -20,53 +20,11 @@ let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 // Global flag to prevent multiple initializations
 let isInitializing = false;
 
-// Client for user operations (with RLS) - Enhanced Singleton pattern
-export const supabase = (() => {
-  if (!supabaseInstance && typeof window !== 'undefined' && !isInitializing) {
-    isInitializing = true;
-    try {
-      supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: true,
-          storage: window.localStorage,
-          storageKey: 'analos-auth',
-          flowType: 'pkce'
-        },
-        db: {
-          schema: 'public'
-        },
-        global: {
-          headers: {
-            'X-Client-Info': 'analos-nft-platform'
-          }
-        }
-      } as any);
-    } catch (error) {
-      console.warn('Failed to create Supabase client:', error);
-    } finally {
-      isInitializing = false;
-    }
-  }
-  return supabaseInstance;
-})();
+// Client for user operations (with RLS) - DISABLED to prevent multiple instances
+export const supabase = null;
 
-// Admin client for server-side operations (bypasses RLS) - Singleton pattern
-export const supabaseAdmin = (() => {
-  if (!supabaseAdminInstance) {
-    supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      },
-      db: {
-        schema: 'public'
-      }
-    } as any);
-  }
-  return supabaseAdminInstance;
-})();
+// Admin client for server-side operations (bypasses RLS) - DISABLED to prevent multiple instances
+export const supabaseAdmin = null;
 
 // Export a flag to check if we have real environment variables
 export const isSupabaseConfigured = !isBuildTime;

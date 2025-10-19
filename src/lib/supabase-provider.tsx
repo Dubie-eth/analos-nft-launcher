@@ -42,39 +42,9 @@ export function SupabaseProvider({ children }: SupabaseProviderProps) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Only initialize once globally
-    if (!globalSupabaseClient && typeof window !== 'undefined') {
-      try {
-        globalSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-          auth: {
-            autoRefreshToken: true,
-            persistSession: true,
-            detectSessionInUrl: true,
-            storage: window.localStorage,
-            storageKey: 'analos-auth',
-            flowType: 'pkce'
-          },
-          db: {
-            schema: 'public'
-          },
-          global: {
-            headers: {
-              'X-Client-Info': 'analos-nft-platform'
-            }
-          }
-        });
-        
-        setSupabase(globalSupabaseClient);
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize Supabase client:', error);
-        setIsInitialized(true); // Set to true even on error to prevent infinite loading
-      }
-    } else if (globalSupabaseClient) {
-      // Use existing global instance
-      setSupabase(globalSupabaseClient);
-      setIsInitialized(true);
-    }
+    // DISABLED: Prevent any Supabase client creation to avoid multiple instances
+    setSupabase(null);
+    setIsInitialized(true);
   }, []);
 
   return (

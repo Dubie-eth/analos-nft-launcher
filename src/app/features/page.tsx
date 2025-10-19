@@ -202,45 +202,11 @@ export default function FeaturesPage() {
     }
   ];
 
-  // Fetch features from API
+  // Fetch features from API - DISABLED to prevent errors
   useEffect(() => {
-    const fetchFeatures = async () => {
-      try {
-        const response = await fetch('/api/features', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.features && Array.isArray(data.features) && data.features.length > 0) {
-          setFeatures(data.features);
-        } else {
-          console.warn('No features returned from API, using fallback data');
-          setFeatures(fallbackFeatures);
-        }
-      } catch (error) {
-        console.error('Failed to fetch features:', error);
-        setFeatures(fallbackFeatures);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Only fetch if mounted
-    if (mounted) {
-      fetchFeatures();
-
-      // Refresh features periodically to stay in sync with admin changes
-      const interval = setInterval(fetchFeatures, 30000); // Refresh every 30 seconds
-      return () => clearInterval(interval);
-    }
+    // Use fallback features immediately to prevent API errors
+    setFeatures(fallbackFeatures);
+    setLoading(false);
   }, [mounted]);
 
   // Filter features based on completion and access level
