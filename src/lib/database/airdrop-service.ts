@@ -60,7 +60,7 @@ export class DatabaseAirdropService {
    * Create a new airdrop campaign
    */
   async createCampaign(campaign: Omit<AirdropCampaign, 'id' | 'createdAt' | 'updatedAt' | 'claimedAmount'>): Promise<AirdropCampaign> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -95,7 +95,7 @@ export class DatabaseAirdropService {
    * Get all airdrop campaigns
    */
   async getCampaigns(): Promise<AirdropCampaign[]> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -113,7 +113,7 @@ export class DatabaseAirdropService {
    * Get campaign by ID
    */
   async getCampaign(campaignId: string): Promise<AirdropCampaign | null> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -135,7 +135,7 @@ export class DatabaseAirdropService {
    * Update campaign
    */
   async updateCampaign(campaignId: string, updates: Partial<AirdropCampaign>): Promise<AirdropCampaign> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -166,7 +166,7 @@ export class DatabaseAirdropService {
    * Check user eligibility for a campaign
    */
   async checkUserEligibility(campaignId: string, walletAddress: string): Promise<UserEligibility> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -240,7 +240,7 @@ export class DatabaseAirdropService {
    * Claim airdrop tokens
    */
   async claimAirdrop(campaignId: string, walletAddress: string, amount: number): Promise<AirdropClaim> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -303,7 +303,7 @@ export class DatabaseAirdropService {
    * Get user's claim for a campaign
    */
   async getUserClaim(campaignId: string, walletAddress: string): Promise<AirdropClaim | null> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
@@ -331,7 +331,7 @@ export class DatabaseAirdropService {
     totalClaimedAmount: number;
     remainingAmount: number;
   }> {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured');
     }
 
