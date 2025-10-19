@@ -257,9 +257,14 @@ async function awardVerificationRewards(walletAddress: string, platform: string)
 
     if (error) {
       console.error('Error awarding verification rewards:', error);
+      // If table doesn't exist, just log and continue
+      if (error.code === '42P01' || error.message?.includes('relation "user_activities" does not exist')) {
+        console.log('⚠️ user_activities table not found, skipping reward tracking');
+      }
     }
   } catch (error) {
     console.error('Error in awardVerificationRewards:', error);
+    // Don't throw - this is not critical for verification
   }
 }
 
@@ -296,6 +301,15 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching verifications:', error);
+      // If table doesn't exist, return empty array instead of 500 error
+      if (error.code === '42P01' || error.message?.includes('relation "social_verifications" does not exist')) {
+        console.log('⚠️ social_verifications table not found, returning empty verifications');
+        return NextResponse.json({
+          verifications: [],
+          total: 0,
+          message: 'Database table not configured'
+        });
+      }
       return NextResponse.json(
         { error: 'Failed to fetch verifications' },
         { status: 500 }

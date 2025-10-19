@@ -35,10 +35,20 @@ function createSupabaseClient() {
     return supabaseInstance;
   }
 
+  // Only create client on client side to prevent server-side auth issues
+  if (typeof window === 'undefined') {
+    // Server side - return a mock client
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+      global: { headers: { 'x-server-side': 'true' } }
+    });
+    return supabaseInstance;
+  }
+
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { 
       persistSession: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storage: window.localStorage,
       storageKey: 'analos-supabase-auth'
     },
     global: { headers: { 'x-client-type': 'user' } }
@@ -69,11 +79,29 @@ function createSupabaseAdminClient() {
   return supabaseAdminInstance;
 }
 
-// Client for user operations (with RLS)
-export const supabase = createSupabaseClient();
+// Lazy client creation to prevent multiple instances
+let _supabase: ReturnType<typeof createClient> | null = null;
+let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
 
-// Admin client for server-side operations (bypasses RLS)
-export const supabaseAdmin = createSupabaseAdminClient();
+// Client for user operations (with RLS) - lazy getter
+export function getSupabase() {
+  if (!_supabase) {
+    _supabase = createSupabaseClient();
+  }
+  return _supabase;
+}
+
+// Admin client for server-side operations (bypasses RLS) - lazy getter
+export function getSupabaseAdmin() {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createSupabaseAdminClient();
+  }
+  return _supabaseAdmin;
+}
+
+// Export the clients for backward compatibility
+export const supabase = getSupabase();
+export const supabaseAdmin = getSupabaseAdmin();
 
 // Export a flag to check if we have real environment variables
 export const isSupabaseConfigured = !isBuildTime;
