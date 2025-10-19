@@ -39,6 +39,7 @@ interface CollectionStats {
   mintingEnabled: boolean;
   programId: string;
   collectionConfig: string;
+  address: string;
 }
 
 interface AdminStats {
@@ -59,7 +60,7 @@ interface ProgramStatus {
 }
 
 export default function AdminDashboard() {
-  const { publicKey, connected, disconnect } = useWallet();
+  const { publicKey, connected, disconnect, signTransaction } = useWallet();
   const { connection } = useConnection();
   const router = useRouter();
   
@@ -228,7 +229,8 @@ export default function AdminDashboard() {
           isActive: true,
           mintingEnabled: true,
           programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
-          collectionConfig: 'DemoCollectionConfigPDA'
+          collectionConfig: 'DemoCollectionConfigPDA',
+          address: 'DemoCollectionConfigPDA'
         }
       ];
 
