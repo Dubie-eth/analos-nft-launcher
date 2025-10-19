@@ -17,9 +17,13 @@ const isBuildTime = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_P
 let supabaseInstance: ReturnType<typeof createClient> | null = null;
 let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 
-// Client for user operations (with RLS) - Singleton pattern
+// Global flag to prevent multiple initializations
+let isInitializing = false;
+
+// Client for user operations (with RLS) - Enhanced Singleton pattern
 export const supabase = (() => {
-  if (!supabaseInstance && typeof window !== 'undefined') {
+  if (!supabaseInstance && typeof window !== 'undefined' && !isInitializing) {
+    isInitializing = true;
     try {
       supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
@@ -41,7 +45,8 @@ export const supabase = (() => {
       } as any);
     } catch (error) {
       console.warn('Failed to create Supabase client:', error);
-      return null;
+    } finally {
+      isInitializing = false;
     }
   }
   return supabaseInstance;

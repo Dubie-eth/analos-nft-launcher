@@ -6,6 +6,7 @@ import ClientNavigation from '@/components/ClientNavigation'
 import AccessControlManager from '@/components/AccessControlManager'
 import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { SupabaseProvider } from '@/lib/supabase-provider'
 import PageAccessGuard from '@/components/PageAccessGuard'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -42,23 +43,25 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider>
-          <SecureWalletProvider>
-            {/* Access Control Manager - syncs wallet state with cookies */}
-            <AccessControlManager />
-            
-            <div className="navigation-container">
-              <ClientNavigation />
-            </div>
-            
-            <div className="min-h-screen theme-bg">
-              <PageAccessGuard>
-                {children}
-              </PageAccessGuard>
-            </div>
-            
-            {/* Customer Service Bot */}
-            <CustomerServiceBotProvider />
-          </SecureWalletProvider>
+          <SupabaseProvider>
+            <SecureWalletProvider>
+              {/* Access Control Manager - syncs wallet state with cookies */}
+              <AccessControlManager />
+              
+              <div className="navigation-container">
+                <ClientNavigation />
+              </div>
+              
+              <div className="min-h-screen theme-bg">
+                <PageAccessGuard>
+                  {children}
+                </PageAccessGuard>
+              </div>
+              
+              {/* Customer Service Bot */}
+              <CustomerServiceBotProvider />
+            </SecureWalletProvider>
+          </SupabaseProvider>
         </ThemeProvider>
       </body>
     </html>
