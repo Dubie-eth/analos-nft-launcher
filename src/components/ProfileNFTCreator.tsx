@@ -11,6 +11,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { ProfileNFTData } from '@/lib/profile-nft-generator';
 import { Loader2, CheckCircle, XCircle, Twitter, Share2, ExternalLink, Coins, Zap } from 'lucide-react';
 import NFTMintCelebration from './NFTMintCelebration';
+import ProfileCardPreview from './ProfileCardPreview';
 
 interface ProfileNFTCreatorProps {
   profileData?: {
@@ -293,42 +294,15 @@ export default function ProfileNFTCreator({
         </div>
       )}
 
-      {/* Profile Preview */}
+      {/* Profile Card Preview */}
       {profileData && (
-        <div className={`p-4 rounded-lg mb-6 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-          <h3 className={`font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-            Profile Preview
-          </h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                <strong>Username:</strong> {profileData.username}
-              </div>
-              {profileData.displayName && (
-                <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <strong>Display Name:</strong> {profileData.displayName}
-                </div>
-              )}
-              <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                <strong>Referral Code:</strong> {profileData.referralCode}
-              </div>
-              {profileData.twitterHandle && (
-                <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <strong>Twitter:</strong> @{profileData.twitterHandle}
-                  {profileData.twitterVerified && <span className="text-green-500 ml-1">✓</span>}
-                </div>
-              )}
-            </div>
-            {profileData.avatarUrl && (
-              <div className="flex justify-center">
-                <img
-                  src={profileData.avatarUrl}
-                  alt="Avatar"
-                  className="w-16 h-16 rounded-full border-2 border-gray-300 dark:border-gray-600"
-                />
-              </div>
-            )}
-          </div>
+        <div className="mb-6">
+          <ProfileCardPreview
+            username={profileData.username}
+            displayName={profileData.displayName || profileData.username}
+            bio={profileData.bio}
+            referralCode={profileData.referralCode}
+          />
         </div>
       )}
 
