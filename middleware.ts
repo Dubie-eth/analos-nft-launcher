@@ -31,16 +31,18 @@ export function middleware(request: NextRequest) {
   // Check if this page is in the PAGE_ACCESS configuration
   const pageConfig = PAGE_ACCESS.find(page => page.path === pathname);
   
-  // If page is not in configuration, block access by default (whitelist approach)
+  // If page is not in configuration, allow access (new users can browse freely)
   if (!pageConfig) {
-    // Allow access to unmapped pages for now (like /marketplace, /explorer, etc.)
-    // You can change this to block all unmapped pages for maximum security
-    // return NextResponse.redirect(new URL('/', request.url));
     return NextResponse.next();
   }
   
   // Public pages are always accessible
   if (pageConfig.publicAccess) {
+    return NextResponse.next();
+  }
+  
+  // Beta signup page is always accessible
+  if (pathname === '/beta-signup') {
     return NextResponse.next();
   }
   

@@ -230,14 +230,6 @@ export const PAGE_ACCESS: PageAccess[] = [
     requiresWallet: false
   },
   {
-    path: '/social-verification',
-    name: 'Social Verification',
-    description: 'Verify your social media accounts to earn rewards',
-    requiredLevel: 'beta_user',
-    requiresWallet: true,
-    isLocked: false
-  },
-  {
     path: '/evolving-nfts',
     name: 'Evolving NFTs',
     description: 'Evolving NFT features',
