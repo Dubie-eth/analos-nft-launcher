@@ -91,7 +91,7 @@ export async function GET(
     }
 
     // Check if database is configured
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       return NextResponse.json({
         available: true,
         valid: true,
