@@ -38,6 +38,8 @@ class SecurityMonitor {
 
     // Log to database if configured
     try {
+      if (!supabaseAdmin) return; // Skip database logging if not configured
+      
       const { error } = await (supabaseAdmin
         .from('security_logs') as any)
         .insert({
