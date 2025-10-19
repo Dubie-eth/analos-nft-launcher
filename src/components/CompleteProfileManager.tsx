@@ -11,6 +11,7 @@ import SocialLinksManager from './SocialLinksManager';
 import Leaderboard from './Leaderboard';
 import BlockchainProfileManager from './BlockchainProfileManager';
 import ProfileNFTCreator from './ProfileNFTCreator';
+import ProfileNFTUpdater from './ProfileNFTUpdater';
 import { logger } from '@/lib/logger';
 import { getFreshExample } from '@/lib/wallet-examples';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -63,7 +64,7 @@ export default function CompleteProfileManager({
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'blockchain' | 'nft' | 'social' | 'leaderboard' | 'settings'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'blockchain' | 'nft' | 'update-nft' | 'social' | 'leaderboard' | 'settings'>('profile');
   const [blockchainProfile, setBlockchainProfile] = useState<BlockchainProfile | null>(null);
   const [showNFTCreator, setShowNFTCreator] = useState(false);
   const [formData, setFormData] = useState({
@@ -469,8 +470,9 @@ export default function CompleteProfileManager({
           <nav className="flex px-4 overflow-x-auto">
             {[
               { key: 'profile', label: 'Profile', icon: '👤' },
-              { key: 'blockchain', label: 'Blockchain Profile', icon: '🔗' },
+              { key: 'blockchain', label: 'Blockchain Profile', icon: '⛓️' },
               { key: 'nft', label: 'Profile NFT', icon: '🎴' },
+              { key: 'update-nft', label: 'Update NFT', icon: '🔄' },
               { key: 'social', label: 'Social Links', icon: '🔗' },
               { key: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
               { key: 'settings', label: 'Settings', icon: '⚙️' }
@@ -730,6 +732,62 @@ export default function CompleteProfileManager({
                     </button>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Update NFT Tab */}
+          {activeTab === 'update-nft' && (
+            <div>
+              <div className="mb-6">
+                <h3 className={`text-xl font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  🔄 Update Profile NFT
+                </h3>
+                <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Update your existing profile NFT metadata for a small fee (2.1 LOS)
+                </p>
+              </div>
+              
+              {/* Check if user has an existing NFT */}
+              {profile && (
+                <ProfileNFTUpdater
+                  existingNFT={{
+                    mintAddress: 'mock-mint-address', // Would be fetched from API
+                    explorerUrl: 'https://explorer.analos.io/mock',
+                    name: `@${profile.username} - Analos Profile Card`,
+                    imageUrl: profile.profilePictureUrl || '/default-avatar.png',
+                    metadata: {
+                      displayName: profile.displayName,
+                      bio: profile.bio,
+                      avatarUrl: profile.profilePictureUrl,
+                      bannerUrl: profile.bannerImageUrl,
+                      website: profile.socials?.website,
+                      discord: profile.socials?.discord,
+                      telegram: profile.socials?.telegram,
+                      github: profile.socials?.github
+                    }
+                  }}
+                  onUpdated={(updatedData) => {
+                    console.log('Profile NFT updated:', updatedData);
+                    // Update local profile data
+                    if (profile && updatedData.nft) {
+                      setProfile({
+                        ...profile,
+                        displayName: updatedData.nft.metadata.displayName || profile.displayName,
+                        bio: updatedData.nft.metadata.bio || profile.bio,
+                        profilePictureUrl: updatedData.nft.metadata.avatarUrl || profile.profilePictureUrl,
+                        bannerImageUrl: updatedData.nft.metadata.bannerUrl || profile.bannerImageUrl,
+                        socials: {
+                          ...profile.socials,
+                          website: updatedData.nft.metadata.website,
+                          discord: updatedData.nft.metadata.discord,
+                          telegram: updatedData.nft.metadata.telegram,
+                          github: updatedData.nft.metadata.github
+                        }
+                      });
+                    }
+                  }}
+                />
               )}
             </div>
           )}
