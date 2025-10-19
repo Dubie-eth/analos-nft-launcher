@@ -137,6 +137,10 @@ export class SocialVerificationService {
     verificationCode: string, 
     adminId?: string
   ): Promise<SocialAccount> {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      throw new Error('Supabase is not configured. Please check your environment variables.');
+    }
+    
     try {
       const { data: account, error } = await (supabaseAdmin
         .from('user_social_accounts') as any)
