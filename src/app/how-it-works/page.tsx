@@ -61,69 +61,69 @@ const HowItWorksPage: React.FC = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <h3 className="text-xl font-bold mb-4">🎯 For Creators</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">Easy Collection Launch</h4>
-                      <p className="text-sm text-gray-600">Launch NFT collections with our guided wizard</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Launch NFT collections with our guided wizard</p>
                     </div>
                   </li>
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">Flexible Launch Modes</h4>
-                      <p className="text-sm text-gray-600">NFT-Only or NFT-to-Token with bonding curves</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">NFT-Only or NFT-to-Token with bonding curves</p>
                     </div>
                   </li>
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">Whitelist Management</h4>
-                      <p className="text-sm text-gray-600">3-tier whitelist system with incremental pricing</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">3-tier whitelist system with incremental pricing</p>
                     </div>
                   </li>
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">Creator Verification</h4>
-                      <p className="text-sm text-gray-600">On-chain social verification and trust scores</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">On-chain social verification and trust scores</p>
                     </div>
                   </li>
                 </ul>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <h3 className="text-xl font-bold mb-4">👥 For Users</h3>
                 <ul className="space-y-3">
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">Whitelist Access</h4>
-                      <p className="text-sm text-gray-600">Early access to collections at discounted prices</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Early access to collections at discounted prices</p>
                     </div>
                   </li>
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">NFT Staking</h4>
-                      <p className="text-sm text-gray-600">Stake NFTs to earn token rewards based on rarity</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Stake NFTs to earn token rewards based on rarity</p>
                     </div>
                   </li>
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">LOS Staking</h4>
-                      <p className="text-sm text-gray-600">Stake LOS to earn 30% of all platform fees</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Stake LOS to earn 30% of all platform fees</p>
                     </div>
                   </li>
                   <li className="flex items-start space-x-3">
                     <span className="text-green-500 mt-1">✓</span>
                     <div>
                       <h4 className="font-semibold">Governance Rights</h4>
-                      <p className="text-sm text-gray-600">Vote on platform changes via CTO proposals</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Vote on platform changes via CTO proposals</p>
                     </div>
                   </li>
                 </ul>
@@ -145,42 +145,42 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">📋 Collection Setup Process</h3>
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-sm">1</div>
                       <div>
                         <h4 className="font-semibold">Basic Information</h4>
-                        <p className="text-sm text-gray-600">Set collection name, symbol, metadata URIs</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Set collection name, symbol, metadata URIs</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-sm">2</div>
                       <div>
                         <h4 className="font-semibold">Supply & Pricing</h4>
-                        <p className="text-sm text-gray-600">Define max supply, mint price, reveal threshold</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Define max supply, mint price, reveal threshold</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-sm">3</div>
                       <div>
                         <h4 className="font-semibold">Launch Mode</h4>
-                        <p className="text-sm text-gray-600">Choose NFT-Only or NFT-to-Token mode</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Choose NFT-Only or NFT-to-Token mode</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-sm">4</div>
                       <div>
                         <h4 className="font-semibold">Whitelist Stages</h4>
-                        <p className="text-sm text-gray-600">Configure 3-tier whitelist with pricing</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Configure 3-tier whitelist with pricing</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-sm">5</div>
                       <div>
                         <h4 className="font-semibold">Deploy Collection</h4>
-                        <p className="text-sm text-gray-600">Launch your collection on Analos blockchain</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Launch your collection on Analos blockchain</p>
                       </div>
                     </div>
                   </div>
@@ -188,34 +188,34 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🎭 Rarity System</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Each NFT gets assigned a rarity tier that determines staking rewards and token multipliers.
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold text-gray-800">Legendary</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">Legendary</span>
                       <span className="text-yellow-600 font-bold">5x Multiplier</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold text-gray-800">Epic</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">Epic</span>
                       <span className="text-purple-600 font-bold">3x Multiplier</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold text-gray-800">Rare</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">Rare</span>
                       <span className="text-blue-600 font-bold">2x Multiplier</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="font-semibold text-gray-800">Common</span>
-                      <span className="text-gray-600 font-bold">1x Multiplier</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">Common</span>
+                      <span className="text-gray-600 dark:text-gray-300 font-bold">1x Multiplier</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">👤 Creator Profiles</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Build trust with on-chain verification of social media and credentials.
                   </p>
                   <ul className="space-y-2 text-sm">
@@ -255,9 +255,9 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">📈 Bonding Curve System</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Dynamic pricing system that adjusts token price based on supply and demand.
                   </p>
                   <div className="space-y-4">
@@ -276,36 +276,36 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🔄 Token Claims</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     NFT holders can claim tokens based on their rarity tier.
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Legendary NFT</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Legendary NFT</span>
                       <span className="font-bold text-yellow-600">5,000 tokens</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Epic NFT</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Epic NFT</span>
                       <span className="font-bold text-purple-600">3,000 tokens</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Rare NFT</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Rare NFT</span>
                       <span className="font-bold text-blue-600">2,000 tokens</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Common NFT</span>
-                      <span className="font-bold text-gray-600">1,000 tokens</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Common NFT</span>
+                      <span className="font-bold text-gray-600 dark:text-gray-300">1,000 tokens</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🔥 Burn for Tokens</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     NFT holders can burn their NFTs to receive additional tokens at current market price.
                   </p>
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -319,9 +319,9 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">💰 Revenue Sharing</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Token launch revenue is distributed according to predefined allocations.
                   </p>
                   <div className="space-y-3">
@@ -360,9 +360,9 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🎨 NFT Staking</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Stake your NFTs to earn token rewards based on rarity multipliers.
                   </p>
                   <div className="space-y-4">
@@ -384,9 +384,9 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">💎 LOS Token Staking</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Stake LOS tokens to earn 30% of all platform fees automatically.
                   </p>
                   <div className="space-y-3">
@@ -407,9 +407,9 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">📊 Fee Distribution</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Platform fees are automatically distributed to stakers and the platform.
                   </p>
                   <div className="space-y-4">
@@ -432,7 +432,7 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">⏰ Reward Schedule</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -466,9 +466,9 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🎨 Creator Campaign Setup</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Creators can define custom airdrop campaigns with their own tokens and eligibility criteria.
                   </p>
                   <div className="space-y-4">
@@ -493,9 +493,9 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">💰 Platform Fee System</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     All creator airdrops require a platform fee to ensure sustainability and quality.
                   </p>
                   <div className="space-y-4">
@@ -522,9 +522,9 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🎯 User Experience</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Seamless claiming experience with real-time eligibility checking and automatic distribution.
                   </p>
                   <div className="space-y-4">
@@ -550,15 +550,15 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">📊 Analytics & Tracking</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Comprehensive tracking and analytics for both creators and platform administrators.
                   </p>
                   <div className="space-y-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-800 mb-2">Creator Dashboard</h4>
-                      <ul className="text-sm text-gray-700 space-y-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Creator Dashboard</h4>
+                      <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                         <li>• Campaign performance metrics</li>
                         <li>• Claim statistics and trends</li>
                         <li>• Eligible vs. claimed amounts</li>
@@ -566,8 +566,8 @@ const HowItWorksPage: React.FC = () => {
                       </ul>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold text-gray-800 mb-2">Platform Analytics</h4>
-                      <ul className="text-sm text-gray-700 space-y-1">
+                      <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Platform Analytics</h4>
+                      <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                         <li>• Total fees collected</li>
                         <li>• Campaign success rates</li>
                         <li>• Revenue trends and forecasting</li>
@@ -593,9 +593,9 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">💰 Fee Structure Overview</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Our fee system is designed to be fair, transparent, and sustainable for all participants.
                   </p>
                   <div className="space-y-4">
@@ -629,9 +629,9 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🎯 Fee Distribution</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     All collected fees are distributed transparently across platform operations and stakeholder rewards.
                   </p>
                   <div className="space-y-4">
@@ -659,9 +659,9 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">💎 Value Proposition</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Our fees provide significant value to all platform participants through comprehensive services and rewards.
                   </p>
                   <div className="space-y-4">
@@ -688,9 +688,9 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🔄 Fee Optimization</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Dynamic fee adjustment based on platform performance and community governance.
                   </p>
                   <div className="space-y-4">
@@ -730,11 +730,11 @@ const HowItWorksPage: React.FC = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg border border-purple-200">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 border-purple-200">
                 <div className="text-center mb-4">
                   <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">1</div>
                   <h3 className="text-xl font-bold text-purple-800">Early Birds</h3>
-                  <p className="text-sm text-gray-600">Most exclusive tier</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Most exclusive tier</p>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -756,11 +756,11 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border border-blue-200">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 border-blue-200">
                 <div className="text-center mb-4">
                   <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">2</div>
                   <h3 className="text-xl font-bold text-blue-800">Friends</h3>
-                  <p className="text-sm text-gray-600">Community supporters</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Community supporters</p>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -782,11 +782,11 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border border-green-200">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 border-green-200">
                 <div className="text-center mb-4">
                   <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">3</div>
                   <h3 className="text-xl font-bold text-green-800">Community</h3>
-                  <p className="text-sm text-gray-600">General community</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">General community</p>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -809,7 +809,7 @@ const HowItWorksPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
               <h3 className="text-xl font-bold mb-4">🔐 Merkle Proof Verification</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -870,14 +870,14 @@ const HowItWorksPage: React.FC = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
                   🖼️ Image Upload Guidelines
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Profile Picture Requirements:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Profile Picture Requirements:</h4>
+                    <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                       <li>• <strong>Format:</strong> JPEG, PNG, GIF, or WebP</li>
                       <li>• <strong>Size:</strong> Maximum 5MB</li>
                       <li>• <strong>Dimensions:</strong> 800x800px recommended (square)</li>
@@ -885,8 +885,8 @@ const HowItWorksPage: React.FC = () => {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Banner Image Requirements:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Banner Image Requirements:</h4>
+                    <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                       <li>• <strong>Format:</strong> JPEG, PNG, GIF, or WebP</li>
                       <li>• <strong>Size:</strong> Maximum 10MB</li>
                       <li>• <strong>Dimensions:</strong> 1920x1080px recommended (wide)</li>
@@ -896,14 +896,14 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
                   🏷️ Username & Referral System
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Username Rules:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Username Rules:</h4>
+                    <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                       <li>• <strong>Uniqueness:</strong> Each username can only be used once</li>
                       <li>• <strong>Length:</strong> 3-20 characters</li>
                       <li>• <strong>Characters:</strong> Letters, numbers, and underscores only</li>
@@ -911,8 +911,8 @@ const HowItWorksPage: React.FC = () => {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Personalized Referral Links:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Personalized Referral Links:</h4>
+                    <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                       <li>• <strong>Format:</strong> yoursite.com/?ref=YOURUSERNAME</li>
                       <li>• <strong>Automatic:</strong> Generated when you set your username</li>
                       <li>• <strong>Sharing:</strong> Share to earn referral rewards</li>
@@ -923,14 +923,14 @@ const HowItWorksPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
                 💾 Profile Persistence
               </h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">What Gets Saved:</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">What Gets Saved:</h4>
+                  <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                     <li>• Profile pictures and banner images</li>
                     <li>• Username and bio information</li>
                     <li>• Social media links</li>
@@ -939,8 +939,8 @@ const HowItWorksPage: React.FC = () => {
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Benefits:</h4>
-                  <ul className="text-sm text-gray-600 space-y-1">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">Benefits:</h4>
+                  <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
                     <li>• No need to re-upload images</li>
                     <li>• Consistent profile across sessions</li>
                     <li>• Personalized referral tracking</li>
@@ -980,47 +980,47 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">💰 Fee Management</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Adjust platform fees to optimize revenue and user experience.
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">NFT Mint Fee</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">NFT Mint Fee</span>
                       <span className="font-semibold text-purple-600">2.5% (adjustable)</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Token Launch Fee</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Token Launch Fee</span>
                       <span className="font-semibold text-blue-600">5% (adjustable)</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Trading Fee</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Trading Fee</span>
                       <span className="font-semibold text-green-600">1% (adjustable)</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">📊 Revenue Distribution</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Control how platform revenue is distributed across stakeholders.
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-800 font-medium">LOS Holders</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">LOS Holders</span>
                       <span className="font-semibold text-green-600">30%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-800 font-medium">Platform Treasury</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Platform Treasury</span>
                       <span className="font-semibold text-blue-600">40%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-800 font-medium">Development</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Development</span>
                       <span className="font-semibold text-purple-600">20%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-800 font-medium">Marketing</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Marketing</span>
                       <span className="font-semibold text-orange-600">10%</span>
                     </div>
                   </div>
@@ -1028,9 +1028,9 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🚨 Emergency Controls</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Emergency pause functionality for critical situations.
                   </p>
                   <div className="space-y-3">
@@ -1049,9 +1049,9 @@ const HowItWorksPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">📈 Platform Limits</h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Set platform-wide limits and constraints.
                   </p>
                   <div className="space-y-3 text-sm">
@@ -1089,11 +1089,11 @@ const HowItWorksPage: React.FC = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <div className="text-center mb-4">
                   <div className="text-4xl mb-3">🎨</div>
                   <h3 className="text-xl font-bold text-purple-800">NFT Minting Fees</h3>
-                  <p className="text-sm text-gray-600">2.5% on all NFT mints</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">2.5% on all NFT mints</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1111,11 +1111,11 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <div className="text-center mb-4">
                   <div className="text-4xl mb-3">🚀</div>
                   <h3 className="text-xl font-bold text-blue-800">Token Launch Fees</h3>
-                  <p className="text-sm text-gray-600">5% on token launches</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">5% on token launches</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1133,11 +1133,11 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <div className="text-center mb-4">
                   <div className="text-4xl mb-3">💱</div>
                   <h3 className="text-xl font-bold text-green-800">Trading Fees</h3>
-                  <p className="text-sm text-gray-600">1% on secondary trading</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">1% on secondary trading</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1156,7 +1156,7 @@ const HowItWorksPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
               <h3 className="text-xl font-bold mb-4">💰 Revenue Distribution Flow</h3>
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
@@ -1232,57 +1232,57 @@ const HowItWorksPage: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🗳️ CTO Proposal Process</h3>
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">1</div>
                       <div>
-                        <h4 className="font-semibold text-gray-800">Proposal Creation</h4>
-                        <p className="text-sm text-gray-600">Any LOS staker can create a CTO proposal</p>
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-200">Proposal Creation</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Any LOS staker can create a CTO proposal</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">2</div>
                       <div>
-                        <h4 className="font-semibold text-gray-800">Voting Period</h4>
-                        <p className="text-sm text-gray-600">Community votes on the proposal</p>
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-200">Voting Period</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Community votes on the proposal</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">3</div>
                       <div>
-                        <h4 className="font-semibold text-gray-800">Threshold Check</h4>
-                        <p className="text-sm text-gray-600">Must meet minimum approval threshold</p>
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-200">Threshold Check</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Must meet minimum approval threshold</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">4</div>
                       <div>
-                        <h4 className="font-semibold text-gray-800">Execution</h4>
-                        <p className="text-sm text-gray-600">Admin authority transferred if approved</p>
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-200">Execution</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Admin authority transferred if approved</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">⚖️ Voting Requirements</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Minimum Stake to Propose</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Minimum Stake to Propose</span>
                       <span className="font-semibold text-purple-600">1,000 LOS</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Approval Threshold</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Approval Threshold</span>
                       <span className="font-semibold text-green-600">66%</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Voting Duration</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Voting Duration</span>
                       <span className="font-semibold text-blue-600">7 days</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <span className="text-gray-800 font-medium">Voting Power</span>
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">Voting Power</span>
                       <span className="font-semibold text-orange-600">Proportional to stake</span>
                     </div>
                   </div>
@@ -1290,41 +1290,41 @@ const HowItWorksPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">👥 Community Benefits</h3>
                   <ul className="space-y-3">
                     <li className="flex items-start space-x-3">
                       <span className="text-green-500 mt-1">✓</span>
                       <div>
                         <h4 className="font-semibold">Democratic Control</h4>
-                        <p className="text-sm text-gray-600">Community decides platform direction</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Community decides platform direction</p>
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
                       <span className="text-green-500 mt-1">✓</span>
                       <div>
                         <h4 className="font-semibold">Transparency</h4>
-                        <p className="text-sm text-gray-600">All proposals and votes are on-chain</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">All proposals and votes are on-chain</p>
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
                       <span className="text-green-500 mt-1">✓</span>
                       <div>
                         <h4 className="font-semibold">Fair Representation</h4>
-                        <p className="text-sm text-gray-600">Voting power based on stake amount</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Voting power based on stake amount</p>
                       </div>
                     </li>
                     <li className="flex items-start space-x-3">
                       <span className="text-green-500 mt-1">✓</span>
                       <div>
                         <h4 className="font-semibold">Emergency Override</h4>
-                        <p className="text-sm text-gray-600">Community can replace problematic admins</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Community can replace problematic admins</p>
                       </div>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg border">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                   <h3 className="text-xl font-bold mb-4">🔒 Security Measures</h3>
                   <div className="space-y-3">
                     <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
@@ -1363,7 +1363,7 @@ const HowItWorksPage: React.FC = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <h3 className="text-xl font-bold mb-4">🎨 Core Programs</h3>
                 <div className="space-y-3">
                   <div className="p-3 bg-purple-50 rounded">
@@ -1384,7 +1384,7 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <h3 className="text-xl font-bold mb-4">⚡ Enhanced Programs</h3>
                 <div className="space-y-3">
                   <div className="p-3 bg-orange-50 rounded">
@@ -1410,30 +1410,30 @@ const HowItWorksPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
                 <h3 className="text-xl font-bold mb-4">🔗 Integration Points</h3>
                 <div className="space-y-3">
                   <div className="p-3 bg-gray-50 rounded">
                     <h4 className="font-semibold">Cross-Program Calls</h4>
-                    <p className="text-xs text-gray-600">Programs communicate via invoke_signed</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">Programs communicate via invoke_signed</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded">
                     <h4 className="font-semibold">Shared PDAs</h4>
-                    <p className="text-xs text-gray-600">Deterministic account derivation</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">Deterministic account derivation</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded">
                     <h4 className="font-semibold">Event System</h4>
-                    <p className="text-xs text-gray-600">Real-time event logging</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">Real-time event logging</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded">
                     <h4 className="font-semibold">Security Model</h4>
-                    <p className="text-xs text-gray-600">Multi-sig and authority checks</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">Multi-sig and authority checks</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
               <h3 className="text-xl font-bold mb-4">🔐 Security Features</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -1516,9 +1516,9 @@ const HowItWorksPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
@@ -1544,8 +1544,8 @@ const HowItWorksPage: React.FC = () => {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border p-6 sticky top-8">
-              <h2 className="text-lg font-bold mb-4">How It Works</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6 sticky top-8">
+              <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white dark:text-white">How It Works</h2>
               <nav className="space-y-2">
                 {sections.map((section) => (
                   <button
@@ -1553,8 +1553,8 @@ const HowItWorksPage: React.FC = () => {
                     onClick={() => setActiveSection(section.id)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                       activeSection === section.id
-                        ? 'bg-purple-100 text-purple-700 font-semibold'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-semibold'
+                        : 'text-gray-600 dark:text-gray-300 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     <span className="mr-2">{section.icon}</span>
