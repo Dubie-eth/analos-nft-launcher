@@ -5,7 +5,7 @@
 
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import { Program, AnchorProvider, BorshCoder } from '@coral-xyz/anchor';
-import type { AnalosMonitoringSystem } from '@/idl/analos_monitoring_system';
+import IDL from '@/idl/analos_monitoring_system.json';
 import { ANALOS_PROGRAMS } from '@/config/analos-programs';
 
 // Profile data structure for on-chain storage
@@ -44,10 +44,10 @@ export const USERNAME_RULES = {
 
 export class BlockchainProfileService {
   private connection: Connection;
-  private program: Program<AnalosMonitoringSystem>;
+  private program: Program<any>;
   private provider: AnchorProvider;
 
-  constructor(connection: Connection, program: Program<AnalosMonitoringSystem>, provider: AnchorProvider) {
+  constructor(connection: Connection, program: Program<any>, provider: AnchorProvider) {
     this.connection = connection;
     this.program = program;
     this.provider = provider;
@@ -171,7 +171,7 @@ export class BlockchainProfileService {
       };
 
       // Create or update profile
-      const tx = await this.program.methods
+      const tx = await (this.program.methods as any)
         .initializeUserProfile(
           normalized,
           profile.displayName,
@@ -315,7 +315,7 @@ export class BlockchainProfileService {
         await this.createOrUpdateProfile(wallet, {
           ...profile,
           twitterVerified: verified
-        }, this.provider.wallet as Keypair);
+        }, this.provider.wallet as any);
       }
     } catch (error) {
       console.error('Error updating Twitter verification:', error);
@@ -333,7 +333,7 @@ export function getBlockchainProfileService(): BlockchainProfileService | null {
 
 export function initializeBlockchainProfileService(
   connection: Connection,
-  program: Program<AnalosMonitoringSystem>,
+  program: Program<any>,
   provider: AnchorProvider
 ): BlockchainProfileService {
   profileService = new BlockchainProfileService(connection, program, provider);

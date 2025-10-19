@@ -96,13 +96,14 @@ export async function POST(request: NextRequest) {
     let mintResult;
     try {
       mintResult = await nftService.mintProfileNFT(nftProfileData, userWallet);
-    } catch (error) {
-      console.error('NFT minting failed:', error);
-      return NextResponse.json(
-        { error: `Failed to mint profile NFT on Analos blockchain: ${error.message}` },
-        { status: 500 }
-      );
-    }
+      } catch (error) {
+        console.error('NFT minting failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        return NextResponse.json(
+          { error: `Failed to mint profile NFT on Analos blockchain: ${errorMessage}` },
+          { status: 500 }
+        );
+      }
 
     const explorerUrl = ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD;
 

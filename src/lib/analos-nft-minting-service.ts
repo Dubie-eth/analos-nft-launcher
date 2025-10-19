@@ -7,16 +7,7 @@ import { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PE
 import { Program, AnchorProvider, BorshCoder } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { generateReferralCode } from './wallet-examples';
-
-// Import the IDL for the NFT Launchpad program
-// Note: We'll need to create this IDL based on the program at https://explorer.analos.io/address/5gmaywNK418QzG7eFA7qZLJkCGS8cfcPtm4b2RZQaJHT
-interface AnalosNFTLaunchpadIDL {
-  version: '0.1.0';
-  name: 'analos_nft_launchpad';
-  instructions: any[];
-  accounts: any[];
-  types: any[];
-}
+import IDL from '@/idl/analos_nft_launchpad.json';
 
 // Profile NFT data structure
 export interface ProfileNFTData {
@@ -67,38 +58,11 @@ export const MASTER_OPEN_EDITION_CONFIG = {
 
 export class AnalosNFTMintingService {
   private connection: Connection;
-  private program: Program<AnalosNFTLaunchpadIDL>;
+  private program: Program<any>;
 
   constructor() {
     this.connection = new Connection(ANALOS_RPC_URL, 'confirmed');
     
-    // Create a minimal IDL for the NFT program
-    // This will need to be updated with the actual IDL from the deployed program
-    const minimalIDL: AnalosNFTLaunchpadIDL = {
-      version: '0.1.0',
-      name: 'analos_nft_launchpad',
-      instructions: [
-        {
-          name: 'createProfileNFT',
-          accounts: [
-            { name: 'mint', isMut: true, isSigner: false },
-            { name: 'metadata', isMut: true, isSigner: false },
-            { name: 'user', isMut: true, isSigner: true },
-            { name: 'systemProgram', isMut: false, isSigner: false },
-          ],
-          args: [
-            { name: 'username', type: 'string' },
-            { name: 'displayName', type: 'string' },
-            { name: 'bio', type: 'string' },
-            { name: 'avatarUrl', type: 'string' },
-            { name: 'referralCode', type: 'string' },
-          ]
-        }
-      ],
-      accounts: [],
-      types: []
-    };
-
     // Create a dummy provider for now
     const dummyKeypair = Keypair.generate();
     const provider = new AnchorProvider(
@@ -111,7 +75,7 @@ export class AnalosNFTMintingService {
       {}
     );
 
-    this.program = new Program(minimalIDL as any, ANALOS_PROGRAMS.NFT_LAUNCHPAD, provider);
+    this.program = new Program(IDL as any, provider);
   }
 
   /**
@@ -263,7 +227,7 @@ export class AnalosNFTMintingService {
 
       // Add the mint instruction
       // Note: This will need to be updated with the actual instruction from the deployed program
-      const mintInstruction = await this.program.methods
+      const mintInstruction = await (this.program.methods as any)
         .createProfileNFT(
           profileData.username,
           profileData.displayName,
@@ -302,7 +266,8 @@ export class AnalosNFTMintingService {
 
     } catch (error) {
       console.error('Error minting profile NFT:', error);
-      throw new Error(`Failed to mint profile NFT: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`Failed to mint profile NFT: ${errorMessage}`);
     }
   }
 

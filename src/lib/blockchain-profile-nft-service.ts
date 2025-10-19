@@ -114,7 +114,7 @@ export class BlockchainProfileNFTService {
       };
 
       // Create profile NFT account
-      const tx = await this.program.methods
+      const tx = await (this.program.methods as any)
         .createProfileNft(
           normalized,
           nftData.displayName,
@@ -221,7 +221,7 @@ export class BlockchainProfileNFTService {
         ANALOS_PROGRAMS.MONITORING_SYSTEM
       );
 
-      const tx = await this.program.methods
+      const tx = await (this.program.methods as any)
         .updateProfileNft(
           updates.displayName || '',
           updates.bio || '',
