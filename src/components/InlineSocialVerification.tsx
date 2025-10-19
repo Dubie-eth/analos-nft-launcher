@@ -52,6 +52,30 @@ export default function InlineSocialVerification({
       const data = await response.json();
       setResult(data);
 
+      // Also submit to on-chain oracle for immutable record
+      if (data.success) {
+        try {
+          await fetch('/api/social-verification/oracle', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              walletAddress: walletAddress,
+              platform: 'twitter',
+              username: data.verification?.username || 'verified_user',
+              tweetId: tweetUrl.match(/status\/(\d+)/)?.[1] || '',
+              referralCode: displayReferralCode,
+              followerCount: data.verification?.follower_count || 0,
+            }),
+          });
+          console.log('✅ Verification also stored on-chain via oracle');
+        } catch (oracleError) {
+          console.warn('⚠️ Failed to submit to oracle:', oracleError);
+          // Don't fail the verification if oracle submission fails
+        }
+      }
+
       if (onVerificationComplete) {
         onVerificationComplete(data.success, data);
       }
