@@ -39,10 +39,23 @@ const AdminLoginPage: React.FC = () => {
     }
   }, [router]);
   
-  // Auto-redirect if admin is connected
+  // Auto-redirect if admin is connected - but check 2FA first
   useEffect(() => {
     if (isAdmin) {
-      createAdminSession();
+      // Check if 2FA is required
+      const is2FASetup = localStorage.getItem('admin-2fa-setup') === 'true';
+      const isSessionAuth = sessionStorage.getItem('admin-authenticated') === 'true';
+      
+      if (is2FASetup && isSessionAuth) {
+        // 2FA is set up and session is authenticated, proceed to admin
+        createAdminSession();
+      } else if (is2FASetup && !isSessionAuth) {
+        // 2FA is set up but session not authenticated, go to 2FA verification
+        router.push('/admin');
+      } else {
+        // 2FA not set up yet, go to admin dashboard to trigger 2FA setup
+        router.push('/admin');
+      }
     }
   }, [isAdmin]);
   
@@ -140,7 +153,7 @@ const AdminLoginPage: React.FC = () => {
                       disabled={isVerifying}
                       className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                     >
-                      {isVerifying ? 'Authenticating...' : 'Access Admin Dashboard'}
+                      {isVerifying ? 'Authenticating...' : 'Access Admin Dashboard (2FA Required)'}
                     </button>
                   </div>
                 ) : (
@@ -185,6 +198,8 @@ const AdminLoginPage: React.FC = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-400 text-xs">
             Only authorized admin wallets can access this area.
+            <br />
+            <strong className="text-yellow-400">⚠️ 2FA Authentication Required</strong> - You will be prompted to set up Google Authenticator after connecting your wallet.
             <br />
             Contact support@launchonlos.fun if you need admin access.
           </p>

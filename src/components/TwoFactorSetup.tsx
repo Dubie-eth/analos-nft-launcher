@@ -295,16 +295,17 @@ export default function TwoFactorSetup({ onSetupComplete, onCancel }: TwoFactorS
         </div>
 
         {/* Security Notice */}
-        <div className="mt-6 bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4">
-          <h3 className="text-yellow-300 font-semibold mb-2">🔒 Security Notice</h3>
-          <ul className="text-yellow-200 text-sm space-y-1">
-            <li>• <strong>WRITE DOWN YOUR SECRET KEY OFFLINE</strong></li>
-            <li>• Store it in a secure physical location</li>
+        <div className="mt-6 bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+          <h3 className="text-red-300 font-semibold mb-2">🚨 CRITICAL SECURITY WARNING</h3>
+          <ul className="text-red-200 text-sm space-y-1">
+            <li>• <strong>WRITE DOWN YOUR SECRET KEY OFFLINE IMMEDIATELY</strong></li>
+            <li>• Store it in a secure physical location (safe, bank vault, etc.)</li>
             <li>• This secret key will be PERMANENTLY DELETED after setup</li>
             <li>• Keep your authenticator app secure</li>
             <li>• <strong>ONLY YOUR SECRET KEY CAN RESET THIS SYSTEM</strong></li>
-            <li>• There is NO other way to reset 2FA</li>
+            <li>• There is NO other way to reset 2FA - NO ADMIN OVERRIDE</li>
             <li>• Secret key is NEVER stored on this device</li>
+            <li>• <strong>IF YOU LOSE THE SECRET KEY, YOU LOSE ADMIN ACCESS FOREVER</strong></li>
           </ul>
         </div>
       </div>

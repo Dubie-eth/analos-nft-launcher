@@ -263,9 +263,16 @@ export default function CreatedPage() {
                             <h3 className="text-xl font-bold theme-text-primary mb-1">{collection.collection_name}</h3>
                             <p className="theme-text-secondary text-sm">{collection.collection_symbol}</p>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(collection.status)}`}>
-                            {collection.status}
-                          </span>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(collection.status)}`}>
+                              {collection.status}
+                            </span>
+                            {collection.status === 'draft' && (
+                              <span className="text-xs text-yellow-400">
+                                Ready to deploy
+                              </span>
+                            )}
+                          </div>
                         </div>
                         
                         <p className="theme-text-secondary text-sm mb-4 line-clamp-2">{collection.description}</p>
@@ -286,14 +293,40 @@ export default function CreatedPage() {
                         </div>
                         
                         <div className="flex gap-2">
-                          <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                            <Eye className="w-4 h-4" />
-                            View
-                          </button>
-                          <button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                            <Edit className="w-4 h-4" />
-                            Edit
-                          </button>
+                          {collection.status === 'deployed' && collection.collection_mint ? (
+                            <a 
+                              href={`/collection/${collection.collection_mint}`}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View
+                            </a>
+                          ) : (
+                            <button 
+                              onClick={() => alert('Collection must be deployed first. Please deploy your collection to view it.')}
+                              className="flex-1 bg-gray-400 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View (Deploy First)
+                            </button>
+                          )}
+                          {collection.status === 'draft' ? (
+                            <a 
+                              href="/launch-collection"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Deploy Collection
+                            </a>
+                          ) : (
+                            <button 
+                              onClick={() => alert('Collection is already deployed. You can view it using the View button.')}
+                              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Manage
+                            </button>
+                          )}
                         </div>
                         
                         <div className="mt-3 text-xs theme-text-muted">

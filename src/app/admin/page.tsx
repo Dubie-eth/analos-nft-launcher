@@ -166,9 +166,14 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     // Clear admin session
     document.cookie = 'admin-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    // Clear 2FA session
+    sessionStorage.removeItem('admin-authenticated');
     disconnect();
     router.push('/');
   };
+
+  // REMOVED: Reset 2FA functionality for security
+  // 2FA can only be reset with the original secret key that was written down offline
 
   // Validate admin session on mount
   useEffect(() => {
