@@ -115,19 +115,23 @@ export default function PublicProfileDisplay({
             fetch(`/api/user-collections/${userWallet}`).catch(() => null)
           ]);
 
-          // Merge the data
+          // Merge the data - ensure we extract the actual data from API responses
+          const nftsData = nftsResponse?.ok ? await nftsResponse.json() : null;
+          const tokensData = tokensResponse?.ok ? await tokensResponse.json() : null;
+          const collectionsData = collectionsResponse?.ok ? await collectionsResponse.json() : null;
+
           const enhancedProfile = {
             ...userProfile,
-            nfts: nftsResponse?.ok ? await nftsResponse.json() : [],
-            tokens: tokensResponse?.ok ? await tokensResponse.json() : [],
-            collections: collectionsResponse?.ok ? await collectionsResponse.json() : [],
+            nfts: nftsData?.nfts || nftsData || [],
+            tokens: tokensData?.tokens || tokensData || [],
+            collections: collectionsData?.collections || collectionsData || [],
             totalPortfolioValue: 0, // Will be calculated
             portfolioChange24h: 0 // Will be calculated
           };
 
-          // Calculate portfolio value
-          const nftValue = enhancedProfile.nfts?.reduce((sum: number, nft: NFT) => sum + (nft.price || 0), 0) || 0;
-          const tokenValue = enhancedProfile.tokens?.reduce((sum: number, token: Token) => sum + (token.balance * token.price), 0) || 0;
+          // Calculate portfolio value - ensure data is array before calling reduce
+          const nftValue = Array.isArray(enhancedProfile.nfts) ? enhancedProfile.nfts.reduce((sum: number, nft: NFT) => sum + (nft.price || 0), 0) : 0;
+          const tokenValue = Array.isArray(enhancedProfile.tokens) ? enhancedProfile.tokens.reduce((sum: number, token: Token) => sum + (token.balance * token.price), 0) : 0;
           enhancedProfile.totalPortfolioValue = nftValue + tokenValue;
 
           setProfile(enhancedProfile);

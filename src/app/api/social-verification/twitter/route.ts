@@ -86,7 +86,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify tweet content using Twitter API
-    const verificationResult = await twitterApiService.verifyTweetContent(tweetId, referralCode);
+    let verificationResult;
+    try {
+      verificationResult = await twitterApiService.verifyTweetContent(tweetId, referralCode);
+    } catch (error) {
+      console.error('Twitter API service error:', error);
+      return NextResponse.json({
+        success: false,
+        message: 'Twitter verification service error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, { status: 500 });
+    }
 
     if (!verificationResult.success) {
       return NextResponse.json({
@@ -98,48 +108,61 @@ export async function POST(request: NextRequest) {
 
     // Save verification to database
     if (isSupabaseConfigured && supabaseAdmin) {
-      const { data: verification, error } = await ((supabaseAdmin as any)
-        .from('social_verifications'))
-        .insert({
-          wallet_address: walletAddress,
-          platform: 'twitter',
-          tweet_id: tweetId,
-          tweet_url: tweetUrl,
-          referral_code: referralCode,
-          username: verificationResult.userData?.username || 'verified_user',
-          follower_count: verificationResult.userData?.public_metrics.followers_count || 0,
-          verification_status: 'verified',
-          verified_at: new Date().toISOString(),
-          metadata: {
-            tweet_text: verificationResult.tweetData?.text,
-            author_id: verificationResult.userData?.id,
-            engagement_metrics: verificationResult.tweetData?.public_metrics,
-            verification_details: verificationResult.details
-          }
-        })
-        .select()
-        .single();
+      try {
+        const { data: verification, error } = await ((supabaseAdmin as any)
+          .from('social_verifications'))
+          .insert({
+            wallet_address: walletAddress,
+            platform: 'twitter',
+            tweet_id: tweetId,
+            tweet_url: tweetUrl,
+            referral_code: referralCode,
+            username: verificationResult.userData?.username || 'verified_user',
+            follower_count: verificationResult.userData?.public_metrics?.followers_count || 0,
+            verification_status: 'verified',
+            verified_at: new Date().toISOString(),
+            metadata: {
+              tweet_text: verificationResult.tweetData?.text,
+              author_id: verificationResult.userData?.id,
+              engagement_metrics: verificationResult.tweetData?.public_metrics,
+              verification_details: verificationResult.details
+            }
+          })
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error saving verification:', error);
+        if (error) {
+          console.error('Error saving verification:', error);
+          return NextResponse.json(
+            { error: 'Failed to save verification', details: error.message },
+            { status: 500 }
+          );
+        }
+
+        // Award points immediately upon verification
+        try {
+          await awardVerificationRewards(walletAddress, 'twitter');
+        } catch (rewardError) {
+          console.error('Error awarding rewards:', rewardError);
+          // Don't fail the verification if rewards fail
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Tweet verified successfully!',
+          verification: verification,
+          rewards: {
+            points: 100,
+            message: 'You earned 100 points for Twitter verification!'
+          }
+        });
+      } catch (dbError) {
+        console.error('Database error during verification save:', dbError);
         return NextResponse.json(
-          { error: 'Failed to save verification' },
+          { error: 'Database error during verification', details: dbError instanceof Error ? dbError.message : 'Unknown database error' },
           { status: 500 }
         );
       }
-
-      // Award points immediately upon verification
-      await awardVerificationRewards(walletAddress, 'twitter');
-
-      return NextResponse.json({
-        success: true,
-        message: 'Tweet verified successfully!',
-        verification: verification,
-        rewards: {
-          points: 100,
-          message: 'You earned 100 points for Twitter verification!'
-        }
-      });
     } else {
       // Fallback for when database is not configured
       return NextResponse.json({
