@@ -45,7 +45,10 @@ export function middleware(request: NextRequest) {
   }
   
   // Get user wallet from cookies (set by client after wallet connection)
-  const userWallet = request.cookies.get('connected-wallet')?.value || null;
+  // Try multiple cookie names for compatibility
+  const userWallet = request.cookies.get('connected-wallet')?.value || 
+                    request.cookies.get('user-wallet')?.value || 
+                    null;
   
   // Check if user is admin wallet - admins bypass all restrictions
   const isAdminWallet = userWallet && ADMIN_WALLETS.includes(userWallet);

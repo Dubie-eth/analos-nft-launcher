@@ -70,6 +70,15 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
           return;
         }
 
+        // If wallet is connected but publicKey is still undefined, wait a bit for it to load
+        if (connected && !publicKey) {
+          console.log(`⏳ Wallet connected but publicKey not yet available, waiting...`);
+          setTimeout(() => {
+            checkPageAccess();
+          }, 1000);
+          return;
+        }
+
         // Check if page requires wallet connection
         if (staticPageConfig.requiresWallet && !connected) {
           console.log(`🔒 Page ${pathname} requires wallet connection`);
@@ -105,7 +114,7 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
     }
 
     checkPageAccess();
-  }, [pathname, router, connected]);
+  }, [pathname, router, connected, publicKey]);
 
   // Show loading state while checking
   if (isChecking) {
