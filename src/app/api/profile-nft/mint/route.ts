@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       ? referralCode 
       : generateReferralCode(username);
 
-    // Create profile NFT data
+    // Create profile NFT data with all URLs and social verification
     const profileData: ProfileNFTData = {
       wallet: walletAddress,
       username,
@@ -63,6 +63,10 @@ export async function POST(request: NextRequest) {
       referralCode: finalReferralCode,
       twitterHandle: twitterHandle || '',
       twitterVerified: twitterVerified || false,
+      website: '',
+      discord: '',
+      telegram: '',
+      github: '',
       createdAt: Date.now(),
       mintPrice
     };
@@ -123,7 +127,25 @@ export async function POST(request: NextRequest) {
             referral_code: finalReferralCode,
             twitter_handle: twitterHandle || '',
             twitter_verified: twitterVerified || false,
-            nft_metadata: mintResult.metadata,
+            nft_metadata: {
+              ...mintResult.metadata,
+              // Store banner and logo URLs in metadata
+              banner_url: bannerUrl || '',
+              avatar_url: avatarUrl || '',
+              // Store social verification status
+              twitter_verified: twitterVerified || false,
+              twitter_handle: twitterHandle || '',
+              // Store all profile data for easy access
+              profile_data: {
+                displayName: displayName || username,
+                bio: bio || '',
+                avatarUrl: avatarUrl || '',
+                bannerUrl: bannerUrl || '',
+                referralCode: finalReferralCode,
+                twitterHandle: twitterHandle || '',
+                twitterVerified: twitterVerified || false
+              }
+            },
             mint_price: mintPrice,
             explorer_url: explorerUrl,
             mint_signature: mintResult.signature,

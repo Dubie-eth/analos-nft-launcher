@@ -175,21 +175,43 @@ export default function BlockchainProfileManager({
     setSocialVerification(prev => ({ ...prev, verificationInProgress: true }));
     
     try {
-      // Check if user already has a verified Twitter account
-      const verificationResponse = await fetch(`/api/social-verification/oracle?walletAddress=${publicKey.toString()}&platform=twitter`);
+      // First check if user already has a verified Twitter account in the database
+      const verificationResponse = await fetch(`/api/social-verification/twitter?walletAddress=${publicKey.toString()}`);
       
       if (verificationResponse.ok) {
         const verificationData = await verificationResponse.json();
-        if (verificationData.success && verificationData.verification) {
-          // User already has verified Twitter, update profile
+        if (verificationData.verifications && verificationData.verifications.length > 0) {
+          const verifiedTwitter = verificationData.verifications.find((v: any) => v.verification_status === 'verified');
+          if (verifiedTwitter) {
+            // User already has verified Twitter, update profile
+            setSocialVerification(prev => ({ ...prev, twitterVerified: true }));
+            setFormData(prev => ({ 
+              ...prev, 
+              twitterHandle: verifiedTwitter.twitter_username || verifiedTwitter.username 
+            }));
+            
+            // Update blockchain profile with verified Twitter handle
+            await updateBlockchainProfileWithVerification(verifiedTwitter);
+            return;
+          }
+        }
+      }
+      
+      // If no existing verification, try the oracle endpoint
+      const oracleResponse = await fetch(`/api/social-verification/oracle?walletAddress=${publicKey.toString()}&platform=twitter`);
+      
+      if (oracleResponse.ok) {
+        const oracleData = await oracleResponse.json();
+        if (oracleData.success && oracleData.verification) {
+          // User has verified Twitter on blockchain, update profile
           setSocialVerification(prev => ({ ...prev, twitterVerified: true }));
           setFormData(prev => ({ 
             ...prev, 
-            twitterHandle: verificationData.verification.username 
+            twitterHandle: oracleData.verification.username 
           }));
           
           // Update blockchain profile with verified Twitter handle
-          await updateBlockchainProfileWithVerification(verificationData.verification);
+          await updateBlockchainProfileWithVerification(oracleData.verification);
           return;
         }
       }

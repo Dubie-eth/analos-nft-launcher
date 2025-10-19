@@ -653,8 +653,8 @@ export default function CompleteProfileManager({
                   }
                 }}
                 onSocialVerification={() => {
-                  // Handle social verification - could open a modal or redirect
-                  console.log('Social verification requested');
+                  // Open social verification in a new tab
+                  window.open('/social-verification', '_blank');
                 }}
               />
             </div>
@@ -676,13 +676,13 @@ export default function CompleteProfileManager({
                 <ProfileNFTCreator
                   profileData={profile ? {
                     username: profile.username,
-                    displayName: profile.username, // Using username as display name for now
+                    displayName: profile.displayName || profile.username,
                     bio: profile.bio,
                     avatarUrl: profile.profilePictureUrl,
                     bannerUrl: profile.bannerImageUrl,
-                    referralCode: profile.referralCode || profile.username?.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8),
-                    twitterHandle: profile.socials?.twitter,
-                    twitterVerified: false // This would be determined by social verification
+                    referralCode: profile.referralCode || generateReferralCode(profile.username),
+                    twitterHandle: blockchainProfile?.twitterHandle || profile.socials?.twitter,
+                    twitterVerified: blockchainProfile?.twitterVerified || false
                   } : undefined}
                   onNFTCreated={(nftData) => {
                     console.log('Profile NFT created:', nftData);
