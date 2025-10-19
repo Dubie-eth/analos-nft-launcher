@@ -56,7 +56,11 @@ export function SupabaseProvider({ children }: SupabaseProviderProps) {
       } else {
         // Create real client for runtime
         globalSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-          auth: { persistSession: true },
+          auth: { 
+            persistSession: true,
+            storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+            storageKey: 'analos-supabase-auth'
+          },
           global: { headers: { 'x-client-type': 'provider' } }
         });
       }

@@ -32,20 +32,11 @@ export async function GET(
       });
     }
 
-    // Get user's token holdings from database
-    const { data: tokens, error } = await (supabaseAdmin as any)
-      .from('user_token_holdings')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .order('updated_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching user tokens:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch tokens' },
-        { status: 500 }
-      );
-    }
+    // For now, return empty tokens since user_token_holdings table doesn't exist yet
+    // This will be implemented when token tracking is added to the database
+    console.log('⚠️ user_token_holdings table not implemented yet, returning empty tokens');
+    
+    const tokens: any[] = [];
 
     return NextResponse.json({
       success: true,

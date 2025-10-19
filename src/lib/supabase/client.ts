@@ -28,14 +28,19 @@ function createSupabaseClient() {
 
   if (isBuildTime) {
     // Return a mock client during build time
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
       auth: { persistSession: false },
       global: { headers: { 'x-build-time': 'true' } }
     });
+    return supabaseInstance;
   }
 
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { persistSession: true },
+    auth: { 
+      persistSession: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'analos-supabase-auth'
+    },
     global: { headers: { 'x-client-type': 'user' } }
   });
 

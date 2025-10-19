@@ -98,6 +98,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // For now, return empty verification data since oracle is not fully implemented
+    // This prevents 404 errors while the oracle system is being developed
+    console.log('⚠️ Social verification oracle not fully implemented yet, returning empty data');
+    
+    return NextResponse.json({
+      success: true,
+      verifications: [],
+      total: 0,
+      message: 'Oracle system under development'
+    });
+
+    // TODO: Implement full oracle functionality
+    /*
     // Create connection to Analos blockchain
     const connection = new Connection(RPC_URL, 'confirmed');
 
