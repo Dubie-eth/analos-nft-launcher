@@ -23,6 +23,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Always allow access to the home page
+  if (pathname === '/' || pathname === '') {
+    return NextResponse.next();
+  }
+
   // Check if this page is in the PAGE_ACCESS configuration
   const pageConfig = PAGE_ACCESS.find(page => page.path === pathname);
   
