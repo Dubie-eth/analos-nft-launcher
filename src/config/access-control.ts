@@ -369,22 +369,7 @@ export async function getUserAccessLevel(userWallet: string): Promise<string> {
     return 'admin';
   }
 
-  // Check database for user access level
-  try {
-    const response = await fetch(`/api/user-profiles/${userWallet}`);
-    if (response.ok) {
-      const profile = await response.json();
-      console.log(`📋 Profile response:`, profile);
-      // The user profile API doesn't include accessLevel, so we'll use default for now
-      // In the future, we might want to add accessLevel to the user profile schema
-      return DEFAULT_ACCESS_LEVEL;
-    } else {
-      console.log(`❌ Profile API response not ok:`, response.status);
-    }
-  } catch (error) {
-    console.warn('Failed to fetch user access level from database:', error);
-  }
-
+  // For now, return default access level since we don't have access level in user profiles yet
   console.log(`🔄 Returning default access level: ${DEFAULT_ACCESS_LEVEL}`);
   return DEFAULT_ACCESS_LEVEL;
 }
