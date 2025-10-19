@@ -22,7 +22,7 @@ export class SocialVerificationService {
     socialAccounts: Omit<SocialAccount, 'id' | 'userId' | 'createdAt' | 'updatedAt'>[]
   ): Promise<SocialVerificationRequest> {
     // Check if Supabase is configured
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       throw new Error('Supabase is not configured. Please check your environment variables.');
     }
 
