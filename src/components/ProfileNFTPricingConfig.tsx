@@ -243,7 +243,7 @@ export default function ProfileNFTPricingConfig({ onClose }: ProfileNFTPricingCo
               <div>
                 <h4 className="font-bold text-blue-400">4 Characters (Premium)</h4>
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Short usernames like "dubie", "anal", "los1"
+                  Short usernames like "anal", "los1", "ape1"
                 </p>
               </div>
               <div className="flex items-center gap-2">

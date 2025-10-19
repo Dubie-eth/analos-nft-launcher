@@ -12,6 +12,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
+// Check if we're in a build environment or missing real environment variables
+const isBuildTime = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
 // Global singleton instance
 let globalSupabaseClient: SupabaseClient | null = null;
 
@@ -42,8 +45,24 @@ export function SupabaseProvider({ children }: SupabaseProviderProps) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // DISABLED: Prevent any Supabase client creation to avoid multiple instances
-    setSupabase(null);
+    // Create singleton client instance
+    if (!globalSupabaseClient) {
+      if (isBuildTime) {
+        // Create mock client during build time
+        globalSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: false },
+          global: { headers: { 'x-build-time': 'true', 'x-provider': 'true' } }
+        });
+      } else {
+        // Create real client for runtime
+        globalSupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: true },
+          global: { headers: { 'x-client-type': 'provider' } }
+        });
+      }
+    }
+    
+    setSupabase(globalSupabaseClient);
     setIsInitialized(true);
   }, []);
 

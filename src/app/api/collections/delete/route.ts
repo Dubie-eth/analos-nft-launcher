@@ -24,13 +24,20 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
     // First, verify the collection belongs to this user
-    const { data: collection, error: fetchError } = await (supabaseAdmin
-      .from('saved_collections') as any)
+    const { data: collection, error: fetchError } = await ((supabaseAdmin as any)
+      .from('saved_collections'))
       .select('id, user_wallet, collection_name')
       .eq('id', collectionId)
       .eq('user_wallet', userWallet)
-      .single() as { data: any; error: any };
+      .single();
 
     if (fetchError) {
       console.error('❌ Error fetching collection:', fetchError);
@@ -52,8 +59,8 @@ export async function DELETE(request: NextRequest) {
     // In the future, you might want to check for deployed status
     
     // Delete the collection
-    const { error: deleteError } = await (supabaseAdmin
-      .from('saved_collections') as any)
+    const { error: deleteError } = await ((supabaseAdmin as any)
+      .from('saved_collections'))
       .delete()
       .eq('id', collectionId)
       .eq('user_wallet', userWallet);

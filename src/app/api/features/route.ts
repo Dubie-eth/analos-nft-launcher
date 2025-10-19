@@ -31,8 +31,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const { data: features, error } = await (supabaseAdmin
-      .from('feature_management') as any)
+    if (!supabaseAdmin) {
+      return NextResponse.json({
+        features: [],
+        _warning: 'Database not available'
+      });
+    }
+
+    const { data: features, error } = await ((supabaseAdmin as any)
+      .from('feature_management'))
       .select('*')
       .order('feature_name');
 
@@ -82,8 +89,15 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await (supabaseAdmin
-      .from('feature_management') as any)
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
+    const { data, error } = await ((supabaseAdmin as any)
+      .from('feature_management'))
       .update(updateData)
       .eq('id', featureId)
       .select()

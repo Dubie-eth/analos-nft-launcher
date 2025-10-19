@@ -14,9 +14,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
     // Update rewards to claimed status
-    const { data, error } = await (supabaseAdmin
-      .from('creator_rewards') as any)
+    const { data, error } = await ((supabaseAdmin as any)
+      .from('creator_rewards'))
       .update({
         status: 'claimed',
         claim_tx_signature: txSignature || null,
@@ -25,7 +32,7 @@ export async function POST(request: NextRequest) {
       .in('id', rewardIds)
       .eq('user_wallet', userWallet)
       .eq('status', 'claimable')
-      .select() as { data: any; error: any };
+      .select();
 
     if (error) {
       console.error('Error claiming rewards:', error);
@@ -73,16 +80,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ rewards: [] });
+    }
+
     // Get claimable rewards for user
-    const { data, error } = await (supabaseAdmin
-      .from('creator_rewards') as any)
+    const { data, error } = await ((supabaseAdmin as any)
+      .from('creator_rewards'))
       .select(`
         *,
         saved_collections!inner(collection_name, collection_symbol)
       `)
       .eq('user_wallet', userWallet)
       .eq('status', 'claimable')
-      .order('created_at', { ascending: false }) as { data: any; error: any };
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching claimable rewards:', error);

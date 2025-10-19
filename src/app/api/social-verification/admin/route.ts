@@ -34,9 +34,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ verifications: [] });
+    }
+
     // Fetch pending verifications
-    const { data: verifications, error } = await (supabaseAdmin
-      .from('social_verifications') as any)
+    const { data: verifications, error } = await ((supabaseAdmin as any)
+      .from('social_verifications'))
       .select('*')
       .eq('verification_status', status)
       .order('created_at', { ascending: false });
@@ -100,9 +104,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
     // Get the verification record
-    const { data: verification, error: fetchError } = await (supabaseAdmin
-      .from('social_verifications') as any)
+    const { data: verification, error: fetchError } = await ((supabaseAdmin as any)
+      .from('social_verifications'))
       .select('*')
       .eq('id', verificationId)
       .single();
@@ -126,8 +137,8 @@ export async function POST(request: NextRequest) {
       updateData.rejected_reason = rejectedReason || 'Rejected by admin';
     }
 
-    const { data: updatedVerification, error: updateError } = await (supabaseAdmin
-      .from('social_verifications') as any)
+    const { data: updatedVerification, error: updateError } = await ((supabaseAdmin as any)
+      .from('social_verifications'))
       .update(updateData)
       .eq('id', verificationId)
       .select()
@@ -167,9 +178,11 @@ async function awardVerificationRewards(walletAddress: string, platform: string)
   try {
     if (!isSupabaseConfigured) return;
 
+    if (!supabaseAdmin) return;
+
     // Award points for social verification
-    const { error } = await (supabaseAdmin
-      .from('user_activities') as any)
+    const { error } = await ((supabaseAdmin as any)
+      .from('user_activities'))
       .insert({
         wallet_address: walletAddress,
         activity_type: 'social_verification',

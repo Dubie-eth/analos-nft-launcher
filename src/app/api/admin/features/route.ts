@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       // Return mock data if database not configured
       return NextResponse.json({
         features: [
@@ -45,8 +45,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const { data: features, error } = await (supabaseAdmin
-      .from('feature_management') as any)
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
+    const { data: features, error } = await ((supabaseAdmin as any)
+      .from('feature_management'))
       .select('*')
       .order('feature_name');
 
@@ -81,12 +88,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
       return NextResponse.json({
         success: true,
         message: 'Features updated (database not configured)',
         _warning: 'Database not configured - changes not persisted'
       });
+    }
+
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
     }
 
     const updatePromises = updates.map((update: any) => {
@@ -96,8 +110,8 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      return (supabaseAdmin
-        .from('feature_management') as any)
+      return ((supabaseAdmin as any)
+        .from('feature_management'))
         .update(updateData)
         .eq('id', update.featureId)
         .select()

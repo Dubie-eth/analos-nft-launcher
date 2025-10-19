@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     console.log('🔄 Loading collections for wallet:', walletAddress || 'all');
 
     // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY || !supabaseAdmin) {
       console.log('❌ Supabase not configured, returning empty collections');
       return NextResponse.json({
         success: true,
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    let query = (supabaseAdmin.from('saved_collections') as any).select('*');
+    let query = ((supabaseAdmin as any).from('saved_collections')).select('*');
     
     // If wallet is specified and not 'all', filter by wallet
     if (walletAddress && walletAddress !== 'all') {

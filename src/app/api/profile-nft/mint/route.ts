@@ -112,10 +112,10 @@ export async function POST(request: NextRequest) {
     const explorerUrl = ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD;
 
     // Store NFT data in database
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && supabaseAdmin) {
       try {
-        const { data, error } = await (supabaseAdmin
-          .from('profile_nfts') as any)
+        const { data, error } = await ((supabaseAdmin as any)
+          .from('profile_nfts'))
           .insert([{
             wallet_address: walletAddress,
             mint_address: mintResult.mintAddress.toString(),
@@ -222,13 +222,13 @@ export async function POST(request: NextRequest) {
  * Check if user already has a profile NFT
  */
 async function checkExistingProfileNFT(walletAddress: string): Promise<boolean> {
-  if (!isSupabaseConfigured) {
+  if (!isSupabaseConfigured || !supabaseAdmin) {
     return false; // If no database, allow minting
   }
 
   try {
-    const { data, error } = await (supabaseAdmin
-      .from('profile_nfts') as any)
+    const { data, error } = await ((supabaseAdmin as any)
+      .from('profile_nfts'))
       .select('id')
       .eq('wallet_address', walletAddress)
       .single();

@@ -20,11 +20,55 @@ let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 // Global flag to prevent multiple initializations
 let isInitializing = false;
 
-// Client for user operations (with RLS) - DISABLED to prevent multiple instances
-export const supabase = null;
+// Function to create user client (with RLS)
+function createSupabaseClient() {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
 
-// Admin client for server-side operations (bypasses RLS) - DISABLED to prevent multiple instances
-export const supabaseAdmin = null;
+  if (isBuildTime) {
+    // Return a mock client during build time
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+      global: { headers: { 'x-build-time': 'true' } }
+    });
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: true },
+    global: { headers: { 'x-client-type': 'user' } }
+  });
+
+  return supabaseInstance;
+}
+
+// Function to create admin client (bypasses RLS)
+function createSupabaseAdminClient() {
+  if (supabaseAdminInstance) {
+    return supabaseAdminInstance;
+  }
+
+  if (isBuildTime || !supabaseServiceKey || supabaseServiceKey === 'placeholder-service-key') {
+    // Return a mock client during build time or when service key is not available
+    return createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+      global: { headers: { 'x-build-time': 'true', 'x-admin-mock': 'true' } }
+    });
+  }
+
+  supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false },
+    global: { headers: { 'x-client-type': 'admin' } }
+  });
+
+  return supabaseAdminInstance;
+}
+
+// Client for user operations (with RLS)
+export const supabase = createSupabaseClient();
+
+// Admin client for server-side operations (bypasses RLS)
+export const supabaseAdmin = createSupabaseAdminClient();
 
 // Export a flag to check if we have real environment variables
 export const isSupabaseConfigured = !isBuildTime;

@@ -28,9 +28,13 @@ export async function GET(
       });
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ hasProfileNFT: false });
+    }
+
     // Check if user has a profile NFT
-    const { data: nft, error } = await (supabaseAdmin
-      .from('profile_nfts') as any)
+    const { data: nft, error } = await ((supabaseAdmin as any)
+      .from('profile_nfts'))
       .select('*')
       .eq('wallet_address', walletAddress)
       .single();

@@ -35,8 +35,28 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({
+        totalMinted: 0,
+        variants: {
+          normal: 0,
+          hacker: 0,
+          neo: 0,
+          oracleChosen: 0
+        },
+        revenue: 0,
+        uniqueHolders: 0,
+        last24hActivity: 0,
+        collectionConfig: {
+          minUsernameLength: 4,
+          collectionName: 'Analos Profile Cards',
+          collectionDescription: 'Master Open Edition Collection'
+        }
+      });
+    }
+
     // Fetch profile NFTs from database
-    const { data: nfts, error } = await supabaseAdmin
+    const { data: nfts, error } = await (supabaseAdmin as any)
       .from('profile_nfts')
       .select('*');
 

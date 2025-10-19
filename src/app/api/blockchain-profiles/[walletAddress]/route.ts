@@ -30,9 +30,9 @@ export async function GET(
 
     // For now, we'll fetch from database as a fallback
     // In a full implementation, this would fetch from the blockchain
-    if (isSupabaseConfigured) {
-      const { data: profile, error } = await (supabaseAdmin
-        .from('user_profiles') as any)
+    if (isSupabaseConfigured && supabaseAdmin) {
+      const { data: profile, error } = await ((supabaseAdmin as any)
+        .from('user_profiles'))
         .select('*')
         .eq('wallet_address', walletAddress)
         .single();
@@ -137,7 +137,7 @@ export async function POST(
 
     // For now, we'll store in database as a fallback
     // In a full implementation, this would store on the blockchain
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && supabaseAdmin) {
       const profileData = {
         wallet_address: walletAddress,
         username: username.toLowerCase(),
@@ -156,21 +156,22 @@ export async function POST(
       };
 
       // Check if profile exists
-      const { data: existingProfile } = await (supabaseAdmin
-        .from('user_profiles') as any)
-        .select('id')
-        .eq('wallet_address', walletAddress)
-        .single();
-
-      let result;
-      if (existingProfile) {
-        // Update existing profile
-        const { data, error } = await (supabaseAdmin
-          .from('user_profiles') as any)
-          .update(profileData)
+      if (supabaseAdmin) {
+        const { data: existingProfile } = await ((supabaseAdmin as any)
+          .from('user_profiles'))
+          .select('id')
           .eq('wallet_address', walletAddress)
-          .select()
           .single();
+
+        let result;
+        if (existingProfile) {
+          // Update existing profile
+          const { data, error } = await ((supabaseAdmin as any)
+            .from('user_profiles'))
+            .update(profileData)
+            .eq('wallet_address', walletAddress)
+            .select()
+            .single();
 
         if (error) {
           console.error('Error updating profile:', error);
@@ -179,56 +180,55 @@ export async function POST(
             { status: 500 }
           );
         }
-        result = data;
-      } else {
-        // Create new profile
-        const { data, error } = await (supabaseAdmin
-          .from('user_profiles') as any)
-          .insert([{
-            ...profileData,
-            created_at: new Date().toISOString()
-          }])
-          .select()
-          .single();
+          result = data;
+        } else {
+          // Create new profile
+          const { data, error } = await ((supabaseAdmin as any)
+            .from('user_profiles'))
+            .insert([{
+              ...profileData,
+              created_at: new Date().toISOString()
+            }])
+            .select()
+            .single();
 
-        if (error) {
-          console.error('Error creating profile:', error);
-          return NextResponse.json(
-            { error: 'Failed to create profile' },
-            { status: 500 }
-          );
+          if (error) {
+            console.error('Error creating profile:', error);
+            return NextResponse.json(
+              { error: 'Failed to create profile' },
+              { status: 500 }
+            );
+          }
+          result = data;
+          // Convert to blockchain profile format
+          const blockchainProfile: BlockchainProfile = {
+            wallet: new PublicKey(result.wallet_address),
+            username: result.username,
+            displayName: result.display_name,
+            bio: result.bio,
+            avatarUrl: result.avatar_url,
+            bannerUrl: result.banner_url,
+            twitterHandle: result.twitter_handle,
+            twitterVerified: result.twitter_verified,
+            website: result.website,
+            discord: result.discord,
+            telegram: result.telegram,
+            github: result.github,
+            createdAt: new Date(result.created_at).getTime(),
+            updatedAt: new Date(result.updated_at).getTime(),
+            isAnonymous: result.is_anonymous
+          };
+
+          return NextResponse.json({
+            success: true,
+            message: 'Profile saved successfully',
+            profile: blockchainProfile
+          });
         }
-        result = data;
       }
-
-      // Convert to blockchain profile format
-      const blockchainProfile: BlockchainProfile = {
-        wallet: new PublicKey(result.wallet_address),
-        username: result.username,
-        displayName: result.display_name,
-        bio: result.bio,
-        avatarUrl: result.avatar_url,
-        bannerUrl: result.banner_url,
-        twitterHandle: result.twitter_handle,
-        twitterVerified: result.twitter_verified,
-        website: result.website,
-        discord: result.discord,
-        telegram: result.telegram,
-        github: result.github,
-        createdAt: new Date(result.created_at).getTime(),
-        updatedAt: new Date(result.updated_at).getTime(),
-        isAnonymous: result.is_anonymous
-      };
-
+    } else {
+      // If database not configured, return mock success
       return NextResponse.json({
-        success: true,
-        message: 'Profile saved successfully',
-        profile: blockchainProfile
-      });
-    }
-
-    // If database not configured, return mock success
-    return NextResponse.json({
       success: true,
       message: 'Profile saved (database not configured)',
       profile: {
@@ -249,6 +249,7 @@ export async function POST(
         isAnonymous
       }
     });
+    }
 
   } catch (error) {
     console.error('Error in POST /api/blockchain-profiles/[walletAddress]:', error);
@@ -277,9 +278,9 @@ export async function PUT(
 
     const updates = body.updates || {};
     
-    if (isSupabaseConfigured) {
-      const { data, error } = await (supabaseAdmin
-        .from('user_profiles') as any)
+    if (isSupabaseConfigured && supabaseAdmin) {
+      const { data, error } = await ((supabaseAdmin as any)
+        .from('user_profiles'))
         .update({
           ...updates,
           updated_at: new Date().toISOString()

@@ -67,9 +67,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if verification already exists
-    if (isSupabaseConfigured) {
-      const { data: existingVerification } = await (supabaseAdmin
-        .from('social_verifications') as any)
+    if (isSupabaseConfigured && supabaseAdmin) {
+      const { data: existingVerification } = await ((supabaseAdmin as any)
+        .from('social_verifications'))
         .select('*')
         .eq('wallet_address', walletAddress)
         .eq('platform', 'twitter')
@@ -97,9 +97,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Save verification to database
-    if (isSupabaseConfigured) {
-      const { data: verification, error } = await (supabaseAdmin
-        .from('social_verifications') as any)
+    if (isSupabaseConfigured && supabaseAdmin) {
+      const { data: verification, error } = await ((supabaseAdmin as any)
+        .from('social_verifications'))
         .insert({
           wallet_address: walletAddress,
           platform: 'twitter',
@@ -190,9 +190,11 @@ async function awardVerificationRewards(walletAddress: string, platform: string)
   try {
     if (!isSupabaseConfigured) return;
 
+    if (!supabaseAdmin) return;
+
     // Award points for social verification
-    const { error } = await (supabaseAdmin
-      .from('user_activities') as any)
+    const { error } = await ((supabaseAdmin as any)
+      .from('user_activities'))
       .insert({
         wallet_address: walletAddress,
         activity_type: 'social_verification',
@@ -232,8 +234,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const { data: verifications, error } = await (supabaseAdmin
-      .from('social_verifications') as any)
+    if (!supabaseAdmin) {
+      return NextResponse.json({ verifications: [] });
+    }
+
+    const { data: verifications, error } = await ((supabaseAdmin as any)
+      .from('social_verifications'))
       .select('*')
       .eq('wallet_address', walletAddress)
       .eq('platform', 'twitter')

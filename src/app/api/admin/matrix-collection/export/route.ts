@@ -26,8 +26,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ nfts: [] });
+    }
+
     // Fetch all profile NFTs
-    const { data: nfts, error } = await supabaseAdmin
+    const { data: nfts, error } = await (supabaseAdmin as any)
       .from('profile_nfts')
       .select('*')
       .order('created_at', { ascending: false });

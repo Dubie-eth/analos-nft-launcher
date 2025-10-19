@@ -39,12 +39,19 @@ export async function GET(
       });
     }
     
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
     // Get profile from user_profiles table
-    const { data: profile, error } = await supabaseAdmin
+    const { data: profile, error } = await (supabaseAdmin as any)
       .from('user_profiles')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single() as { data: any; error: any };
+      .single();
     
     if (error || !profile) {
       console.log('No profile found or error:', error);
@@ -147,17 +154,19 @@ export async function PUT(
       const normalizedUsername = updates.username.toLowerCase().trim();
       
       // Check if username is already taken by another user
-      const { data: existingUser } = await (supabaseAdmin
-        .from('user_profiles') as any)
-        .select('username, wallet_address')
-        .ilike('username', normalizedUsername)
-        .single();
+      if (supabaseAdmin) {
+        const { data: existingUser } = await ((supabaseAdmin as any)
+          .from('user_profiles'))
+          .select('username, wallet_address')
+          .ilike('username', normalizedUsername)
+          .single();
 
-      if (existingUser && existingUser.wallet_address !== walletAddress) {
-        return NextResponse.json(
-          { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
-          { status: 409 }
-        );
+        if (existingUser && existingUser.wallet_address !== walletAddress) {
+          return NextResponse.json(
+            { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
+            { status: 409 }
+          );
+        }
       }
 
       // Normalize the username before saving
@@ -186,14 +195,14 @@ export async function PUT(
     };
     
     // Upsert user profile
-    const { data: updatedProfile, error: upsertError } = await (supabaseAdmin
-      .from('user_profiles') as any)
+    const { data: updatedProfile, error: upsertError } = await ((supabaseAdmin as any)
+      .from('user_profiles'))
       .upsert(userData, { 
         onConflict: 'wallet_address',
         ignoreDuplicates: false 
       })
       .select()
-      .single() as { data: any; error: any };
+      .single();
     
     if (upsertError) {
       console.error('Error upserting user profile:', upsertError);
@@ -209,19 +218,23 @@ export async function PUT(
       
       // Insert into referrals table for leaderboard tracking
       try {
-        // TypeScript fix: apply type assertion to bypass type inference issues
-        await (supabaseAdmin.from('referrals') as any).insert({
-          referrer_wallet: walletAddress,
-          referral_code: referralCode,
-          points_earned: 0,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year expiry
-          ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
-          user_agent: request.headers.get('user-agent') || null
-        });
-        
-        console.log(`✅ Referral tracking created for ${referralCode}`);
+        if (supabaseAdmin) {
+          // TypeScript fix: apply type assertion to bypass type inference issues
+          await (supabaseAdmin.from('referrals') as any).insert({
+            referrer_wallet: walletAddress,
+            referral_code: referralCode,
+            points_earned: 0,
+            status: 'pending',
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year expiry
+            ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
+            user_agent: request.headers.get('user-agent') || null
+          });
+          
+          console.log(`✅ Referral tracking created for ${referralCode}`);
+        } else {
+          console.log(`⚠️ Supabase not available - referral tracking skipped for ${referralCode}`);
+        }
       } catch (referralError) {
         console.error('⚠️ Failed to create referral tracking:', referralError);
         // Don't fail the profile update if referral tracking fails

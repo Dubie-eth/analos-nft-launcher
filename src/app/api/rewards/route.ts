@@ -13,15 +13,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ rewards: [], summary: { total: 0, claimable: 0, claimed: 0 } });
+    }
+
     // Get user's rewards
-    const { data: rewards, error: rewardsError } = await (supabaseAdmin
-      .from('creator_rewards') as any)
+    const { data: rewards, error: rewardsError } = await ((supabaseAdmin as any)
+      .from('creator_rewards'))
       .select(`
         *,
         saved_collections!inner(collection_name, collection_symbol)
       `)
       .eq('user_wallet', userWallet)
-      .order('created_at', { ascending: false }) as { data: any; error: any };
+      .order('created_at', { ascending: false });
 
     if (rewardsError) {
       console.error('Error fetching rewards:', rewardsError);
@@ -32,8 +36,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total rewards summary
-    const { data: summary, error: summaryError } = await (supabaseAdmin
-      .rpc as any)('get_user_total_rewards', { user_wallet_param: userWallet }) as { data: any; error: any };
+    const { data: summary, error: summaryError } = await ((supabaseAdmin as any)
+      .rpc)('get_user_total_rewards', { user_wallet_param: userWallet });
 
     if (summaryError) {
       console.error('Error fetching rewards summary:', summaryError);
@@ -71,9 +75,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
+      );
+    }
+
     // Create new reward
-    const { data, error } = await (supabaseAdmin
-      .from('creator_rewards') as any)
+    const { data, error } = await ((supabaseAdmin as any)
+      .from('creator_rewards'))
       .insert({
         user_wallet: userWallet,
         collection_id: collectionId || null,
