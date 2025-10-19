@@ -27,10 +27,16 @@ export const supabase = (() => {
           persistSession: true,
           detectSessionInUrl: true,
           storage: window.localStorage,
-          storageKey: 'analos-auth'
+          storageKey: 'analos-auth',
+          flowType: 'pkce'
         },
         db: {
           schema: 'public'
+        },
+        global: {
+          headers: {
+            'X-Client-Info': 'analos-nft-platform'
+          }
         }
       } as any);
     } catch (error) {

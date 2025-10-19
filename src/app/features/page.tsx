@@ -206,12 +206,23 @@ export default function FeaturesPage() {
   useEffect(() => {
     const fetchFeatures = async () => {
       try {
-        const response = await fetch('/api/features');
+        const response = await fetch('/api/features', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        if (data.features && data.features.length > 0) {
+        if (data.features && Array.isArray(data.features) && data.features.length > 0) {
           setFeatures(data.features);
         } else {
+          console.warn('No features returned from API, using fallback data');
           setFeatures(fallbackFeatures);
         }
       } catch (error) {
@@ -222,16 +233,20 @@ export default function FeaturesPage() {
       }
     };
 
-    fetchFeatures();
+    // Only fetch if mounted
+    if (mounted) {
+      fetchFeatures();
 
-    // Refresh features periodically to stay in sync with admin changes
-    const interval = setInterval(fetchFeatures, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
+      // Refresh features periodically to stay in sync with admin changes
+      const interval = setInterval(fetchFeatures, 30000); // Refresh every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [mounted]);
 
   // Filter features based on completion and access level
   const getFilteredFeatures = () => {
-    return features.filter(feature => feature.is_visible);
+    const availableFeatures = features.length > 0 ? features : fallbackFeatures;
+    return availableFeatures.filter(feature => feature.is_visible);
   };
 
   const filteredFeatures = getFilteredFeatures();
