@@ -676,7 +676,7 @@ export default function CompleteProfileManager({
                 <ProfileNFTCreator
                   profileData={profile ? {
                     username: profile.username,
-                    displayName: profile.displayName || profile.username,
+                    displayName: profile.username, // Use username as display name
                     bio: profile.bio,
                     avatarUrl: profile.profilePictureUrl,
                     bannerUrl: profile.bannerImageUrl,
