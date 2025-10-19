@@ -47,6 +47,14 @@ export function middleware(request: NextRequest) {
   // Get user wallet from cookies (set by client after wallet connection)
   const userWallet = request.cookies.get('connected-wallet')?.value || null;
   
+  // Check if user is admin wallet - admins bypass all restrictions
+  const isAdminWallet = userWallet && ADMIN_WALLETS.includes(userWallet);
+  
+  // Admin wallets always have full access - skip all other checks
+  if (isAdminWallet) {
+    return NextResponse.next();
+  }
+  
   // Check if page requires wallet connection
   if (pageConfig.requiresWallet && !userWallet) {
     const signupUrl = new URL('/beta-signup', request.url);
@@ -68,9 +76,6 @@ export function middleware(request: NextRequest) {
   
   // Check if user has access to the requested page
   // Note: hasPageAccess is async, but middleware can't be async, so we do a synchronous check
-  
-  // Admin wallets always have full access
-  const isAdminWallet = userWallet && ADMIN_WALLETS.includes(userWallet);
   
   // Check if page is locked (from static config - database check will be done client-side)
   const isPageLocked = pageConfig?.isLocked;

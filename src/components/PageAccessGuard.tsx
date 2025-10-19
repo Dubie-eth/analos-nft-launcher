@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { pageAccessService } from '@/lib/database/page-access-service';
-import { PAGE_ACCESS } from '@/config/access-control';
+import { PAGE_ACCESS, ADMIN_WALLETS } from '@/config/access-control';
 
 interface PageAccessGuardProps {
   children: React.ReactNode;
@@ -60,6 +60,16 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
           return;
         }
 
+        // Check if user is admin wallet - admins bypass ALL restrictions (including database locks)
+        const isAdminWallet = publicKey && ADMIN_WALLETS.includes(publicKey.toString());
+        console.log(`🔍 Admin check: publicKey=${publicKey?.toString()}, isAdmin=${isAdminWallet}, ADMIN_WALLETS=${JSON.stringify(ADMIN_WALLETS)}`);
+        if (isAdminWallet) {
+          console.log(`🔓 Admin wallet detected (${publicKey.toString()}), granting access to ${pathname}`);
+          setHasAccess(true);
+          setIsChecking(false);
+          return;
+        }
+
         // Check if page requires wallet connection
         if (staticPageConfig.requiresWallet && !connected) {
           console.log(`🔒 Page ${pathname} requires wallet connection`);
@@ -67,7 +77,7 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
           return;
         }
 
-        // Get page configuration from database for additional checks
+        // Get page configuration from database for additional checks (skip for admin wallets)
         try {
           const pageConfig = await pageAccessService.getPageAccessConfig(pathname);
           
