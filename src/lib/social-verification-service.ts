@@ -228,6 +228,10 @@ export class SocialVerificationService {
    * Check verification eligibility for a wallet
    */
   async checkVerificationEligibility(walletAddress: string): Promise<VerificationEligibility> {
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      throw new Error('Supabase is not configured. Please check your environment variables.');
+    }
+    
     try {
       const { data, error } = await (supabaseAdmin.rpc as any)('check_verification_eligibility', { wallet_addr: walletAddress });
 
