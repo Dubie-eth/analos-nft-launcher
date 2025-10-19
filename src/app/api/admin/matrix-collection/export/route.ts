@@ -6,6 +6,18 @@ import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
  * Exports all NFT data for analysis
  */
 
+interface ProfileNFT {
+  username: string;
+  display_name: string;
+  wallet_address: string;
+  twitter_verified: boolean;
+  mint_price: number;
+  mint_signature: string;
+  explorer_url: string;
+  created_at: string;
+  nft_metadata: any;
+}
+
 export async function GET(request: NextRequest) {
   try {
     if (!isSupabaseConfigured) {
@@ -26,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format data for export
-    const exportData = nfts?.map(nft => {
+    const exportData = (nfts as ProfileNFT[])?.map(nft => {
       const metadata = typeof nft.nft_metadata === 'string' 
         ? JSON.parse(nft.nft_metadata) 
         : nft.nft_metadata;

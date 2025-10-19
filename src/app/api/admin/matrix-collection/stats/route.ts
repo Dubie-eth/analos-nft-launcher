@@ -6,6 +6,12 @@ import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
  * Returns statistics about the Matrix NFT collection
  */
 
+interface ProfileNFT {
+  wallet_address: string;
+  created_at: string;
+  nft_metadata: any;
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Check admin authorization (you can add proper auth here)
@@ -55,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate stats
     const totalMinted = nfts?.length || 0;
-    const uniqueHolders = new Set(nfts?.map(nft => nft.wallet_address) || []).size;
+    const uniqueHolders = new Set((nfts as ProfileNFT[])?.map(nft => nft.wallet_address) || []).size;
     
     // Count variants
     let normalMints = 0;
@@ -63,7 +69,7 @@ export async function GET(request: NextRequest) {
     let neoVariants = 0;
     let oracleChosen = 0;
 
-    nfts?.forEach(nft => {
+    (nfts as ProfileNFT[])?.forEach(nft => {
       const metadata = typeof nft.nft_metadata === 'string' 
         ? JSON.parse(nft.nft_metadata) 
         : nft.nft_metadata;
@@ -80,7 +86,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate last 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const last24Hours = nfts?.filter(nft => nft.created_at > oneDayAgo).length || 0;
+    const last24Hours = (nfts as ProfileNFT[])?.filter(nft => nft.created_at > oneDayAgo).length || 0;
 
     // Calculate revenue (4.20 LOS per mint)
     const totalRevenue = totalMinted * 4.20;
