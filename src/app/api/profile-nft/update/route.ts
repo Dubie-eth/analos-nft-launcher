@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PublicKey, Connection } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { AnalosNFTMintingService } from '@/lib/analos-nft-minting-service';
-import { ANALOS_RPC_URL } from '@/config/analos-programs';
 
 /**
  * PROFILE NFT UPDATE API
@@ -27,9 +26,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize connection and services
-    const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
-    const nftService = new AnalosNFTMintingService(connection);
+    // Initialize services
+    const nftService = new AnalosNFTMintingService();
 
     // For now, we'll simulate the update process since we need the actual blockchain integration
     // In a real implementation, this would:
