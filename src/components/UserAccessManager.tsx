@@ -6,6 +6,7 @@ import {
   PublicKey, 
   LAMPORTS_PER_SOL
 } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { ANALOS_RPC_URL } from '../config/analos-programs';
 import { PAGE_ACCESS, ACCESS_LEVELS, setUserAccessLevel, getUserAccessLevel } from '@/config/access-control';
 import { pageAccessService, PageAccessConfig } from '@/lib/database/page-access-service';
@@ -34,6 +35,7 @@ interface AccessRule {
 }
 
 const UserAccessManager: React.FC = () => {
+  const { publicKey } = useWallet();
   const { theme } = useTheme();
   const [connection] = useState(() => new Connection(ANALOS_RPC_URL, 'confirmed'));
   const [loading, setLoading] = useState(false);

@@ -641,11 +641,11 @@ export default function CompleteProfileManager({
                       bannerImageUrl: blockchainProfile.bannerUrl,
                       socials: {
                         ...profile.socials,
-                        twitter: blockchainProfile.twitterHandle,
-                        telegram: blockchainProfile.telegram,
-                        discord: blockchainProfile.discord,
-                        website: blockchainProfile.website,
-                        github: blockchainProfile.github
+                        twitter: blockchainProfile.twitterHandle || '',
+                        telegram: blockchainProfile.telegram || '',
+                        discord: blockchainProfile.discord || '',
+                        website: blockchainProfile.website || '',
+                        github: blockchainProfile.github || ''
                       }
                     });
                   }

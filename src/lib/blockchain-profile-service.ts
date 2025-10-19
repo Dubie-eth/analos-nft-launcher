@@ -100,7 +100,7 @@ export class BlockchainProfileService {
         // Username is taken, try to get the owner
         try {
           const profileData = await this.getProfileByUsername(normalized);
-          return { available: false, takenBy: profileData.wallet.toString() };
+          return { available: false, takenBy: profileData?.wallet.toString() || 'Unknown' };
         } catch {
           return { available: false, takenBy: 'Unknown' };
         }

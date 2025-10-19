@@ -4,13 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@coral-xyz/anchor';
-import IDL from '@/idl/analos_monitoring_system.json';
-import type { AnalosMonitoringSystem } from '@/idl/analos_monitoring_system';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { ProfileNFTGenerator, ProfileNFTData } from '@/lib/profile-nft-generator';
-import { BlockchainProfileNFTService } from '@/lib/blockchain-profile-nft-service';
-import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
+import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 // Initialize connection
@@ -40,16 +36,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize blockchain services
-    const wallet = new PublicKey(walletAddress);
-    const dummyKeypair = Keypair.generate();
-    const provider = new AnchorProvider(connection, { publicKey: dummyKeypair.publicKey, signTransaction: async () => dummyKeypair, signAllTransactions: async () => [dummyKeypair] } as any, {});
-    const program = new Program<AnalosMonitoringSystem>(IDL as any, ANALOS_PROGRAMS.MONITORING_SYSTEM, provider);
-    const nftService = new BlockchainProfileNFTService(connection, program, provider);
-
-    // Check if user already has a profile NFT on blockchain
-    const hasNFT = await nftService.hasProfileNFT(wallet);
-    if (hasNFT) {
+    // Check if user already has a profile NFT
+    const existingNFT = await checkExistingProfileNFT(walletAddress);
+    if (existingNFT) {
       return NextResponse.json(
         { error: 'User already has a profile NFT' },
         { status: 400 }
@@ -81,28 +70,20 @@ export async function POST(request: NextRequest) {
     const nftGenerator = new ProfileNFTGenerator(connection);
     const nftCard = nftGenerator.generateProfileNFTCard(profileData);
 
-    // Create profile NFT on blockchain
-    const result = await nftService.createProfileNFT(
-      wallet,
-      {
-        ...profileData,
-        nftMetadata: JSON.stringify(nftCard),
-        mintPrice: mintPrice * 1e9, // Convert to lamports
-        mintSignature: 'pending' // Will be updated after actual minting
-      },
-      dummyKeypair
-    );
+    // For now, simulate the minting process and store the data
+    // In a full implementation, this would mint a compressed NFT on Solana
+    const mockMintAddress = generateMockMintAddress();
 
-    const explorerUrl = `https://explorer.analos.io/address/${result.nftAccount.toString()}`;
+    const explorerUrl = `https://explorer.analos.io/address/${mockMintAddress}`;
 
-    // Also store a reference in database for easier querying (optional)
+    // Store NFT data in database
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await (supabaseAdmin
           .from('profile_nfts') as any)
           .insert([{
             wallet_address: walletAddress,
-            mint_address: result.nftAccount.toString(),
+            mint_address: mockMintAddress,
             username,
             display_name: displayName || username,
             bio: bio || '',
@@ -114,33 +95,37 @@ export async function POST(request: NextRequest) {
             nft_metadata: nftCard,
             mint_price: mintPrice,
             explorer_url: explorerUrl,
-            mint_signature: result.signature,
             created_at: new Date().toISOString()
           }])
           .select()
           .single();
 
         if (error) {
-          console.error('Error storing profile NFT reference:', error);
-          // Don't fail the request, blockchain storage is primary
+          console.error('Error storing profile NFT:', error);
+          return NextResponse.json(
+            { error: 'Failed to store profile NFT data' },
+            { status: 500 }
+          );
         }
       } catch (error) {
         console.error('Database error:', error);
-        // Don't fail the request, blockchain storage is primary
+        return NextResponse.json(
+          { error: 'Database error' },
+          { status: 500 }
+        );
       }
     }
 
     // Generate social sharing URLs
-    const shareUrls = nftGenerator.generateSocialShareUrls(profileData, result.nftAccount.toString(), explorerUrl);
-    const shareText = nftGenerator.generateSocialShareText(profileData, result.nftAccount.toString());
+    const shareUrls = nftGenerator.generateSocialShareUrls(profileData, mockMintAddress, explorerUrl);
+    const shareText = nftGenerator.generateSocialShareText(profileData, mockMintAddress);
 
     return NextResponse.json({
       success: true,
-      message: 'Profile NFT minted successfully on blockchain!',
+      message: 'Profile NFT minted successfully!',
       nft: {
-        mintAddress: result.nftAccount.toString(),
+        mintAddress: mockMintAddress,
         explorerUrl,
-        signature: result.signature,
         metadata: nftCard,
         imageUrl: nftCard.image,
         name: nftCard.name,

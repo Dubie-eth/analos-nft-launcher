@@ -4,12 +4,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@coral-xyz/anchor';
-import IDL from '@/idl/analos_monitoring_system.json';
-import type { AnalosMonitoringSystem } from '@/idl/analos_monitoring_system';
-import { BlockchainProfileNFTService } from '@/lib/blockchain-profile-nft-service';
-import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function GET(
@@ -26,39 +20,32 @@ export async function GET(
       );
     }
 
-    // Initialize blockchain services
-    const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
-    const wallet = new PublicKey(walletAddress);
-    const dummyKeypair = Keypair.generate();
-    const provider = new AnchorProvider(connection, { publicKey: dummyKeypair.publicKey, signTransaction: async () => dummyKeypair, signAllTransactions: async () => [dummyKeypair] } as any, {});
-    const program = new Program<AnalosMonitoringSystem>(IDL as any, ANALOS_PROGRAMS.MONITORING_SYSTEM, provider);
-    const nftService = new BlockchainProfileNFTService(connection, program, provider);
+    if (!isSupabaseConfigured) {
+      return NextResponse.json({
+        hasNFT: false,
+        nft: null,
+        _warning: 'Database not configured - assuming no existing NFT'
+      });
+    }
 
-    // Check if user has a profile NFT on blockchain
-    const nft = await nftService.getProfileNFTByWallet(wallet);
+    // Check if user has a profile NFT
+    const { data: nft, error } = await (supabaseAdmin
+      .from('profile_nfts') as any)
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .single();
 
-    // Also check database for reference (optional)
-    let dbNft = null;
-    if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await (supabaseAdmin
-          .from('profile_nfts') as any)
-          .select('*')
-          .eq('wallet_address', walletAddress)
-          .single();
-
-        if (!error) {
-          dbNft = data;
-        }
-      } catch (error) {
-        console.error('Error checking database reference:', error);
-      }
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error checking profile NFT:', error);
+      return NextResponse.json(
+        { error: 'Failed to check profile NFT' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       hasNFT: !!nft,
-      nft: nft || null,
-      dbReference: dbNft || null
+      nft: nft || null
     });
 
   } catch (error) {

@@ -97,21 +97,9 @@ async function checkUsernameAvailability(username: string): Promise<{ available:
       // Username is taken, try to get the owner
       try {
         // Decode username data to get owner
-        const coder = new (await import('@coral-xyz/anchor')).BorshCoder({
-          accounts: [
-            {
-              name: 'UsernameRecord',
-              type: {
-                kind: 'struct',
-                fields: [
-                  { name: 'username', type: 'string' },
-                  { name: 'owner', type: 'publicKey' },
-                  { name: 'createdAt', type: 'i64' }
-                ]
-              }
-            }
-          ]
-        });
+        const { BorshCoder } = await import('@coral-xyz/anchor');
+        const IDL = await import('@/idl/analos_monitoring_system.json');
+        const coder = new BorshCoder(IDL.default as any);
         const usernameData = coder.accounts.decode('UsernameRecord', accountInfo.data);
         return { available: false, takenBy: new PublicKey(usernameData.owner).toString() };
       } catch {
