@@ -12,14 +12,42 @@ export async function GET() {
     console.log('🔍 Supabase configured:', isSupabaseConfigured);
     console.log('🔍 Supabase admin available:', !!supabaseAdmin);
     
-    // For now, always return mock counter to avoid database issues
-    console.log('⚠️ Using mock counter for testing');
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      console.log('⚠️ Database not configured, returning mock counter');
+      return NextResponse.json({
+        success: true,
+        currentMintNumber: 1,
+        totalMinted: 0,
+        nextMintNumber: 1,
+        message: 'Mock counter - database not configured'
+      });
+    }
+
+    // Get current counter from database
+    const { data: counterData, error: counterError } = await (supabaseAdmin as any)
+      .from('profile_nft_mint_counter')
+      .select('*')
+      .order('last_updated', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (counterError && counterError.code !== 'PGRST116') {
+      console.error('❌ Error fetching mint counter:', counterError);
+      return NextResponse.json(
+        { error: 'Failed to fetch mint counter. Please run database setup first.' },
+        { status: 500 }
+      );
+    }
+
+    const currentMintNumber = counterData?.current_mint_number || 1;
+    const totalMinted = counterData?.total_minted || 0;
+
     return NextResponse.json({
       success: true,
-      currentMintNumber: 1,
-      totalMinted: 0,
-      nextMintNumber: 1,
-      message: 'Mock counter - database integration pending'
+      currentMintNumber: currentMintNumber,
+      totalMinted: totalMinted,
+      nextMintNumber: currentMintNumber,
+      message: 'Counter fetched successfully'
     });
 
     // TODO: Re-enable database integration once tables are created

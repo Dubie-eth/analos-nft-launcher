@@ -171,8 +171,64 @@ export async function POST(request: NextRequest) {
 
     const explorerUrl = ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD;
 
-    // TODO: Re-enable database storage once tables are created
-    console.log('⚠️ Skipping database storage - database integration pending');
+    // Store NFT data in database
+    if (isSupabaseConfigured && supabaseAdmin) {
+      try {
+        console.log('💾 Storing NFT data in database...');
+        
+        const nftData = {
+          wallet_address: walletAddress,
+          mint_address: mintResult.mintAddress.toString(),
+          username: username,
+          display_name: displayName,
+          bio: bio,
+          avatar_url: avatarUrl,
+          banner_url: bannerUrl,
+          referral_code: finalReferralCode,
+          twitter_handle: twitterHandle,
+          twitter_verified: twitterVerified,
+          nft_metadata: mintResult.metadata,
+          mint_price: mintPrice,
+          explorer_url: `${ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD}/tx/${mintResult.signature}`,
+          transaction_signature: mintResult.signature
+        };
+
+        const { data: storedNFT, error: storeError } = await (supabaseAdmin as any)
+          .from('profile_nfts')
+          .insert(nftData)
+          .select('*')
+          .single();
+
+        if (storeError) {
+          console.error('❌ Error storing NFT in database:', storeError);
+          // Don't fail the entire request, just log the error
+        } else {
+          console.log('✅ NFT data stored in database successfully');
+        }
+
+        // Update mint counter
+        const { error: counterError } = await (supabaseAdmin as any)
+          .from('profile_nft_mint_counter')
+          .update({
+            current_mint_number: mintResult.metadata.mintNumber + 1,
+            total_minted: mintResult.metadata.mintNumber,
+            last_updated: new Date().toISOString()
+          })
+          .eq('id', (await (supabaseAdmin as any).from('profile_nft_mint_counter').select('id').limit(1).single()).data?.id);
+
+        if (counterError) {
+          console.error('❌ Error updating mint counter:', counterError);
+        } else {
+          console.log('✅ Mint counter updated successfully');
+        }
+
+      } catch (dbError) {
+        console.error('❌ Database storage error:', dbError);
+        // Don't fail the entire request, just log the error
+      }
+    } else {
+      console.log('⚠️ Database not configured, skipping storage');
+    }
     
     /*
     // Store NFT data in database

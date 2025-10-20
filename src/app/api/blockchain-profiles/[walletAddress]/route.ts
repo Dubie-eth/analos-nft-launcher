@@ -212,61 +212,26 @@ export async function POST(
         updated_at: new Date().toISOString()
       };
 
-      // Check if profile exists
-      console.log('🔍 Checking if profile exists for wallet:', walletAddress);
-      const { data: existingProfile, error: checkError } = await ((supabaseAdmin as any)
+      // Use upsert to handle both create and update in one operation
+      console.log('🔍 Upserting profile for wallet:', walletAddress);
+      const { data: result, error: upsertError } = await ((supabaseAdmin as any)
         .from('user_profiles'))
-        .select('id')
-        .eq('wallet_address', walletAddress)
+        .upsert(profileData, { 
+          onConflict: 'wallet_address',
+          ignoreDuplicates: false 
+        })
+        .select('*')
         .single();
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('❌ Error checking existing profile:', checkError);
+      if (upsertError) {
+        console.error('❌ Error upserting profile:', upsertError);
         return NextResponse.json(
-          { error: 'Failed to check existing profile' },
+          { error: 'Failed to save profile. Please run database setup first.' },
           { status: 500 }
         );
       }
 
-      console.log('🔍 Existing profile found:', !!existingProfile);
-
-      let result;
-      if (existingProfile) {
-        // Update existing profile
-        console.log('🔍 Updating existing profile');
-        const { data, error } = await ((supabaseAdmin as any)
-          .from('user_profiles'))
-          .update(profileData)
-          .eq('wallet_address', walletAddress)
-          .select('*')
-          .single();
-
-        if (error) {
-          console.error('❌ Error updating profile:', error);
-          return NextResponse.json(
-            { error: 'Failed to update profile' },
-            { status: 500 }
-          );
-        }
-        result = data;
-      } else {
-        // Create new profile
-        console.log('🔍 Creating new profile');
-        const { data, error } = await ((supabaseAdmin as any)
-          .from('user_profiles'))
-          .insert(profileData)
-          .select('*')
-          .single();
-
-        if (error) {
-          console.error('❌ Error creating profile:', error);
-          return NextResponse.json(
-            { error: 'Failed to create profile' },
-            { status: 500 }
-          );
-        }
-        result = data;
-      }
+      console.log('✅ Profile upserted successfully');
 
       if (!result) {
         console.error('❌ No profile data returned after save operation');
@@ -298,34 +263,15 @@ export async function POST(
       console.log('✅ Returning success response with profile data');
       return NextResponse.json({
         success: true,
-        message: existingProfile ? 'Profile updated successfully' : 'Profile created successfully',
+        message: 'Profile saved successfully',
         profile: blockchainProfile,
       });
     } else {
-      console.log('⚠️ Supabase not configured or admin client not available. Returning mock response.');
-      // Fallback to mock response if Supabase is not configured
-      const mockProfile = {
-        wallet: new PublicKey(walletAddress),
-        username: username,
-        displayName: displayName,
-        bio: bio,
-        avatarUrl: avatarUrl,
-        bannerUrl: bannerUrl,
-        twitterHandle: twitterHandle,
-        twitterVerified: false,
-        website: website,
-        discord: discord,
-        telegram: telegram,
-        github: github,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        isAnonymous: isAnonymous,
-      };
-      return NextResponse.json({
-        success: true,
-        message: 'Profile saved successfully (mock fallback)',
-        profile: mockProfile,
-      });
+      console.log('⚠️ Supabase not configured or admin client not available.');
+      return NextResponse.json(
+        { error: 'Database not configured. Please contact administrator.' },
+        { status: 500 }
+      );
     }
 
   } catch (error) {

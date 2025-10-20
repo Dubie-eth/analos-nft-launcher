@@ -26,13 +26,43 @@ export async function GET(
     console.log('🔍 Supabase configured:', isSupabaseConfigured);
     console.log('🔍 Supabase admin available:', !!supabaseAdmin);
 
-    // For now, always return mock response to avoid database issues
-    console.log('⚠️ Using mock response for testing');
-    return NextResponse.json({
-      hasNFT: false,
-      nft: null,
-      message: 'Mock response - database integration pending'
-    });
+    if (!isSupabaseConfigured || !supabaseAdmin) {
+      console.log('⚠️ Database not configured, returning mock response');
+      return NextResponse.json({
+        hasNFT: false,
+        nft: null,
+        message: 'Mock response - database not configured'
+      });
+    }
+
+    // Check if user already has a profile NFT
+    const { data: existingNFT, error: nftError } = await (supabaseAdmin as any)
+      .from('profile_nfts')
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    if (nftError && nftError.code !== 'PGRST116') {
+      console.error('❌ Error checking existing NFT:', nftError);
+      return NextResponse.json(
+        { error: 'Failed to check existing NFT. Please run database setup first.' },
+        { status: 500 }
+      );
+    }
+
+    if (existingNFT) {
+      return NextResponse.json({
+        hasNFT: true,
+        nft: existingNFT,
+        message: 'User already has a profile NFT'
+      });
+    } else {
+      return NextResponse.json({
+        hasNFT: false,
+        nft: null,
+        message: 'User does not have a profile NFT yet'
+      });
+    }
 
     // TODO: Re-enable database integration once tables are created
     /*

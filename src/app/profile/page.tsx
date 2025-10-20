@@ -6,6 +6,7 @@ import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import CompleteProfileManager from '@/components/CompleteProfileManager';
 import PublicProfileDisplay from '@/components/PublicProfileDisplay';
+import SimpleProfileEditor from '@/components/SimpleProfileEditor';
 import { getFreshExample } from '@/lib/wallet-examples';
 
 interface UserNFT {
@@ -65,6 +66,7 @@ export default function ProfilePage() {
   const [exampleData, setExampleData] = useState<any>(null);
   const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
   const [isPublicAccess, setIsPublicAccess] = useState(false);
+  const [useSimpleEditor, setUseSimpleEditor] = useState(true);
 
   // Check page access configuration
   useEffect(() => {
@@ -518,10 +520,49 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'edit' && (
-            <CompleteProfileManager
-              userWallet={publicKey?.toString() || ''}
-              className="profile-manager"
-            />
+            <div className="space-y-4">
+              {/* Editor Toggle */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Profile Editor
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Simple</span>
+                  <button
+                    onClick={() => setUseSimpleEditor(!useSimpleEditor)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      useSimpleEditor ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        useSimpleEditor ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Advanced</span>
+                </div>
+              </div>
+
+              {/* Editor Content */}
+              {useSimpleEditor ? (
+                <SimpleProfileEditor
+                  onProfileSaved={(profile) => {
+                    console.log('Profile saved:', profile);
+                    // Refresh the page or update state
+                  }}
+                  onNFTCreated={(nft) => {
+                    console.log('NFT created:', nft);
+                    // Handle NFT creation success
+                  }}
+                />
+              ) : (
+                <CompleteProfileManager
+                  userWallet={publicKey?.toString() || ''}
+                  className="profile-manager"
+                />
+              )}
+            </div>
           )}
         </div>
       </div>

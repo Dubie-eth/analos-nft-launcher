@@ -25,6 +25,26 @@ export async function GET() {
 
     const results: any = {};
 
+    // Test user_profiles table
+    try {
+      const { data, error } = await (supabaseAdmin as any)
+        .from('user_profiles')
+        .select('*')
+        .limit(1);
+      
+      results.user_profiles = {
+        exists: !error || error.code !== 'PGRST116',
+        error: error?.message || null,
+        data: data || null
+      };
+    } catch (error) {
+      results.user_profiles = {
+        exists: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        data: null
+      };
+    }
+
     // Test profile_nft_mint_counter table
     try {
       const { data, error } = await (supabaseAdmin as any)
