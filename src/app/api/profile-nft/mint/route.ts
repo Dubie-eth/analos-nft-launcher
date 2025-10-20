@@ -206,20 +206,29 @@ export async function POST(request: NextRequest) {
           console.log('✅ NFT data stored in database successfully');
         }
 
-        // Update mint counter
-        const { error: counterError } = await (supabaseAdmin as any)
+        // Update mint counter - First get the current counter
+        const { data: counterData } = await (supabaseAdmin as any)
           .from('profile_nft_mint_counter')
-          .update({
-            current_mint_number: mintResult.metadata.mintNumber + 1,
-            total_minted: mintResult.metadata.mintNumber,
-            last_updated: new Date().toISOString()
-          })
-          .eq('id', (await (supabaseAdmin as any).from('profile_nft_mint_counter').select('id').limit(1).single()).data?.id);
+          .select('*')
+          .limit(1)
+          .single();
 
-        if (counterError) {
-          console.error('❌ Error updating mint counter:', counterError);
-        } else {
-          console.log('✅ Mint counter updated successfully');
+        if (counterData) {
+          const nextMintNumber = (counterData.current_mint_number || 0) + 1;
+          const { error: counterError } = await (supabaseAdmin as any)
+            .from('profile_nft_mint_counter')
+            .update({
+              current_mint_number: nextMintNumber,
+              total_minted: nextMintNumber,
+              last_updated: new Date().toISOString()
+            })
+            .eq('id', counterData.id);
+
+          if (counterError) {
+            console.error('❌ Error updating mint counter:', counterError);
+          } else {
+            console.log('✅ Mint counter updated successfully to', nextMintNumber);
+          }
         }
 
       } catch (dbError) {
