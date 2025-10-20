@@ -72,7 +72,7 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
           return;
         }
 
-        // If wallet is connected but publicKey is still undefined, wait a bit for it to load
+        https://vercel.com/dubie-eths-projects/analos_nft_frontend_minimal        // If wallet is connected but publicKey is still undefined, wait a bit for it to load
         // But only retry a limited number of times to prevent infinite loops
         if (connected && !publicKey) {
           if (retryCount < MAX_RETRIES) {
