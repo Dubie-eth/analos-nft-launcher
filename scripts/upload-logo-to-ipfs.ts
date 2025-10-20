@@ -132,7 +132,7 @@ async function createCollectionMetadata(
     symbol: 'LPGEN',
     description: description,
     image: logoUrl,
-    attributes: [],
+    attributes: [] as any[],
     properties: {
       files: [
         {
