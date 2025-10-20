@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, PublicKey, Keypair, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey, Keypair, LAMPORTS_PER_SOL, Transaction, SystemProgram } from '@solana/web3.js';
 import { ProfileNFTGenerator } from '@/lib/profile-nft-generator';
 import { AnalosNFTMintingService, ProfileNFTData } from '@/lib/analos-nft-minting-service';
 import { ANALOS_RPC_URL, ANALOS_EXPLORER_URLS, ANALOS_PROGRAMS } from '@/config/analos-programs';
