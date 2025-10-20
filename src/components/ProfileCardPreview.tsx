@@ -157,29 +157,29 @@ export default function ProfileCardPreview({
           {/* Card Border */}
           <rect x="10" y="10" width="380" height="580" fill="none" stroke={variantStyles.border} strokeWidth="4" rx="15"/>
           
-          {/* Banner Background - Improved sizing */}
+          {/* Banner Background - Reduced height for better fit */}
           {bannerImageUrl ? (
-            <rect x="20" y="20" width="360" height="100" fill="url(#bannerPattern)" rx="10"/>
+            <rect x="20" y="20" width="360" height="80" fill="url(#bannerPattern)" rx="10"/>
           ) : (
-            <rect x="20" y="20" width="360" height="100" fill="rgba(255,255,255,0.1)" rx="10"/>
+            <rect x="20" y="20" width="360" height="80" fill="rgba(255,255,255,0.1)" rx="10"/>
           )}
           
           {/* Header Overlay */}
-          <rect x="20" y="20" width="360" height="100" fill="rgba(0,0,0,0.4)" rx="10"/>
-          <text x="200" y="45" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold">
+          <rect x="20" y="20" width="360" height="80" fill="rgba(0,0,0,0.4)" rx="10"/>
+          <text x="200" y="40" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="14" fontWeight="bold">
             ANALOS PROFILE CARDS
           </text>
-          <text x="200" y="65" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="11">
+          <text x="200" y="55" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="10">
             Master Open Edition Collection
           </text>
-          <text x="200" y="85" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="11">
+          <text x="200" y="70" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="10">
             launchonlos.fun
           </text>
           
-          {/* Avatar Circle - Better positioned and sized */}
-          <circle cx="200" cy="200" r="65" fill={profilePictureUrl ? "url(#avatarPattern)" : "white"} stroke={variantStyles.border} strokeWidth="4"/>
+          {/* Avatar Circle - Smaller size for better fit */}
+          <circle cx="200" cy="180" r="50" fill={profilePictureUrl ? "url(#avatarPattern)" : "white"} stroke={variantStyles.border} strokeWidth="3"/>
           {!profilePictureUrl && (
-            <text x="200" y="210" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="28" fontWeight="bold">
+            <text x="200" y="185" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="24" fontWeight="bold">
               {displayName.charAt(0).toUpperCase()}
             </text>
           )}
@@ -187,44 +187,44 @@ export default function ProfileCardPreview({
           {/* Mint Number */}
           {mintNumber && (
             <>
-              <circle cx="320" cy="160" r="20" fill="rgba(0,0,0,0.7)" stroke="white" strokeWidth="2"/>
-              <text x="320" y="167" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
+              <circle cx="320" cy="140" r="18" fill="rgba(0,0,0,0.7)" stroke="white" strokeWidth="2"/>
+              <text x="320" y="147" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="bold">
                 #{mintNumber}
               </text>
             </>
           )}
           
           {/* Display Name */}
-          <text x="200" y="300" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="22" fontWeight="bold">
+          <text x="200" y="260" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="20" fontWeight="bold">
             {displayName}
           </text>
-          <text x="200" y="325" textAnchor="middle" fill="rgba(255,255,255,0.8)" fontFamily="Arial, sans-serif" fontSize="15">
+          <text x="200" y="285" textAnchor="middle" fill="rgba(255,255,255,0.8)" fontFamily="Arial, sans-serif" fontSize="14">
             @{username}
           </text>
           
           {/* Bio Box */}
-          <rect x="30" y="350" width="340" height="80" fill="rgba(255,255,255,0.1)" rx="10"/>
-          <text x="200" y="380" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="13">
+          <rect x="30" y="310" width="340" height="60" fill="rgba(255,255,255,0.1)" rx="10"/>
+          <text x="200" y="335" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12">
             {bio ? (bio.length > 50 ? bio.substring(0, 47) + '...' : bio) : 'Profile card holder on Analos'}
           </text>
           
           {/* Referral Code Box */}
-          <rect x="30" y="450" width="340" height="60" fill="rgba(255,255,255,0.2)" rx="10"/>
-          <text x="200" y="470" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="14" fontWeight="bold">
+          <rect x="30" y="390" width="340" height="50" fill="rgba(255,255,255,0.2)" rx="10"/>
+          <text x="200" y="405" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
             REFERRAL CODE
           </text>
-          <text x="200" y="490" textAnchor="middle" fill="#fbbf24" fontFamily="Arial, sans-serif" fontSize="18" fontWeight="bold">
+          <text x="200" y="425" textAnchor="middle" fill="#fbbf24" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold">
             {referralCode}
           </text>
           
           {/* Footer */}
-          <text x="200" y="550" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontFamily="Arial, sans-serif" fontSize="10">
+          <text x="200" y="480" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontFamily="Arial, sans-serif" fontSize="10">
             Open Edition • Minted on Analos • launchonlos.fun
           </text>
           
           {/* MF Purrs Hashtag */}
           {mfpurrsBackground && (
-            <text x="200" y="570" textAnchor="middle" fill="#ff6b35" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
+            <text x="200" y="500" textAnchor="middle" fill="#ff6b35" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
               #mfpurr
             </text>
           )}
