@@ -173,13 +173,13 @@ export async function POST(
             .select()
             .single();
 
-        if (error) {
-          console.error('Error updating profile:', error);
-          return NextResponse.json(
-            { error: 'Failed to update profile' },
-            { status: 500 }
-          );
-        }
+          if (error) {
+            console.error('Error updating profile:', error);
+            return NextResponse.json(
+              { error: 'Failed to update profile' },
+              { status: 500 }
+            );
+          }
           result = data;
         } else {
           // Create new profile
@@ -200,31 +200,32 @@ export async function POST(
             );
           }
           result = data;
-          // Convert to blockchain profile format
-          const blockchainProfile: BlockchainProfile = {
-            wallet: new PublicKey(result.wallet_address),
-            username: result.username,
-            displayName: result.display_name,
-            bio: result.bio,
-            avatarUrl: result.avatar_url,
-            bannerUrl: result.banner_url,
-            twitterHandle: result.twitter_handle,
-            twitterVerified: result.twitter_verified,
-            website: result.website,
-            discord: result.discord,
-            telegram: result.telegram,
-            github: result.github,
-            createdAt: new Date(result.created_at).getTime(),
-            updatedAt: new Date(result.updated_at).getTime(),
-            isAnonymous: result.is_anonymous
-          };
-
-          return NextResponse.json({
-            success: true,
-            message: 'Profile saved successfully',
-            profile: blockchainProfile
-          });
         }
+
+        // Convert to blockchain profile format
+        const blockchainProfile: BlockchainProfile = {
+          wallet: new PublicKey(result.wallet_address),
+          username: result.username,
+          displayName: result.display_name,
+          bio: result.bio,
+          avatarUrl: result.avatar_url,
+          bannerUrl: result.banner_url,
+          twitterHandle: result.twitter_handle,
+          twitterVerified: result.twitter_verified,
+          website: result.website,
+          discord: result.discord,
+          telegram: result.telegram,
+          github: result.github,
+          createdAt: new Date(result.created_at).getTime(),
+          updatedAt: new Date(result.updated_at).getTime(),
+          isAnonymous: result.is_anonymous
+        };
+
+        return NextResponse.json({
+          success: true,
+          message: 'Profile saved successfully',
+          profile: blockchainProfile
+        });
       }
     } else {
       // If database not configured, return mock success
