@@ -101,6 +101,30 @@ export default function SimpleProfileEditor({
     }
   };
 
+  // Check if username is available
+  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
+    if (!username.trim()) return false;
+    
+    try {
+      // Check in user_profiles table
+      const profileResponse = await fetch(`/api/blockchain-profiles/${username}`);
+      if (profileResponse.ok) {
+        return false; // Username exists
+      }
+      
+      // Check in profile_nfts table
+      const nftResponse = await fetch(`/api/profile-nft/check/${username}`);
+      if (nftResponse.ok) {
+        return false; // Username exists as NFT
+      }
+      
+      return true; // Username is available
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      return true; // Allow if check fails
+    }
+  };
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError(null);
@@ -154,6 +178,13 @@ export default function SimpleProfileEditor({
 
     if (!formData.username.trim()) {
       setError('Username is required');
+      return;
+    }
+
+    // Check if username is available
+    const isUsernameAvailable = await checkUsernameAvailability(formData.username);
+    if (!isUsernameAvailable) {
+      setError(`Username "${formData.username}" is already taken. Please choose a different username.`);
       return;
     }
 

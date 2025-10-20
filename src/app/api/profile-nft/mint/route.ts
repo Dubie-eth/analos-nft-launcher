@@ -41,6 +41,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if username is already taken
+    if (isSupabaseConfigured && supabaseAdmin) {
+      try {
+        const { data: existingProfile } = await (supabaseAdmin as any)
+          .from('user_profiles')
+          .select('username')
+          .eq('username', username.toLowerCase())
+          .limit(1)
+          .single();
+
+        if (existingProfile) {
+          return NextResponse.json(
+            { error: `Username "${username}" is already taken. Please choose a different username.` },
+            { status: 400 }
+          );
+        }
+
+        // Also check in profile_nfts table for any existing NFTs with this username
+        const { data: existingNFT } = await (supabaseAdmin as any)
+          .from('profile_nfts')
+          .select('username')
+          .eq('username', username.toLowerCase())
+          .limit(1)
+          .single();
+
+        if (existingNFT) {
+          return NextResponse.json(
+            { error: `Username "${username}" is already minted as an NFT. Please choose a different username.` },
+            { status: 400 }
+          );
+        }
+
+        console.log('✅ Username availability check passed:', username);
+      } catch (error) {
+        console.warn('⚠️ Could not check username availability, proceeding anyway:', error);
+      }
+    }
+
     // TODO: Re-enable existing NFT check once database is properly set up
     // const existingNFT = await checkExistingProfileNFT(walletAddress);
     // if (existingNFT) {
