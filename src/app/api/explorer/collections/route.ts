@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
             mintPrice: 4.20,
             token: 'LOS',
             lastActivity: lastActivity,
-            recentActivity: profileNFTs.slice(0, 5).map(nft => ({
+            recentActivity: profileNFTs.slice(0, 5).map((nft: any) => ({
               signature: nft.transaction_signature || 'pending',
               timestamp: nft.created_at,
               type: 'profile_mint',
