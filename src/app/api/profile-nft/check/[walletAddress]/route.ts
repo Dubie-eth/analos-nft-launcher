@@ -11,16 +11,23 @@ export async function GET(
   { params }: { params: Promise<{ walletAddress: string }> }
 ) {
   try {
+    console.log('🔍 GET /api/profile-nft/check/[walletAddress] - Starting request');
     const { walletAddress } = await params;
+    console.log('🔍 Wallet address:', walletAddress);
     
     if (!walletAddress) {
+      console.log('❌ No wallet address provided');
       return NextResponse.json(
         { error: 'Wallet address is required' },
         { status: 400 }
       );
     }
 
+    console.log('🔍 Supabase configured:', isSupabaseConfigured);
+    console.log('🔍 Supabase admin available:', !!supabaseAdmin);
+
     if (!isSupabaseConfigured) {
+      console.log('⚠️ Database not configured, returning mock response');
       return NextResponse.json({
         hasNFT: false,
         nft: null,
@@ -29,6 +36,7 @@ export async function GET(
     }
 
     if (!supabaseAdmin) {
+      console.log('⚠️ Supabase admin not available, returning false');
       return NextResponse.json({ hasProfileNFT: false });
     }
 

@@ -103,10 +103,15 @@ export async function POST(
   { params }: { params: Promise<{ walletAddress: string }> }
 ) {
   try {
+    console.log('🔍 POST /api/blockchain-profiles/[walletAddress] - Starting request');
     const { walletAddress } = await params;
+    console.log('🔍 Wallet address:', walletAddress);
+    
     const body = await request.json();
+    console.log('🔍 Request body:', JSON.stringify(body, null, 2));
     
     if (!walletAddress) {
+      console.log('❌ No wallet address provided');
       return NextResponse.json(
         { error: 'Wallet address is required' },
         { status: 400 }
@@ -137,6 +142,9 @@ export async function POST(
 
     // For now, we'll store in database as a fallback
     // In a full implementation, this would store on the blockchain
+    console.log('🔍 Supabase configured:', isSupabaseConfigured);
+    console.log('🔍 Supabase admin available:', !!supabaseAdmin);
+    
     if (isSupabaseConfigured && supabaseAdmin) {
       const profileData = {
         wallet_address: walletAddress,
@@ -154,17 +162,31 @@ export async function POST(
         is_anonymous: isAnonymous || false,
         updated_at: new Date().toISOString()
       };
+      
+      console.log('🔍 Profile data to save:', JSON.stringify(profileData, null, 2));
 
       // Check if profile exists
-      const { data: existingProfile } = await ((supabaseAdmin as any)
+      console.log('🔍 Checking if profile exists for wallet:', walletAddress);
+      const { data: existingProfile, error: checkError } = await ((supabaseAdmin as any)
         .from('user_profiles'))
         .select('id')
         .eq('wallet_address', walletAddress)
         .single();
 
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ Error checking existing profile:', checkError);
+        return NextResponse.json(
+          { error: 'Failed to check existing profile' },
+          { status: 500 }
+        );
+      }
+
+      console.log('🔍 Existing profile found:', !!existingProfile);
+
       let result;
       if (existingProfile) {
         // Update existing profile
+        console.log('🔍 Updating existing profile');
         const { data, error } = await ((supabaseAdmin as any)
           .from('user_profiles'))
           .update(profileData)
@@ -173,15 +195,17 @@ export async function POST(
           .single();
 
         if (error) {
-          console.error('Error updating profile:', error);
+          console.error('❌ Error updating profile:', error);
           return NextResponse.json(
-            { error: 'Failed to update profile' },
+            { error: 'Failed to update profile', details: error.message },
             { status: 500 }
           );
         }
+        console.log('✅ Profile updated successfully');
         result = data;
       } else {
         // Create new profile
+        console.log('🔍 Creating new profile');
         const { data, error } = await ((supabaseAdmin as any)
           .from('user_profiles'))
           .insert([{
@@ -192,12 +216,13 @@ export async function POST(
           .single();
 
         if (error) {
-          console.error('Error creating profile:', error);
+          console.error('❌ Error creating profile:', error);
           return NextResponse.json(
-            { error: 'Failed to create profile' },
+            { error: 'Failed to create profile', details: error.message },
             { status: 500 }
           );
         }
+        console.log('✅ Profile created successfully');
         result = data;
       }
 
@@ -220,6 +245,7 @@ export async function POST(
         isAnonymous: result.is_anonymous
       };
 
+      console.log('✅ Returning success response');
       return NextResponse.json({
         success: true,
         message: 'Profile saved successfully',
@@ -227,6 +253,7 @@ export async function POST(
       });
     } else {
       // If database not configured, return mock success
+      console.log('⚠️ Database not configured, returning mock success');
       return NextResponse.json({
       success: true,
       message: 'Profile saved (database not configured)',
@@ -251,9 +278,14 @@ export async function POST(
     }
 
   } catch (error) {
-    console.error('Error in POST /api/blockchain-profiles/[walletAddress]:', error);
+    console.error('❌ Error in POST /api/blockchain-profiles/[walletAddress]:', error);
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

@@ -135,13 +135,13 @@ export default function ProfileCardPreview({
               <stop offset="100%" style={{ stopColor: variantStyles.gradient.to, stopOpacity: 1 }} />
             </linearGradient>
             {bannerImageUrl && (
-              <pattern id="bannerPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-                <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid cover" />
-              </pattern>
+        <pattern id="bannerPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
+          <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+        </pattern>
             )}
             {profilePictureUrl && (
               <pattern id="avatarPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-                <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid cover" />
+                <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
               </pattern>
             )}
             {mfpurrsBackground && (

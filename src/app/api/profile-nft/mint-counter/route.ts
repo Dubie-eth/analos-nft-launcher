@@ -8,7 +8,12 @@ import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function GET() {
   try {
+    console.log('🔍 GET /api/profile-nft/mint-counter - Starting request');
+    console.log('🔍 Supabase configured:', isSupabaseConfigured);
+    console.log('🔍 Supabase admin available:', !!supabaseAdmin);
+    
     if (!isSupabaseConfigured || !supabaseAdmin) {
+      console.log('⚠️ Database not configured, returning mock counter');
       // Return mock counter if database not configured
       return NextResponse.json({
         success: true,
