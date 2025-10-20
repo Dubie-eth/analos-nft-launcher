@@ -20,6 +20,22 @@ let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 // Global flag to prevent multiple initializations
 let isInitializing = false;
 
+// Global check to prevent multiple instances across the entire app
+if (typeof window !== 'undefined') {
+  // @ts-ignore
+  if (window.__supabaseClientInstance) {
+    console.warn('⚠️ Supabase client already exists, reusing existing instance');
+    // @ts-ignore
+    supabaseInstance = window.__supabaseClientInstance;
+  }
+  // @ts-ignore
+  if (window.__supabaseAdminInstance) {
+    console.warn('⚠️ Supabase admin client already exists, reusing existing instance');
+    // @ts-ignore
+    supabaseAdminInstance = window.__supabaseAdminInstance;
+  }
+}
+
 // Function to create user client (with RLS)
 function createSupabaseClient() {
   if (supabaseInstance) {
@@ -54,6 +70,12 @@ function createSupabaseClient() {
     global: { headers: { 'x-client-type': 'user' } }
   });
 
+  // Store globally to prevent multiple instances
+  if (typeof window !== 'undefined') {
+    // @ts-ignore
+    window.__supabaseClientInstance = supabaseInstance;
+  }
+
   return supabaseInstance;
 }
 
@@ -65,16 +87,23 @@ function createSupabaseAdminClient() {
 
   if (isBuildTime || !supabaseServiceKey || supabaseServiceKey === 'placeholder-service-key') {
     // Return a mock client during build time or when service key is not available
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    supabaseAdminInstance = createClient(supabaseUrl, supabaseAnonKey, {
       auth: { persistSession: false },
       global: { headers: { 'x-build-time': 'true', 'x-admin-mock': 'true' } }
     });
+    return supabaseAdminInstance;
   }
 
   supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
     global: { headers: { 'x-client-type': 'admin' } }
   });
+
+  // Store globally to prevent multiple instances
+  if (typeof window !== 'undefined') {
+    // @ts-ignore
+    window.__supabaseAdminInstance = supabaseAdminInstance;
+  }
 
   return supabaseAdminInstance;
 }

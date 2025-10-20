@@ -172,6 +172,11 @@ export default function BlockchainProfileManager({
   const handleSocialVerification = async () => {
     if (!publicKey) return;
 
+    if (!formData.twitterHandle) {
+      setError('Please enter your Twitter handle first');
+      return;
+    }
+
     setSocialVerification(prev => ({ ...prev, verificationInProgress: true }));
     
     try {
@@ -192,6 +197,7 @@ export default function BlockchainProfileManager({
             
             // Update blockchain profile with verified Twitter handle
             await updateBlockchainProfileWithVerification(verifiedTwitter);
+            setSuccess('Twitter already verified!');
             return;
           }
         }
@@ -212,27 +218,68 @@ export default function BlockchainProfileManager({
           
           // Update blockchain profile with verified Twitter handle
           await updateBlockchainProfileWithVerification(oracleData.verification);
+          setSuccess('Twitter verified from blockchain!');
           return;
         }
       }
       
-      // If no existing verification, redirect to social verification
-      if (onSocialVerification) {
-        onSocialVerification();
-      } else {
-        // Default behavior - redirect to social verification page
-        window.open('/social-verification', '_blank');
+      // If no existing verification, show inline verification
+      setError('No existing verification found. Please share a tweet with your referral code to verify your Twitter account.');
+      
+      // Generate referral text for the user
+      const referralCode = publicKey.toString().slice(0, 8).toUpperCase();
+      const referralText = `🚀 Join me on Analos NFT Launcher! 
+
+Use my referral code: ${referralCode}
+
+Create your unique NFT collection and launch it on the Analos blockchain! 
+
+#Analos #NFT #Blockchain #Web3
+
+Wallet: ${publicKey.toString()}`;
+
+      // Show the referral text to the user
+      alert(`Please share this text on Twitter, then paste the tweet URL below:\n\n${referralText}`);
+      
+      // For now, we'll show a simple prompt for the tweet URL
+      const tweetUrl = prompt('Please paste the URL of your tweet here:');
+      if (tweetUrl) {
+        await verifyTweetWithUrl(tweetUrl, referralCode);
       }
+      
     } catch (error) {
       console.error('Error checking social verification:', error);
-      // Fallback to redirect
-      if (onSocialVerification) {
-        onSocialVerification();
-      } else {
-        window.open('/social-verification', '_blank');
-      }
+      setError('Error checking verification status. Please try again.');
     } finally {
       setSocialVerification(prev => ({ ...prev, verificationInProgress: false }));
+    }
+  };
+
+  const verifyTweetWithUrl = async (tweetUrl: string, referralCode: string) => {
+    try {
+      const response = await fetch('/api/social-verification/twitter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: publicKey?.toString(),
+          tweetUrl: tweetUrl,
+          referralCode: referralCode
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setSocialVerification(prev => ({ ...prev, twitterVerified: true }));
+        setSuccess('Twitter verification successful! You earned 100 points.');
+      } else {
+        setError(data.error || 'Verification failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error verifying tweet:', error);
+      setError('Error verifying tweet. Please try again.');
     }
   };
 
