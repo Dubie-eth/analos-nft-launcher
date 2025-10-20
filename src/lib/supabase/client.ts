@@ -74,13 +74,14 @@ function createSupabaseClient() {
 
   // Create client with unique storage key to prevent conflicts
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { 
-      persistSession: true,
-      storage: window.localStorage,
-      storageKey: 'analos-supabase-auth-v3',
-      autoRefreshToken: true,
-      detectSessionInUrl: false
-    },
+        auth: {
+          persistSession: true,
+          storage: window.localStorage,
+          storageKey: 'analos-supabase-auth-v4',
+          autoRefreshToken: true,
+          detectSessionInUrl: false,
+          flowType: 'pkce'
+        },
     global: { headers: { 'x-client-type': 'user', 'x-instance-id': Date.now().toString() } }
   });
 
