@@ -697,7 +697,7 @@ Create your unique NFT collection and launch it on the Analos blockchain! 🎨�
 
 Follow @launchonlos for updates! 
 
-#Analos #NFT #Blockchain #Web3 #$LOL 🚀`}
+#ANALOS #NFT $LOS #Web3 $LOL 🚀`}
                 </div>
                 <button
                   onClick={() => {
@@ -709,7 +709,7 @@ Create your unique NFT collection and launch it on the Analos blockchain! 🎨�
 
 Follow @launchonlos for updates! 
 
-#Analos #NFT #Blockchain #Web3 #$LOL 🚀`;
+#ANALOS #NFT $LOS #Web3 $LOL 🚀`;
                     navigator.clipboard.writeText(text);
                     alert('Tweet text copied to clipboard!');
                   }}
