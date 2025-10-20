@@ -3,6 +3,10 @@
   "version": "1.0.3",
   "description": "Minimal frontend for Analos NFT Launcher with clean architecture",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
