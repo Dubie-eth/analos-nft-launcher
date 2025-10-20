@@ -136,7 +136,7 @@ export default function ProfileCardPreview({
             </linearGradient>
             {bannerImageUrl && (
         <pattern id="bannerPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-          <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+          <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
         </pattern>
             )}
             {profilePictureUrl && (
@@ -159,13 +159,13 @@ export default function ProfileCardPreview({
           
           {/* Banner Background - Increased height for better image fit */}
           {bannerImageUrl ? (
-            <rect x="20" y="20" width="360" height="120" fill="url(#bannerPattern)" rx="10"/>
+            <rect x="20" y="20" width="360" height="150" fill="url(#bannerPattern)" rx="10"/>
           ) : (
-            <rect x="20" y="20" width="360" height="120" fill="rgba(255,255,255,0.1)" rx="10"/>
+            <rect x="20" y="20" width="360" height="150" fill="rgba(255,255,255,0.1)" rx="10"/>
           )}
           
           {/* Header Overlay - Semi-transparent to show banner */}
-          <rect x="20" y="20" width="360" height="120" fill="rgba(0,0,0,0.3)" rx="10"/>
+          <rect x="20" y="20" width="360" height="150" fill="rgba(0,0,0,0.3)" rx="10"/>
           <text x="200" y="45" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold">
             ANALOS PROFILE CARDS
           </text>
@@ -177,9 +177,9 @@ export default function ProfileCardPreview({
           </text>
           
           {/* Avatar Circle - Better positioned and sized */}
-          <circle cx="200" cy="200" r="55" fill={profilePictureUrl ? "url(#avatarPattern)" : "white"} stroke={variantStyles.border} strokeWidth="3"/>
+          <circle cx="200" cy="230" r="55" fill={profilePictureUrl ? "url(#avatarPattern)" : "white"} stroke={variantStyles.border} strokeWidth="3"/>
           {!profilePictureUrl && (
-            <text x="200" y="205" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="26" fontWeight="bold">
+            <text x="200" y="235" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="26" fontWeight="bold">
               {displayName.charAt(0).toUpperCase()}
             </text>
           )}
@@ -187,33 +187,33 @@ export default function ProfileCardPreview({
           {/* Mint Number */}
           {mintNumber && (
             <>
-              <circle cx="320" cy="160" r="20" fill="rgba(0,0,0,0.7)" stroke="white" strokeWidth="2"/>
-              <text x="320" y="167" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
+              <circle cx="320" cy="190" r="20" fill="rgba(0,0,0,0.7)" stroke="white" strokeWidth="2"/>
+              <text x="320" y="197" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
                 #{mintNumber}
               </text>
             </>
           )}
           
           {/* Display Name */}
-          <text x="200" y="280" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="22" fontWeight="bold">
+          <text x="200" y="310" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="22" fontWeight="bold">
             {displayName}
           </text>
-          <text x="200" y="305" textAnchor="middle" fill="rgba(255,255,255,0.8)" fontFamily="Arial, sans-serif" fontSize="15">
+          <text x="200" y="335" textAnchor="middle" fill="rgba(255,255,255,0.8)" fontFamily="Arial, sans-serif" fontSize="15">
             @{username}
           </text>
           
           {/* Bio Box */}
-          <rect x="30" y="330" width="340" height="60" fill="rgba(255,255,255,0.1)" rx="10"/>
-          <text x="200" y="355" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12">
+          <rect x="30" y="360" width="340" height="60" fill="rgba(255,255,255,0.1)" rx="10"/>
+          <text x="200" y="385" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12">
             {bio ? (bio.length > 50 ? bio.substring(0, 47) + '...' : bio) : 'Profile card holder on Analos'}
           </text>
           
           {/* Referral Code Box */}
-          <rect x="30" y="410" width="340" height="50" fill="rgba(255,255,255,0.2)" rx="10"/>
-          <text x="200" y="425" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
+          <rect x="30" y="440" width="340" height="50" fill="rgba(255,255,255,0.2)" rx="10"/>
+          <text x="200" y="455" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
             REFERRAL CODE
           </text>
-          <text x="200" y="445" textAnchor="middle" fill="#fbbf24" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold">
+          <text x="200" y="475" textAnchor="middle" fill="#fbbf24" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="bold">
             {referralCode}
           </text>
           
