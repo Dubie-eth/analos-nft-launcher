@@ -1,6 +1,6 @@
 /**
  * SIMPLE PROFILE EDITOR
- * Mobile-first, simplified profile creation and editing
+ * Clean, streamlined profile creation with single "Mint Profile NFT" button
  */
 
 'use client';
@@ -8,23 +8,22 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { CheckCircle, XCircle, Loader2, Upload, Save, Sparkles } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Upload, Image, User, Globe, MessageCircle, Send, Github, Zap } from 'lucide-react';
+import ProfileCardPreview from './ProfileCardPreview';
 
 interface SimpleProfileEditorProps {
   onProfileSaved?: (profile: any) => void;
   onNFTCreated?: (nft: any) => void;
 }
 
-export default function SimpleProfileEditor({ onProfileSaved, onNFTCreated }: SimpleProfileEditorProps) {
+export default function SimpleProfileEditor({ 
+  onProfileSaved, 
+  onNFTCreated 
+}: SimpleProfileEditorProps) {
+  const { publicKey, connected } = useWallet();
   const { theme } = useTheme();
-  const { publicKey } = useWallet();
   
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [minting, setMinting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  
+  // Form state
   const [formData, setFormData] = useState({
     username: '',
     displayName: '',
@@ -35,101 +34,43 @@ export default function SimpleProfileEditor({ onProfileSaved, onNFTCreated }: Si
     website: '',
     discord: '',
     telegram: '',
-    github: ''
+    github: '',
+    isAnonymous: false
   });
 
-  const [usernameValidation, setUsernameValidation] = useState({
-    checking: false,
-    valid: false,
-    available: false,
-    message: ''
-  });
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [mintNumber, setMintNumber] = useState<number | null>(null);
 
-  const USERNAME_RULES = {
-    minLength: 3,
-    maxLength: 20
-  };
-
-  // Load existing profile
+  // Get mint number on component mount
   useEffect(() => {
-    if (publicKey) {
-      loadProfile();
+    if (connected && publicKey) {
+      getMintNumber();
     }
-  }, [publicKey]);
+  }, [connected, publicKey]);
 
-  const loadProfile = async () => {
-    if (!publicKey) return;
-    
-    setLoading(true);
+  const getMintNumber = async () => {
     try {
-      const response = await fetch(`/api/blockchain-profiles/${publicKey.toString()}`);
+      const response = await fetch('/api/profile-nft/mint-counter');
       if (response.ok) {
-        const profile = await response.json();
-        setFormData({
-          username: profile.username || '',
-          displayName: profile.displayName || '',
-          bio: profile.bio || '',
-          avatarUrl: profile.avatarUrl || '',
-          bannerUrl: profile.bannerUrl || '',
-          twitterHandle: profile.twitterHandle || '',
-          website: profile.website || '',
-          discord: profile.discord || '',
-          telegram: profile.telegram || '',
-          github: profile.github || ''
-        });
+        const data = await response.json();
+        setMintNumber(data.nextMintNumber);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error getting mint number:', error);
     }
   };
 
-  const validateUsername = async (username: string) => {
-    if (!username || username.length < USERNAME_RULES.minLength) {
-      setUsernameValidation({
-        checking: false,
-        valid: false,
-        available: false,
-        message: username.length > 0 ? `Username must be at least ${USERNAME_RULES.minLength} characters` : ''
-      });
-      return;
-    }
-
-    setUsernameValidation(prev => ({ ...prev, checking: true }));
-
-    try {
-      const response = await fetch(`/api/blockchain-profiles/validate-username/${username}`);
-      const result = await response.json();
-      
-      setUsernameValidation({
-        checking: false,
-        valid: result.valid,
-        available: result.available,
-        message: result.message
-      });
-    } catch (error) {
-      setUsernameValidation({
-        checking: false,
-        valid: false,
-        available: false,
-        message: 'Error checking username availability'
-      });
-    }
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleUsernameChange = (username: string) => {
-    setFormData(prev => ({ ...prev, username }));
-    
-    // Debounce validation
-    const timeoutId = setTimeout(() => {
-      validateUsername(username);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  };
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -139,7 +80,7 @@ export default function SimpleProfileEditor({ onProfileSaved, onNFTCreated }: Si
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('type', type);
+      formData.append('type', type === 'avatar' ? 'logo' : 'banner');
 
       const response = await fetch('/api/upload-image', {
         method: 'POST',
@@ -149,12 +90,12 @@ export default function SimpleProfileEditor({ onProfileSaved, onNFTCreated }: Si
       const data = await response.json();
 
       if (data.success) {
-        if (type === 'logo') {
+        if (type === 'avatar') {
           setFormData(prev => ({ ...prev, avatarUrl: data.url }));
         } else {
           setFormData(prev => ({ ...prev, bannerUrl: data.url }));
         }
-        setSuccess(`${type === 'logo' ? 'Profile picture' : 'Banner'} uploaded successfully!`);
+        setSuccess(`${type === 'avatar' ? 'Profile picture' : 'Banner'} uploaded successfully!`);
       } else {
         setError(data.error || `Failed to upload ${type}`);
       }
@@ -164,397 +105,417 @@ export default function SimpleProfileEditor({ onProfileSaved, onNFTCreated }: Si
     }
   };
 
-  const handleSaveProfile = async () => {
-    if (!publicKey) return;
-    
-    setSaving(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch(`/api/blockchain-profiles/${publicKey.toString()}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          wallet: publicKey.toString()
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess('Profile saved successfully!');
-        onProfileSaved?.(data.profile);
-      } else {
-        setError(data.error || 'Failed to save profile');
-      }
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      setError('Error saving profile. Please try again.');
-    } finally {
-      setSaving(false);
-    }
+  const generateReferralCode = (username: string) => {
+    return username.toUpperCase();
   };
 
-  const handleMintNFT = async () => {
-    if (!publicKey) return;
-    
-    setMinting(true);
-    setError('');
-    setSuccess('');
+  const mintProfileNFT = async () => {
+    if (!publicKey || !connected) {
+      setError('Please connect your wallet to mint your profile NFT');
+      return;
+    }
+
+    if (!formData.username.trim()) {
+      setError('Username is required');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
     try {
-      const response = await fetch('/api/profile-nft/mint', {
+      console.log('🚀 Starting profile NFT minting...');
+      console.log('👤 Wallet:', publicKey.toString());
+      console.log('📝 Form data:', formData);
+      
+      // First, save the profile to blockchain
+      const profileResponse = await fetch(`/api/blockchain-profiles/${publicKey.toString()}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          walletAddress: publicKey.toString(),
           username: formData.username,
-          displayName: formData.displayName,
+          displayName: formData.displayName || formData.username,
           bio: formData.bio,
           avatarUrl: formData.avatarUrl,
           bannerUrl: formData.bannerUrl,
-          referralCode: formData.username,
+          twitterHandle: formData.twitterHandle,
+          website: formData.website,
+          discord: formData.discord,
+          telegram: formData.telegram,
+          github: formData.github,
+          isAnonymous: formData.isAnonymous
+        })
+      });
+
+      if (!profileResponse.ok) {
+        const errorData = await profileResponse.json();
+        throw new Error(errorData.error || 'Failed to save profile');
+      }
+
+      console.log('✅ Profile saved successfully');
+
+      // Then, mint the NFT
+      const nftResponse = await fetch('/api/profile-nft/mint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: publicKey.toString(),
+          username: formData.username,
+          displayName: formData.displayName || formData.username,
+          bio: formData.bio,
+          avatarUrl: formData.avatarUrl,
+          bannerUrl: formData.bannerUrl,
+          referralCode: generateReferralCode(formData.username),
           twitterHandle: formData.twitterHandle,
           twitterVerified: false,
           website: formData.website,
           discord: formData.discord,
           telegram: formData.telegram,
           github: formData.github,
-          mintPrice: 4.20
+          mintPrice: 4.20,
+          mintNumber: mintNumber
         })
       });
 
-      const data = await response.json();
+      const nftData = await nftResponse.json();
 
-      if (data.success) {
-        setSuccess('Profile NFT minted successfully!');
-        onNFTCreated?.(data.nft);
+      if (nftResponse.ok && nftData.success) {
+        console.log('✅ NFT minted successfully');
+        console.log('📋 NFT Data:', nftData);
+        
+        setSuccess('Profile NFT minted successfully! 🎉');
+        setShowPreview(true);
+        
+        if (onProfileSaved) {
+          onProfileSaved(formData);
+        }
+        
+        if (onNFTCreated) {
+          onNFTCreated(nftData);
+        }
       } else {
-        setError(data.error || 'Failed to mint NFT');
+        throw new Error(nftData.error || 'Failed to mint NFT');
       }
     } catch (error) {
-      console.error('Error minting NFT:', error);
-      setError('Error minting NFT. Please try again.');
+      console.error('Error minting profile NFT:', error);
+      setError(error instanceof Error ? error.message : 'Failed to mint profile NFT. Please try again.');
     } finally {
-      setMinting(false);
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-        <span className="ml-2 text-gray-600">Loading profile...</span>
-      </div>
-    );
-  }
+  const isFormValid = formData.username.trim().length > 0;
 
   return (
-    <div className={`w-full max-w-md mx-auto p-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl`}>
+    <div className={`max-w-4xl mx-auto p-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
       {/* Header */}
-      <div className="mb-6">
-        <h2 className={`text-2xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+      <div className="text-center mb-8">
+        <h2 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
           Create Your Profile
         </h2>
-        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
           Set up your blockchain profile and mint your unique NFT
         </p>
       </div>
 
-      {/* Error/Success Messages */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-300 text-sm">
-          <div className="flex items-center">
-            <XCircle className="w-4 h-4 mr-2" />
-            {error}
-          </div>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Form Section */}
+        <div className="space-y-6">
+          {/* Basic Info */}
+          <div className="space-y-4">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              Basic Information
+            </h3>
+            
+            {/* Username */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Username *
+              </label>
+              <input
+                type="text"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                placeholder="Enter your username"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+            </div>
 
-      {success && (
-        <div className="mb-4 p-3 bg-green-500/20 border border-green-500 rounded-lg text-green-300 text-sm">
-          <div className="flex items-center">
-            <CheckCircle className="w-4 h-4 mr-2" />
-            {success}
-          </div>
-        </div>
-      )}
+            {/* Display Name */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Display Name
+              </label>
+              <input
+                type="text"
+                value={formData.displayName}
+                onChange={(e) => handleInputChange('displayName', e.target.value)}
+                placeholder="Enter your display name"
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+            </div>
 
-      {/* Form */}
-      <div className="space-y-4">
-        {/* Username */}
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Username *
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={formData.username}
-              onChange={(e) => handleUsernameChange(e.target.value)}
-              className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              placeholder="Choose a unique username"
-              maxLength={USERNAME_RULES.maxLength}
-            />
-            {usernameValidation.checking && (
-              <div className="absolute right-2 top-2">
-                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-              </div>
-            )}
-            {!usernameValidation.checking && formData.username && (
-              <div className="absolute right-2 top-2">
-                {usernameValidation.valid && usernameValidation.available ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                ) : (
-                  <XCircle className="w-4 h-4 text-red-500" />
+            {/* Bio */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Bio
+              </label>
+              <textarea
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Tell us about yourself..."
+                rows={3}
+                maxLength={500}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none`}
+              />
+              <p className={`mt-1 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                {formData.bio.length}/500 characters
+              </p>
+            </div>
+          </div>
+
+          {/* Images */}
+          <div className="space-y-4">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              Profile Images
+            </h3>
+            
+            {/* Profile Picture */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Profile Picture
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, 'avatar')}
+                  className={`px-4 py-3 rounded-lg border ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                {formData.avatarUrl && (
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500">
+                    <img src={formData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
                 )}
               </div>
-            )}
+            </div>
+
+            {/* Banner Image */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Banner Image
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, 'banner')}
+                  className={`px-4 py-3 rounded-lg border ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                {formData.bannerUrl && (
+                  <div className="w-24 h-12 rounded overflow-hidden border-2 border-blue-500">
+                    <img src={formData.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          {formData.username && usernameValidation.message && (
-            <p className={`mt-1 text-xs ${
-              usernameValidation.valid && usernameValidation.available 
-                ? 'text-green-500' 
-                : 'text-red-500'
-            }`}>
-              {usernameValidation.message}
-            </p>
+
+          {/* Social Links */}
+          <div className="space-y-4">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              Social Links (Optional)
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Twitter */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Twitter
+                </label>
+                <input
+                  type="text"
+                  value={formData.twitterHandle}
+                  onChange={(e) => handleInputChange('twitterHandle', e.target.value)}
+                  placeholder="@username"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={formData.website}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  placeholder="https://yourwebsite.com"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+              </div>
+
+              {/* Discord */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Discord
+                </label>
+                <input
+                  type="text"
+                  value={formData.discord}
+                  onChange={(e) => handleInputChange('discord', e.target.value)}
+                  placeholder="username#1234"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+              </div>
+
+              {/* GitHub */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                  GitHub
+                </label>
+                <input
+                  type="text"
+                  value={formData.github}
+                  onChange={(e) => handleInputChange('github', e.target.value)}
+                  placeholder="username"
+                  className={`w-full px-4 py-3 rounded-lg border ${
+                    theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Privacy Option */}
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="isAnonymous"
+              checked={formData.isAnonymous}
+              onChange={(e) => handleInputChange('isAnonymous', e.target.checked)}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="isAnonymous" className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Keep profile anonymous (hide social links from public view)
+            </label>
+          </div>
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-red-500" />
+              <p className="text-red-700">{error}</p>
+            </div>
           )}
-        </div>
 
-        {/* Display Name */}
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Display Name
-          </label>
-          <input
-            type="text"
-            value={formData.displayName}
-            onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-            className={`w-full px-3 py-2 rounded-lg border text-sm ${
-              theme === 'dark' 
-                ? 'bg-gray-700 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
-            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            placeholder="Your display name"
-          />
-        </div>
+          {success && (
+            <div className="p-4 rounded-lg bg-green-50 border border-green-200 flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <p className="text-green-700">{success}</p>
+            </div>
+          )}
 
-        {/* Bio */}
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Bio
-          </label>
-          <textarea
-            value={formData.bio}
-            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-            rows={3}
-            className={`w-full px-3 py-2 rounded-lg border text-sm ${
-              theme === 'dark' 
-                ? 'bg-gray-700 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
-            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            placeholder="Tell us about yourself..."
-            maxLength={200}
-          />
-        </div>
-
-        {/* Profile Picture Upload */}
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Profile Picture
-          </label>
-          <div className="flex items-center gap-3">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, 'logo')}
-              className={`flex-1 px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {formData.avatarUrl && (
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
-                <img src={formData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-              </div>
+          {/* Mint Button */}
+          <div className="pt-6">
+            <button
+              onClick={mintProfileNFT}
+              disabled={loading || !connected || !isFormValid}
+              className={`w-full px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 ${
+                loading || !connected || !isFormValid
+                  ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                  : theme === 'dark'
+                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
+                  : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600'
+              }`}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+                  Minting Profile NFT...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 inline mr-2" />
+                  Mint Profile NFT (4.20 LOS)
+                </>
+              )}
+            </button>
+            
+            {!connected && (
+              <p className={`mt-3 text-sm text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                Please connect your wallet to mint your profile NFT
+              </p>
             )}
           </div>
         </div>
 
-        {/* Banner Upload */}
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Banner Image
-          </label>
-          <div className="flex items-center gap-3">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, 'banner')}
-              className={`flex-1 px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-            />
-            {formData.bannerUrl && (
-              <div className="w-16 h-8 rounded overflow-hidden border-2 border-blue-500">
-                <img src={formData.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Social Links */}
-        <div className="space-y-3">
-          <h3 className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-            Social Links (Optional)
+        {/* Preview Section */}
+        <div className="space-y-6">
+          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Profile Card Preview
           </h3>
           
-          {/* Twitter */}
-          <div>
-            <label className={`block text-xs font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Twitter
-            </label>
-            <input
-              type="text"
-              value={formData.twitterHandle}
-              onChange={(e) => setFormData(prev => ({ ...prev, twitterHandle: e.target.value }))}
-              className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              placeholder="@username"
+          <div className="flex justify-center">
+            <ProfileCardPreview
+              username={formData.username || 'username'}
+              displayName={formData.displayName || formData.username || 'Display Name'}
+              bio={formData.bio}
+              referralCode={generateReferralCode(formData.username || 'username')}
+              profilePictureUrl={formData.avatarUrl}
+              bannerImageUrl={formData.bannerUrl}
+              mintNumber={mintNumber}
+              variant="standard"
             />
           </div>
 
-          {/* Website */}
-          <div>
-            <label className={`block text-xs font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Website
-            </label>
-            <input
-              type="url"
-              value={formData.website}
-              onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-              className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              placeholder="https://yourwebsite.com"
-            />
+          <div className={`p-4 rounded-lg border ${theme === 'dark' ? 'bg-purple-900/20 border-purple-700' : 'bg-purple-50 border-purple-200'}`}>
+            <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
+              <strong>🏆 Master Open Edition Collection:</strong><br/>
+              Your profile NFT will be part of the official "Analos Profile Cards" master open edition collection. 
+              Each NFT includes your personalized referral code and becomes part of the Analos NFT Launchpad ecosystem.
+            </p>
           </div>
-
-          {/* Discord */}
-          <div>
-            <label className={`block text-xs font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Discord
-            </label>
-            <input
-              type="text"
-              value={formData.discord}
-              onChange={(e) => setFormData(prev => ({ ...prev, discord: e.target.value }))}
-              className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              placeholder="username#1234"
-            />
-          </div>
-
-          {/* Telegram */}
-          <div>
-            <label className={`block text-xs font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Telegram
-            </label>
-            <input
-              type="text"
-              value={formData.telegram}
-              onChange={(e) => setFormData(prev => ({ ...prev, telegram: e.target.value }))}
-              className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              placeholder="@username"
-            />
-          </div>
-
-          {/* GitHub */}
-          <div>
-            <label className={`block text-xs font-medium mb-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              GitHub
-            </label>
-            <input
-              type="text"
-              value={formData.github}
-              onChange={(e) => setFormData(prev => ({ ...prev, github: e.target.value }))}
-              className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                theme === 'dark' 
-                  ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              placeholder="username"
-            />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3 pt-4">
-          <button
-            onClick={handleSaveProfile}
-            disabled={saving || !formData.username || !usernameValidation.valid || !usernameValidation.available}
-            className={`w-full flex items-center justify-center px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
-              saving || !formData.username || !usernameValidation.valid || !usernameValidation.available
-                ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Profile
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={handleMintNFT}
-            disabled={minting || !formData.username || !usernameValidation.valid || !usernameValidation.available}
-            className={`w-full flex items-center justify-center px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
-              minting || !formData.username || !usernameValidation.valid || !usernameValidation.available
-                ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                : 'bg-purple-600 hover:bg-purple-700 text-white'
-            }`}
-          >
-            {minting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Minting NFT...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Mint Profile NFT (4.20 LOS)
-              </>
-            )}
-          </button>
         </div>
       </div>
     </div>
