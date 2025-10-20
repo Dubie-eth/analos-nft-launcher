@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             // Get user from transaction accounts
             const accountKeys = tx.transaction.message.getAccountKeys();
             if (accountKeys.length > 0) {
-              user = accountKeys[0].toString();
+              user = accountKeys.get(0)?.toString() || '';
             }
 
             // Calculate fee
