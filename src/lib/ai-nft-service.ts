@@ -173,7 +173,8 @@ class AINFTService {
         prompt,
         size: '1024x1024',
         quality: 'hd',
-        style: this.config.evolutionStyle
+        // Ensure style matches allowed image API styles
+        style: this.mapEvolutionStyleToImageStyle(this.config.evolutionStyle)
       })
     });
 
@@ -198,6 +199,23 @@ class AINFTService {
   }
 
   /**
+   * Map evolution style to the image API's accepted styles
+   */
+  private mapEvolutionStyleToImageStyle(
+    evolutionStyle: AINFTConfig['evolutionStyle']
+  ): 'artistic' | 'abstract' | 'realistic' | 'anime' {
+    // evolutionStyle already constrained to allowed set, but keep function for future-proofing
+    switch (evolutionStyle) {
+      case 'abstract':
+      case 'realistic':
+      case 'anime':
+        return evolutionStyle;
+      default:
+        return 'artistic';
+    }
+  }
+
+  /**
    * Generate evolution video (6.9 seconds)
    */
   private async generateEvolutionVideo(prompt: string, imageUrl: string): Promise<string> {
@@ -212,7 +230,8 @@ class AINFTService {
         prompt: `Evolution animation: ${prompt}`,
         duration: 6.9, // 6.9 seconds as requested
         baseImage: imageUrl,
-        style: 'smooth transition, morphing effect'
+        // Ensure style is a non-empty simple string as required by API
+        style: 'smooth transition'
       })
     });
 
