@@ -50,6 +50,7 @@ export default function ProfileNFTCreator({
   } | null>(null);
   const [mintNumber, setMintNumber] = useState<number | null>(null);
   const [variant, setVariant] = useState<'standard' | 'rare' | 'epic' | 'legendary' | 'mystery'>('standard');
+  const [mfpurrsBackground, setMfpurrsBackground] = useState<any>(null);
 
   // Check if user already has a profile NFT and get pricing info
   useEffect(() => {
@@ -59,6 +60,13 @@ export default function ProfileNFTCreator({
       getMintNumber();
     }
   }, [connected, publicKey, profileData?.username]);
+
+  // Check for MF Purrs background when mint number is available
+  useEffect(() => {
+    if (mintNumber && publicKey) {
+      checkMfpurrsBackground();
+    }
+  }, [mintNumber, publicKey]);
 
   const checkExistingNFT = async () => {
     try {
@@ -81,6 +89,32 @@ export default function ProfileNFTCreator({
       }
     } catch (error) {
       console.error('Error getting mint number:', error);
+    }
+  };
+
+  const checkMfpurrsBackground = async () => {
+    if (!publicKey || !mintNumber) return;
+    
+    try {
+      const response = await fetch('/api/profile-nft/mfpurrs-backgrounds', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: publicKey.toString(),
+          mintNumber: mintNumber
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isMfpurrs && data.background) {
+          setMfpurrsBackground(data.background);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking MF Purrs background:', error);
     }
   };
 
@@ -180,7 +214,8 @@ export default function ProfileNFTCreator({
           ...profileData,
           mintPrice,
           mintNumber: mintNumber,
-          variant: determinedVariant
+          variant: determinedVariant,
+          mfpurrsBackground: mfpurrsBackground
         })
       });
 
@@ -409,6 +444,7 @@ export default function ProfileNFTCreator({
             bannerImageUrl={profileData.bannerUrl}
             mintNumber={mintNumber}
             variant={variant}
+            mfpurrsBackground={mfpurrsBackground}
           />
         </div>
       )}

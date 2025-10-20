@@ -18,6 +18,13 @@ interface ProfileCardPreviewProps {
   bannerImageUrl?: string;
   mintNumber?: number;
   variant?: 'standard' | 'rare' | 'epic' | 'legendary' | 'mystery';
+  mfpurrsBackground?: {
+    id: string;
+    name: string;
+    rarity: string;
+    url: string;
+    color: string;
+  } | null;
 }
 
 export default function ProfileCardPreview({
@@ -28,12 +35,23 @@ export default function ProfileCardPreview({
   profilePictureUrl,
   bannerImageUrl,
   mintNumber,
-  variant = 'standard'
+  variant = 'standard',
+  mfpurrsBackground = null
 }: ProfileCardPreviewProps) {
   const { theme } = useTheme();
 
   // Variant-based styling
   const getVariantStyles = () => {
+    // If MF Purrs background, use special styling
+    if (mfpurrsBackground) {
+      return {
+        gradient: { from: mfpurrsBackground.color, to: mfpurrsBackground.color },
+        border: '#ff6b35', // MF Purrs orange accent
+        label: `MF Purrs ${mfpurrsBackground.name}`,
+        labelColor: 'bg-orange-900/30 text-orange-400'
+      };
+    }
+
     switch (variant) {
       case 'rare':
         return {
@@ -126,10 +144,15 @@ export default function ProfileCardPreview({
                 <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
               </pattern>
             )}
+            {mfpurrsBackground && (
+              <pattern id="mfpurrsPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
+                <image href={mfpurrsBackground.url} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+              </pattern>
+            )}
           </defs>
           
           {/* Background */}
-          <rect width="400" height="600" fill="url(#previewBg)" rx="20"/>
+          <rect width="400" height="600" fill={mfpurrsBackground ? "url(#mfpurrsPattern)" : "url(#previewBg)"} rx="20"/>
           
           {/* Card Border */}
           <rect x="10" y="10" width="380" height="580" fill="none" stroke={variantStyles.border} strokeWidth="4" rx="15"/>
@@ -198,6 +221,13 @@ export default function ProfileCardPreview({
           <text x="200" y="550" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontFamily="Arial, sans-serif" fontSize="10">
             Open Edition • Minted on Analos • launchonlos.fun
           </text>
+          
+          {/* MF Purrs Hashtag */}
+          {mfpurrsBackground && (
+            <text x="200" y="570" textAnchor="middle" fill="#ff6b35" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
+              #mfpurr
+            </text>
+          )}
         </svg>
 
         {/* Shimmer Effect Overlay */}
@@ -235,7 +265,11 @@ export default function ProfileCardPreview({
           </div>
           <div>
             <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Variant:</span>
-            <p className="font-medium capitalize">{variant}</p>
+            <p className="font-medium capitalize">{mfpurrsBackground ? `MF Purrs ${mfpurrsBackground.name}` : variant}</p>
+          </div>
+          <div>
+            <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Background:</span>
+            <p className="font-medium">{mfpurrsBackground ? mfpurrsBackground.name : 'Standard'}</p>
           </div>
           <div>
             <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Royalty:</span>
@@ -243,6 +277,36 @@ export default function ProfileCardPreview({
           </div>
         </div>
       </div>
+
+      {/* MF Purrs Background Info */}
+      {mfpurrsBackground && (
+        <div className={`mt-4 p-4 rounded border ${
+          theme === 'dark' 
+            ? 'bg-gradient-to-br from-orange-900/20 to-black border-orange-600/50' 
+            : 'bg-gradient-to-br from-orange-50 to-gray-50 border-orange-300'
+        }`}>
+          <div className="flex items-start gap-3">
+            <div className="text-2xl">🐱</div>
+            <div className="flex-1">
+              <h4 className={`font-bold mb-1 text-sm ${
+                theme === 'dark' ? 'text-orange-400' : 'text-orange-700'
+              }`}>
+                MF Purrs Background Detected!
+              </h4>
+              <p className={`text-xs ${
+                theme === 'dark' ? 'text-orange-300/80' : 'text-orange-600'
+              }`}>
+                You've received a rare MF Purrs background: <strong>{mfpurrsBackground.name}</strong>
+              </p>
+              <p className={`text-xs mt-1 ${
+                theme === 'dark' ? 'text-orange-300/70' : 'text-orange-600/80'
+              }`}>
+                This is a special homage to the MF Purrs collection with only a 1% chance of appearing!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Matrix Variant Hint */}
       <div className={`mt-4 p-4 rounded border ${
@@ -269,6 +333,7 @@ export default function ProfileCardPreview({
               <li>• <span className="text-green-400 font-bold">Matrix Hacker</span> - 0.1% chance</li>
               <li>• <span className="text-pink-400 font-bold">Neo Variant</span> - 0.01% chance</li>
               <li>• <span className="text-yellow-400 font-bold">Oracle Chosen</span> - 0.001% chance</li>
+              <li>• <span className="text-orange-400 font-bold">MF Purrs Background</span> - 1% chance</li>
             </ul>
           </div>
         </div>

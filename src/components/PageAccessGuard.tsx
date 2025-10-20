@@ -33,19 +33,19 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
     return () => clearTimeout(timer);
   }, [isChecking]);
 
-  // Periodic refresh of access control (every 30 seconds)
+  // Periodic refresh of access control (every 5 minutes)
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      // Only refresh if it's been more than 30 seconds since last check
-      if (now - lastCheckTime > 30000) {
+      // Only refresh if it's been more than 5 minutes since last check
+      if (now - lastCheckTime > 300000) {
         console.log('🔄 Periodic access control refresh');
         setLastCheckTime(now);
         // Trigger a re-check by setting isChecking to true briefly
         setIsChecking(true);
         setTimeout(() => setIsChecking(false), 100);
       }
-    }, 30000); // Check every 30 seconds
+    }, 300000); // Check every 5 minutes
 
     return () => clearInterval(interval);
   }, [lastCheckTime]);
