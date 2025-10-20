@@ -6,11 +6,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Wrap imports in try-catch to handle any import errors
-let Connection, PublicKey, Keypair, Program, AnchorProvider;
-let BlockchainProfile, BlockchainProfileService;
-let supabaseAdmin, isSupabaseConfigured;
-let ANALOS_PROGRAMS, ANALOS_RPC_URL;
-let connection;
+let Connection: any, PublicKey: any, Keypair: any, Program: any, AnchorProvider: any;
+let BlockchainProfile: any, BlockchainProfileService: any;
+let supabaseAdmin: any, isSupabaseConfigured: any;
+let ANALOS_PROGRAMS: any, ANALOS_RPC_URL: any;
+let connection: any;
 
 try {
   const solanaWeb3 = require('@solana/web3.js');
@@ -77,7 +77,7 @@ export async function GET(
 
       if (profile) {
         // Convert database profile to blockchain profile format
-        const blockchainProfile: BlockchainProfile = {
+        const blockchainProfile: any = {
           wallet: new PublicKey(profile.wallet_address),
           username: profile.username || '',
           displayName: profile.display_name || '',
@@ -276,7 +276,7 @@ export async function POST(
       }
 
       // Convert to blockchain profile format
-      const blockchainProfile: BlockchainProfile = {
+      const blockchainProfile: any = {
         wallet: new PublicKey(result.wallet_address),
         username: result.username,
         displayName: result.display_name,
