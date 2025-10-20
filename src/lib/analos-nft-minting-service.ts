@@ -50,6 +50,7 @@ export interface NFTCollectionData {
     trait_type: string;
     value: string | number;
   }>;
+  mintNumber?: number; // Track which # in the collection this NFT is
 }
 
 // Master Open Edition Collection Configuration
@@ -88,61 +89,72 @@ export class AnalosNFTMintingService {
   /**
    * Create a profile NFT collection metadata for the master open edition
    */
-  createProfileNFTCollection(profileData: ProfileNFTData): NFTCollectionData {
+  createProfileNFTCollection(profileData: ProfileNFTData, mintNumber?: number): NFTCollectionData {
     const referralCode = generateReferralCode(profileData.username);
     
+    const attributes = [
+      {
+        trait_type: 'Collection',
+        value: MASTER_OPEN_EDITION_CONFIG.collectionName
+      },
+      {
+        trait_type: 'Username',
+        value: profileData.username
+      },
+      {
+        trait_type: 'Display Name',
+        value: profileData.displayName
+      },
+      {
+        trait_type: 'Referral Code',
+        value: referralCode
+      },
+      {
+        trait_type: 'Twitter Verified',
+        value: profileData.twitterVerified ? 'Yes' : 'No'
+      },
+      {
+        trait_type: 'Edition Type',
+        value: 'Open Edition'
+      },
+      {
+        trait_type: 'Mint Price',
+        value: `${MASTER_OPEN_EDITION_CONFIG.mintPrice} LOS`
+      },
+      {
+        trait_type: 'Platform',
+        value: 'Analos NFT Launchpad'
+      },
+      {
+        trait_type: 'Card Type',
+        value: 'Profile Card'
+      },
+      {
+        trait_type: 'Matrix Variant',
+        value: profileData.matrixVariant || 'normal'
+      }
+    ];
+
+    // Add mint number if provided
+    if (mintNumber !== undefined) {
+      attributes.push({
+        trait_type: 'Mint Number',
+        value: mintNumber
+      });
+    }
+    
     return {
-      name: `${profileData.displayName} Profile Card`,
+      name: `${profileData.displayName} Profile Card${mintNumber ? ` #${mintNumber}` : ''}`,
       symbol: MASTER_OPEN_EDITION_CONFIG.collectionSymbol,
-      description: `${MASTER_OPEN_EDITION_CONFIG.collectionDescription} This card belongs to ${profileData.displayName} (@${profileData.username}). Referral Code: ${referralCode}`,
+      description: `${MASTER_OPEN_EDITION_CONFIG.collectionDescription} This card belongs to ${profileData.displayName} (@${profileData.username}). Referral Code: ${referralCode}${mintNumber ? `. Edition #${mintNumber}` : ''}`,
       image: this.generateProfileCardImage(profileData),
       external_url: `https://onlyanal.fun/profile/${profileData.username}`,
       collection: {
         name: MASTER_OPEN_EDITION_CONFIG.collectionName,
         family: MASTER_OPEN_EDITION_CONFIG.collectionFamily
       },
-      attributes: [
-        {
-          trait_type: 'Collection',
-          value: MASTER_OPEN_EDITION_CONFIG.collectionName
-        },
-        {
-          trait_type: 'Username',
-          value: profileData.username
-        },
-        {
-          trait_type: 'Display Name',
-          value: profileData.displayName
-        },
-        {
-          trait_type: 'Referral Code',
-          value: referralCode
-        },
-        {
-          trait_type: 'Twitter Verified',
-          value: profileData.twitterVerified ? 'Yes' : 'No'
-        },
-        {
-          trait_type: 'Edition Type',
-          value: 'Open Edition'
-        },
-        {
-          trait_type: 'Mint Price',
-          value: `${MASTER_OPEN_EDITION_CONFIG.mintPrice} LOS`
-        },
-        {
-          trait_type: 'Platform',
-          value: 'Analos NFT Launchpad'
-        },
-        {
-          trait_type: 'Card Type',
-          value: 'Profile Card'
-        },
-        {
-          trait_type: 'Matrix Variant',
-          value: profileData.matrixVariant || 'normal'
-        }
-      ]
+      attributes,
+      mintNumber
     };
   }
 
@@ -228,7 +240,8 @@ export class AnalosNFTMintingService {
    */
   async mintProfileNFT(
     profileData: ProfileNFTData,
-    userWallet: Keypair
+    userWallet: Keypair,
+    mintNumber?: number
   ): Promise<{ mintAddress: PublicKey; signature: string; metadata: NFTCollectionData }> {
     try {
       // Check for Matrix variant eligibility using rarity oracle
@@ -247,8 +260,8 @@ export class AnalosNFTMintingService {
       const mintKeypair = Keypair.generate();
       const mintAddress = mintKeypair.publicKey;
 
-      // Create metadata
-      const metadata = this.createProfileNFTCollection(profileData);
+      // Create metadata with mint number
+      const metadata = this.createProfileNFTCollection(profileData, mintNumber);
 
       // Create transaction
       const transaction = new Transaction();

@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.profile_nfts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   wallet_address TEXT NOT NULL,
   mint_address TEXT UNIQUE NOT NULL,
+  mint_number INTEGER, -- Track which # in the collection this NFT is
   username TEXT NOT NULL,
   display_name TEXT,
   bio TEXT,

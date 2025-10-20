@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Database tables created successfully',
-      data: data
+      tables: results
     });
 
   } catch (error) {

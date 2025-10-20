@@ -77,8 +77,28 @@ export async function POST(request: NextRequest) {
 
     // Real blockchain minting using deployed Analos NFT programs
     console.log('🚀 Starting real blockchain minting with deployed Analos NFT programs');
-    
+
     let mintResult;
+    let currentMintNumber = 1; // Default to 1 if database is not available
+    
+    // Fetch the current mint number from database if available
+    if (isSupabaseConfigured && supabaseAdmin) {
+      try {
+        const { data: counterData } = await (supabaseAdmin as any)
+          .from('profile_nft_mint_counter')
+          .select('current_mint_number')
+          .limit(1)
+          .single();
+        
+        if (counterData) {
+          currentMintNumber = counterData.current_mint_number || 1;
+          console.log('📊 Current mint number from database:', currentMintNumber);
+        }
+      } catch (counterError) {
+        console.warn('⚠️ Could not fetch mint counter, using default:', counterError);
+      }
+    }
+
     try {
       // Initialize the Analos NFT minting service
       const nftService = new AnalosNFTMintingService();
@@ -108,10 +128,10 @@ export async function POST(request: NextRequest) {
         mintPrice
       };
 
-      console.log('🔗 Calling real blockchain minting service...');
+      console.log('🔗 Calling real blockchain minting service with mint number:', currentMintNumber);
       
-      // Call the real blockchain minting service with deployed programs
-      mintResult = await nftService.mintProfileNFT(nftProfileData, userWallet);
+      // Call the real blockchain minting service with deployed programs and mint number
+      mintResult = await nftService.mintProfileNFT(nftProfileData, userWallet, currentMintNumber);
       
       console.log('✅ Real blockchain minting completed successfully');
       console.log('📋 Mint Address:', mintResult.mintAddress.toString());
@@ -179,6 +199,7 @@ export async function POST(request: NextRequest) {
         const nftData = {
           wallet_address: walletAddress,
           mint_address: mintResult.mintAddress.toString(),
+          mint_number: currentMintNumber, // Store the mint number
           username: username,
           display_name: displayName,
           bio: bio,
