@@ -24,13 +24,11 @@ let isInitializing = false;
 if (typeof window !== 'undefined') {
   // @ts-ignore
   if (window.__supabaseClientInstance) {
-    console.warn('⚠️ Supabase client already exists, reusing existing instance');
     // @ts-ignore
     supabaseInstance = window.__supabaseClientInstance;
   }
   // @ts-ignore
   if (window.__supabaseAdminInstance) {
-    console.warn('⚠️ Supabase admin client already exists, reusing existing instance');
     // @ts-ignore
     supabaseAdminInstance = window.__supabaseAdminInstance;
   }
