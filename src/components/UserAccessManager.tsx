@@ -597,7 +597,7 @@ const UserAccessManager: React.FC = () => {
                   : 'bg-white text-purple-600 shadow-sm'
                 : theme === 'dark'
                   ? 'text-gray-300 hover:text-gray-100'
-                  : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <span>{tab.icon}</span>
@@ -1123,10 +1123,10 @@ const UserAccessManager: React.FC = () => {
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">{page.pageName}</h3>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => togglePageLock(page.pagePath)}
+                    <button
+                      onClick={() => togglePageLock(page.pagePath)}
                         className={`px-3 py-1 text-sm rounded transition-colors font-medium ${
-                          page.isLocked
+                        page.isLocked
                             ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
                             : page.requiredLevel === 'beta_user'
                             ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300'
@@ -1134,7 +1134,7 @@ const UserAccessManager: React.FC = () => {
                         }`}
                       >
                         {page.isLocked ? '🔒 Locked' : page.requiredLevel === 'beta_user' ? '🧪 Beta' : '🔓 Unlocked'}
-                      </button>
+                    </button>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{page.description}</p>

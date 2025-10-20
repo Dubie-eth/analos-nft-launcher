@@ -5,6 +5,7 @@ import SecureWalletProvider from '@/components/SecureWalletProvider'
 import ClientNavigation from '@/components/ClientNavigation'
 import AccessControlManager from '@/components/AccessControlManager'
 import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
+import DebugAccessInfo from '@/components/DebugAccessInfo'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { SupabaseProvider } from '@/lib/supabase-provider'
 import PageAccessGuard from '@/components/PageAccessGuard'
@@ -60,6 +61,9 @@ export default function RootLayout({
               
               {/* Customer Service Bot */}
               <CustomerServiceBotProvider />
+              
+              {/* Debug Access Info Panel (Ctrl+Shift+D to toggle) */}
+              <DebugAccessInfo />
             </SecureWalletProvider>
           </SupabaseProvider>
         </ThemeProvider>

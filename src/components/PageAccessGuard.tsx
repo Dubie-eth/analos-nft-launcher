@@ -17,6 +17,8 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3; // Maximum number of retries for publicKey loading
 
   // Set a timeout to allow access if check takes too long (graceful degradation)
   useEffect(() => {
@@ -31,9 +33,6 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
 
     return () => clearTimeout(timer);
   }, [isChecking]);
-
-  // Removed periodic refresh to prevent random page updates
-  // Access control will be checked on page load and when wallet connects/disconnects
 
   useEffect(() => {
     async function checkPageAccess() {
@@ -74,12 +73,26 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
         }
 
         // If wallet is connected but publicKey is still undefined, wait a bit for it to load
+        // But only retry a limited number of times to prevent infinite loops
         if (connected && !publicKey) {
-          console.log(`⏳ Wallet connected but publicKey not yet available, waiting...`);
-          setTimeout(() => {
-            checkPageAccess();
-          }, 1000);
-          return;
+          if (retryCount < MAX_RETRIES) {
+            console.log(`⏳ Wallet connected but publicKey not yet available, waiting... (retry ${retryCount + 1}/${MAX_RETRIES})`);
+            setRetryCount(prev => prev + 1);
+            setTimeout(() => {
+              checkPageAccess();
+            }, 1000);
+            return;
+          } else {
+            console.warn(`⚠️ Max retries reached waiting for publicKey. Allowing access with degraded auth.`);
+            setHasAccess(true);
+            setIsChecking(false);
+            return;
+          }
+        }
+        
+        // Reset retry count if we successfully got publicKey
+        if (publicKey && retryCount > 0) {
+          setRetryCount(0);
         }
 
         // Check if page requires wallet connection
@@ -98,9 +111,15 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
             router.push(`/beta-signup?locked_page=${encodeURIComponent(pathname)}&message=${encodeURIComponent(pageConfig.customMessage || 'This page is currently locked. Please sign up for beta access.')}`);
             return;
           }
-        } catch (dbError) {
+        } catch (dbError: any) {
           // If database check fails, log but continue (graceful degradation)
           console.warn('⚠️ Database access check failed, continuing anyway:', dbError);
+          
+          // Check if it's a Supabase configuration error
+          if (dbError?.message?.includes('Supabase is not configured')) {
+            console.error('❌ SUPABASE NOT CONFIGURED! Please create a .env.local file with your Supabase credentials.');
+            console.error('📋 See env-template.txt for the required environment variables.');
+          }
         }
 
         // Page is accessible, allow access
@@ -116,6 +135,11 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
       }
     }
 
+    // Reset retry count when page changes
+    if (pathname) {
+      setRetryCount(0);
+    }
+    
     checkPageAccess();
   }, [pathname, router, connected, publicKey]);
 

@@ -10,10 +10,11 @@ SELECT
     table_schema
 FROM information_schema.tables 
 WHERE table_schema = 'public' 
-AND table_name IN ('user_profiles', 'admin_users', 'profile_nfts', 'profile_nft_mint_counter', 'feature_flags', 'page_access_config', 'social_verification', 'saved_collections')
+AND table_name IN ('user_profiles', 'admin_users', 'profile_nfts', 'profile_nft_mint_counter', 'feature_flags', 'page_access_config', 'social_verification', 'saved_collections', 'creator_rewards')
 ORDER BY table_name;
 
 -- Drop all existing tables to start fresh
+DROP TABLE IF EXISTS public.creator_rewards CASCADE;
 DROP TABLE IF EXISTS public.saved_collections CASCADE;
 DROP TABLE IF EXISTS public.social_verification CASCADE;
 DROP TABLE IF EXISTS public.page_access_config CASCADE;
