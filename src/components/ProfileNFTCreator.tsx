@@ -204,6 +204,12 @@ export default function ProfileNFTCreator({
       // Determine variant first
       const determinedVariant = await determineVariant();
       
+      console.log('🚀 Starting NFT minting process...');
+      console.log('👤 Wallet:', publicKey.toString());
+      console.log('📝 Profile data:', profileData);
+      console.log('💰 Mint price:', mintPrice, 'LOS');
+      
+      // Call the API to prepare the transaction
       const response = await fetch('/api/profile-nft/mint', {
         method: 'POST',
         headers: {
@@ -222,6 +228,9 @@ export default function ProfileNFTCreator({
       const data = await response.json();
 
       if (response.ok && data.success) {
+        console.log('✅ NFT minting API call successful');
+        console.log('📋 NFT Data:', data);
+        
         // Increment mint counter
         await fetch('/api/profile-nft/mint-counter', {
           method: 'POST',
@@ -237,10 +246,23 @@ export default function ProfileNFTCreator({
         // Show Matrix celebration popup
         setShowCelebration(true);
         
+        // Log transaction details for blockchain verification
+        if (data.nft?.signature) {
+          console.log('🔗 Transaction Signature:', data.nft.signature);
+          console.log('🎨 Mint Address:', data.nft.mintAddress);
+          console.log('🌐 Explorer URL:', data.nft.explorerUrl);
+          
+          // In a real implementation, you would:
+          // 1. Monitor the transaction status via WebSocket
+          // 2. Show real-time confirmation updates
+          // 3. Handle transaction failures gracefully
+        }
+        
         if (onNFTCreated) {
           onNFTCreated(data);
         }
       } else {
+        console.error('❌ NFT minting failed:', data.error);
         setError(data.error || 'Failed to mint profile NFT');
       }
     } catch (error) {

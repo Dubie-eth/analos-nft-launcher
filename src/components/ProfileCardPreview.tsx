@@ -136,17 +136,17 @@ export default function ProfileCardPreview({
             </linearGradient>
             {bannerImageUrl && (
         <pattern id="bannerPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-          <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+          <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
         </pattern>
             )}
             {profilePictureUrl && (
               <pattern id="avatarPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-                <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+                <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
               </pattern>
             )}
             {mfpurrsBackground && (
               <pattern id="mfpurrsPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-                <image href={mfpurrsBackground.url} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+                <image href={mfpurrsBackground.url} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
               </pattern>
             )}
           </defs>

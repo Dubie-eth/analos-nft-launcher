@@ -32,6 +32,15 @@ if (typeof window !== 'undefined') {
     // @ts-ignore
     supabaseAdminInstance = window.__supabaseAdminInstance;
   }
+  
+  // Clear any existing auth state to prevent conflicts
+  try {
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('sb-analos-supabase-auth-token');
+    localStorage.removeItem('analos-supabase-auth-v4');
+  } catch (e) {
+    // Ignore errors
+  }
 }
 
 // Global flag to track if we've already initialized
