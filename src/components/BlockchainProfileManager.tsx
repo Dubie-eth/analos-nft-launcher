@@ -175,6 +175,41 @@ export default function BlockchainProfileManager({
     return () => clearTimeout(timeoutId);
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setError('');
+      setSuccess('');
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (type === 'logo') {
+          setFormData(prev => ({ ...prev, avatarUrl: data.url }));
+        } else {
+          setFormData(prev => ({ ...prev, bannerUrl: data.url }));
+        }
+        setSuccess(`${type === 'logo' ? 'Profile picture' : 'Banner'} uploaded successfully!`);
+      } else {
+        setError(data.error || `Failed to upload ${type}`);
+      }
+    } catch (error) {
+      console.error(`Error uploading ${type}:`, error);
+      setError(`Error uploading ${type}. Please try again.`);
+    }
+  };
+
   const handleSocialVerification = async () => {
     if (!publicKey) return;
 
@@ -485,6 +520,60 @@ export default function BlockchainProfileManager({
             />
             <p className={`mt-1 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               {formData.bio.length}/500 characters
+            </p>
+          </div>
+
+          {/* Profile Picture Upload */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Profile Picture (Logo)
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'logo')}
+                className={`px-4 py-3 rounded-lg border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+              {formData.avatarUrl && (
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500">
+                  <img src={formData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <p className={`mt-1 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Upload your profile picture/logo (max 5MB)
+            </p>
+          </div>
+
+          {/* Banner Upload */}
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+              Banner Image
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'banner')}
+                className={`px-4 py-3 rounded-lg border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+              {formData.bannerUrl && (
+                <div className="w-24 h-12 rounded overflow-hidden border-2 border-blue-500">
+                  <img src={formData.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+            <p className={`mt-1 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Upload your banner image (max 10MB)
             </p>
           </div>
 
