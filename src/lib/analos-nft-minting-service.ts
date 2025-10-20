@@ -139,7 +139,7 @@ export class AnalosNFTMintingService {
     if (mintNumber !== undefined) {
       attributes.push({
         trait_type: 'Mint Number',
-        value: mintNumber
+        value: mintNumber.toString()
       });
     }
     
