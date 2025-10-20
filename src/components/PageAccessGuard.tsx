@@ -17,6 +17,7 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [lastCheckTime, setLastCheckTime] = useState(0);
 
   // Set a timeout to allow access if check takes too long (graceful degradation)
   useEffect(() => {
@@ -31,6 +32,23 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
 
     return () => clearTimeout(timer);
   }, [isChecking]);
+
+  // Periodic refresh of access control (every 30 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      // Only refresh if it's been more than 30 seconds since last check
+      if (now - lastCheckTime > 30000) {
+        console.log('🔄 Periodic access control refresh');
+        setLastCheckTime(now);
+        // Trigger a re-check by setting isChecking to true briefly
+        setIsChecking(true);
+        setTimeout(() => setIsChecking(false), 100);
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [lastCheckTime]);
 
   useEffect(() => {
     async function checkPageAccess() {
@@ -102,12 +120,14 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
 
         // Page is accessible, allow access
         setHasAccess(true);
+        setLastCheckTime(Date.now());
         
       } catch (error) {
         console.error('Error checking page access:', error);
         // On error, allow access but log the error (graceful degradation)
         // This prevents users from being blocked due to network/API issues
         setHasAccess(true);
+        setLastCheckTime(Date.now());
       } finally {
         setIsChecking(false);
       }

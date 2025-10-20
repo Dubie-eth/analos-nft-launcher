@@ -127,8 +127,9 @@ export const PAGE_ACCESS: PageAccess[] = [
     name: 'User Profile',
     description: 'User account and settings',
     requiredLevel: 'beta_user',
-    requiresWallet: true,
-    isLocked: true,
+    requiresWallet: false, // Allow public access when unlocked
+    publicAccess: true, // Allow public access when unlocked
+    isLocked: false, // Default to unlocked, can be overridden by database
     customMessage: 'Connect your wallet to access your profile'
   },
   {

@@ -63,6 +63,28 @@ export default function ProfilePage() {
   const [claiming, setClaiming] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit'>('overview');
   const [exampleData, setExampleData] = useState<any>(null);
+  const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
+  const [isPublicAccess, setIsPublicAccess] = useState(false);
+
+  // Check page access configuration
+  useEffect(() => {
+    const checkPageAccess = async () => {
+      try {
+        const response = await fetch('/api/page-access/profile');
+        if (response.ok) {
+          const config = await response.json();
+          setPageAccessConfig(config);
+          setIsPublicAccess(config.publicAccess && !config.isLocked);
+        }
+      } catch (error) {
+        console.error('Error checking page access:', error);
+        // Default to requiring wallet if we can't check
+        setIsPublicAccess(false);
+      }
+    };
+
+    checkPageAccess();
+  }, []);
 
   // Load user data
   useEffect(() => {
@@ -70,7 +92,14 @@ export default function ProfilePage() {
     setExampleData(getFreshExample(publicKey?.toString()));
     
     const loadUserData = async () => {
-      if (!publicKey || !connected) {
+      // If public access is allowed and no wallet connected, show public view
+      if (isPublicAccess && (!publicKey || !connected)) {
+        setLoading(false);
+        return;
+      }
+
+      // If wallet is required but not connected, show connect prompt
+      if (!isPublicAccess && (!publicKey || !connected)) {
         setLoading(false);
         return;
       }
@@ -141,9 +170,10 @@ export default function ProfilePage() {
     };
 
     loadUserData();
-  }, [publicKey, connected, connection]);
+  }, [publicKey, connected, connection, isPublicAccess]);
 
-  if (!connected) {
+  // Show connect wallet prompt only if wallet is required and not connected
+  if (!isPublicAccess && !connected) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
         <div className="text-center">
@@ -191,13 +221,18 @@ export default function ProfilePage() {
     }
   };
 
-  const tabs = [
+  const tabs = connected ? [
     { id: 'overview', label: 'Overview', icon: '⭐' },
     { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
     { id: 'rewards', label: `Rewards (${rewards.length})`, icon: '💰' },
     { id: 'activity', label: 'Activity', icon: '📊' },
     { id: 'edit', label: 'Edit Profile', icon: '✏️' }
+  ] : [
+    { id: 'overview', label: 'Community Overview', icon: '⭐' },
+    { id: 'nfts', label: 'Public NFTs', icon: '🎨' },
+    { id: 'collections', label: 'Public Collections', icon: '📦' },
+    { id: 'activity', label: 'Public Activity', icon: '📊' }
   ];
 
   return (
@@ -219,24 +254,37 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-xl">
-                  {publicKey?.toString().slice(0, 2).toUpperCase()}
+                  {connected ? publicKey?.toString().slice(0, 2).toUpperCase() : '👤'}
                 </span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Your Profile</h2>
+                <h2 className="text-2xl font-bold text-white">
+                  {connected ? 'Your Profile' : 'Public Profile View'}
+                </h2>
                 <div className="text-gray-300 space-y-1">
-                  <div>Wallet: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}</div>
-                  <div>SOL Balance: {solBalance.toFixed(4)} SOL</div>
-                  <div>Member Since: {new Date().toLocaleDateString()}</div>
+                  {connected ? (
+                    <>
+                      <div>Wallet: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}</div>
+                      <div>SOL Balance: {solBalance.toFixed(4)} SOL</div>
+                      <div>Member Since: {new Date().toLocaleDateString()}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div>Connect your wallet to view your personal profile</div>
+                      <div>Public access enabled - view community profiles</div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-            <button
-              onClick={disconnect}
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
-            >
-              Disconnect Wallet
-            </button>
+            {connected && (
+              <button
+                onClick={disconnect}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+              >
+                Disconnect Wallet
+              </button>
+            )}
           </div>
         </div>
 
