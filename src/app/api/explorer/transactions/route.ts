@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
             .limit(20);
 
           if (nfts) {
-            profileNFTs = nfts.map(nft => ({
+            profileNFTs = nfts.map((nft: any) => ({
               signature: nft.transaction_signature || 'pending',
               timestamp: nft.created_at,
               type: 'profile_mint',
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
             .limit(limit);
 
           if (nfts) {
-            const fallbackTransactions = nfts.map(nft => ({
+            const fallbackTransactions = nfts.map((nft: any) => ({
               signature: nft.transaction_signature || 'pending',
               timestamp: nft.created_at,
               type: 'profile_mint',
