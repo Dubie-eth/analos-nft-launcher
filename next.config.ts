@@ -4,6 +4,25 @@ const nextConfig: NextConfig = {
   /* config options here */
   serverExternalPackages: ['@solana/web3.js'],
   outputFileTracingRoot: __dirname,
+  
+  // Railway-specific configuration
+  experimental: {
+    outputFileTracingRoot: __dirname,
+  },
+  
+  // Ensure proper webpack configuration for Railway
+  webpack: (config, { isServer }) => {
+    // Fix for Railway build issues
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    return config
+  },
   images: {
     domains: ['gateway.pinata.cloud', 'ipfs.io', 'cloudflare-ipfs.com'],
   },
