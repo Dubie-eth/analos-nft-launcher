@@ -411,6 +411,25 @@ class AdaptiveNFTService {
   }
 
   /**
+   * Map personality style to allowed image generation style
+   */
+  private mapPersonalityToImageStyle(personalityStyle: string): 'artistic' | 'abstract' | 'realistic' | 'anime' {
+    switch (personalityStyle) {
+      case 'abstract':
+        return 'abstract';
+      case 'realistic':
+        return 'realistic';
+      case 'minimalist':
+      case 'maximalist':
+        return 'artistic';
+      case 'futuristic':
+        return 'abstract';
+      default:
+        return 'artistic';
+    }
+  }
+
+  /**
    * Generate adaptive traits based on wallet
    */
   private generateAdaptiveTraits(analysis: WalletAnalysis, config: AdaptiveNFTConfig): Record<string, any> {
@@ -543,12 +562,15 @@ class AdaptiveNFTService {
 
   private async generateAdaptiveImage(prompt: string, analysis: WalletAnalysis): Promise<string> {
     // Call AI image generation with adaptive prompt
+    const style = this.mapPersonalityToImageStyle(analysis.personality.style);
     const response = await fetch('/api/ai/generate-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        style: analysis.personality.style,
+        size: '1024x1024',
+        quality: 'hd',
+        style,
         color: analysis.personality.color,
         mood: analysis.personality.mood
       })
