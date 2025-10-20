@@ -110,9 +110,9 @@ export default function PublicProfileDisplay({
           
           // Load additional data (NFTs, tokens, collections)
           const [nftsResponse, tokensResponse, collectionsResponse] = await Promise.all([
-            fetch(`/api/user-nfts/${userWallet}`).catch(() => null),
-            fetch(`/api/user-tokens/${userWallet}`).catch(() => null),
-            fetch(`/api/user-collections/${userWallet}`).catch(() => null)
+            fetch(`/api/user-nfts/${userWallet}`).catch((): null => null),
+            fetch(`/api/user-tokens/${userWallet}`).catch((): null => null),
+            fetch(`/api/user-collections/${userWallet}`).catch((): null => null)
           ]);
 
           // Merge the data - ensure we extract the actual data from API responses
