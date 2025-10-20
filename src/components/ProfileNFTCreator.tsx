@@ -48,12 +48,15 @@ export default function ProfileNFTCreator({
     tier: string;
     available: boolean;
   } | null>(null);
+  const [mintNumber, setMintNumber] = useState<number | null>(null);
+  const [variant, setVariant] = useState<'standard' | 'rare' | 'epic' | 'legendary' | 'mystery'>('standard');
 
   // Check if user already has a profile NFT and get pricing info
   useEffect(() => {
     if (connected && publicKey) {
       checkExistingNFT();
       fetchPricingInfo();
+      getMintNumber();
     }
   }, [connected, publicKey, profileData?.username]);
 
@@ -66,6 +69,18 @@ export default function ProfileNFTCreator({
       }
     } catch (error) {
       console.error('Error checking existing NFT:', error);
+    }
+  };
+
+  const getMintNumber = async () => {
+    try {
+      const response = await fetch('/api/profile-nft/mint-counter');
+      if (response.ok) {
+        const data = await response.json();
+        setMintNumber(data.nextMintNumber);
+      }
+    } catch (error) {
+      console.error('Error getting mint number:', error);
     }
   };
 
@@ -110,6 +125,33 @@ export default function ProfileNFTCreator({
     }
   };
 
+  const determineVariant = async () => {
+    if (!publicKey || !mintNumber) return 'standard';
+    
+    try {
+      const response = await fetch('/api/profile-nft/mystery-variant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: publicKey.toString(),
+          mintNumber: mintNumber
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVariant(data.variant);
+        return data.variant;
+      }
+    } catch (error) {
+      console.error('Error determining variant:', error);
+    }
+    
+    return 'standard';
+  };
+
   const mintProfileNFT = async () => {
     if (!publicKey || !connected) {
       setError('Please connect your wallet to mint your profile NFT');
@@ -125,6 +167,9 @@ export default function ProfileNFTCreator({
     setError(null);
 
     try {
+      // Determine variant first
+      const determinedVariant = await determineVariant();
+      
       const response = await fetch('/api/profile-nft/mint', {
         method: 'POST',
         headers: {
@@ -133,13 +178,24 @@ export default function ProfileNFTCreator({
         body: JSON.stringify({
           walletAddress: publicKey.toString(),
           ...profileData,
-          mintPrice
+          mintPrice,
+          mintNumber: mintNumber,
+          variant: determinedVariant
         })
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // Increment mint counter
+        await fetch('/api/profile-nft/mint-counter', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ increment: true }),
+        });
+
         setNftData(data);
         setSuccess(true);
         
@@ -349,6 +405,10 @@ export default function ProfileNFTCreator({
             displayName={profileData.displayName || profileData.username}
             bio={profileData.bio}
             referralCode={profileData.referralCode}
+            profilePictureUrl={profileData.avatarUrl}
+            bannerImageUrl={profileData.bannerUrl}
+            mintNumber={mintNumber}
+            variant={variant}
           />
         </div>
       )}

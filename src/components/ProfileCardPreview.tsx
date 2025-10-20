@@ -14,15 +14,66 @@ interface ProfileCardPreviewProps {
   displayName: string;
   bio?: string;
   referralCode: string;
+  profilePictureUrl?: string;
+  bannerImageUrl?: string;
+  mintNumber?: number;
+  variant?: 'standard' | 'rare' | 'epic' | 'legendary' | 'mystery';
 }
 
 export default function ProfileCardPreview({
   username,
   displayName,
   bio,
-  referralCode
+  referralCode,
+  profilePictureUrl,
+  bannerImageUrl,
+  mintNumber,
+  variant = 'standard'
 }: ProfileCardPreviewProps) {
   const { theme } = useTheme();
+
+  // Variant-based styling
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'rare':
+        return {
+          gradient: { from: '#10b981', to: '#059669' },
+          border: '#10b981',
+          label: 'Rare Edition',
+          labelColor: 'bg-green-900/30 text-green-400'
+        };
+      case 'epic':
+        return {
+          gradient: { from: '#8b5cf6', to: '#7c3aed' },
+          border: '#8b5cf6',
+          label: 'Epic Edition',
+          labelColor: 'bg-purple-900/30 text-purple-400'
+        };
+      case 'legendary':
+        return {
+          gradient: { from: '#f59e0b', to: '#d97706' },
+          border: '#f59e0b',
+          label: 'Legendary Edition',
+          labelColor: 'bg-orange-900/30 text-orange-400'
+        };
+      case 'mystery':
+        return {
+          gradient: { from: '#ef4444', to: '#dc2626' },
+          border: '#ef4444',
+          label: 'Mystery Edition',
+          labelColor: 'bg-red-900/30 text-red-400'
+        };
+      default:
+        return {
+          gradient: { from: '#6366f1', to: '#8b5cf6' },
+          border: '#6366f1',
+          label: 'Standard Edition',
+          labelColor: 'bg-blue-900/30 text-blue-400'
+        };
+    }
+  };
+
+  const variantStyles = getVariantStyles();
 
   return (
     <div className={`p-6 rounded-lg border ${
@@ -35,9 +86,9 @@ export default function ProfileCardPreview({
           Your Profile Card Preview
         </h3>
         <div className={`px-3 py-1 rounded text-xs font-medium ${
-          theme === 'dark' ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-600'
+          theme === 'dark' ? variantStyles.labelColor : 'bg-blue-100 text-blue-600'
         }`}>
-          Standard Edition
+          {variantStyles.label}
         </div>
       </div>
 
@@ -62,19 +113,36 @@ export default function ProfileCardPreview({
         <svg viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto rounded-lg shadow-xl">
           <defs>
             <linearGradient id="previewBg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style={{ stopColor: '#6366f1', stopOpacity: 1 }} />
-              <stop offset="100%" style={{ stopColor: '#8b5cf6', stopOpacity: 1 }} />
+              <stop offset="0%" style={{ stopColor: variantStyles.gradient.from, stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: variantStyles.gradient.to, stopOpacity: 1 }} />
             </linearGradient>
+            {bannerImageUrl && (
+              <pattern id="bannerPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
+                <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+              </pattern>
+            )}
+            {profilePictureUrl && (
+              <pattern id="avatarPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
+                <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+              </pattern>
+            )}
           </defs>
           
           {/* Background */}
           <rect width="400" height="600" fill="url(#previewBg)" rx="20"/>
           
           {/* Card Border */}
-          <rect x="10" y="10" width="380" height="580" fill="none" stroke="white" strokeWidth="4" rx="15"/>
+          <rect x="10" y="10" width="380" height="580" fill="none" stroke={variantStyles.border} strokeWidth="4" rx="15"/>
           
-          {/* Header */}
-          <rect x="20" y="20" width="360" height="80" fill="rgba(255,255,255,0.1)" rx="10"/>
+          {/* Banner Background */}
+          {bannerImageUrl ? (
+            <rect x="20" y="20" width="360" height="80" fill="url(#bannerPattern)" rx="10"/>
+          ) : (
+            <rect x="20" y="20" width="360" height="80" fill="rgba(255,255,255,0.1)" rx="10"/>
+          )}
+          
+          {/* Header Overlay */}
+          <rect x="20" y="20" width="360" height="80" fill="rgba(0,0,0,0.3)" rx="10"/>
           <text x="200" y="40" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="14" fontWeight="bold">
             ANALOS PROFILE CARDS
           </text>
@@ -82,14 +150,26 @@ export default function ProfileCardPreview({
             Master Open Edition Collection
           </text>
           <text x="200" y="70" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="10">
-            onlyanal.fun
+            launchonlos.fun
           </text>
           
           {/* Avatar Circle */}
-          <circle cx="200" cy="180" r="60" fill="white" stroke="#6366f1" strokeWidth="4"/>
-          <text x="200" y="190" textAnchor="middle" fill="#6366f1" fontFamily="Arial, sans-serif" fontSize="24" fontWeight="bold">
-            {displayName.charAt(0).toUpperCase()}
-          </text>
+          <circle cx="200" cy="180" r="60" fill={profilePictureUrl ? "url(#avatarPattern)" : "white"} stroke={variantStyles.border} strokeWidth="4"/>
+          {!profilePictureUrl && (
+            <text x="200" y="190" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="24" fontWeight="bold">
+              {displayName.charAt(0).toUpperCase()}
+            </text>
+          )}
+          
+          {/* Mint Number */}
+          {mintNumber && (
+            <>
+              <circle cx="320" cy="140" r="20" fill="rgba(0,0,0,0.7)" stroke="white" strokeWidth="2"/>
+              <text x="320" y="147" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold">
+                #{mintNumber}
+              </text>
+            </>
+          )}
           
           {/* Display Name */}
           <text x="200" y="280" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="20" fontWeight="bold">
@@ -116,7 +196,7 @@ export default function ProfileCardPreview({
           
           {/* Footer */}
           <text x="200" y="550" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontFamily="Arial, sans-serif" fontSize="10">
-            Open Edition • Minted on Analos • onlyanal.fun
+            Open Edition • Minted on Analos • launchonlos.fun
           </text>
         </svg>
 
@@ -148,6 +228,14 @@ export default function ProfileCardPreview({
           <div>
             <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Mint Price:</span>
             <p className="font-medium text-green-500">4.20 LOS</p>
+          </div>
+          <div>
+            <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Mint #:</span>
+            <p className="font-medium">{mintNumber ? `#${mintNumber}` : 'TBD'}</p>
+          </div>
+          <div>
+            <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Variant:</span>
+            <p className="font-medium capitalize">{variant}</p>
           </div>
           <div>
             <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>Royalty:</span>
