@@ -695,6 +695,8 @@ Use my referral code: ${formData.username || 'ANALOS'}
 
 Create your unique NFT collection and launch it on the Analos blockchain! 🎨✨
 
+Follow @launchonlos for updates! 
+
 #Analos #NFT #Blockchain #Web3 #$LOL 🚀`}
                 </div>
                 <button
@@ -704,6 +706,8 @@ Create your unique NFT collection and launch it on the Analos blockchain! 🎨�
 Use my referral code: ${formData.username || 'ANALOS'}
 
 Create your unique NFT collection and launch it on the Analos blockchain! 🎨✨
+
+Follow @launchonlos for updates! 
 
 #Analos #NFT #Blockchain #Web3 #$LOL 🚀`;
                     navigator.clipboard.writeText(text);
