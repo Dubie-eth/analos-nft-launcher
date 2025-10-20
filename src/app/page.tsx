@@ -104,6 +104,88 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Featured: Profile NFT Creation - History in the Making */}
+      <section className="py-20 bg-gradient-to-r from-purple-800/50 to-pink-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold mb-4">
+              🎯 FEATURED COLLECTION
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Create Your 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
+                {' '}Profile NFT
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
+              Be part of <strong>history in the making</strong> - the first open edition collection on the Analos blockchain. 
+              Create your unique profile card with personalized referral codes, mystery variants, and ultra-rare MF Purrs backgrounds.
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left side - Features */}
+            <div className="space-y-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="flex items-center mb-3">
+                  <div className="text-2xl mr-3">🎨</div>
+                  <h3 className="text-xl font-bold text-white">Personalized Profile Cards</h3>
+                </div>
+                <p className="text-gray-300">
+                  Create unique profile cards with your banner, avatar, bio, and social links. 
+                  Each card is minted with a sequential number and includes your personalized referral code.
+                </p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="flex items-center mb-3">
+                  <div className="text-2xl mr-3">🎲</div>
+                  <h3 className="text-xl font-bold text-white">Mystery Variants</h3>
+                </div>
+                <p className="text-gray-300">
+                  Upon minting, the Rarity Oracle determines your variant: Standard (90%), Rare (9%), 
+                  Epic (0.9%), Legendary (0.09%), or ultra-rare Mystery (0.01%).
+                </p>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                <div className="flex items-center mb-3">
+                  <div className="text-2xl mr-3">🌟</div>
+                  <h3 className="text-xl font-bold text-white">MF Purrs Backgrounds</h3>
+                </div>
+                <p className="text-gray-300">
+                  Special 1% chance to receive ultra-rare MF Purrs background layers as a tribute 
+                  to the legendary collection. These cards feature the #mfpurr hashtag.
+                </p>
+              </div>
+            </div>
+            
+            {/* Right side - CTA */}
+            <div className="text-center">
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                <div className="text-6xl mb-4">🚀</div>
+                <h3 className="text-2xl font-bold text-white mb-4">Start Your Journey</h3>
+                <p className="text-gray-300 mb-6">
+                  Mint your profile NFT for just <span className="text-green-400 font-bold">4.2 LOS</span> and 
+                  become part of the first open edition collection on Analos.
+                </p>
+                <div className="space-y-3">
+                  <Link 
+                    href="/profile" 
+                    className="block w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
+                  >
+                    Create Profile NFT
+                  </Link>
+                  <p className="text-sm text-gray-400">
+                    Open Edition • No Supply Limit • History in the Making
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

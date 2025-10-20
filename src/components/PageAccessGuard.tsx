@@ -17,7 +17,6 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [lastCheckTime, setLastCheckTime] = useState(0);
 
   // Set a timeout to allow access if check takes too long (graceful degradation)
   useEffect(() => {
@@ -33,22 +32,8 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
     return () => clearTimeout(timer);
   }, [isChecking]);
 
-  // Periodic refresh of access control (every 5 minutes)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      // Only refresh if it's been more than 5 minutes since last check
-      if (now - lastCheckTime > 300000) {
-        console.log('🔄 Periodic access control refresh');
-        setLastCheckTime(now);
-        // Trigger a re-check by setting isChecking to true briefly
-        setIsChecking(true);
-        setTimeout(() => setIsChecking(false), 100);
-      }
-    }, 300000); // Check every 5 minutes
-
-    return () => clearInterval(interval);
-  }, [lastCheckTime]);
+  // Removed periodic refresh to prevent random page updates
+  // Access control will be checked on page load and when wallet connects/disconnects
 
   useEffect(() => {
     async function checkPageAccess() {
@@ -120,14 +105,12 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
 
         // Page is accessible, allow access
         setHasAccess(true);
-        setLastCheckTime(Date.now());
         
       } catch (error) {
         console.error('Error checking page access:', error);
         // On error, allow access but log the error (graceful degradation)
         // This prevents users from being blocked due to network/API issues
         setHasAccess(true);
-        setLastCheckTime(Date.now());
       } finally {
         setIsChecking(false);
       }
