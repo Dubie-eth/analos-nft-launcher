@@ -8,12 +8,15 @@ import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/
 interface Transaction {
   signature: string;
   timestamp: string;
-  type: 'mint' | 'reveal' | 'collection_create' | 'oracle_update' | 'governance';
+  type: 'mint' | 'reveal' | 'collection_create' | 'oracle_update' | 'governance' | 'profile_mint';
   collection?: string;
   user?: string;
   amount?: number;
   token?: string;
   status: 'success' | 'failed' | 'pending';
+  username?: string;
+  displayName?: string;
+  mintNumber?: number;
 }
 
 interface CollectionActivity {
@@ -42,80 +45,60 @@ export default function ExplorerPage() {
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'transactions' | 'collections' | 'programs'>('transactions');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'mint' | 'reveal' | 'collection_create' | 'oracle_update'>('all');
+  const [filterBy, setFilterBy] = useState<'all' | 'mint' | 'reveal' | 'collection_create' | 'oracle_update' | 'profile_mint'>('all');
 
   // Load blockchain data
   useEffect(() => {
     const loadExplorerData = async () => {
       try {
-        console.log('🔍 Loading explorer data from Analos blockchain...');
+        console.log('🔍 Loading real explorer data from Analos blockchain...');
         
-        // TODO: Implement actual blockchain data fetching
-        // This would:
-        // 1. Query recent transactions from all 4 programs
-        // 2. Parse transaction logs to identify mint, reveal, and other activities
-        // 3. Get collection-specific activity
-        // 4. Track program usage statistics
-        
-        // For now, simulate with demo data
-        const demoTransactions: Transaction[] = [
-          {
-            signature: 'DemoTxSignature1234567890abcdef',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-            type: 'mint',
-            collection: 'Los Bros Collection',
-            user: '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q',
-            amount: 42.00,
-            token: 'LOS',
-            status: 'success'
-          },
-          {
-            signature: 'DemoTxSignature0987654321fedcba',
-            timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-            type: 'collection_create',
-            collection: 'New Test Collection',
-            user: '4ea9ktn5Ngb3dUjBBKYe7n87iztyQht8MVxn6EBtEQ4q',
-            status: 'success'
-          },
-          {
-            signature: 'DemoTxSignatureabcdef1234567890',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            type: 'oracle_update',
-            amount: 0.10,
-            token: 'LOS',
-            status: 'success'
+        // Fetch real transaction data
+        const transactionsResponse = await fetch('/api/explorer/transactions?limit=50');
+        if (transactionsResponse.ok) {
+          const transactionsData = await transactionsResponse.json();
+          if (transactionsData.success) {
+            setTransactions(transactionsData.transactions);
+            console.log(`✅ Loaded ${transactionsData.transactions.length} real transactions`);
           }
-        ];
+        }
 
-        const demoCollectionActivity: CollectionActivity[] = [
-          {
-            collectionName: 'Los Bros Collection',
-            collectionAddress: 'DemoCollectionConfigPDA1',
-            totalMints: 0,
-            recentActivity: demoTransactions.filter(tx => tx.collection === 'Los Bros Collection'),
-            lastActivity: new Date(Date.now() - 1000 * 60 * 5).toISOString()
+        // Fetch real collection data
+        const collectionsResponse = await fetch('/api/explorer/collections');
+        if (collectionsResponse.ok) {
+          const collectionsData = await collectionsResponse.json();
+          if (collectionsData.success) {
+            const collectionActivity = collectionsData.collections.map((collection: any) => ({
+              collectionName: collection.collectionName,
+              collectionAddress: collection.collectionAddress,
+              totalMints: collection.totalMints,
+              recentActivity: collection.recentActivity,
+              lastActivity: collection.lastActivity
+            }));
+            setCollectionActivity(collectionActivity);
+            console.log(`✅ Loaded ${collectionsData.collections.length} real collections`);
           }
-        ];
+        }
 
-        const demoProgramActivity: ProgramActivity[] = [
-          // Current Active Programs Only
+        // Generate program activity from transaction data
+        const programActivity: ProgramActivity[] = [
           {
             programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD_CORE.toString(),
             programName: 'NFT Launchpad Core',
-            recentTransactions: demoTransactions.filter(tx => tx.type === 'mint' || tx.type === 'collection_create'),
-            totalTransactions: 2
+            recentTransactions: transactions.filter(tx => tx.type === 'mint' || tx.type === 'collection_create' || tx.type === 'profile_mint'),
+            totalTransactions: transactions.filter(tx => tx.type === 'mint' || tx.type === 'collection_create' || tx.type === 'profile_mint').length
           },
           {
             programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
             programName: 'Price Oracle',
-            recentTransactions: demoTransactions.filter(tx => tx.type === 'oracle_update'),
-            totalTransactions: 1
+            recentTransactions: transactions.filter(tx => tx.type === 'oracle_update'),
+            totalTransactions: transactions.filter(tx => tx.type === 'oracle_update').length
           },
           {
             programId: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
             programName: 'Rarity Oracle',
-            recentTransactions: [],
-            totalTransactions: 0
+            recentTransactions: transactions.filter(tx => tx.type === 'reveal'),
+            totalTransactions: transactions.filter(tx => tx.type === 'reveal').length
           },
           {
             programId: ANALOS_PROGRAMS.TOKEN_LAUNCH.toString(),
@@ -155,11 +138,9 @@ export default function ExplorerPage() {
           }
         ];
 
-        setTransactions(demoTransactions);
-        setCollectionActivity(demoCollectionActivity);
-        setProgramActivity(demoProgramActivity);
+        setProgramActivity(programActivity);
 
-        console.log('✅ Explorer data loaded');
+        console.log('✅ Real explorer data loaded from Analos blockchain');
       } catch (error) {
         console.error('❌ Error loading explorer data:', error);
       } finally {
@@ -188,6 +169,7 @@ export default function ExplorerPage() {
       case 'collection_create': return '🚀';
       case 'oracle_update': return '💰';
       case 'governance': return '🗳️';
+      case 'profile_mint': return '👤';
       default: return '📄';
     }
   };
@@ -382,6 +364,7 @@ export default function ExplorerPage() {
                 <option value="reveal">Reveals</option>
                 <option value="collection_create">Collection Creation</option>
                 <option value="oracle_update">Oracle Updates</option>
+                <option value="profile_mint">Profile NFTs</option>
               </select>
             </div>
           </div>
@@ -438,6 +421,27 @@ export default function ExplorerPage() {
                             </div>
                           )}
                           
+                          {tx.username && (
+                            <div>
+                              <span className="font-medium">Username:</span>
+                              <span className="ml-2 text-white">@{tx.username}</span>
+                            </div>
+                          )}
+                          
+                          {tx.displayName && (
+                            <div>
+                              <span className="font-medium">Display Name:</span>
+                              <span className="ml-2 text-white">{tx.displayName}</span>
+                            </div>
+                          )}
+                          
+                          {tx.mintNumber && (
+                            <div>
+                              <span className="font-medium">Mint #:</span>
+                              <span className="ml-2 text-purple-400 font-semibold">#{tx.mintNumber}</span>
+                            </div>
+                          )}
+                          
                           {tx.amount && tx.token && (
                             <div>
                               <span className="font-medium">Amount:</span>
@@ -472,14 +476,64 @@ export default function ExplorerPage() {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-white mb-6">Collection Activity</h2>
             
+            {/* Featured Profile NFT Collection */}
+            <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-6 mb-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="text-3xl">👤</div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white">Analos Profile Cards</h3>
+                      <p className="text-purple-300 text-sm">Master Open Edition Collection</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white/10 rounded-lg p-3">
+                      <div className="text-2xl font-bold text-white">{collectionActivity.find(c => c.collectionName === 'Analos Profile Cards')?.totalMints || 0}</div>
+                      <div className="text-sm text-gray-300">Total Mints</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3">
+                      <div className="text-2xl font-bold text-white">4.20</div>
+                      <div className="text-sm text-gray-300">Mint Price (LOS)</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3">
+                      <div className="text-2xl font-bold text-white">Open</div>
+                      <div className="text-sm text-gray-300">Edition Type</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-gray-300 mb-4">
+                    <p>The first open edition NFT collection on Analos. Each profile card is unique with personalized content, mystery variants, and MF Purrs rare backgrounds.</p>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => window.open('/profile', '_blank')}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition-all duration-200"
+                    >
+                      🎨 Mint Your Profile Card
+                    </button>
+                    <button
+                      onClick={() => setSelectedTab('transactions')}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-all duration-200 border border-white/20"
+                    >
+                      View Activity
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Other Collections */}
             {collectionActivity.length === 0 ? (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">📦</div>
-                <h3 className="text-2xl font-bold text-white mb-2">No Collections Found</h3>
-                <p className="text-gray-300">Collections will appear here once they're created</p>
+                <h3 className="text-2xl font-bold text-white mb-2">No Other Collections Found</h3>
+                <p className="text-gray-300">Additional collections will appear here once they're created</p>
               </div>
             ) : (
-              collectionActivity.map((collection) => (
+              collectionActivity.filter(c => c.collectionName !== 'Analos Profile Cards').map((collection) => (
                 <div key={collection.collectionAddress} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-white/40 transition-all duration-200">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
