@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "python3", "gcc", "g++", "make", "pkg-config", "libusb1"]
+nixPkgs = ["nodejs_20", "python3", "gcc", "make", "pkg-config"]
 
 [phases.install]
 cmds = ["npm ci --legacy-peer-deps"]
