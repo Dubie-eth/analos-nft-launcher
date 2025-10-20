@@ -61,6 +61,8 @@ export default function BlockchainProfileManager({
     twitterVerified: false,
     verificationInProgress: false
   });
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [tweetUrl, setTweetUrl] = useState('');
 
   // Load existing profile and check social verification
   useEffect(() => {
@@ -223,29 +225,9 @@ export default function BlockchainProfileManager({
         }
       }
       
-      // If no existing verification, show inline verification
+      // If no existing verification, show inline verification modal
       setError('No existing verification found. Please share a tweet with your referral code to verify your Twitter account.');
-      
-      // Generate referral text for the user
-      const referralCode = publicKey.toString().slice(0, 8).toUpperCase();
-      const referralText = `🚀 Join me on Analos NFT Launcher! 
-
-Use my referral code: ${referralCode}
-
-Create your unique NFT collection and launch it on the Analos blockchain! 
-
-#Analos #NFT #Blockchain #Web3
-
-Wallet: ${publicKey.toString()}`;
-
-      // Show the referral text to the user
-      alert(`Please share this text on Twitter, then paste the tweet URL below:\n\n${referralText}`);
-      
-      // For now, we'll show a simple prompt for the tweet URL
-      const tweetUrl = prompt('Please paste the URL of your tweet here:');
-      if (tweetUrl) {
-        await verifyTweetWithUrl(tweetUrl, referralCode);
-      }
+      setShowVerificationModal(true);
       
     } catch (error) {
       console.error('Error checking social verification:', error);
@@ -253,6 +235,18 @@ Wallet: ${publicKey.toString()}`;
     } finally {
       setSocialVerification(prev => ({ ...prev, verificationInProgress: false }));
     }
+  };
+
+  const handleModalVerification = async () => {
+    if (!tweetUrl.trim()) {
+      setError('Please enter your tweet URL');
+      return;
+    }
+
+    const referralCode = formData.username || 'ANALOS';
+    await verifyTweetWithUrl(tweetUrl, referralCode);
+    setShowVerificationModal(false);
+    setTweetUrl('');
   };
 
   const verifyTweetWithUrl = async (tweetUrl: string, referralCode: string) => {
@@ -670,6 +664,101 @@ Wallet: ${publicKey.toString()}`;
           </div>
         </div>
       </div>
+
+      {/* Twitter Verification Modal */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 ${theme === 'dark' ? 'border border-gray-700' : 'border border-gray-200'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                <Twitter className="w-5 h-5 inline mr-2 text-blue-500" />
+                Verify Twitter Account
+              </h3>
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300`}
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className={`text-sm mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Share this text on Twitter, then paste your tweet URL below:
+              </p>
+              
+              <div className={`p-3 rounded-lg border ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+                <div className={`text-sm font-mono whitespace-pre-line ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                  {`🚀 Join me on Analos NFT Launcher! 
+
+Use my referral code: ${formData.username || 'ANALOS'}
+
+Create your unique NFT collection and launch it on the Analos blockchain! 🎨✨
+
+#Analos #NFT #Blockchain #Web3 #$LOL 🚀`}
+                </div>
+                <button
+                  onClick={() => {
+                    const text = `🚀 Join me on Analos NFT Launcher! 
+
+Use my referral code: ${formData.username || 'ANALOS'}
+
+Create your unique NFT collection and launch it on the Analos blockchain! 🎨✨
+
+#Analos #NFT #Blockchain #Web3 #$LOL 🚀`;
+                    navigator.clipboard.writeText(text);
+                    alert('Tweet text copied to clipboard!');
+                  }}
+                  className="mt-2 text-xs text-blue-500 hover:text-blue-600 underline"
+                >
+                  📋 Copy to clipboard
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Tweet URL
+              </label>
+              <input
+                type="url"
+                value={tweetUrl}
+                onChange={(e) => setTweetUrl(e.target.value)}
+                placeholder="https://twitter.com/username/status/..."
+                className={`w-full px-3 py-2 rounded-lg border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-gray-600 text-white hover:bg-gray-700'
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleModalVerification}
+                disabled={!tweetUrl.trim()}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  !tweetUrl.trim()
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Verify Tweet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
