@@ -77,7 +77,9 @@ function createSupabaseClient() {
     auth: { 
       persistSession: true,
       storage: window.localStorage,
-      storageKey: 'analos-supabase-auth-v2'
+      storageKey: 'analos-supabase-auth-v3',
+      autoRefreshToken: true,
+      detectSessionInUrl: false
     },
     global: { headers: { 'x-client-type': 'user', 'x-instance-id': Date.now().toString() } }
   });

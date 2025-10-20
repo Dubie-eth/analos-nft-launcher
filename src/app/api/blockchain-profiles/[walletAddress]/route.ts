@@ -156,77 +156,75 @@ export async function POST(
       };
 
       // Check if profile exists
-      if (supabaseAdmin) {
-        const { data: existingProfile } = await ((supabaseAdmin as any)
+      const { data: existingProfile } = await ((supabaseAdmin as any)
+        .from('user_profiles'))
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        const { data, error } = await ((supabaseAdmin as any)
           .from('user_profiles'))
-          .select('id')
+          .update(profileData)
           .eq('wallet_address', walletAddress)
+          .select()
           .single();
 
-        let result;
-        if (existingProfile) {
-          // Update existing profile
-          const { data, error } = await ((supabaseAdmin as any)
-            .from('user_profiles'))
-            .update(profileData)
-            .eq('wallet_address', walletAddress)
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Error updating profile:', error);
-            return NextResponse.json(
-              { error: 'Failed to update profile' },
-              { status: 500 }
-            );
-          }
-          result = data;
-        } else {
-          // Create new profile
-          const { data, error } = await ((supabaseAdmin as any)
-            .from('user_profiles'))
-            .insert([{
-              ...profileData,
-              created_at: new Date().toISOString()
-            }])
-            .select()
-            .single();
-
-          if (error) {
-            console.error('Error creating profile:', error);
-            return NextResponse.json(
-              { error: 'Failed to create profile' },
-              { status: 500 }
-            );
-          }
-          result = data;
+        if (error) {
+          console.error('Error updating profile:', error);
+          return NextResponse.json(
+            { error: 'Failed to update profile' },
+            { status: 500 }
+          );
         }
+        result = data;
+      } else {
+        // Create new profile
+        const { data, error } = await ((supabaseAdmin as any)
+          .from('user_profiles'))
+          .insert([{
+            ...profileData,
+            created_at: new Date().toISOString()
+          }])
+          .select()
+          .single();
 
-        // Convert to blockchain profile format
-        const blockchainProfile: BlockchainProfile = {
-          wallet: new PublicKey(result.wallet_address),
-          username: result.username,
-          displayName: result.display_name,
-          bio: result.bio,
-          avatarUrl: result.avatar_url,
-          bannerUrl: result.banner_url,
-          twitterHandle: result.twitter_handle,
-          twitterVerified: result.twitter_verified,
-          website: result.website,
-          discord: result.discord,
-          telegram: result.telegram,
-          github: result.github,
-          createdAt: new Date(result.created_at).getTime(),
-          updatedAt: new Date(result.updated_at).getTime(),
-          isAnonymous: result.is_anonymous
-        };
-
-        return NextResponse.json({
-          success: true,
-          message: 'Profile saved successfully',
-          profile: blockchainProfile
-        });
+        if (error) {
+          console.error('Error creating profile:', error);
+          return NextResponse.json(
+            { error: 'Failed to create profile' },
+            { status: 500 }
+          );
+        }
+        result = data;
       }
+
+      // Convert to blockchain profile format
+      const blockchainProfile: BlockchainProfile = {
+        wallet: new PublicKey(result.wallet_address),
+        username: result.username,
+        displayName: result.display_name,
+        bio: result.bio,
+        avatarUrl: result.avatar_url,
+        bannerUrl: result.banner_url,
+        twitterHandle: result.twitter_handle,
+        twitterVerified: result.twitter_verified,
+        website: result.website,
+        discord: result.discord,
+        telegram: result.telegram,
+        github: result.github,
+        createdAt: new Date(result.created_at).getTime(),
+        updatedAt: new Date(result.updated_at).getTime(),
+        isAnonymous: result.is_anonymous
+      };
+
+      return NextResponse.json({
+        success: true,
+        message: 'Profile saved successfully',
+        profile: blockchainProfile
+      });
     } else {
       // If database not configured, return mock success
       return NextResponse.json({
