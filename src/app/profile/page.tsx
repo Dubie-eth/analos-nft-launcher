@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
-import CompleteProfileManager from '@/components/CompleteProfileManager';
+// import CompleteProfileManager from '@/components/CompleteProfileManager'; // Temporarily disabled to fix build
 import PublicProfileDisplay from '@/components/PublicProfileDisplay';
 import SimpleProfileEditor from '@/components/SimpleProfileEditor';
 import { getFreshExample } from '@/lib/wallet-examples';
@@ -557,10 +557,11 @@ export default function ProfilePage() {
                   }}
                 />
               ) : (
-                <CompleteProfileManager
-                  userWallet={publicKey?.toString() || ''}
-                  className="profile-manager"
-                />
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
+                  <div className="text-6xl mb-4">🚧</div>
+                  <h3 className="text-xl font-semibold text-white mb-2">Advanced Editor Temporarily Disabled</h3>
+                  <p className="text-gray-300">The advanced profile editor is temporarily disabled to fix build issues. Please use the simple editor above.</p>
+                </div>
               )}
             </div>
           )}
