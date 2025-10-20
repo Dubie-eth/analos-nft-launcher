@@ -45,12 +45,49 @@ export default function SimpleProfileEditor({
   const [showPreview, setShowPreview] = useState(false);
   const [mintNumber, setMintNumber] = useState<number | null>(null);
 
-  // Get mint number on component mount
+  // Load existing profile data and mint number on component mount
   useEffect(() => {
     if (connected && publicKey) {
       getMintNumber();
+      loadExistingProfile();
     }
   }, [connected, publicKey]);
+
+  // Load existing profile data
+  const loadExistingProfile = async () => {
+    if (!publicKey) return;
+    
+    try {
+      console.log('🔄 Loading existing profile for wallet:', publicKey.toString());
+      const response = await fetch(`/api/blockchain-profiles/${publicKey.toString()}`);
+      
+      if (response.ok) {
+        const profileData = await response.json();
+        console.log('📋 Loaded profile data:', profileData);
+        
+        if (profileData && profileData.username) {
+          setFormData({
+            username: profileData.username || '',
+            displayName: profileData.display_name || '',
+            bio: profileData.bio || '',
+            avatarUrl: profileData.avatar_url || '',
+            bannerUrl: profileData.banner_url || '',
+            twitterHandle: profileData.twitter_handle || '',
+            website: profileData.website || '',
+            discord: profileData.discord || '',
+            telegram: profileData.telegram || '',
+            github: profileData.github || '',
+            isAnonymous: profileData.is_anonymous || false
+          });
+          console.log('✅ Profile data loaded into form');
+        }
+      } else {
+        console.log('ℹ️ No existing profile found, starting fresh');
+      }
+    } catch (error) {
+      console.error('❌ Error loading existing profile:', error);
+    }
+  };
 
   const getMintNumber = async () => {
     try {
@@ -190,6 +227,9 @@ export default function SimpleProfileEditor({
         
         setSuccess('Profile NFT minted successfully! 🎉');
         setShowPreview(true);
+        
+        // Reload profile data to show the saved information
+        await loadExistingProfile();
         
         if (onProfileSaved) {
           onProfileSaved(formData);
