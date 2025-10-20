@@ -34,10 +34,23 @@ if (typeof window !== 'undefined') {
   }
 }
 
+// Global flag to track if we've already initialized
+let isGloballyInitialized = false;
+
 // Function to create user client (with RLS)
 function createSupabaseClient() {
   if (supabaseInstance) {
     return supabaseInstance;
+  }
+
+  // Check if we're already globally initialized
+  if (typeof window !== 'undefined' && isGloballyInitialized) {
+    // @ts-ignore
+    if (window.__supabaseClientInstance) {
+      // @ts-ignore
+      supabaseInstance = window.__supabaseClientInstance;
+      return supabaseInstance;
+    }
   }
 
   if (isBuildTime) {
@@ -59,19 +72,21 @@ function createSupabaseClient() {
     return supabaseInstance;
   }
 
+  // Create client with unique storage key to prevent conflicts
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { 
       persistSession: true,
       storage: window.localStorage,
-      storageKey: 'analos-supabase-auth'
+      storageKey: 'analos-supabase-auth-v2'
     },
-    global: { headers: { 'x-client-type': 'user' } }
+    global: { headers: { 'x-client-type': 'user', 'x-instance-id': Date.now().toString() } }
   });
 
   // Store globally to prevent multiple instances
   if (typeof window !== 'undefined') {
     // @ts-ignore
     window.__supabaseClientInstance = supabaseInstance;
+    isGloballyInitialized = true;
   }
 
   return supabaseInstance;
@@ -81,6 +96,16 @@ function createSupabaseClient() {
 function createSupabaseAdminClient() {
   if (supabaseAdminInstance) {
     return supabaseAdminInstance;
+  }
+
+  // Check if we're already globally initialized
+  if (typeof window !== 'undefined' && isGloballyInitialized) {
+    // @ts-ignore
+    if (window.__supabaseAdminInstance) {
+      // @ts-ignore
+      supabaseAdminInstance = window.__supabaseAdminInstance;
+      return supabaseAdminInstance;
+    }
   }
 
   if (isBuildTime || !supabaseServiceKey || supabaseServiceKey === 'placeholder-service-key') {
@@ -94,13 +119,14 @@ function createSupabaseAdminClient() {
 
   supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
-    global: { headers: { 'x-client-type': 'admin' } }
+    global: { headers: { 'x-client-type': 'admin', 'x-instance-id': Date.now().toString() } }
   });
 
   // Store globally to prevent multiple instances
   if (typeof window !== 'undefined') {
     // @ts-ignore
     window.__supabaseAdminInstance = supabaseAdminInstance;
+    isGloballyInitialized = true;
   }
 
   return supabaseAdminInstance;
