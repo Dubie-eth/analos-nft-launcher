@@ -75,15 +75,12 @@ export async function POST(request: NextRequest) {
       mintPrice
     };
 
-    // Real blockchain minting implementation using AnalosNFTMintingService
-    console.log('🚀 Starting real blockchain minting process with AnalosNFTMintingService');
+    // Real blockchain minting using deployed Analos NFT programs
+    console.log('🚀 Starting real blockchain minting with deployed Analos NFT programs');
     
     let mintResult;
     try {
-      // Import the real blockchain minting service
-      const { AnalosNFTMintingService } = require('@/lib/analos-nft-minting-service');
-      
-      // Initialize the minting service
+      // Initialize the Analos NFT minting service
       const nftService = new AnalosNFTMintingService();
       
       // Create user wallet keypair (in production, this would come from the user's wallet)
@@ -93,7 +90,7 @@ export async function POST(request: NextRequest) {
       console.log('📝 Preparing profile data for blockchain minting...');
       
       // Prepare profile data for NFT minting
-      const nftProfileData = {
+      const nftProfileData: ProfileNFTData = {
         wallet: new PublicKey(walletAddress),
         username,
         displayName: displayName || username,
@@ -113,7 +110,7 @@ export async function POST(request: NextRequest) {
 
       console.log('🔗 Calling real blockchain minting service...');
       
-      // Call the real blockchain minting service
+      // Call the real blockchain minting service with deployed programs
       mintResult = await nftService.mintProfileNFT(nftProfileData, userWallet);
       
       console.log('✅ Real blockchain minting completed successfully');
@@ -125,33 +122,10 @@ export async function POST(request: NextRequest) {
       console.error('❌ Real blockchain minting failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
-      // Fallback to mock minting if real blockchain fails
-      console.log('⚠️ Falling back to mock minting due to blockchain error');
-      
-      const nftMetadata = {
-        name: `${displayName || username}'s Profile Card`,
-        description: `Profile card for ${displayName || username} - Part of the Analos Profile Cards Master Open Edition`,
-        image: avatarUrl || '',
-        attributes: [
-          { trait_type: 'Collection', value: 'Analos Profile Cards' },
-          { trait_type: 'Type', value: 'Master Open Edition' },
-          { trait_type: 'Username', value: username },
-          { trait_type: 'Referral Code', value: finalReferralCode },
-          { trait_type: 'Twitter Verified', value: twitterVerified ? 'Yes' : 'No' },
-          { trait_type: 'Mint Price', value: `${mintPrice} LOS` }
-        ]
-      };
-
-      const mintAddress = new PublicKey(generateMockMintAddress());
-      const signature = generateMockMintAddress();
-      
-      mintResult = {
-        mintAddress,
-        signature,
-        metadata: nftMetadata
-      };
-
-      console.log('✅ Fallback mock minting completed');
+      return NextResponse.json(
+        { error: `Failed to mint NFT on blockchain: ${errorMessage}` },
+        { status: 500 }
+      );
     }
 
     // TODO: Re-enable real blockchain minting once properly configured

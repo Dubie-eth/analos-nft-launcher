@@ -189,82 +189,144 @@ export async function POST(
       );
     }
 
-    // For now, we'll use mock responses to avoid database issues
-    // In a full implementation, this would store on the blockchain
+    // Store profile data in database (temporary solution)
+    // TODO: Implement full blockchain storage
     console.log('🔍 Supabase configured:', isSupabaseConfigured);
     console.log('🔍 Supabase admin available:', !!supabaseAdmin);
     
-    // Always use mock response for now to avoid database issues
-    console.log('⚠️ Using mock profile save - database integration pending');
-    
-    const profileData = {
-      wallet_address: walletAddress,
-      username: username.toLowerCase(),
-      display_name: displayName || '',
-      bio: bio || '',
-      avatar_url: avatarUrl || '',
-      banner_url: bannerUrl || '',
-      twitter_handle: twitterHandle || '',
-      twitter_verified: false, // Will be updated when social verification is completed
-      website: website || '',
-      discord: discord || '',
-      telegram: telegram || '',
-      github: github || '',
-      is_anonymous: isAnonymous || false,
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('🔍 Profile data to save:', JSON.stringify(profileData, null, 2));
-    
-    const mockResult = {
-      id: 1,
-      wallet_address: walletAddress,
-      username: username.toLowerCase(),
-      display_name: displayName || '',
-      bio: bio || '',
-      avatar_url: avatarUrl || '',
-      banner_url: bannerUrl || '',
-      twitter_handle: twitterHandle || '',
-      twitter_verified: false,
-      website: website || '',
-      discord: discord || '',
-      telegram: telegram || '',
-      github: github || '',
-      is_anonymous: isAnonymous || false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    if (isSupabaseConfigured && supabaseAdmin) {
+      const profileData = {
+        wallet_address: walletAddress,
+        username: username.toLowerCase(),
+        display_name: displayName || '',
+        bio: bio || '',
+        avatar_url: avatarUrl || '',
+        banner_url: bannerUrl || '',
+        twitter_handle: twitterHandle || '',
+        twitter_verified: false, // Will be updated when social verification is completed
+        website: website || '',
+        discord: discord || '',
+        telegram: telegram || '',
+        github: github || '',
+        is_anonymous: isAnonymous || false,
+        updated_at: new Date().toISOString()
+      };
 
-    const result = mockResult;
+      // Check if profile exists
+      console.log('🔍 Checking if profile exists for wallet:', walletAddress);
+      const { data: existingProfile, error: checkError } = await ((supabaseAdmin as any)
+        .from('user_profiles'))
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .single();
 
-    // TODO: Re-enable database integration once tables are created
-    // For now, we're using mock responses to avoid database issues
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ Error checking existing profile:', checkError);
+        return NextResponse.json(
+          { error: 'Failed to check existing profile' },
+          { status: 500 }
+        );
+      }
 
-    // Convert to blockchain profile format
-    const blockchainProfile: any = {
-      wallet: new PublicKey(result.wallet_address),
-      username: result.username,
-      displayName: result.display_name,
-      bio: result.bio,
-      avatarUrl: result.avatar_url,
-      bannerUrl: result.banner_url,
-      twitterHandle: result.twitter_handle,
-      twitterVerified: result.twitter_verified,
-      website: result.website,
-      discord: result.discord,
-      telegram: result.telegram,
-      github: result.github,
-      createdAt: new Date(result.created_at).getTime(),
-      updatedAt: new Date(result.updated_at).getTime(),
-      isAnonymous: result.is_anonymous
-    };
+      console.log('🔍 Existing profile found:', !!existingProfile);
 
-    console.log('✅ Returning success response');
-    return NextResponse.json({
-      success: true,
-      message: 'Profile saved successfully',
-      profile: blockchainProfile
-    });
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        console.log('🔍 Updating existing profile');
+        const { data, error } = await ((supabaseAdmin as any)
+          .from('user_profiles'))
+          .update(profileData)
+          .eq('wallet_address', walletAddress)
+          .select('*')
+          .single();
+
+        if (error) {
+          console.error('❌ Error updating profile:', error);
+          return NextResponse.json(
+            { error: 'Failed to update profile' },
+            { status: 500 }
+          );
+        }
+        result = data;
+      } else {
+        // Create new profile
+        console.log('🔍 Creating new profile');
+        const { data, error } = await ((supabaseAdmin as any)
+          .from('user_profiles'))
+          .insert(profileData)
+          .select('*')
+          .single();
+
+        if (error) {
+          console.error('❌ Error creating profile:', error);
+          return NextResponse.json(
+            { error: 'Failed to create profile' },
+            { status: 500 }
+          );
+        }
+        result = data;
+      }
+
+      if (!result) {
+        console.error('❌ No profile data returned after save operation');
+        return NextResponse.json(
+          { error: 'Failed to save profile: No data returned' },
+          { status: 500 }
+        );
+      }
+
+      // Convert to blockchain profile format
+      const blockchainProfile: any = {
+        wallet: new PublicKey(result.wallet_address),
+        username: result.username,
+        displayName: result.display_name,
+        bio: result.bio,
+        avatarUrl: result.avatar_url,
+        bannerUrl: result.banner_url,
+        twitterHandle: result.twitter_handle,
+        twitterVerified: result.twitter_verified,
+        website: result.website,
+        discord: result.discord,
+        telegram: result.telegram,
+        github: result.github,
+        createdAt: new Date(result.created_at).getTime(),
+        updatedAt: new Date(result.updated_at).getTime(),
+        isAnonymous: result.is_anonymous
+      };
+
+      console.log('✅ Returning success response with profile data');
+      return NextResponse.json({
+        success: true,
+        message: existingProfile ? 'Profile updated successfully' : 'Profile created successfully',
+        profile: blockchainProfile,
+      });
+    } else {
+      console.log('⚠️ Supabase not configured or admin client not available. Returning mock response.');
+      // Fallback to mock response if Supabase is not configured
+      const mockProfile = {
+        wallet: new PublicKey(walletAddress),
+        username: username,
+        displayName: displayName,
+        bio: bio,
+        avatarUrl: avatarUrl,
+        bannerUrl: bannerUrl,
+        twitterHandle: twitterHandle,
+        twitterVerified: false,
+        website: website,
+        discord: discord,
+        telegram: telegram,
+        github: github,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        isAnonymous: isAnonymous,
+      };
+      return NextResponse.json({
+        success: true,
+        message: 'Profile saved successfully (mock fallback)',
+        profile: mockProfile,
+      });
+    }
 
   } catch (error) {
     console.error('❌ Error in POST /api/blockchain-profiles/[walletAddress]:', error);

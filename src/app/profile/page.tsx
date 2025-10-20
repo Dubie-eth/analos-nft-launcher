@@ -145,7 +145,7 @@ export default function ProfilePage() {
             name: col.collection_name,
             symbol: col.collection_symbol,
             description: col.description,
-            image: '/api/placeholder/300/300',
+            image: '/default-collection.png',
             floorPrice: 0,
             volume24h: 0,
             totalSupply: col.total_supply,
