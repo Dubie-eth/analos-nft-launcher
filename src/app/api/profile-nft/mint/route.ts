@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     // Real blockchain minting using deployed Analos NFT programs
     console.log('🚀 Starting real blockchain minting with deployed Analos NFT programs');
 
-    let mintResult;
+    let mintResult: any = null;
     let currentMintNumber = 1; // Default to 1 if database is not available
     
     // Fetch the current mint number from database if available
@@ -396,6 +396,14 @@ export async function POST(request: NextRequest) {
       ...profileData,
       wallet: profileData.wallet.toString()
     };
+    // Ensure mintResult exists before proceeding
+    if (!mintResult) {
+      return NextResponse.json(
+        { error: 'NFT minting failed - no mint result generated' },
+        { status: 500 }
+      );
+    }
+
     const shareUrls = nftGenerator.generateSocialShareUrls(generatorProfileData as any, mintResult.mintAddress.toString(), explorerUrl);
     const shareText = nftGenerator.generateSocialShareText(generatorProfileData as any, mintResult.mintAddress.toString());
 
