@@ -65,9 +65,9 @@ export class AnalosWebSocketService {
       
       const subscriptionId_num = this.connection.onProgramAccountChange(
         programId,
-        (accountInfo, accountId, context) => {
-          console.log(`📡 Program account update received for ${accountId.toString()}`);
-          callback(accountInfo, accountId);
+        (keyedAccountInfo, context) => {
+          console.log(`📡 Program account update received for ${keyedAccountInfo.accountId.toString()}`);
+          callback(keyedAccountInfo.accountInfo, keyedAccountInfo.accountId);
         },
         'confirmed'
       );
