@@ -26,9 +26,9 @@ export async function GET(
     // This will be implemented when we have actual NFT data from the blockchain
     const userNFTs = {
       wallet,
-      nfts: [] as any[],
+      nfts: [],
       total: 0,
-      collections: [] as any[],
+      collections: [],
       message: 'NFT data will be available when collections are deployed'
     };
 
