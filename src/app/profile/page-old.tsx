@@ -87,7 +87,7 @@ export default function ProfilePage() {
           collection: 'Collection', // Would need to lookup collection name
           name: `NFT #${nft.mintNumber}`,
           image: '/api/placeholder/300/300',
-          traits: [], // Would need to load metadata
+          traits: [] as any[], // Would need to load metadata
           rarityScore: nft.rarityScore,
           tier: nft.tier === 0 ? 'Common' : `Tier ${nft.tier}`
         }));
