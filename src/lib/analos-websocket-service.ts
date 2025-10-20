@@ -1,6 +1,7 @@
 /**
  * ANALOS WEBSOCKET SERVICE
  * Real-time connection to Analos blockchain for live updates
+ * Uses Analos RPC endpoints for blockchain monitoring
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
@@ -12,11 +13,12 @@ export class AnalosWebSocketService {
   private isConnected: boolean = false;
 
   constructor() {
-    // Use WebSocket endpoint for real-time updates
+    // Use WebSocket endpoint for real-time updates on Analos blockchain
     const wsUrl = ANALOS_RPC_URL.replace('https://', 'wss://').replace('http://', 'ws://');
     this.connection = new Connection(wsUrl, 'confirmed');
     console.log('🔌 Analos WebSocket Service initialized');
     console.log('🌐 WebSocket URL:', wsUrl);
+    console.log('⛓️ Blockchain: Analos Mainnet');
   }
 
   /**
@@ -63,7 +65,7 @@ export class AnalosWebSocketService {
       
       const subscriptionId_num = this.connection.onProgramAccountChange(
         programId,
-        (accountInfo, accountId) => {
+        (accountInfo, accountId, context) => {
           console.log(`📡 Program account update received for ${accountId.toString()}`);
           callback(accountInfo, accountId);
         },

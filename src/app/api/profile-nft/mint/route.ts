@@ -173,11 +173,11 @@ export async function POST(request: NextRequest) {
       // Create transaction for NFT minting
       const transaction = new Transaction();
       
-      // Create a system program transfer for the mint fee
+      // Create a system program transfer for the mint fee (Analos blockchain)
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: userWallet,
         toPubkey: new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'), // Platform wallet
-        lamports: Math.floor(mintPrice * 1e9) // Convert to lamports (assuming LOS = SOL for now)
+        lamports: Math.floor(mintPrice * 1e9) // Convert to lamports (LOS on Analos blockchain)
       });
       
       transaction.add(transferInstruction);
@@ -196,9 +196,10 @@ export async function POST(request: NextRequest) {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
       
-      console.log('📝 Transaction prepared for user signing');
-      console.log('💰 Mint fee:', mintPrice, 'LOS');
+      console.log('📝 Transaction prepared for user signing on Analos blockchain');
+      console.log('💰 Mint fee:', mintPrice, 'LOS (Analos token)');
       console.log('🎯 Platform wallet:', '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+      console.log('⛓️ Blockchain: Analos Mainnet');
       
       mintResult = {
         mintAddress,
