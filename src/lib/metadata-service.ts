@@ -79,7 +79,7 @@ export class MetadataService {
             },
           ],
           category: 'image',
-          creators: [],
+          creators: [] as any[],
         },
       };
 
