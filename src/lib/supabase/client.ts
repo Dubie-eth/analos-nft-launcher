@@ -82,7 +82,7 @@ function createSupabaseClient() {
           detectSessionInUrl: false,
           flowType: 'pkce'
         },
-    global: { headers: { 'x-client-type': 'user', 'x-instance-id': Date.now().toString() } }
+    global: { headers: { 'x-client-type': 'user', 'x-instance-id': 'analos-singleton' } }
   });
 
   // Store globally to prevent multiple instances
@@ -122,7 +122,7 @@ function createSupabaseAdminClient() {
 
   supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
-    global: { headers: { 'x-client-type': 'admin', 'x-instance-id': Date.now().toString() } }
+    global: { headers: { 'x-client-type': 'admin', 'x-instance-id': 'analos-admin-singleton' } }
   });
 
   // Store globally to prevent multiple instances
