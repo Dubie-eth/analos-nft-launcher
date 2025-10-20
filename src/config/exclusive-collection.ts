@@ -127,12 +127,12 @@ export const EXCLUSIVE_COLLECTION_CONFIG = {
   
   // Launch Schedule
   launchSchedule: {
-    snapshotDate: null, // Will be set when LOL snapshot is taken
-    whitelistStart: null, // 24-hour whitelist window
-    whitelistEnd: null,
-    publicSaleStart: null, // Public sale begins after whitelist
-    revealDate: null, // Reveal after 1,900 NFTs minted
-    platformReserveMint: null // After public sale completes
+    snapshotDate: null as Date | null, // Will be set when LOL snapshot is taken
+    whitelistStart: null as Date | null, // 24-hour whitelist window
+    whitelistEnd: null as Date | null,
+    publicSaleStart: null as Date | null, // Public sale begins after whitelist
+    revealDate: null as Date | null, // Reveal after 1,900 NFTs minted
+    platformReserveMint: null as Date | null // After public sale completes
   },
   
   // Metadata Configuration
