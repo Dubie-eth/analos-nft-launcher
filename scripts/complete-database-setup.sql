@@ -80,12 +80,26 @@ CREATE TABLE IF NOT EXISTS public.profile_nft_mint_counter (
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   wallet_address TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE NOT NULL,
   role TEXT NOT NULL DEFAULT 'admin',
   permissions JSONB DEFAULT '{}',
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
+
+-- Add missing columns to existing admin_users table if needed
+DO $$ 
+BEGIN
+    -- Add username column if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'admin_users' 
+                   AND column_name = 'username') THEN
+        ALTER TABLE public.admin_users 
+        ADD COLUMN username TEXT UNIQUE;
+        RAISE NOTICE 'Added username column to admin_users';
+    END IF;
+END $$;
 
 -- =====================================================
 -- 5. FEATURE FLAGS TABLE
@@ -182,27 +196,34 @@ DROP POLICY IF EXISTS "Allow all operations on user_profiles" ON public.user_pro
 
 DROP POLICY IF EXISTS "Public can view profile NFTs" ON public.profile_nfts;
 DROP POLICY IF EXISTS "Users can create profile NFTs" ON public.profile_nfts;
+DROP POLICY IF EXISTS "Allow all operations on profile_nfts" ON public.profile_nfts;
 
 DROP POLICY IF EXISTS "Public can view mint counter" ON public.profile_nft_mint_counter;
 DROP POLICY IF EXISTS "Public can update mint counter" ON public.profile_nft_mint_counter;
+DROP POLICY IF EXISTS "Allow all operations on profile_nft_mint_counter" ON public.profile_nft_mint_counter;
 
 DROP POLICY IF EXISTS "Public can view admin users" ON public.admin_users;
 DROP POLICY IF EXISTS "Admins can manage admin users" ON public.admin_users;
+DROP POLICY IF EXISTS "Allow all operations on admin_users" ON public.admin_users;
 
 DROP POLICY IF EXISTS "Public can view feature flags" ON public.feature_flags;
 DROP POLICY IF EXISTS "Admins can manage feature flags" ON public.feature_flags;
+DROP POLICY IF EXISTS "Allow all operations on feature_flags" ON public.feature_flags;
 
 DROP POLICY IF EXISTS "Public can view page access config" ON public.page_access_config;
 DROP POLICY IF EXISTS "Admins can manage page access config" ON public.page_access_config;
+DROP POLICY IF EXISTS "Allow all operations on page_access_config" ON public.page_access_config;
 
 DROP POLICY IF EXISTS "Users can view their own social verification" ON public.social_verification;
 DROP POLICY IF EXISTS "Users can create their own social verification" ON public.social_verification;
 DROP POLICY IF EXISTS "Users can update their own social verification" ON public.social_verification;
+DROP POLICY IF EXISTS "Allow all operations on social_verification" ON public.social_verification;
 
 DROP POLICY IF EXISTS "Users can view their own collections" ON public.saved_collections;
 DROP POLICY IF EXISTS "Users can create their own collections" ON public.saved_collections;
 DROP POLICY IF EXISTS "Users can update their own collections" ON public.saved_collections;
 DROP POLICY IF EXISTS "Public can view public collections" ON public.saved_collections;
+DROP POLICY IF EXISTS "Allow all operations on saved_collections" ON public.saved_collections;
 
 -- Create new permissive policies for development/testing
 -- NOTE: These are permissive policies for development. 
@@ -349,9 +370,9 @@ VALUES (1, 0)
 ON CONFLICT DO NOTHING;
 
 -- Insert default admin users (replace with your actual admin wallet addresses)
-INSERT INTO public.admin_users (wallet_address, role, permissions) VALUES
-  ('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', 'admin', '{"all": true}'),
-  ('89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m', 'admin', '{"all": true}')
+INSERT INTO public.admin_users (wallet_address, username, role, permissions) VALUES
+  ('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', 'admin1', 'admin', '{"all": true}'),
+  ('89fmJapCVaosMHh5fHcoeeC9vkuvrjH8xLnicbtCnt5m', 'admin2', 'admin', '{"all": true}')
 ON CONFLICT (wallet_address) DO NOTHING;
 
 -- Insert default feature flags
