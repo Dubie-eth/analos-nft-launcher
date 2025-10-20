@@ -4,14 +4,44 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@coral-xyz/anchor';
-import { BlockchainProfile, BlockchainProfileService } from '@/lib/blockchain-profile-service';
-import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
-import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 
-// Initialize connection and program
-const connection = new Connection(ANALOS_RPC_URL);
+// Wrap imports in try-catch to handle any import errors
+let Connection, PublicKey, Keypair, Program, AnchorProvider;
+let BlockchainProfile, BlockchainProfileService;
+let supabaseAdmin, isSupabaseConfigured;
+let ANALOS_PROGRAMS, ANALOS_RPC_URL;
+let connection;
+
+try {
+  const solanaWeb3 = require('@solana/web3.js');
+  Connection = solanaWeb3.Connection;
+  PublicKey = solanaWeb3.PublicKey;
+  Keypair = solanaWeb3.Keypair;
+  
+  const anchor = require('@coral-xyz/anchor');
+  Program = anchor.Program;
+  AnchorProvider = anchor.AnchorProvider;
+  
+  const blockchainProfileService = require('@/lib/blockchain-profile-service');
+  BlockchainProfile = blockchainProfileService.BlockchainProfile;
+  BlockchainProfileService = blockchainProfileService.BlockchainProfileService;
+  
+  const supabaseClient = require('@/lib/supabase/client');
+  supabaseAdmin = supabaseClient.supabaseAdmin;
+  isSupabaseConfigured = supabaseClient.isSupabaseConfigured;
+  
+  const analosPrograms = require('@/config/analos-programs');
+  ANALOS_PROGRAMS = analosPrograms.ANALOS_PROGRAMS;
+  ANALOS_RPC_URL = analosPrograms.ANALOS_RPC_URL;
+  
+  // Initialize connection and program
+  connection = new Connection(ANALOS_RPC_URL);
+  
+  console.log('✅ All imports successful');
+} catch (importError) {
+  console.error('❌ Import error:', importError);
+  console.error('❌ Import error stack:', importError instanceof Error ? importError.stack : 'No stack trace');
+}
 
 // GET - Fetch blockchain profile
 export async function GET(
@@ -104,6 +134,25 @@ export async function POST(
 ) {
   try {
     console.log('🔍 POST /api/blockchain-profiles/[walletAddress] - Starting request');
+    
+    // Check if imports were successful
+    if (!Connection || !PublicKey || !supabaseAdmin) {
+      console.error('❌ Import check failed - missing required modules');
+      return NextResponse.json(
+        { 
+          error: 'Server configuration error', 
+          details: 'Required modules not loaded properly',
+          missingModules: {
+            Connection: !!Connection,
+            PublicKey: !!PublicKey,
+            supabaseAdmin: !!supabaseAdmin,
+            isSupabaseConfigured: !!isSupabaseConfigured
+          }
+        },
+        { status: 500 }
+      );
+    }
+    
     const { walletAddress } = await params;
     console.log('🔍 Wallet address:', walletAddress);
     
