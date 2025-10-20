@@ -80,8 +80,8 @@ function createSupabaseAdminClient() {
 }
 
 // Lazy client creation to prevent multiple instances
-let _supabase: ReturnType<typeof createClient> | null = null;
-let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
+let _supabase: ReturnType<typeof createSupabaseClient> | null = null;
+let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | null = null;
 
 // Client for user operations (with RLS) - lazy getter
 export function getSupabase() {
