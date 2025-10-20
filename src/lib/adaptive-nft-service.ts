@@ -553,7 +553,20 @@ class AdaptiveNFTService {
         mood: analysis.personality.mood
       })
     });
-
+    if (!response.ok) {
+      let detail = response.statusText;
+      try {
+        const err = await response.json();
+        if (err && err.error === 'ERROR_BAD_REQUEST' && err.details) {
+          const fieldErrors = err.details.additionalInfo?.fieldErrors;
+          const fields = fieldErrors ? Object.entries(fieldErrors).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
+          detail = `${err.details.detail}${fields ? ` (${fields})` : ''}`;
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(`Adaptive image generation failed (${response.status}): ${detail}`);
+    }
     const data = await response.json();
     return data.imageUrl;
   }
@@ -570,7 +583,20 @@ class AdaptiveNFTService {
         style: `${analysis.personality.style} ${analysis.personality.mood} adaptation`
       })
     });
-
+    if (!response.ok) {
+      let detail = response.statusText;
+      try {
+        const err = await response.json();
+        if (err && err.error === 'ERROR_BAD_REQUEST' && err.details) {
+          const fieldErrors = err.details.additionalInfo?.fieldErrors;
+          const fields = fieldErrors ? Object.entries(fieldErrors).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
+          detail = `${err.details.detail}${fields ? ` (${fields})` : ''}`;
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(`Adaptive video generation failed (${response.status}): ${detail}`);
+    }
     const data = await response.json();
     return data.videoUrl;
   }

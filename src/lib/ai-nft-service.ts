@@ -178,7 +178,19 @@ class AINFTService {
     });
 
     if (!response.ok) {
-      throw new Error(`Image generation failed: ${response.statusText}`);
+      // Try to parse structured error
+      let detail = response.statusText;
+      try {
+        const err = await response.json();
+        if (err && err.error === 'ERROR_BAD_REQUEST' && err.details) {
+          const fieldErrors = err.details.additionalInfo?.fieldErrors;
+          const fields = fieldErrors ? Object.entries(fieldErrors).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
+          detail = `${err.details.detail}${fields ? ` (${fields})` : ''}`;
+        }
+      } catch {
+        // ignore json parse failure
+      }
+      throw new Error(`Image generation failed (${response.status}): ${detail}`);
     }
 
     const data = await response.json();
@@ -205,7 +217,18 @@ class AINFTService {
     });
 
     if (!response.ok) {
-      throw new Error(`Video generation failed: ${response.statusText}`);
+      let detail = response.statusText;
+      try {
+        const err = await response.json();
+        if (err && err.error === 'ERROR_BAD_REQUEST' && err.details) {
+          const fieldErrors = err.details.additionalInfo?.fieldErrors;
+          const fields = fieldErrors ? Object.entries(fieldErrors).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
+          detail = `${err.details.detail}${fields ? ` (${fields})` : ''}`;
+        }
+      } catch {
+        // ignore json parse failure
+      }
+      throw new Error(`Video generation failed (${response.status}): ${detail}`);
     }
 
     const data = await response.json();
