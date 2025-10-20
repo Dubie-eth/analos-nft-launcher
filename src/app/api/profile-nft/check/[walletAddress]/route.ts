@@ -26,6 +26,16 @@ export async function GET(
     console.log('🔍 Supabase configured:', isSupabaseConfigured);
     console.log('🔍 Supabase admin available:', !!supabaseAdmin);
 
+    // For now, always return mock response to avoid database issues
+    console.log('⚠️ Using mock response for testing');
+    return NextResponse.json({
+      hasNFT: false,
+      nft: null,
+      message: 'Mock response - database integration pending'
+    });
+
+    // TODO: Re-enable database integration once tables are created
+    /*
     if (!isSupabaseConfigured) {
       console.log('⚠️ Database not configured, returning mock response');
       return NextResponse.json({
@@ -59,6 +69,7 @@ export async function GET(
       hasNFT: !!nft,
       nft: nft || null
     });
+    */
 
   } catch (error) {
     console.error('Error in GET /api/profile-nft/check/[walletAddress]:', error);

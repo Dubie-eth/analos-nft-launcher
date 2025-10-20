@@ -12,9 +12,20 @@ export async function GET() {
     console.log('🔍 Supabase configured:', isSupabaseConfigured);
     console.log('🔍 Supabase admin available:', !!supabaseAdmin);
     
+    // For now, always return mock counter to avoid database issues
+    console.log('⚠️ Using mock counter for testing');
+    return NextResponse.json({
+      success: true,
+      currentMintNumber: 1,
+      totalMinted: 0,
+      nextMintNumber: 1,
+      message: 'Mock counter - database integration pending'
+    });
+
+    // TODO: Re-enable database integration once tables are created
+    /*
     if (!isSupabaseConfigured || !supabaseAdmin) {
       console.log('⚠️ Database not configured, returning mock counter');
-      // Return mock counter if database not configured
       return NextResponse.json({
         success: true,
         currentMintNumber: 1,
@@ -46,6 +57,7 @@ export async function GET() {
       totalMinted: currentCounter,
       nextMintNumber
     });
+    */
 
   } catch (error) {
     console.error('Error in GET /api/profile-nft/mint-counter:', error);
@@ -60,8 +72,18 @@ export async function POST(request: NextRequest) {
   try {
     const { increment } = await request.json();
 
+    // For now, always return mock increment to avoid database issues
+    console.log('⚠️ Using mock increment for testing');
+    return NextResponse.json({
+      success: true,
+      newMintNumber: 1,
+      totalMinted: 1,
+      message: 'Mock increment successful - database integration pending'
+    });
+
+    // TODO: Re-enable database integration once tables are created
+    /*
     if (!isSupabaseConfigured || !supabaseAdmin) {
-      // Return mock increment if database not configured
       return NextResponse.json({
         success: true,
         newMintNumber: 1,
@@ -129,6 +151,7 @@ export async function POST(request: NextRequest) {
       totalMinted: newMintNumber,
       message: 'Mint counter incremented successfully'
     });
+    */
 
   } catch (error) {
     console.error('Error in POST /api/profile-nft/mint-counter:', error);

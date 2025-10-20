@@ -71,6 +71,30 @@ export async function POST(request: NextRequest) {
       mintPrice
     };
 
+    // For now, create a mock mint result to test the flow
+    console.log('⚠️ Using mock minting for testing - blockchain integration pending');
+    
+    const mockMintResult = {
+      mintAddress: new PublicKey(generateMockMintAddress()),
+      signature: generateMockMintAddress(),
+      metadata: {
+        name: `${displayName || username}'s Profile Card`,
+        description: `Profile card for ${displayName || username} - Part of the Analos Profile Cards Master Open Edition`,
+        image: avatarUrl || '',
+        attributes: [
+          { trait_type: 'Collection', value: 'Analos Profile Cards' },
+          { trait_type: 'Type', value: 'Master Open Edition' },
+          { trait_type: 'Username', value: username },
+          { trait_type: 'Referral Code', value: finalReferralCode },
+          { trait_type: 'Twitter Verified', value: twitterVerified ? 'Yes' : 'No' }
+        ]
+      }
+    };
+
+    const mintResult = mockMintResult;
+
+    // TODO: Re-enable real blockchain minting once properly configured
+    /*
     // Initialize the Analos NFT minting service
     const nftService = new AnalosNFTMintingService();
     
@@ -108,9 +132,14 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+    */
 
     const explorerUrl = ANALOS_EXPLORER_URLS.NFT_LAUNCHPAD;
 
+    // TODO: Re-enable database storage once tables are created
+    console.log('⚠️ Skipping database storage - database integration pending');
+    
+    /*
     // Store NFT data in database
     if (isSupabaseConfigured && supabaseAdmin) {
       try {
@@ -163,6 +192,7 @@ export async function POST(request: NextRequest) {
         // Don't fail the request, NFT minting was successful
       }
     }
+    */
 
     // Generate social sharing URLs
     const nftGenerator = new ProfileNFTGenerator(connection);
