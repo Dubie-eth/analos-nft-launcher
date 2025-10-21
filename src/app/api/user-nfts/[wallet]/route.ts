@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Define types for NFT data
+interface NFTData {
+  wallet: string;
+  nfts: any[];
+  total: number;
+  collections: any[];
+  message: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ wallet: string }> }
@@ -24,7 +33,7 @@ export async function GET(
 
     // For now, return empty array since we don't have NFT data yet
     // This will be implemented when we have actual NFT data from the blockchain
-    const userNFTs = {
+    const userNFTs: NFTData = {
       wallet,
       nfts: [],
       total: 0,
