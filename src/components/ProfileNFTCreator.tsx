@@ -6,12 +6,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ProfileNFTData } from '@/lib/profile-nft-generator';
 import { Loader2, CheckCircle, XCircle, Twitter, Share2, ExternalLink, Coins, Zap } from 'lucide-react';
 import NFTMintCelebration from './NFTMintCelebration';
 import ProfileCardPreview from './ProfileCardPreview';
+import { Transaction, SystemProgram, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 
 interface ProfileNFTCreatorProps {
   profileData?: {
@@ -33,7 +35,8 @@ export default function ProfileNFTCreator({
   onNFTCreated, 
   onClose 
 }: ProfileNFTCreatorProps) {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const { theme } = useTheme();
   
   const [loading, setLoading] = useState(false);
@@ -209,7 +212,23 @@ export default function ProfileNFTCreator({
       console.log('📝 Profile data:', profileData);
       console.log('💰 Mint price:', mintPrice, 'LOS');
       
-      // Call the API to prepare the transaction
+      // 1) Prompt wallet to pay the mint fee to platform treasury
+      const priceLos = pricingInfo?.price ?? mintPrice;
+      const lamports = Math.floor(priceLos * LAMPORTS_PER_SOL);
+      const transferTx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey as PublicKey,
+          toPubkey: ANALOS_PLATFORM_WALLET,
+          lamports,
+        })
+      );
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      transferTx.recentBlockhash = blockhash;
+      transferTx.feePayer = publicKey as PublicKey;
+      const paymentSignature = await sendTransaction(transferTx, connection, { skipPreflight: false });
+      await connection.confirmTransaction({ signature: paymentSignature, blockhash, lastValidBlockHeight }, 'confirmed');
+
+      // 2) Call the API to mint the NFT, providing the payment signature for verification
       const response = await fetch('/api/profile-nft/mint', {
         method: 'POST',
         headers: {
@@ -218,10 +237,12 @@ export default function ProfileNFTCreator({
         body: JSON.stringify({
           walletAddress: publicKey.toString(),
           ...profileData,
-          mintPrice,
+          mintPrice: priceLos,
           mintNumber: mintNumber,
           variant: determinedVariant,
-          mfpurrsBackground: mfpurrsBackground
+          mfpurrsBackground: mfpurrsBackground,
+          paymentSignature,
+          paymentAmountLamports: lamports
         })
       });
 

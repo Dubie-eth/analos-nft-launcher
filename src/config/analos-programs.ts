@@ -129,6 +129,11 @@ export const ANALOS_PROGRAMS = {
 export const ANALOS_RPC_URL = 'https://rpc.analos.io';
 
 /**
+ * Platform treasury wallet (receives mint fees)
+ */
+export const ANALOS_PLATFORM_WALLET = new PublicKey('86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+
+/**
  * Program IDs as strings (for display/logging)
  */
 export const ANALOS_PROGRAM_IDS = {

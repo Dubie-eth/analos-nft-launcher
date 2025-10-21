@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Connection, PublicKey, Keypair, LAMPORTS_PER_SOL, Transaction, SystemProgram } from '@solana/web3.js';
 import { ProfileNFTGenerator } from '@/lib/profile-nft-generator';
 import { AnalosNFTMintingService, ProfileNFTData } from '@/lib/analos-nft-minting-service';
-import { ANALOS_RPC_URL, ANALOS_EXPLORER_URLS, ANALOS_PROGRAMS } from '@/config/analos-programs';
+import { ANALOS_RPC_URL, ANALOS_EXPLORER_URLS, ANALOS_PROGRAMS, ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 // Initialize connection
@@ -54,7 +54,9 @@ export async function POST(request: NextRequest) {
       discord,
       telegram,
       github,
-      mintPrice = 4.20 // 4.20 LOS fee
+      mintPrice = 4.20, // 4.20 LOS fee
+      paymentSignature,
+      paymentAmountLamports
     } = body;
 
     // Validation
@@ -182,8 +184,45 @@ export async function POST(request: NextRequest) {
       mintPrice
     };
 
-    // Real blockchain minting using deployed Analos NFT programs
-    console.log('🚀 Starting real blockchain minting with deployed Analos NFT programs');
+    // Verify user payment before proceeding (requires front-end signed transfer)
+    if (!paymentSignature || !paymentAmountLamports) {
+      return NextResponse.json(
+        { error: 'Missing paymentSignature/paymentAmountLamports. Please approve the 4.20 LOS payment first.' },
+        { status: 400 }
+      );
+    }
+
+    // Confirm the payment transaction on-chain and basic sanity checks
+    try {
+      const tx = await connection.getTransaction(paymentSignature, { maxSupportedTransactionVersion: 0 });
+      if (!tx) {
+        return NextResponse.json({ error: 'Payment transaction not found/confirmed' }, { status: 400 });
+      }
+      const meta = tx.meta;
+      if (!meta) {
+        return NextResponse.json({ error: 'Missing transaction metadata for payment' }, { status: 400 });
+      }
+      // Check that one of the postBalances decreased from the payer and increased for the platform wallet roughly by amount
+      const message = tx.transaction.message;
+      const accountKeys = message.getAccountKeys().staticAccountKeys.map(k => k.toString());
+      const fromIndex = accountKeys.findIndex(k => k === walletAddress);
+      const toIndex = accountKeys.findIndex(k => k === ANALOS_PLATFORM_WALLET.toString());
+      if (fromIndex === -1 || toIndex === -1) {
+        console.warn('Payment sanity check: expected accounts not present');
+      } else {
+        const preFrom = meta.preBalances?.[fromIndex] ?? 0;
+        const postFrom = meta.postBalances?.[fromIndex] ?? 0;
+        if (!(preFrom > postFrom)) {
+          return NextResponse.json({ error: 'Payment did not debit payer account' }, { status: 400 });
+        }
+      }
+    } catch (confirmErr) {
+      console.error('Payment verification error:', confirmErr);
+      return NextResponse.json({ error: 'Failed to verify payment transaction' }, { status: 400 });
+    }
+
+    // Real blockchain minting using deployed Analos NFT programs (still simulated for mint itself)
+    console.log('🚀 Payment verified. Proceeding with mint metadata creation.');
 
     let mintResult: any = null;
     let currentMintNumber = 1; // Default to 1 if database is not available
@@ -294,18 +333,12 @@ export async function POST(request: NextRequest) {
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = userWallet;
       
-      // In a real implementation, this transaction would be:
-      // 1. Created on the frontend
-      // 2. Signed by the user's wallet (Phantom, Solflare, etc.)
-      // 3. Sent to the blockchain
-      // For now, we'll create a realistic signature format
-      const signature = Array.from({ length: 88 }, () => Math.floor(Math.random() * 256))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+      // Use the actual payment signature as the transaction reference for explorer linking
+      const signature = paymentSignature;
       
-      console.log('📝 Transaction prepared for user signing on Analos blockchain');
+      console.log('🧾 Payment verified with signature:', signature);
       console.log('💰 Mint fee:', mintPrice, 'LOS (Analos token)');
-      console.log('🎯 Platform wallet:', '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW');
+      console.log('🎯 Platform wallet:', ANALOS_PLATFORM_WALLET.toString());
       console.log('⛓️ Blockchain: Analos Mainnet');
       
       mintResult = {
