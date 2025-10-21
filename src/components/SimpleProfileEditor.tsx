@@ -101,27 +101,37 @@ export default function SimpleProfileEditor({
     }
   };
 
-  // Check if username is available
+  // Check if username is available via on-chain oracle API
   const checkUsernameAvailability = async (username: string): Promise<boolean> => {
-    if (!username.trim()) return false;
-    
+    const candidate = (username || '').trim();
+    if (!candidate) return false;
+
     try {
-      // Check in user_profiles table
-      const profileResponse = await fetch(`/api/blockchain-profiles/${username}`);
-      if (profileResponse.ok) {
-        return false; // Username exists
+      const response = await fetch(`/api/blockchain-profiles/validate-username/${candidate}`);
+      const data = await response.json();
+
+      // Handle network/server errors gracefully
+      if (!response.ok) {
+        setError(data?.message || data?.error || 'Failed to validate username');
+        return false;
       }
-      
-      // Check in profile_nfts table
-      const nftResponse = await fetch(`/api/profile-nft/check/${username}`);
-      if (nftResponse.ok) {
-        return false; // Username exists as NFT
+
+      // Enforce format rules and availability from oracle
+      if (!data.valid) {
+        setError(data.message || 'Invalid username');
+        return false;
       }
-      
-      return true; // Username is available
+
+      if (!data.available) {
+        setError(data.message || `Username "${candidate}" is already taken. Please choose a different username.`);
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error checking username availability:', error);
-      return true; // Allow if check fails
+      setError('Error validating username. Please try again.');
+      return false;
     }
   };
 
@@ -181,12 +191,9 @@ export default function SimpleProfileEditor({
       return;
     }
 
-    // Check if username is available
+    // Check if username is available (oracle + rules)
     const isUsernameAvailable = await checkUsernameAvailability(formData.username);
-    if (!isUsernameAvailable) {
-      setError(`Username "${formData.username}" is already taken. Please choose a different username.`);
-      return;
-    }
+    if (!isUsernameAvailable) return;
 
     setLoading(true);
     setError(null);

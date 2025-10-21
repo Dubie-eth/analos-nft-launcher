@@ -57,22 +57,37 @@ export async function GET(
 }
 
 function validateUsernameFormat(username: string): { valid: boolean; message?: string } {
-  const normalized = username.toLowerCase();
+  const normalized = username.toLowerCase().trim();
 
-  // Check length
-  if (normalized.length < USERNAME_RULES.minLength) {
-    return { valid: false, message: `Username must be at least ${USERNAME_RULES.minLength} characters long` };
+  // Length: 3-20
+  if (normalized.length < 3) {
+    return { valid: false, message: 'Username must be at least 3 characters long' };
   }
-  if (normalized.length > USERNAME_RULES.maxLength) {
-    return { valid: false, message: `Username must be ${USERNAME_RULES.maxLength} characters or less` };
-  }
-
-  // Check pattern
-  if (!USERNAME_RULES.pattern.test(normalized)) {
-    return { valid: false, message: 'Username can only contain letters, numbers, underscores, and hyphens. Cannot start or end with special characters.' };
+  if (normalized.length > 20) {
+    return { valid: false, message: 'Username must be 20 characters or less' };
   }
 
-  // Check reserved names
+  // Start with letter or number
+  if (!/^[a-zA-Z0-9]/.test(normalized)) {
+    return { valid: false, message: 'Username must start with a letter or number' };
+  }
+
+  // Allowed characters only
+  if (!/^[a-zA-Z0-9_-]+$/.test(normalized)) {
+    return { valid: false, message: 'Username can only contain letters, numbers, underscores, and hyphens' };
+  }
+
+  // Cannot end with underscore or hyphen
+  if (/_$|-$/.test(normalized)) {
+    return { valid: false, message: 'Username cannot end with an underscore or hyphen' };
+  }
+
+  // No consecutive underscores or hyphens
+  if (/[_-]{2,}/.test(normalized)) {
+    return { valid: false, message: 'Username cannot have consecutive underscores or hyphens' };
+  }
+
+  // Reserved names
   if (USERNAME_RULES.reserved.includes(normalized)) {
     return { valid: false, message: 'This username is reserved and cannot be used' };
   }
