@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@solana/web3.js'],
   outputFileTracingRoot: __dirname,
   
-  // Railway-specific configuration
-  experimental: {
-    outputFileTracingRoot: __dirname,
-  },
-  
   // Ensure proper webpack configuration for Railway
   webpack: (config, { isServer }) => {
     // Fix for Railway build issues
