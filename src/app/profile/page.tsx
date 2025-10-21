@@ -7,6 +7,7 @@ import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 // import CompleteProfileManager from '@/components/CompleteProfileManager'; // Temporarily disabled to fix build
 import PublicProfileDisplay from '@/components/PublicProfileDisplay';
 import SimpleProfileEditor from '@/components/SimpleProfileEditor';
+import NFTCard from '@/components/NFTCard';
 import { getFreshExample } from '@/lib/wallet-examples';
 
 interface UserNFT {
@@ -111,12 +112,31 @@ export default function ProfilePage() {
         const balance = await connection.getBalance(publicKey);
         setSolBalance(balance / LAMPORTS_PER_SOL);
 
-        // Load user NFTs
-        const nftAccounts = await connection.getTokenAccountsByOwner(publicKey, {
-          programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
-        });
-
-        console.log('📊 Found', nftAccounts.value.length, 'potential NFTs for user');
+        console.log('🔍 Loading user NFTs from API...');
+        
+        // Load user NFTs from API
+        try {
+          const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
+          const nftsData = await nftsResponse.json();
+          
+          if (nftsData.nfts && nftsData.nfts.length > 0) {
+            console.log(`✅ Loaded ${nftsData.nfts.length} NFTs from blockchain`);
+            setUiNFTs(nftsData.nfts.map((nft: any) => ({
+              mint: nft.mint,
+              collection: nft.collectionName || 'Unknown Collection',
+              name: nft.name || 'Unnamed NFT',
+              image: nft.uri || '/api/placeholder/400/400',
+              collectionAddress: nft.collectionAddress,
+              description: nft.description
+            })));
+          } else {
+            console.log('ℹ️ No NFTs found for this wallet');
+            setUiNFTs([]);
+          }
+        } catch (error) {
+          console.error('❌ Error loading NFTs:', error);
+          setUiNFTs([]);
+        }
 
         // Load collections from blockchain
         console.log('📦 Loading collections from blockchain...');
@@ -133,10 +153,6 @@ export default function ProfilePage() {
           console.error('❌ Error loading collections:', error);
           setUiCollections([]);
         }
-
-        // Process NFTs (this would need to be implemented based on your program structure)
-        setUiNFTs([]);
-        console.log('✅ Processed', 0, 'NFTs from our program');
 
         // Load saved collections
         const collectionsResponse = await fetch(`/api/collections/save?userWallet=${publicKey.toString()}`);
@@ -347,31 +363,66 @@ export default function ProfilePage() {
 
           {activeTab === 'nfts' && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">My NFTs</h2>
-              {uiNFTs.length > 0 ? (
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">My NFTs</h2>
+                <button
+                  onClick={() => {
+                    // Reload NFTs
+                    if (publicKey) {
+                      fetch(`/api/user-nfts/${publicKey.toString()}`)
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.nfts && data.nfts.length > 0) {
+                            setUiNFTs(data.nfts.map((nft: any) => ({
+                              mint: nft.mint,
+                              collection: nft.collectionName || 'Unknown Collection',
+                              name: nft.name || 'Unnamed NFT',
+                              image: nft.uri || '/api/placeholder/400/400',
+                              collectionAddress: nft.collectionAddress,
+                              description: nft.description
+                            })));
+                          }
+                        });
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors text-sm"
+                >
+                  🔄 Refresh
+                </button>
+              </div>
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-300">Loading your NFTs...</p>
+                </div>
+              ) : uiNFTs.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {uiNFTs.map((nft) => (
-                    <div key={nft.mint} className="bg-white/5 rounded-lg overflow-hidden border border-white/10">
-                      <img 
-                        src={nft.image} 
-                        alt={nft.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="p-4">
-                        <h3 className="text-white font-semibold mb-1">{nft.name}</h3>
-                        <p className="text-gray-300 text-sm mb-2">{nft.collection}</p>
-                        {nft.price && (
-                          <div className="text-white font-medium">${nft.price.toLocaleString()}</div>
-                        )}
-                      </div>
-                    </div>
+                    <NFTCard
+                      key={nft.mint}
+                      nft={{
+                        mint: nft.mint,
+                        name: nft.name,
+                        image: nft.image,
+                        collectionName: nft.collection,
+                        collectionAddress: (nft as any).collectionAddress,
+                        description: (nft as any).description
+                      }}
+                      showListButton={true}
+                      onListed={() => {
+                        alert('NFT has been listed! View it on the marketplace.');
+                      }}
+                    />
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">🎨</div>
                   <h3 className="text-xl font-semibold text-white mb-2">No NFTs Yet</h3>
-                  <p className="text-gray-300">Start collecting NFTs to see them here!</p>
+                  <p className="text-gray-300 mb-4">Start collecting NFTs to see them here!</p>
+                  <p className="text-gray-400 text-sm">
+                    NFTs you mint or purchase will appear here. Make sure you've minted from a collection!
+                  </p>
                 </div>
               )}
             </div>

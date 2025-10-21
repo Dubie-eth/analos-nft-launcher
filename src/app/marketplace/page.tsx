@@ -59,6 +59,9 @@ export default function MarketplacePage() {
   const [filterBy, setFilterBy] = useState<'all' | 'active' | 'minting' | 'revealed' | 'whitelist'>('all');
   const [minting, setMinting] = useState<{ [key: string]: boolean }>({});
   const [losPrice, setLosPrice] = useState<number>(0);
+  const [marketTab, setMarketTab] = useState<'collections' | 'listings'>('collections');
+  const [listings, setListings] = useState<any[]>([]);
+  const [buying, setBuying] = useState<{ [key: string]: boolean }>({});
 
   // Load collections from smart contract
   useEffect(() => {
@@ -149,6 +152,27 @@ export default function MarketplacePage() {
 
     loadLOSPrice();
   }, []);
+
+  // Load marketplace listings
+  useEffect(() => {
+    const loadListings = async () => {
+      try {
+        const response = await fetch('/api/marketplace/listings');
+        const data = await response.json();
+        
+        if (data.success) {
+          setListings(data.listings);
+          console.log(`✅ Loaded ${data.listings.length} marketplace listings`);
+        }
+      } catch (error) {
+        console.error('❌ Error loading listings:', error);
+      }
+    };
+
+    if (marketTab === 'listings') {
+      loadListings();
+    }
+  }, [marketTab]);
 
   // Filter and sort collections
   const filteredCollections = collections
@@ -352,7 +376,34 @@ export default function MarketplacePage() {
           </div>
         </div>
 
+        {/* Market Tabs */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => setMarketTab('collections')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                marketTab === 'collections'
+                  ? 'bg-white text-gray-900 shadow-lg'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              🚀 Primary Market (Mint)
+            </button>
+            <button
+              onClick={() => setMarketTab('listings')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                marketTab === 'listings'
+                  ? 'bg-white text-gray-900 shadow-lg'
+                  : 'text-white hover:bg-white/10'
+              }`}
+            >
+              💰 Secondary Market ({listings.length})
+            </button>
+          </div>
+        </div>
+
         {/* Filters and Search */}
+        {marketTab === 'collections' && (
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
@@ -395,8 +446,10 @@ export default function MarketplacePage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Collections Grid */}
+        {marketTab === 'collections' && (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCollections.map((collection) => (
             <div key={collection.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-200">
@@ -498,6 +551,153 @@ export default function MarketplacePage() {
             >
               🚀 Launch Collection
             </Link>
+          </div>
+        )}
+        )}
+
+        {/* Secondary Market Listings */}
+        {marketTab === 'listings' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                Listed NFTs ({listings.length})
+              </h2>
+              <button
+                onClick={() => {
+                  fetch('/api/marketplace/listings')
+                    .then(res => res.json())
+                    .then(data => {
+                      if (data.success) {
+                        setListings(data.listings);
+                      }
+                    });
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+              >
+                🔄 Refresh
+              </button>
+            </div>
+
+            {listings.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {listings.map((listing) => (
+                  <div key={listing.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-200">
+                    {/* NFT Image */}
+                    <div className="aspect-square bg-gray-800/50 rounded-xl mb-4 overflow-hidden">
+                      {listing.nftImage ? (
+                        <img 
+                          src={listing.nftImage} 
+                          alt={listing.nftName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-6xl">
+                          🎨
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Listing Info */}
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-white mb-1">{listing.nftName}</h3>
+                        <p className="text-gray-300 text-sm">{listing.collectionName}</p>
+                      </div>
+
+                      {/* Price */}
+                      <div className="bg-white/5 rounded-lg p-3">
+                        <div className="text-gray-400 text-sm mb-1">Price</div>
+                        <div className="text-2xl font-bold text-white">{listing.price} LOS</div>
+                        <div className="text-gray-400 text-xs">${(listing.price * losPrice).toFixed(2)} USD</div>
+                      </div>
+
+                      {/* Seller */}
+                      <div className="text-xs text-gray-400">
+                        <span>Seller:</span>
+                        <span className="text-white font-mono ml-1">
+                          {listing.seller.slice(0, 8)}...{listing.seller.slice(-8)}
+                        </span>
+                      </div>
+
+                      {/* Action Button */}
+                      <button
+                        onClick={async () => {
+                          if (!connected || !publicKey) {
+                            alert('Please connect your wallet to buy');
+                            return;
+                          }
+
+                          if (listing.seller === publicKey.toString()) {
+                            alert('You cannot buy your own listing');
+                            return;
+                          }
+
+                          setBuying(prev => ({ ...prev, [listing.id]: true }));
+                          
+                          try {
+                            // In a real implementation, this would create an actual transaction
+                            const signature = 'simulated_tx_' + Date.now();
+                            
+                            const response = await fetch('/api/marketplace/buy', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                listingId: listing.id,
+                                buyer: publicKey.toString(),
+                                signature
+                              })
+                            });
+
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                              alert(`✅ NFT purchased successfully!\nTransaction: ${signature}`);
+                              // Refresh listings
+                              const listingsResponse = await fetch('/api/marketplace/listings');
+                              const listingsData = await listingsResponse.json();
+                              if (listingsData.success) {
+                                setListings(listingsData.listings);
+                              }
+                            } else {
+                              alert(`Failed to purchase: ${data.error}`);
+                            }
+                          } catch (error) {
+                            console.error('Error buying NFT:', error);
+                            alert('Failed to purchase NFT');
+                          } finally {
+                            setBuying(prev => ({ ...prev, [listing.id]: false }));
+                          }
+                        }}
+                        disabled={!connected || buying[listing.id] || (publicKey && listing.seller === publicKey.toString())}
+                        className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white px-4 py-3 rounded-lg font-semibold transition-all duration-200 disabled:cursor-not-allowed"
+                      >
+                        {buying[listing.id] ? (
+                          <div className="flex items-center justify-center">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            Buying...
+                          </div>
+                        ) : publicKey && listing.seller === publicKey.toString() ? (
+                          'Your Listing'
+                        ) : (
+                          `Buy for ${listing.price} LOS`
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">💰</div>
+                <h3 className="text-2xl font-bold text-white mb-2">No Listings Yet</h3>
+                <p className="text-gray-300 mb-6">
+                  Be the first to list an NFT on the marketplace!
+                </p>
+                <p className="text-gray-400 text-sm">
+                  Go to your profile, view your NFTs, and click "List for Sale"
+                </p>
+              </div>
+            )}
           </div>
         )}
 

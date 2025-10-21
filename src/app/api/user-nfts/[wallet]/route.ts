@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Define types for NFT data
-interface NFTData {
-  wallet: string;
-  nfts: any[];
-  total: number;
-  collections: any[];
-  message: string;
-}
+import { blockchainService } from '@/lib/blockchain-service';
 
 export async function GET(
   request: NextRequest,
@@ -31,22 +23,42 @@ export async function GET(
       );
     }
 
-    // For now, return empty array since we don't have NFT data yet
-    // This will be implemented when we have actual NFT data from the blockchain
-    const userNFTs: NFTData = {
-      wallet,
-      nfts: [],
-      total: 0,
-      collections: [],
-      message: 'NFT data will be available when collections are deployed'
+    console.log('🔍 Fetching NFTs for wallet:', wallet);
+
+    // Fetch user NFTs from blockchain
+    const nfts = await blockchainService.getUserNFTs(wallet);
+    
+    console.log(`✅ Found ${nfts.length} NFTs for wallet`);
+
+    // Group by collection
+    const collections = new Map<string, any>();
+    nfts.forEach(nft => {
+      if (nft.collectionAddress) {
+        if (!collections.has(nft.collectionAddress)) {
+          collections.set(nft.collectionAddress, {
+            address: nft.collectionAddress,
+            name: nft.collectionName || 'Unknown Collection',
+            count: 0
+          });
+        }
+        collections.get(nft.collectionAddress)!.count++;
+      }
+    });
+    
+    const response = {
+      wallet: wallet,
+      nfts: nfts,
+      total: nfts.length,
+      collections: Array.from(collections.values()),
+      message: nfts.length > 0 ? 'NFTs loaded successfully' : 'No NFTs found for this wallet'
     };
 
-    return NextResponse.json(userNFTs);
+    return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error fetching user NFTs:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -67,8 +79,6 @@ export async function POST(
       );
     }
 
-    // Handle NFT-related operations
-    // This will be implemented when we have actual NFT functionality
     return NextResponse.json({
       success: true,
       message: 'NFT operation completed',
