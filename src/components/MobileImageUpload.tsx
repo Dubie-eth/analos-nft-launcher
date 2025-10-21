@@ -27,7 +27,7 @@ export default function MobileImageUpload({
   const handleFileSelect = (file: File) => {
     if (file.size > maxSize) {
       const maxSizeMB = Math.round(maxSize / (1024 * 1024));
-      alert(File size must be less than MB);
+      alert('File size must be less than ' + maxSizeMB + 'MB');
       return;
     }
 
