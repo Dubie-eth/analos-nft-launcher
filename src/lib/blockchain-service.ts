@@ -396,40 +396,58 @@ export class BlockchainService {
 
       console.log(`📊 Found ${nfts.length} potential NFTs for user`);
 
-      const userNFTs: NFTMetadata[] = [];
+      const userNFTs: any[] = [];
 
-      // For each NFT, try to get mint record from our program
+      // Get all collections first
+      const collections = await this.getAllCollections();
+      console.log(`📦 Found ${collections.length} collections to check against`);
+
+      // For each NFT token, enrich with metadata
       for (const nft of nfts) {
         try {
           const mintAddress = nft.account.data.parsed.info.mint;
+          console.log(`🔍 Processing NFT mint: ${mintAddress}`);
           
-          // Get all collections to find which one this NFT belongs to
-          const collections = await this.getAllCollections();
+          // Try to find which collection this NFT belongs to
+          let nftCollection = null;
+          let nftIndex = 0;
           
+          // Check each collection to see if this mint belongs to it
           for (const collection of collections) {
-            // Try to derive mint record PDA for each collection
-            // We'd need to know the mint index, so this is a simplified approach
-            // In production, you'd index this data or query by mint address
-            
-            // For now, just create a basic structure
-            userNFTs.push({
-              mint: mintAddress,
-              owner: walletAddress,
-              collectionConfig: collection.address,
-              mintNumber: 0, // Would need to query this
-              isRevealed: collection.isRevealed,
-              rarityScore: 0,
-              tier: 0,
-            });
-            break; // Found the collection, move to next NFT
+            // For now, assume NFTs from our program are part of collections
+            // In a real implementation, you'd query the NFT's metadata or mint record
+            nftCollection = collection;
+            nftIndex = collection.mintedCount; // Approximate
+            break;
           }
+
+          const collectionName = nftCollection?.collectionName || 'Unknown Collection';
+          const collectionAddress = nftCollection?.address || '';
+          
+          // Create enriched NFT object
+          userNFTs.push({
+            mint: mintAddress,
+            owner: walletAddress,
+            collectionConfig: collectionAddress,
+            collectionName: collectionName,
+            name: `${collectionName} #${nftIndex}`,
+            uri: nftCollection?.placeholderUri || '/api/placeholder/400/400',
+            description: `NFT from ${collectionName}`,
+            mintNumber: nftIndex,
+            isRevealed: nftCollection?.isRevealed || false,
+            rarityScore: 0,
+            tier: 0,
+            metadata: {
+              uri: nftCollection?.placeholderUri || '/api/placeholder/400/400'
+            }
+          });
         } catch (nftError) {
           console.error('Error processing NFT:', nftError);
           continue;
         }
       }
 
-      console.log(`✅ Processed ${userNFTs.length} NFTs from our program`);
+      console.log(`✅ Processed ${userNFTs.length} NFTs with metadata`);
       
       // Cache the results
       this.userNFTsCache.set(walletAddress, {
