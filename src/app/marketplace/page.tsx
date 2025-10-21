@@ -450,6 +450,7 @@ export default function MarketplacePage() {
 
         {/* Collections Grid */}
         {marketTab === 'collections' && (
+        <>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCollections.map((collection) => (
             <div key={collection.id} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-200">
@@ -553,6 +554,7 @@ export default function MarketplacePage() {
             </Link>
           </div>
         )}
+        </>
         )}
 
         {/* Secondary Market Listings */}
