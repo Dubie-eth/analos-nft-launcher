@@ -44,7 +44,7 @@ export default function ProfileNFTCreator({
   const [success, setSuccess] = useState(false);
   const [nftData, setNftData] = useState<any>(null);
   const [hasExistingNFT, setHasExistingNFT] = useState(false);
-  const [mintPrice] = useState(4.20); // 4.20 LOS
+  const [mintPrice] = useState(4.20); // Default; dynamic pricing used below
   const [showCelebration, setShowCelebration] = useState(false);
   const [pricingInfo, setPricingInfo] = useState<{
     price: number;
@@ -375,7 +375,7 @@ export default function ProfileNFTCreator({
           </p>
           <div className="flex items-center justify-between">
             <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Mint Price: {mintPrice} LOS
+              Mint Price: {(pricingInfo?.price ?? mintPrice)} LOS
             </span>
             <a
               href={nftData.nft.explorerUrl}
@@ -387,6 +387,18 @@ export default function ProfileNFTCreator({
               View on Explorer
             </a>
           </div>
+          {nftData?.nft?.metadata?.uri && (
+            <div className="mt-2 text-right">
+              <a
+                href={nftData.nft.metadata.uri}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-purple-400 hover:text-purple-300"
+              >
+                View Metadata (IPFS)
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Social Sharing */}
