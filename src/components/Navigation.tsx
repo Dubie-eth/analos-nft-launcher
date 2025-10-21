@@ -100,15 +100,14 @@ export default function Navigation() {
     { href: '/vesting', label: 'Vesting', icon: '⏰', requiresWallet: true },
     { href: '/token-lock', label: 'Token Lock', icon: '🔒', requiresWallet: true },
     { href: '/explorer', label: 'Explorer', icon: '🔍', requiresWallet: true },
-    { href: '/profile', label: 'Profile', icon: '👤', requiresWallet: true },
     { href: '/created', label: 'My Collections', icon: '📦', requiresWallet: true },
-    { href: '/adaptive-collection', label: 'Adaptive NFTs', icon: '🧬', requiresWallet: true },
     { href: '/living-portfolio', label: 'Living Portfolio', icon: '🚀', requiresWallet: true },
   ];
 
   // Admin-only navigation items
   const adminNavItems = isAdmin ? [
     { href: '/admin', label: 'Admin Dashboard', icon: '🎛️', requiresWallet: true },
+    { href: '/profile', label: 'Profile', icon: '👤', requiresWallet: true },
   ] : [];
 
   // Helper function to check if user has access to a page

@@ -40,6 +40,25 @@ export default function FeaturesPage() {
   const fallbackFeatures: Feature[] = [
     {
       id: '1',
+      feature_key: 'triple_redundancy_metadata',
+      feature_name: '🛡️ Triple Redundancy Metadata Storage',
+      description: 'Enterprise-grade metadata storage with triple redundancy: Blockchain + IPFS + On-chain backup. Your NFT data survives forever.',
+      icon: '🛡️',
+      completion_percentage: 100,
+      access_level: 'public',
+      status: 'live',
+      is_visible: true,
+      details: [
+        'Layer 1: Analos Blockchain (PERMANENT) - Core data lives forever',
+        'Layer 2: IPFS/Pinata (FAST) - Full metadata JSON, globally distributed',
+        'Layer 3: On-Chain Backup (SURVIVES INTERNET OUTAGES) - Complete fallback',
+        'Metaplex standard compatibility - Works with all wallets',
+        'Auto-metadata creation on every mint',
+        'Backfill script for existing NFTs'
+      ]
+    },
+    {
+      id: '2',
       feature_key: 'nft_collection_creation',
       feature_name: 'NFT Collection Creation',
       description: 'Create and deploy your own NFT collections with custom traits, rarity systems, and metadata.',
@@ -57,7 +76,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '2',
+      id: '3',
       feature_key: 'advanced_marketplace',
       feature_name: 'Advanced Marketplace',
       description: 'Trade NFTs with advanced features including auctions, offers, and OTC trading.',
@@ -75,7 +94,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '3',
+      id: '4',
       feature_key: 'token_swapping',
       feature_name: 'Token Swapping',
       description: 'Swap between different tokens with our integrated DEX functionality.',
@@ -93,7 +112,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '4',
+      id: '5',
       feature_key: 'nft_staking',
       feature_name: 'NFT Staking',
       description: 'Stake your NFTs to earn rewards and participate in governance.',
@@ -111,7 +130,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '5',
+      id: '6',
       feature_key: 'token_vesting',
       feature_name: 'Token Vesting',
       description: 'Manage token vesting schedules for team members and investors.',
@@ -129,7 +148,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '6',
+      id: '7',
       feature_key: 'token_locking',
       feature_name: 'Token Locking',
       description: 'Lock tokens for security, governance, or liquidity provision.',
@@ -147,7 +166,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '7',
+      id: '8',
       feature_key: 'evolving_nfts',
       feature_name: 'Evolving NFTs',
       description: 'Create NFTs that evolve and change based on external data and user interactions.',

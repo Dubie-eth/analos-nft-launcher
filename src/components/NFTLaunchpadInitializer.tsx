@@ -7,6 +7,7 @@ import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
+import TransactionDisplay from './TransactionDisplay';
 import idl from '@/idl/analos_nft_launchpad.json';
 
 interface NFTLaunchpadInitializerProps {}
@@ -275,32 +276,11 @@ export default function NFTLaunchpadInitializer({}: NFTLaunchpadInitializerProps
           </div>
           
           {result.signature && (
-            <div className="bg-black/30 rounded-lg p-4 mt-4">
-              <p className="text-sm font-medium mb-2">Transaction Signature:</p>
-              <code className="text-xs break-all block mb-3 p-2 bg-black/50 rounded">
-                {result.signature}
-              </code>
-              
-              <div className="flex flex-col sm:flex-row gap-2">
-                <a 
-                  href={`https://explorer.analos.io/tx/${result.signature}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                >
-                  <span>🔗</span>
-                  <span>View on Analos Explorer</span>
-                </a>
-                
-                <button
-                  onClick={() => navigator.clipboard.writeText(result.signature!)}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
-                >
-                  <span>📋</span>
-                  <span>Copy Signature</span>
-                </button>
-              </div>
-            </div>
+            <TransactionDisplay 
+              signature={result.signature}
+              title="Transaction Signature"
+              className="mt-4"
+            />
           )}
         </div>
       )}

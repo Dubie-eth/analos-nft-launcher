@@ -6,6 +6,7 @@ import { Connection, PublicKey, Transaction, SystemProgram, TransactionInstructi
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import { useWebSocketDisabledConnection } from '@/hooks/useWebSocketDisabledConnection';
 import TransactionConfirmationDialog from './TransactionConfirmationDialog';
+import TransactionDisplay from './TransactionDisplay';
 
 interface TokenLaunchInitializerProps {}
 
@@ -136,17 +137,11 @@ export default function TokenLaunchInitializer({}: TokenLaunchInitializerProps) 
           </div>
           <p className="text-sm text-gray-300 mb-2">{result.message}</p>
           {result.signature && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Transaction:</span>
-              <a
-                href={`https://explorer.analos.io/tx/${result.signature}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-400 hover:text-blue-300 break-all"
-              >
-                {result.signature}
-              </a>
-            </div>
+            <TransactionDisplay 
+              signature={result.signature}
+              title="Transaction"
+              variant="minimal"
+            />
           )}
         </div>
       )}
