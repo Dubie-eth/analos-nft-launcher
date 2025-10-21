@@ -84,16 +84,15 @@ export default function MobileImageUpload({
   };
 
   return (
-    <div className={mobile-image-upload }>
+    <div className={`mobile-image-upload ${className}`}>
       <div
-        className={
-          relative border-2 border-dashed rounded-lg transition-all duration-200
-          
-          
-          
-          cursor-pointer hover:border-blue-400 hover:bg-gray-50
-          flex items-center justify-center
-        }
+        className={`${
+          ''
+        } ${
+          dragActive
+            ? 'border-blue-400 bg-gray-50'
+            : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+        } ${preview ? 'p-0 h-40' : 'p-4 h-32'} relative border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -112,11 +111,8 @@ export default function MobileImageUpload({
           <div className="relative w-full h-full">
             <img
               src={preview}
-              alt={${type} preview}
-              className={
-                w-full h-full object-cover rounded-lg
-                
-              }
+              alt={`${type} preview`}
+              className="w-full h-full object-cover rounded-lg"
             />
             <button
               onClick={(e) => {
@@ -170,32 +166,32 @@ export default function MobileImageUpload({
         </div>
       )}
 
-      <style jsx>{
+      <style jsx>{`
         .mobile-image-upload {
           -webkit-tap-highlight-color: transparent;
           touch-action: manipulation;
         }
-        
-        .mobile-image-upload input[type="file"] {
+
+        .mobile-image-upload input[type='file'] {
           position: absolute;
           width: 100%;
           height: 100%;
           opacity: 0;
           cursor: pointer;
         }
-        
+
         @media (hover: hover) {
           .mobile-image-upload:hover {
             transform: scale(1.02);
           }
         }
-        
+
         @media (max-width: 768px) {
           .mobile-image-upload {
             font-size: 14px;
           }
         }
-      }</style>
+      `}</style>
     </div>
   );
 }
