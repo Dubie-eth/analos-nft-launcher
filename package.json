@@ -12,7 +12,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "create-page": "node scripts/create-isolated-page.js"
+    "create-page": "node scripts/create-isolated-page.js",
+    "backfill-metadata": "ts-node scripts/backfill-nft-metadata.ts"
   },
   "dependencies": {
     "@analosfork/dynamic-bonding-curve-sdk": "^1.0.3",
