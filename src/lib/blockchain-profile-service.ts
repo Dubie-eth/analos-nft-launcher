@@ -29,8 +29,10 @@ export interface BlockchainProfile {
 
 // Username validation rules (same as token names)
 export const USERNAME_RULES = {
-  minLength: 4,
+  // Username rules aligned with product spec (3-20 chars)
+  minLength: 3,
   maxLength: 20,
+  // Start and end with alphanumeric; underscores/hyphens allowed in between
   pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/,
   reserved: [
     'admin', 'administrator', 'root', 'system',
@@ -70,6 +72,11 @@ export class BlockchainProfileService {
     // Check pattern
     if (!USERNAME_RULES.pattern.test(normalized)) {
       return { valid: false, message: 'Username can only contain letters, numbers, underscores, and hyphens. Cannot start or end with special characters.' };
+    }
+
+    // No consecutive underscores or hyphens
+    if (/[_-]{2,}/.test(normalized)) {
+      return { valid: false, message: 'Username cannot have consecutive underscores or hyphens' };
     }
 
     // Check reserved names

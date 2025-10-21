@@ -6,10 +6,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Loader2, CheckCircle, XCircle, Upload, Image, User, Globe, MessageCircle, Send, Github, Zap } from 'lucide-react';
 import ProfileCardPreview from './ProfileCardPreview';
+import { Transaction, SystemProgram, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 
 interface SimpleProfileEditorProps {
   onProfileSaved?: (profile: any) => void;
@@ -20,7 +22,8 @@ export default function SimpleProfileEditor({
   onProfileSaved, 
   onNFTCreated 
 }: SimpleProfileEditorProps) {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const { theme } = useTheme();
   
   // Form state
@@ -44,6 +47,7 @@ export default function SimpleProfileEditor({
   const [success, setSuccess] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [mintNumber, setMintNumber] = useState<number | null>(null);
+  const [pricingInfo, setPricingInfo] = useState<{ price: number; tier: string; available: boolean } | null>(null);
 
   // Load existing profile data and mint number on component mount
   useEffect(() => {
@@ -52,6 +56,37 @@ export default function SimpleProfileEditor({
       loadExistingProfile();
     }
   }, [connected, publicKey]);
+
+  // Load pricing for current username
+  useEffect(() => {
+    const fetchPricing = async () => {
+      const candidate = (formData.username || '').trim();
+      if (!candidate) {
+        setPricingInfo(null);
+        return;
+      }
+      try {
+        const resp = await fetch('/api/admin/matrix-collection/pricing-config');
+        if (resp.ok) {
+          const data = await resp.json();
+          const config = data.config;
+          const length = candidate.length;
+          let price = 4.2;
+          let tier = '5+ Characters (Common)';
+          let available = config.enabled;
+          if (length >= 5) { price = config.pricingTiers.tier5Plus; tier = '5+ Characters (Common)'; }
+          else if (length === 4) { price = config.pricingTiers.tier4; tier = '4 Characters (Premium)'; }
+          else if (length === 3) { price = config.pricingTiers.tier3; tier = '3 Characters (Ultra Premium)'; }
+          else if (length === 2) { price = config.pricingTiers.tier2; tier = '2 Characters (Reserved)'; available = config.enabled && !config.reservedTiers.tier2; }
+          else if (length === 1) { price = config.pricingTiers.tier1; tier = '1 Character (Reserved)'; available = config.enabled && !config.reservedTiers.tier1; }
+          setPricingInfo({ price, tier, available });
+        }
+      } catch (e) {
+        console.warn('Failed to fetch pricing config:', e);
+      }
+    };
+    fetchPricing();
+  }, [formData.username]);
 
   // Load existing profile data
   const loadExistingProfile = async () => {
@@ -101,27 +136,42 @@ export default function SimpleProfileEditor({
     }
   };
 
-  // Check if username is available
+  // Check if username is available via on-chain oracle API
   const checkUsernameAvailability = async (username: string): Promise<boolean> => {
-    if (!username.trim()) return false;
-    
+    const candidate = (username || '').trim();
+    if (!candidate) return false;
+
     try {
-      // Check in user_profiles table
-      const profileResponse = await fetch(`/api/blockchain-profiles/${username}`);
-      if (profileResponse.ok) {
-        return false; // Username exists
+      const response = await fetch(`/api/blockchain-profiles/validate-username/${candidate}`);
+      const data = await response.json();
+
+      // Handle network/server errors gracefully
+      if (!response.ok) {
+        setError(data?.message || data?.error || 'Failed to validate username');
+        return false;
       }
-      
-      // Check in profile_nfts table
-      const nftResponse = await fetch(`/api/profile-nft/check/${username}`);
-      if (nftResponse.ok) {
-        return false; // Username exists as NFT
+
+      // Enforce format rules and availability from oracle
+      if (!data.valid) {
+        setError(data.message || 'Invalid username');
+        return false;
       }
-      
-      return true; // Username is available
+
+      if (!data.available) {
+        // Allow reuse if the current wallet already owns this username on-chain
+        const takenBy: string | undefined = data?.takenBy;
+        if (takenBy && publicKey && takenBy === publicKey.toString()) {
+          return true;
+        }
+        setError(data.message || `Username "${candidate}" is already taken. Please choose a different username.`);
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error checking username availability:', error);
-      return true; // Allow if check fails
+      setError('Error validating username. Please try again.');
+      return false;
     }
   };
 
@@ -181,12 +231,9 @@ export default function SimpleProfileEditor({
       return;
     }
 
-    // Check if username is available
+    // Check if username is available (oracle + rules)
     const isUsernameAvailable = await checkUsernameAvailability(formData.username);
-    if (!isUsernameAvailable) {
-      setError(`Username "${formData.username}" is already taken. Please choose a different username.`);
-      return;
-    }
+    if (!isUsernameAvailable) return;
 
     setLoading(true);
     setError(null);
@@ -225,6 +272,25 @@ export default function SimpleProfileEditor({
 
       console.log('✅ Profile saved successfully');
 
+      // Then, require payment (wallet signature) for the mint fee
+      const priceLos = pricingInfo?.price ?? 4.2;
+      const lamports = Math.floor(priceLos * LAMPORTS_PER_SOL);
+      const transferTx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey as PublicKey,
+          toPubkey: ANALOS_PLATFORM_WALLET,
+          lamports,
+        })
+      );
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      transferTx.recentBlockhash = blockhash;
+      transferTx.feePayer = publicKey as PublicKey;
+
+      // Prompt wallet to sign and send
+      const paymentSignature = await sendTransaction(transferTx, connection, { skipPreflight: false });
+      await connection.confirmTransaction({ signature: paymentSignature, blockhash, lastValidBlockHeight }, 'confirmed');
+
+      // After successful payment, mint the NFT via API
       // Then, mint the NFT
       const nftResponse = await fetch('/api/profile-nft/mint', {
         method: 'POST',
@@ -245,8 +311,10 @@ export default function SimpleProfileEditor({
           discord: formData.discord,
           telegram: formData.telegram,
           github: formData.github,
-          mintPrice: 4.20,
-          mintNumber: mintNumber
+          mintPrice: priceLos,
+          mintNumber: mintNumber,
+          paymentSignature,
+          paymentAmountLamports: lamports
         })
       });
 
@@ -373,12 +441,12 @@ export default function SimpleProfileEditor({
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Profile Picture
               </label>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, 'avatar')}
-                  className={`px-4 py-3 rounded-lg border ${
+                  className={`w-full sm:flex-1 min-w-0 max-w-full px-4 py-3 rounded-lg border ${
                     theme === 'dark' 
                       ? 'bg-gray-700 border-gray-600 text-white' 
                       : 'bg-white border-gray-300 text-gray-900'
@@ -397,12 +465,12 @@ export default function SimpleProfileEditor({
               <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Banner Image
               </label>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, 'banner')}
-                  className={`px-4 py-3 rounded-lg border ${
+                  className={`w-full sm:flex-1 min-w-0 max-w-full px-4 py-3 rounded-lg border ${
                     theme === 'dark' 
                       ? 'bg-gray-700 border-gray-600 text-white' 
                       : 'bg-white border-gray-300 text-gray-900'
@@ -548,7 +616,7 @@ export default function SimpleProfileEditor({
               ) : (
                 <>
                   <Zap className="w-5 h-5 inline mr-2" />
-                  Mint Profile NFT (4.20 LOS)
+                  Mint Profile NFT {pricingInfo?.price ? `(${pricingInfo.price} LOS)` : '(dynamic pricing)'}
                 </>
               )}
             </button>
