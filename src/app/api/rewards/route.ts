@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Try to get user's rewards (gracefully handle missing tables)
     try {
-      const { data: rewards, error: rewardsError } = await supabaseAdmin
+      const { data: rewards, error: rewardsError } = await (supabaseAdmin as any)
         .from('creator_rewards')
         .select(`
           *,
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       // Try to get summary (optional RPC function)
       let summary = { total_claimable: 0, total_claimed: 0, pending_rewards: 0 };
       try {
-        const { data: summaryData } = await supabaseAdmin.rpc('get_user_total_rewards', { 
+        const { data: summaryData } = await (supabaseAdmin as any).rpc('get_user_total_rewards', { 
           user_wallet_param: userWallet 
         });
         if (summaryData?.[0]) {
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new reward
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await (supabaseAdmin as any)
       .from('creator_rewards')
       .insert({
         user_wallet: userWallet,
