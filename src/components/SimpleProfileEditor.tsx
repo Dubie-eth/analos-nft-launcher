@@ -6,10 +6,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Loader2, CheckCircle, XCircle, Upload, Image, User, Globe, MessageCircle, Send, Github, Zap } from 'lucide-react';
 import ProfileCardPreview from './ProfileCardPreview';
+import { Transaction, SystemProgram, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 
 interface SimpleProfileEditorProps {
   onProfileSaved?: (profile: any) => void;
@@ -20,7 +22,8 @@ export default function SimpleProfileEditor({
   onProfileSaved, 
   onNFTCreated 
 }: SimpleProfileEditorProps) {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const { theme } = useTheme();
   
   // Form state
@@ -237,6 +240,24 @@ export default function SimpleProfileEditor({
 
       console.log('✅ Profile saved successfully');
 
+      // Then, require payment (wallet signature) for the mint fee
+      const lamports = Math.floor(4.2 * LAMPORTS_PER_SOL);
+      const transferTx = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey as PublicKey,
+          toPubkey: ANALOS_PLATFORM_WALLET,
+          lamports,
+        })
+      );
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      transferTx.recentBlockhash = blockhash;
+      transferTx.feePayer = publicKey as PublicKey;
+
+      // Prompt wallet to sign and send
+      const paymentSignature = await sendTransaction(transferTx, connection, { skipPreflight: false });
+      await connection.confirmTransaction({ signature: paymentSignature, blockhash, lastValidBlockHeight }, 'confirmed');
+
+      // After successful payment, mint the NFT via API
       // Then, mint the NFT
       const nftResponse = await fetch('/api/profile-nft/mint', {
         method: 'POST',
@@ -258,7 +279,9 @@ export default function SimpleProfileEditor({
           telegram: formData.telegram,
           github: formData.github,
           mintPrice: 4.20,
-          mintNumber: mintNumber
+          mintNumber: mintNumber,
+          paymentSignature,
+          paymentAmountLamports: lamports
         })
       });
 
