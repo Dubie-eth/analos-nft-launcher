@@ -63,7 +63,7 @@ export default function ProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit'>('overview');
+  const [activeTab, setActiveTab] = useState<'profile-nft' | 'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit'>('profile-nft');
   const [exampleData, setExampleData] = useState<any>(null);
   const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
   const [isPublicAccess, setIsPublicAccess] = useState(false);
@@ -240,6 +240,7 @@ export default function ProfilePage() {
   };
 
   const tabs = connected ? [
+    { id: 'profile-nft', label: 'Profile NFT', icon: '🎭' },
     { id: 'overview', label: 'Overview', icon: '⭐' },
     { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
@@ -354,6 +355,153 @@ export default function ProfilePage() {
 
         {/* Tab Content */}
         <div className="space-y-8">
+          {activeTab === 'profile-nft' && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-white mb-4">🎭 Your Profile NFT</h2>
+                <p className="text-gray-300 text-lg">
+                  Create your unique profile NFT that represents you in the Analos ecosystem
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Profile NFT Minting Card */}
+                <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl p-6 border border-purple-500/30">
+                  <div className="text-center mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-3xl">🎭</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Mint Your Profile NFT</h3>
+                    <p className="text-gray-300">
+                      Create a unique NFT that represents your identity on Analos
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="bg-black/30 rounded-lg p-4">
+                      <h4 className="text-white font-semibold mb-2">✨ Features</h4>
+                      <ul className="text-sm text-gray-300 space-y-1">
+                        <li>• Unique profile representation</li>
+                        <li>• Custom traits and attributes</li>
+                        <li>• On-chain metadata storage</li>
+                        <li>• Tradeable on marketplace</li>
+                        <li>• Community recognition</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-black/30 rounded-lg p-4">
+                      <h4 className="text-white font-semibold mb-2">💰 Cost</h4>
+                      <div className="text-sm text-gray-300">
+                        <div className="flex justify-between">
+                          <span>Minting Fee:</span>
+                          <span className="text-green-400">0.1 SOL</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Platform Fee:</span>
+                          <span className="text-gray-400">0.01 SOL</span>
+                        </div>
+                        <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
+                          <span>Total:</span>
+                          <span className="text-green-400">0.11 SOL</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        // TODO: Implement profile NFT minting
+                        alert('Profile NFT minting coming soon! This will create your unique profile NFT.');
+                      }}
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      🎭 Mint Profile NFT
+                    </button>
+                  </div>
+                </div>
+
+                {/* Profile NFT Preview */}
+                <div className="bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl p-6 border border-blue-500/30">
+                  <h3 className="text-2xl font-bold text-white mb-4 text-center">Preview</h3>
+                  
+                  <div className="bg-black/30 rounded-lg p-4 mb-4">
+                    <div className="text-center">
+                      <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-4xl">🎭</span>
+                      </div>
+                      <h4 className="text-white font-semibold text-lg">Your Profile NFT</h4>
+                      <p className="text-gray-300 text-sm">Unique #1</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-black/30 rounded-lg p-3">
+                      <h5 className="text-white font-semibold mb-2">Traits</h5>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Rarity:</span>
+                          <span className="text-yellow-400">Legendary</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Type:</span>
+                          <span className="text-blue-400">Profile</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Power:</span>
+                          <span className="text-green-400">100</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300">Status:</span>
+                          <span className="text-purple-400">Active</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/30 rounded-lg p-3">
+                      <h5 className="text-white font-semibold mb-2">Benefits</h5>
+                      <ul className="text-sm text-gray-300 space-y-1">
+                        <li>• Exclusive community access</li>
+                        <li>• Special marketplace privileges</li>
+                        <li>• Governance voting rights</li>
+                        <li>• Early feature access</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile NFT Status */}
+              <div className="mt-8 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-xl p-6 border border-green-500/30">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-white mb-2">🎉 Ready to Create Your Profile NFT?</h3>
+                  <p className="text-gray-300 mb-4">
+                    Your profile NFT will be your unique identity in the Analos ecosystem. 
+                    It's more than just an NFT - it's your digital passport to exclusive features and community benefits.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={() => {
+                        // TODO: Implement profile NFT minting
+                        alert('Profile NFT minting coming soon!');
+                      }}
+                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      🚀 Start Minting
+                    </button>
+                    <button
+                      onClick={() => {
+                        // TODO: Show more info about profile NFTs
+                        alert('Learn more about Profile NFTs coming soon!');
+                      }}
+                      className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200"
+                    >
+                      📚 Learn More
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'overview' && (
             <PublicProfileDisplay
               userWallet={publicKey?.toString() || ''}
