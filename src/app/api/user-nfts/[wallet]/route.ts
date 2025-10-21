@@ -30,9 +30,23 @@ export async function GET(
     
     console.log(`✅ Found ${nfts.length} NFTs for wallet`);
 
+    // Transform NFTs to include display information
+    const transformedNFTs = nfts.map((nft: any) => ({
+      mint: nft.mint,
+      name: nft.name || `NFT #${nft.mintNumber || 'Unknown'}`,
+      uri: nft.uri || nft.metadata?.uri || '/api/placeholder/400/400',
+      collectionAddress: nft.collectionConfig,
+      collectionName: nft.collectionName || 'Unknown Collection',
+      description: nft.description || '',
+      isRevealed: nft.isRevealed,
+      rarityScore: nft.rarityScore,
+      tier: nft.tier,
+      mintNumber: nft.mintNumber
+    }));
+
     // Group by collection
     const collections = new Map<string, any>();
-    nfts.forEach(nft => {
+    transformedNFTs.forEach((nft: any) => {
       if (nft.collectionAddress) {
         if (!collections.has(nft.collectionAddress)) {
           collections.set(nft.collectionAddress, {
@@ -47,10 +61,10 @@ export async function GET(
     
     const response = {
       wallet: wallet,
-      nfts: nfts,
-      total: nfts.length,
+      nfts: transformedNFTs,
+      total: transformedNFTs.length,
       collections: Array.from(collections.values()),
-      message: nfts.length > 0 ? 'NFTs loaded successfully' : 'No NFTs found for this wallet'
+      message: transformedNFTs.length > 0 ? 'NFTs loaded successfully' : 'No NFTs found for this wallet'
     };
 
     return NextResponse.json(response);
