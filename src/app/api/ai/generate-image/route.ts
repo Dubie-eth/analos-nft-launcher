@@ -36,6 +36,10 @@ export async function POST(request: NextRequest) {
   }
 
   const { prompt, size = '1024x1024', quality = 'hd', style = 'artistic' } = body || {};
+  // Normalize style to allowed set; default to 'artistic' when unsupported
+  const allowedStyles = ['artistic', 'abstract', 'realistic', 'anime'];
+  const normalizedStyle = typeof style === 'string' ? style.toLowerCase() : 'artistic';
+  const effectiveStyle = allowedStyles.includes(normalizedStyle) ? normalizedStyle : 'artistic';
 
   const fieldErrors: Record<string, string> = {};
   if (typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -54,10 +58,9 @@ export async function POST(request: NextRequest) {
   if (typeof quality !== 'string' || !allowedQuality.includes(quality)) {
     fieldErrors.quality = `Quality must be one of: ${allowedQuality.join(', ')}`;
   }
-
-  const allowedStyles = ['artistic', 'abstract', 'realistic', 'anime'];
-  if (typeof style !== 'string' || !allowedStyles.includes(style)) {
-    fieldErrors.style = `Style must be one of: ${allowedStyles.join(', ')}`;
+  // Only enforce type for style; unknown values are normalized to 'artistic'
+  if (typeof style !== 'string') {
+    fieldErrors.style = 'Style must be a string';
   }
 
   if (Object.keys(fieldErrors).length > 0) {
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
       prompt,
       size,
       quality,
-      style,
+      style: effectiveStyle,
       generatedAt: new Date().toISOString()
     });
   } catch (error) {

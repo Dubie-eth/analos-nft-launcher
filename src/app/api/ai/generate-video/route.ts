@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { prompt, duration = 6.9, baseImage, style = 'smooth transition' } = body || {};
+  const normalizedStyle = typeof style === 'string' ? style.trim() : '';
 
   const fieldErrors: Record<string, string> = {};
   if (typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
   if (typeof duration !== 'number' || duration <= 0 || duration > 60) {
     fieldErrors.duration = 'Duration must be a number between 0 and 60 seconds';
   }
-  if (typeof style !== 'string' || style.trim().length === 0) {
+  if (typeof style !== 'string' || normalizedStyle.length === 0) {
     fieldErrors.style = 'Style must be a non-empty string';
   }
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       prompt,
       duration,
       baseImage,
-      style,
+      style: normalizedStyle || 'smooth transition',
       generatedAt: new Date().toISOString()
     });
   } catch (error) {

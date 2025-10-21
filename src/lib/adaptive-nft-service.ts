@@ -548,7 +548,8 @@ class AdaptiveNFTService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        style: analysis.personality.style,
+        // Map personality style to API-accepted styles to avoid 400 errors
+        style: this.mapPersonalityStyleToImageStyle(analysis.personality.style),
         color: analysis.personality.color,
         mood: analysis.personality.mood
       })
@@ -569,6 +570,19 @@ class AdaptiveNFTService {
     }
     const data = await response.json();
     return data.imageUrl;
+  }
+
+  /**
+   * Normalize personality styles to the image API's accepted set
+   */
+  private mapPersonalityStyleToImageStyle(
+    personalityStyle: string
+  ): 'artistic' | 'abstract' | 'realistic' | 'anime' {
+    const normalized = (personalityStyle || '').toLowerCase();
+    if (normalized === 'abstract') return 'abstract';
+    if (normalized === 'realistic') return 'realistic';
+    // For styles like minimalist, maximalist, futuristic, default to artistic
+    return 'artistic';
   }
 
   private async generateAdaptiveVideo(prompt: string, imageUrl: string, analysis: WalletAnalysis): Promise<string> {
