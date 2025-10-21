@@ -1,10 +1,9 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm ci --legacy-peer-deps && npm run build"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npm start",
+    "startCommand": "npm run start",
     "healthcheckPath": "/",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",

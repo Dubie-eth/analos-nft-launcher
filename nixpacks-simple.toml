@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs_22", "npm-9_x"]
+nixPkgs = ["nodejs_22", "npm-9_x", "python3"]
 
 [phases.install]
 cmds = ["npm i"]
 
 [phases.build]
-cmds = ["apt-get update && apt-get install -y python3 python3-pip && npm install && npm run build"]
+cmds = ["npm run build"]
 
 [start]
 cmd = "npm run start"
