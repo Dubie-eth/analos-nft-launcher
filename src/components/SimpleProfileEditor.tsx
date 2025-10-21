@@ -47,6 +47,7 @@ export default function SimpleProfileEditor({
   const [success, setSuccess] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [mintNumber, setMintNumber] = useState<number | null>(null);
+  const [pricingInfo, setPricingInfo] = useState<{ price: number; tier: string; available: boolean } | null>(null);
 
   // Load existing profile data and mint number on component mount
   useEffect(() => {
@@ -55,6 +56,37 @@ export default function SimpleProfileEditor({
       loadExistingProfile();
     }
   }, [connected, publicKey]);
+
+  // Load pricing for current username
+  useEffect(() => {
+    const fetchPricing = async () => {
+      const candidate = (formData.username || '').trim();
+      if (!candidate) {
+        setPricingInfo(null);
+        return;
+      }
+      try {
+        const resp = await fetch('/api/admin/matrix-collection/pricing-config');
+        if (resp.ok) {
+          const data = await resp.json();
+          const config = data.config;
+          const length = candidate.length;
+          let price = 4.2;
+          let tier = '5+ Characters (Common)';
+          let available = config.enabled;
+          if (length >= 5) { price = config.pricingTiers.tier5Plus; tier = '5+ Characters (Common)'; }
+          else if (length === 4) { price = config.pricingTiers.tier4; tier = '4 Characters (Premium)'; }
+          else if (length === 3) { price = config.pricingTiers.tier3; tier = '3 Characters (Ultra Premium)'; }
+          else if (length === 2) { price = config.pricingTiers.tier2; tier = '2 Characters (Reserved)'; available = config.enabled && !config.reservedTiers.tier2; }
+          else if (length === 1) { price = config.pricingTiers.tier1; tier = '1 Character (Reserved)'; available = config.enabled && !config.reservedTiers.tier1; }
+          setPricingInfo({ price, tier, available });
+        }
+      } catch (e) {
+        console.warn('Failed to fetch pricing config:', e);
+      }
+    };
+    fetchPricing();
+  }, [formData.username]);
 
   // Load existing profile data
   const loadExistingProfile = async () => {
@@ -241,7 +273,8 @@ export default function SimpleProfileEditor({
       console.log('✅ Profile saved successfully');
 
       // Then, require payment (wallet signature) for the mint fee
-      const lamports = Math.floor(4.2 * LAMPORTS_PER_SOL);
+      const priceLos = pricingInfo?.price ?? 4.2;
+      const lamports = Math.floor(priceLos * LAMPORTS_PER_SOL);
       const transferTx = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey as PublicKey,
@@ -278,7 +311,7 @@ export default function SimpleProfileEditor({
           discord: formData.discord,
           telegram: formData.telegram,
           github: formData.github,
-          mintPrice: 4.20,
+          mintPrice: priceLos,
           mintNumber: mintNumber,
           paymentSignature,
           paymentAmountLamports: lamports
@@ -583,7 +616,7 @@ export default function SimpleProfileEditor({
               ) : (
                 <>
                   <Zap className="w-5 h-5 inline mr-2" />
-                  Mint Profile NFT (4.20 LOS)
+                  Mint Profile NFT {pricingInfo?.price ? `(${pricingInfo.price} LOS)` : '(dynamic pricing)'}
                 </>
               )}
             </button>

@@ -9,6 +9,8 @@ import { ProfileNFTGenerator } from '@/lib/profile-nft-generator';
 import { AnalosNFTMintingService, ProfileNFTData } from '@/lib/analos-nft-minting-service';
 import { ANALOS_RPC_URL, ANALOS_EXPLORER_URLS, ANALOS_PROGRAMS, ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
+import { getCurrentPricingConfig, calculateMintPrice } from '@/lib/pricing-config-utils';
+import { createNFTMetadata } from '@/lib/metadata-service';
 
 // Initialize connection
 const connection = new Connection(ANALOS_RPC_URL);
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
       discord,
       telegram,
       github,
-      mintPrice = 4.20, // 4.20 LOS fee
+      mintPrice = 4.20, // Default; will be validated against config
       paymentSignature,
       paymentAmountLamports
     } = body;
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const normalizedUsername = (username as string).toLowerCase().trim();
+  const normalizedUsername = (username as string).toLowerCase().trim();
 
     // Enforce username rules
     const nameValidation = validateUsernameFormat(normalizedUsername);
@@ -159,6 +161,28 @@ export async function POST(request: NextRequest) {
     //   );
     // }
 
+    // Validate pricing against platform config (enforce correct payment price)
+    try {
+      const pricing = calculateMintPrice(normalizedUsername);
+      if (!pricing.available) {
+        return NextResponse.json(
+          { error: 'Minting is currently disabled for this username tier.' },
+          { status: 403 }
+        );
+      }
+
+      // Enforce that client-provided mintPrice matches server-side config
+      const expectedPriceLos = pricing.price;
+      if (Math.abs((mintPrice as number) - expectedPriceLos) > 1e-9) {
+        return NextResponse.json(
+          { error: `Incorrect mint price. Expected ${expectedPriceLos} LOS for username "${normalizedUsername}".` },
+          { status: 400 }
+        );
+      }
+    } catch (pricingErr) {
+      console.warn('⚠️ Pricing validation failed, proceeding conservatively:', pricingErr);
+    }
+
     // Generate proper referral code from username if not provided or if it's just the wallet address
     const { generateReferralCode } = await import('@/lib/wallet-examples');
     const finalReferralCode = referralCode && referralCode !== walletAddress.slice(0, 8).toUpperCase() 
@@ -202,7 +226,7 @@ export async function POST(request: NextRequest) {
       if (!meta) {
         return NextResponse.json({ error: 'Missing transaction metadata for payment' }, { status: 400 });
       }
-      // Check that one of the postBalances decreased from the payer and increased for the platform wallet roughly by amount
+      // Check that lamports moved from the payer to the platform wallet by the expected amount
       const message = tx.transaction.message;
       const accountKeys = message.getAccountKeys().staticAccountKeys.map(k => k.toString());
       const fromIndex = accountKeys.findIndex(k => k === walletAddress);
@@ -212,8 +236,33 @@ export async function POST(request: NextRequest) {
       } else {
         const preFrom = meta.preBalances?.[fromIndex] ?? 0;
         const postFrom = meta.postBalances?.[fromIndex] ?? 0;
+        const preTo = meta.preBalances?.[toIndex] ?? 0;
+        const postTo = meta.postBalances?.[toIndex] ?? 0;
+        const debited = preFrom - postFrom;
+        const credited = postTo - preTo;
+
+        // Server-side expected amount based on pricing config (defense-in-depth)
+        const { price: expectedPriceLos } = calculateMintPrice(normalizedUsername);
+        const expectedLamports = Math.floor(expectedPriceLos * LAMPORTS_PER_SOL);
+
+        // Basic debit check
         if (!(preFrom > postFrom)) {
           return NextResponse.json({ error: 'Payment did not debit payer account' }, { status: 400 });
+        }
+
+        // Verify credited amount to platform wallet matches expected within a small tolerance (rent/rounding-safe)
+        const tolerance = 10; // lamports
+        const creditedMatches = Math.abs(credited - expectedLamports) <= tolerance;
+        const providedMatches = Math.abs((paymentAmountLamports as number) - expectedLamports) <= tolerance;
+
+        if (!creditedMatches || !providedMatches) {
+          return NextResponse.json(
+            { 
+              error: `Incorrect payment amount. Expected ${expectedLamports} lamports for username "${normalizedUsername}".`,
+              details: { debited, credited, expectedLamports }
+            },
+            { status: 400 }
+          );
         }
       }
     } catch (confirmErr) {
@@ -261,12 +310,19 @@ export async function POST(request: NextRequest) {
       console.log('👤 User Wallet:', userWallet.toString());
       console.log('🎨 Mint Address:', mintAddress.toString());
       
-      // Create the NFT metadata
-      const metadata = {
-        name: `${displayName || normalizedUsername} Profile Card #${currentMintNumber}`,
-        symbol: 'ANALOS',
-        description: `Profile card NFT for ${displayName || username} (@${username}). Referral Code: ${finalReferralCode}. Edition #${currentMintNumber}`,
-        image: `data:image/svg+xml;base64,${Buffer.from(`
+      // Create the NFT metadata on IPFS for cross-platform visibility
+      const attributes = [
+        { trait_type: 'Collection', value: 'Analos Profile Cards' },
+        { trait_type: 'Username', value: normalizedUsername },
+        { trait_type: 'Display Name', value: displayName || normalizedUsername },
+        { trait_type: 'Referral Code', value: finalReferralCode },
+        { trait_type: 'Mint Number', value: currentMintNumber.toString() },
+        { trait_type: 'Edition Type', value: 'Open Edition' },
+        { trait_type: 'Platform', value: 'Analos NFT Launchpad' }
+      ] as Array<{ trait_type: string; value: string }>;
+
+      // Use the same SVG image as before, but host full metadata on IPFS via backend
+      const svgImageBase64 = Buffer.from(`
           <svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -304,16 +360,24 @@ export async function POST(request: NextRequest) {
               Open Edition • Minted on Analos • launchonlos.fun
             </text>
           </svg>
-        `).toString('base64')}`,
-        attributes: [
-          { trait_type: 'Collection', value: 'Analos Profile Cards' },
-          { trait_type: 'Username', value: normalizedUsername },
-          { trait_type: 'Display Name', value: displayName || normalizedUsername },
-          { trait_type: 'Referral Code', value: finalReferralCode },
-          { trait_type: 'Mint Number', value: currentMintNumber.toString() },
-          { trait_type: 'Edition Type', value: 'Open Edition' },
-          { trait_type: 'Platform', value: 'Analos NFT Launchpad' }
-        ]
+      `).toString('base64');
+
+      const ipfsMeta = await createNFTMetadata(
+        mintAddress,
+        `${displayName || normalizedUsername} Profile Card`,
+        'APC',
+        currentMintNumber,
+        attributes,
+        `data:image/svg+xml;base64,${svgImageBase64}`
+      );
+
+      const metadata = {
+        name: `${displayName || normalizedUsername} Profile Card #${currentMintNumber}`,
+        symbol: 'APC',
+        description: `Profile card NFT for ${displayName || username} (@${username}). Referral Code: ${finalReferralCode}. Edition #${currentMintNumber}`,
+        image: `data:image/svg+xml;base64,${svgImageBase64}`,
+        attributes,
+        uri: ipfsMeta.success ? ipfsMeta.metadataURI : undefined,
       };
       
       // Create transaction for NFT minting
@@ -351,6 +415,9 @@ export async function POST(request: NextRequest) {
       console.log('📋 Mint Address:', mintResult.mintAddress.toString());
       console.log('📋 Signature:', mintResult.signature);
       console.log('📋 Metadata created for:', metadata.name);
+      if (metadata.uri) {
+        console.log('🌐 Metadata URI (IPFS):', metadata.uri);
+      }
       
     } catch (error) {
       console.error('❌ Real blockchain minting failed:', error);
