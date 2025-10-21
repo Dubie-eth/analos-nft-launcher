@@ -13,6 +13,30 @@ import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 // Initialize connection
 const connection = new Connection(ANALOS_RPC_URL);
 
+function validateUsernameFormat(username: string): { valid: boolean; message?: string } {
+  const normalized = username.toLowerCase().trim();
+
+  if (normalized.length < 3) {
+    return { valid: false, message: 'Username must be at least 3 characters long' };
+  }
+  if (normalized.length > 20) {
+    return { valid: false, message: 'Username must be 20 characters or less' };
+  }
+  if (!/^[a-zA-Z0-9]/.test(normalized)) {
+    return { valid: false, message: 'Username must start with a letter or number' };
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(normalized)) {
+    return { valid: false, message: 'Username can only contain letters, numbers, underscores, and hyphens' };
+  }
+  if (/_$|-$/.test(normalized)) {
+    return { valid: false, message: 'Username cannot end with an underscore or hyphen' };
+  }
+  if (/[_-]{2,}/.test(normalized)) {
+    return { valid: false, message: 'Username cannot have consecutive underscores or hyphens' };
+  }
+  return { valid: true };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -41,13 +65,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if username is already taken
+    const normalizedUsername = (username as string).toLowerCase().trim();
+
+    // Enforce username rules
+    const nameValidation = validateUsernameFormat(normalizedUsername);
+    if (!nameValidation.valid) {
+      return NextResponse.json(
+        { error: nameValidation.message || 'Invalid username' },
+        { status: 400 }
+      );
+    }
+
+    // Oracle/on-chain duplicate check (Monitoring System program Username PDA)
+    try {
+      const [usernamePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('username'), Buffer.from(normalizedUsername)],
+        ANALOS_PROGRAMS.MONITORING_SYSTEM
+      );
+
+      const accountInfo = await connection.getAccountInfo(usernamePda);
+      if (accountInfo) {
+        return NextResponse.json(
+          { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
+          { status: 400 }
+        );
+      }
+    } catch (onChainError) {
+      console.warn('⚠️ Username oracle check failed, proceeding with DB checks:', onChainError);
+    }
+
+    // Check if username is already taken in database (defense-in-depth)
     if (isSupabaseConfigured && supabaseAdmin) {
       try {
         const { data: existingProfile } = await (supabaseAdmin as any)
           .from('user_profiles')
           .select('username')
-          .eq('username', username.toLowerCase())
+          .eq('username', normalizedUsername)
           .limit(1)
           .single();
 
@@ -62,7 +115,7 @@ export async function POST(request: NextRequest) {
         const { data: existingNFT } = await (supabaseAdmin as any)
           .from('profile_nfts')
           .select('username')
-          .eq('username', username.toLowerCase())
+          .eq('username', normalizedUsername)
           .limit(1)
           .single();
 
@@ -92,13 +145,13 @@ export async function POST(request: NextRequest) {
     const { generateReferralCode } = await import('@/lib/wallet-examples');
     const finalReferralCode = referralCode && referralCode !== walletAddress.slice(0, 8).toUpperCase() 
       ? referralCode 
-      : generateReferralCode(username);
+      : generateReferralCode(normalizedUsername);
 
     // Create profile NFT data with all URLs and social verification
     const profileData: ProfileNFTData = {
       wallet: walletAddress,
-      username,
-      displayName: displayName || username,
+      username: normalizedUsername,
+      displayName: displayName || normalizedUsername,
       bio: bio || '',
       avatarUrl: avatarUrl || '',
       bannerUrl: bannerUrl || '',
@@ -155,7 +208,7 @@ export async function POST(request: NextRequest) {
       
       // Create the NFT metadata
       const metadata = {
-        name: `${displayName || username} Profile Card #${currentMintNumber}`,
+        name: `${displayName || normalizedUsername} Profile Card #${currentMintNumber}`,
         symbol: 'ANALOS',
         description: `Profile card NFT for ${displayName || username} (@${username}). Referral Code: ${finalReferralCode}. Edition #${currentMintNumber}`,
         image: `data:image/svg+xml;base64,${Buffer.from(`
@@ -184,7 +237,7 @@ export async function POST(request: NextRequest) {
               ${displayName || username}
             </text>
             <text x="200" y="375" text-anchor="middle" fill="white" font-family="Arial" font-size="14">
-              @${username}
+              @${normalizedUsername}
             </text>
             <text x="200" y="450" text-anchor="middle" fill="white" font-family="Arial" font-size="12">
               REFERRAL CODE
@@ -199,8 +252,8 @@ export async function POST(request: NextRequest) {
         `).toString('base64')}`,
         attributes: [
           { trait_type: 'Collection', value: 'Analos Profile Cards' },
-          { trait_type: 'Username', value: username },
-          { trait_type: 'Display Name', value: displayName || username },
+          { trait_type: 'Username', value: normalizedUsername },
+          { trait_type: 'Display Name', value: displayName || normalizedUsername },
           { trait_type: 'Referral Code', value: finalReferralCode },
           { trait_type: 'Mint Number', value: currentMintNumber.toString() },
           { trait_type: 'Edition Type', value: 'Open Edition' },
