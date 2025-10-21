@@ -195,6 +195,32 @@ export class MintingService {
 
       console.log('✅ Transaction confirmed!');
 
+      // 11. Create Metaplex metadata for the NFT
+      console.log('📝 Creating NFT metadata...');
+      try {
+        const { metadataService } = await import('./metadata-service');
+        const metadataResult = await metadataService.createNFTMetadata(
+          mintPublicKey,
+          collection.collectionName,
+          collection.collectionSymbol,
+          collection.mintedCount + 1,
+          [
+            { trait_type: 'Mint Number', value: `${collection.mintedCount + 1}` },
+            { trait_type: 'Collection', value: collection.collectionName },
+            { trait_type: 'Tier', value: '1' },
+          ],
+          collection.placeholderUri
+        );
+
+        if (metadataResult.success) {
+          console.log('✅ Metadata created:', metadataResult.metadataURI);
+        } else {
+          console.warn('⚠️ Metadata creation failed (NFT still minted):', metadataResult.message);
+        }
+      } catch (metadataError) {
+        console.warn('⚠️ Metadata creation error (NFT still minted):', metadataError);
+      }
+
       return {
         success: true,
         signature,
