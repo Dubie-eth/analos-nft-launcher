@@ -528,12 +528,12 @@ export default function BlockchainProfileManager({
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Profile Picture (Logo)
             </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleImageUpload(e, 'logo')}
-                className={`px-4 py-3 rounded-lg border ${
+                className={`w-full sm:flex-1 min-w-0 max-w-full px-4 py-3 rounded-lg border ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600 text-white' 
                     : 'bg-white border-gray-300 text-gray-900'
@@ -555,12 +555,12 @@ export default function BlockchainProfileManager({
             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
               Banner Image
             </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleImageUpload(e, 'banner')}
-                className={`px-4 py-3 rounded-lg border ${
+                className={`w-full sm:flex-1 min-w-0 max-w-full px-4 py-3 rounded-lg border ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600 text-white' 
                     : 'bg-white border-gray-300 text-gray-900'
