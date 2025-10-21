@@ -134,16 +134,13 @@ export default function ProfileCardPreview({
               <stop offset="0%" style={{ stopColor: variantStyles.gradient.from, stopOpacity: 1 }} />
               <stop offset="100%" style={{ stopColor: variantStyles.gradient.to, stopOpacity: 1 }} />
             </linearGradient>
-            {bannerImageUrl && (
-        <pattern id="bannerPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-          <image href={bannerImageUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
-        </pattern>
-            )}
-            {profilePictureUrl && (
-              <pattern id="avatarPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
-                <image href={profilePictureUrl} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
-              </pattern>
-            )}
+            {/* Clip paths ensure images fill their containers without letterboxing */}
+            <clipPath id="bannerClip">
+              <rect x="20" y="20" width="360" height="150" rx="10" />
+            </clipPath>
+            <clipPath id="avatarClip">
+              <circle cx="200" cy="230" r="55" />
+            </clipPath>
             {mfpurrsBackground && (
               <pattern id="mfpurrsPattern" x="0" y="0" width="100%" height="100%" patternUnits="userSpaceOnUse">
                 <image href={mfpurrsBackground.url} x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
@@ -157,9 +154,9 @@ export default function ProfileCardPreview({
           {/* Card Border */}
           <rect x="10" y="10" width="380" height="580" fill="none" stroke={variantStyles.border} strokeWidth="4" rx="15"/>
           
-          {/* Banner Background - Increased height for better image fit */}
+          {/* Banner Background */}
           {bannerImageUrl ? (
-            <rect x="20" y="20" width="360" height="150" fill="url(#bannerPattern)" rx="10"/>
+            <image href={bannerImageUrl} x="20" y="20" width="360" height="150" preserveAspectRatio="xMidYMid slice" clipPath="url(#bannerClip)" />
           ) : (
             <rect x="20" y="20" width="360" height="150" fill="rgba(255,255,255,0.1)" rx="10"/>
           )}
@@ -176,12 +173,19 @@ export default function ProfileCardPreview({
             launchonlos.fun
           </text>
           
-          {/* Avatar Circle - Better positioned and sized */}
-          <circle cx="200" cy="230" r="55" fill={profilePictureUrl ? "url(#avatarPattern)" : "white"} stroke={variantStyles.border} strokeWidth="3"/>
-          {!profilePictureUrl && (
-            <text x="200" y="235" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="26" fontWeight="bold">
-              {displayName.charAt(0).toUpperCase()}
-            </text>
+          {/* Avatar - use clip path so the image fills the circle */}
+          {profilePictureUrl ? (
+            <>
+              <image href={profilePictureUrl} x="145" y="175" width="110" height="110" preserveAspectRatio="xMidYMid slice" clipPath="url(#avatarClip)" />
+              <circle cx="200" cy="230" r="55" fill="none" stroke={variantStyles.border} strokeWidth="3"/>
+            </>
+          ) : (
+            <>
+              <circle cx="200" cy="230" r="55" fill="white" stroke={variantStyles.border} strokeWidth="3"/>
+              <text x="200" y="235" textAnchor="middle" fill={variantStyles.border} fontFamily="Arial, sans-serif" fontSize="26" fontWeight="bold">
+                {displayName.charAt(0).toUpperCase()}
+              </text>
+            </>
           )}
           
           {/* Mint Number */}
