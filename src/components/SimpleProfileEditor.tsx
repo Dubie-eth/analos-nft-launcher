@@ -123,6 +123,11 @@ export default function SimpleProfileEditor({
       }
 
       if (!data.available) {
+        // Allow reuse if the current wallet already owns this username on-chain
+        const takenBy: string | undefined = data?.takenBy;
+        if (takenBy && publicKey && takenBy === publicKey.toString()) {
+          return true;
+        }
         setError(data.message || `Username "${candidate}" is already taken. Please choose a different username.`);
         return false;
       }

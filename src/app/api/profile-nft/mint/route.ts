@@ -85,10 +85,26 @@ export async function POST(request: NextRequest) {
 
       const accountInfo = await connection.getAccountInfo(usernamePda);
       if (accountInfo) {
-        return NextResponse.json(
-          { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
-          { status: 400 }
-        );
+        // Decode and compare owner; allow if it's the same wallet
+        try {
+          const { BorshCoder } = await import('@coral-xyz/anchor');
+          const IDL = await import('@/idl/analos_monitoring_system.json');
+          const coder = new BorshCoder(IDL.default as any);
+          const usernameData: any = coder.accounts.decode('UsernameRecord', accountInfo.data);
+          const owner = new PublicKey(usernameData.owner).toString();
+          if (owner !== walletAddress) {
+            return NextResponse.json(
+              { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
+              { status: 400 }
+            );
+          }
+        } catch (decodeErr) {
+          // If we cannot decode owner, keep original conservative behavior
+          return NextResponse.json(
+            { error: `Username "${normalizedUsername}" is already taken. Please choose a different username.` },
+            { status: 400 }
+          );
+        }
       }
     } catch (onChainError) {
       console.warn('⚠️ Username oracle check failed, proceeding with DB checks:', onChainError);
@@ -99,12 +115,12 @@ export async function POST(request: NextRequest) {
       try {
         const { data: existingProfile } = await (supabaseAdmin as any)
           .from('user_profiles')
-          .select('username')
+          .select('username, wallet_address')
           .eq('username', normalizedUsername)
           .limit(1)
           .single();
 
-        if (existingProfile) {
+        if (existingProfile && existingProfile.wallet_address !== walletAddress) {
           return NextResponse.json(
             { error: `Username "${username}" is already taken. Please choose a different username.` },
             { status: 400 }
@@ -114,12 +130,12 @@ export async function POST(request: NextRequest) {
         // Also check in profile_nfts table for any existing NFTs with this username
         const { data: existingNFT } = await (supabaseAdmin as any)
           .from('profile_nfts')
-          .select('username')
+          .select('username, wallet_address')
           .eq('username', normalizedUsername)
           .limit(1)
           .single();
 
-        if (existingNFT) {
+        if (existingNFT && existingNFT.wallet_address !== walletAddress) {
           return NextResponse.json(
             { error: `Username "${username}" is already minted as an NFT. Please choose a different username.` },
             { status: 400 }
