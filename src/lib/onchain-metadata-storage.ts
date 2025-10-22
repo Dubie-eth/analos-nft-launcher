@@ -42,7 +42,6 @@ export class OnChainMetadataStorage {
       commitment: 'confirmed',
       disableRetryOnRateLimit: false,
       confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
-      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
     });
     
     // Force disable WebSocket to prevent connection issues
