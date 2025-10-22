@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         }
       ],
       properties: {
-        files: [],
+        files: [] as Array<{uri: string; type: string}>,
         category: 'image',
         creators: [
           {
