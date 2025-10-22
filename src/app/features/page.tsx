@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -28,35 +28,9 @@ export default function FeaturesPage() {
   const [activeTab, setActiveTab] = useState<'features' | 'tracking'>('features');
   const [betaStats, setBetaStats] = useState<any>(null);
 
-  // Handle hydration
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Fetch beta stats
-  useEffect(() => {
-    const fetchBetaStats = async () => {
-      try {
-        const response = await fetch('/api/beta-signup');
-        if (response.ok) {
-          const data = await response.json();
-          setBetaStats(data.stats);
-        }
-      } catch (error) {
-        console.error('Error fetching beta stats:', error);
-      }
-    };
-
-    fetchBetaStats();
-  }, []);
-
-  // Don't render until mounted to prevent hydration mismatch
-  if (!mounted) {
-    return null;
-  }
-
-  // Fallback features if API fails
-  const fallbackFeatures: Feature[] = [
+  // Fallback features if API fails - wrapped in useMemo to prevent re-renders
+  // MUST be defined before any conditional returns to avoid React hooks error
+  const fallbackFeatures: Feature[] = useMemo(() => [
     {
       id: '1',
       feature_key: 'triple_redundancy_metadata',
@@ -238,14 +212,48 @@ export default function FeaturesPage() {
         'Distribution analytics'
       ]
     }
-  ];
+  ], []);
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch beta stats
+  useEffect(() => {
+    const fetchBetaStats = async () => {
+      try {
+        const response = await fetch('/api/beta-signup');
+        if (response.ok) {
+          const data = await response.json();
+          setBetaStats(data.stats);
+        }
+      } catch (error) {
+        console.error('Error fetching beta stats:', error);
+      }
+    };
+
+    fetchBetaStats();
+  }, []);
 
   // Fetch features from API - DISABLED to prevent errors
   useEffect(() => {
+    if (!mounted) return;
+    
     // Use fallback features immediately to prevent API errors
     setFeatures(fallbackFeatures);
     setLoading(false);
-  }, [mounted]);
+  }, [mounted, fallbackFeatures]);
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Loading features...</p>
+      </div>
+    </div>;
+  }
 
   // Filter features based on completion and access level
   const getFilteredFeatures = () => {
