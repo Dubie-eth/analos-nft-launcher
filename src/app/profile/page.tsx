@@ -513,37 +513,40 @@ export default function ProfilePage() {
                       </ul>
                     </div>
 
-                    <div className="bg-black/30 rounded-lg p-4">
-                      <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
-                      <div className="text-sm text-gray-300 mb-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <input
-                            type="text"
-                            placeholder="Enter your username"
-                            value={username}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setUsername(value);
-                              // Check both username availability and pricing
-                              if (value.trim()) {
-                                checkUsername(value);
-                                fetchProfilePricing(value);
-                              } else {
-                                setUsernameStatus({ checking: false, available: null, message: '' });
-                                setProfilePricing(null);
-                              }
-                            }}
-                            className={`flex-1 px-3 py-2 bg-black/50 border ${
-                              usernameStatus.available === true ? 'border-green-500' :
-                              usernameStatus.available === false ? 'border-red-500' :
-                              'border-gray-600'
-                            } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none`}
-                          />
-                        </div>
-                        
+                    {/* Basic Information */}
+                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                      <h4 className="text-white font-semibold mb-3">📝 Basic Information</h4>
+                      
+                      {/* Username */}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Username *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter your username"
+                          value={username}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setUsername(value);
+                            // Check both username availability and pricing
+                            if (value.trim()) {
+                              checkUsername(value);
+                              fetchProfilePricing(value);
+                            } else {
+                              setUsernameStatus({ checking: false, available: null, message: '' });
+                              setProfilePricing(null);
+                            }
+                          }}
+                          className={`w-full px-3 py-2 bg-black/50 border ${
+                            usernameStatus.available === true ? 'border-green-500' :
+                            usernameStatus.available === false ? 'border-red-500' :
+                            'border-gray-600'
+                          } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none`}
+                        />
                         {/* Username availability status */}
                         {usernameStatus.message && (
-                          <div className={`text-xs mb-2 flex items-center gap-1 ${
+                          <div className={`text-xs mt-1 flex items-center gap-1 ${
                             usernameStatus.checking ? 'text-gray-400' :
                             usernameStatus.available ? 'text-green-400' :
                             'text-red-400'
@@ -555,6 +558,121 @@ export default function ProfilePage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Display Name */}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Display Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter your display name"
+                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Bio */}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Bio
+                        </label>
+                        <textarea
+                          placeholder="Tell us about yourself..."
+                          rows={3}
+                          maxLength={500}
+                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">0/500 characters</p>
+                      </div>
+                    </div>
+
+                    {/* Profile Images */}
+                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                      <h4 className="text-white font-semibold mb-3">🖼️ Profile Images</h4>
+                      
+                      {/* Profile Picture */}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Profile Picture
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                        />
+                      </div>
+
+                      {/* Banner Image */}
+                      <div className="mb-3">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Banner Image
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Social Links */}
+                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                      <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Twitter */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Twitter
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="@username"
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Website */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Website
+                          </label>
+                          <input
+                            type="url"
+                            placeholder="https://yourwebsite.com"
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Discord */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Discord
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="username#1234"
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* GitHub */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            GitHub
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="username"
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/30 rounded-lg p-4">
+                      <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
+                      <div className="text-sm text-gray-300 mb-3">
                       
                       {profilePricing ? (
                         <div className="text-sm text-gray-300">
