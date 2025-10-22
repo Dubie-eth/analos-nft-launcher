@@ -184,7 +184,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '8',
+      id: '9',
       feature_key: 'living_portfolio',
       feature_name: 'Living Portfolio',
       description: 'Track your NFT and token portfolio with real-time updates and analytics.',
@@ -202,7 +202,7 @@ export default function FeaturesPage() {
       ]
     },
     {
-      id: '9',
+      id: '10',
       feature_key: 'airdrop_system',
       feature_name: 'Airdrop System',
       description: 'Distribute tokens and NFTs to your community with our airdrop platform.',
