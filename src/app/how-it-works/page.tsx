@@ -1369,17 +1369,17 @@ const HowItWorksPage: React.FC = () => {
                   <div className="p-3 bg-purple-50 rounded">
                     <h4 className="font-semibold text-purple-800">Mega Launchpad Core</h4>
                     <p className="text-xs text-purple-600">Main platform program</p>
-                    <code className="text-xs bg-purple-100 px-1 rounded">BioNVjt...Whdr</code>
+                    <code className="text-xs bg-purple-100 px-2 py-1 rounded font-bold text-purple-900">BioNVjt...Whdr</code>
                   </div>
                   <div className="p-3 bg-blue-50 rounded">
                     <h4 className="font-semibold text-blue-800">Price Oracle</h4>
                     <p className="text-xs text-blue-600">LOS price data</p>
-                    <code className="text-xs bg-blue-100 px-1 rounded">B26WiD...F1D</code>
+                    <code className="text-xs bg-blue-100 px-2 py-1 rounded font-bold text-blue-900">B26WiD...F1D</code>
                   </div>
                   <div className="p-3 bg-green-50 rounded">
                     <h4 className="font-semibold text-green-800">Token Launch</h4>
                     <p className="text-xs text-green-600">Token economics</p>
-                    <code className="text-xs bg-green-100 px-1 rounded">Eydws6...WCRw</code>
+                    <code className="text-xs bg-green-100 px-2 py-1 rounded font-bold text-green-900">Eydws6...WCRw</code>
                   </div>
                 </div>
               </div>
@@ -1554,7 +1554,7 @@ const HowItWorksPage: React.FC = () => {
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                       activeSection === section.id
                         ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-semibold'
-                        : 'text-gray-600 dark:text-gray-300 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        : 'text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     <span className="mr-2">{section.icon}</span>

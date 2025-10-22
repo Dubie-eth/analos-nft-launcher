@@ -336,7 +336,7 @@ export default function FeaturesPage() {
                       ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
                       : 'bg-blue-500 text-white border-blue-400 shadow-lg'
                     : theme === 'dark'
-                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border-gray-600'
+                    ? 'bg-gray-800 text-white hover:bg-gray-700 border-gray-600'
                     : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300'
                 }`}
               >
@@ -537,7 +537,7 @@ export default function FeaturesPage() {
                 </button>
                 <button className={`px-8 py-4 rounded-lg font-semibold text-lg border-2 transition-all duration-200 ${
                   theme === 'dark'
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-800'
+                    ? 'border-gray-600 text-white hover:bg-gray-800'
                     : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}>
                   Learn More

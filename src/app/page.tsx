@@ -341,7 +341,7 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <code className="text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded">
+                  <code className="text-xs text-white bg-gray-800/90 px-2 py-1 rounded font-bold border border-gray-600">
                     {program.id.slice(0, 8)}...{program.id.slice(-8)}
                   </code>
                   <a

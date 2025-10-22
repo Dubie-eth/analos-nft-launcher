@@ -170,16 +170,16 @@ textarea::placeholder {
       }
     }
 
-    /* Simple dark background text fixes - only for actual dark backgrounds */
-    .bg-gradient-to-br,
-    .bg-gradient-to-r,
-    .bg-purple-900,
-    .bg-blue-900,
-    .bg-indigo-900,
-    .bg-gray-900,
-    .bg-black {
-      color: #ffffff;
-    }
+/* Simple dark background text fixes - only for actual dark backgrounds */
+.bg-gradient-to-br,
+.bg-gradient-to-r,
+.bg-purple-900,
+.bg-blue-900,
+.bg-indigo-900,
+.bg-gray-900,
+.bg-black {
+  color: #ffffff;
+}
 
 .bg-gradient-to-br .text-gray-600,
 .bg-gradient-to-br .text-gray-500,
@@ -195,6 +195,70 @@ textarea::placeholder {
 .bg-blue-900 .text-gray-300 {
   color: #ffffff !important;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* CRITICAL: Fix text visibility issues in dark mode */
+/* Ensure all text is visible on colored backgrounds */
+code, .text-xs, .text-sm {
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+/* Dark mode text fixes */
+.dark code, .dark .text-xs, .dark .text-sm {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Fix specific colored background text visibility */
+.bg-purple-50 code,
+.bg-purple-100 code,
+.bg-blue-50 code,
+.bg-blue-100 code,
+.bg-green-50 code,
+.bg-green-100 code,
+.bg-orange-50 code,
+.bg-orange-100 code,
+.bg-pink-50 code,
+.bg-pink-100 code,
+.bg-cyan-50 code,
+.bg-cyan-100 code,
+.bg-yellow-50 code,
+.bg-yellow-100 code,
+.bg-red-50 code,
+.bg-red-100 code {
+  color: #000000 !important;
+  font-weight: 700 !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Dark mode colored background fixes */
+.dark .bg-purple-50 code,
+.dark .bg-purple-100 code,
+.dark .bg-blue-50 code,
+.dark .bg-blue-100 code,
+.dark .bg-green-50 code,
+.dark .bg-green-100 code,
+.dark .bg-orange-50 code,
+.dark .bg-orange-100 code,
+.dark .bg-pink-50 code,
+.dark .bg-pink-100 code,
+.dark .bg-cyan-50 code,
+.dark .bg-cyan-100 code,
+.dark .bg-yellow-50 code,
+.dark .bg-yellow-100 code,
+.dark .bg-red-50 code,
+.dark .bg-red-100 code {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  text-shadow: none !important;
 }
 
 /* Wallet/code text wrapping for profile page */

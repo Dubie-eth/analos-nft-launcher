@@ -284,7 +284,7 @@ export default function ExplorerPage() {
                       </button>
                     </div>
                     <div 
-                      className="bg-gray-800/50 rounded-lg p-3 font-mono text-xs text-gray-300 cursor-pointer hover:bg-gray-700/50 transition-colors"
+                      className="bg-gray-800/90 rounded-lg p-3 font-mono text-xs text-white cursor-pointer hover:bg-gray-700/70 transition-colors border border-gray-600"
                       onClick={() => copyToClipboard(programId.toString())}
                       title="Click to copy full address"
                     >

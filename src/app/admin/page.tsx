@@ -642,7 +642,7 @@ export default function AdminDashboard() {
                 className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-200 whitespace-nowrap text-xs sm:text-sm ${
                   activeTab === tab.id
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                    : 'text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-gray-700/30'
+                    : 'text-white dark:text-white hover:text-white dark:hover:text-white hover:bg-white/10 dark:hover:bg-gray-700/30'
                 }`}
               >
                 <span>{tab.icon}</span>
