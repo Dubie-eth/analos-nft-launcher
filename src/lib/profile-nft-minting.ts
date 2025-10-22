@@ -26,10 +26,6 @@ import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { uploadJSONToIPFS } from './backend-api';
 import { metadataService } from './metadata-service';
 import { METADATA_PROGRAM_CONFIG } from './metadata-service';
-import {
-  createCreateMetadataAccountV3Instruction,
-  createCreateMasterEditionV3Instruction,
-} from '@metaplex-foundation/mpl-token-metadata';
 
 export interface ProfileNFTMintParams {
   wallet: string;
@@ -293,6 +289,14 @@ export class ProfileNFTMintingService {
       // 13. Create Metaplex metadata account
       console.log('📝 Creating Metaplex metadata...');
       try {
+        // Dynamically import Metaplex helpers to avoid build-time dependency mismatch
+        const mpl: any = await import('@metaplex-foundation/mpl-token-metadata').catch(() => null);
+
+        if (!mpl || (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction)) {
+          console.warn('⚠️ Metaplex helpers unavailable, skipping on-chain metadata creation');
+          throw new Error('MPL not available');
+        }
+
         // 13a. Upload JSON (URI)
         const metadataCreation = await metadataService.createNFTMetadata(
           mintKeypair.publicKey,
@@ -327,7 +331,7 @@ export class ProfileNFTMintingService {
           metadataProgramId
         );
 
-        const metadataIx = createCreateMetadataAccountV3Instruction(
+        const metadataIx = mpl.createCreateMetadataAccountV3Instruction(
           {
             metadata: metadataPda,
             mint: mintKeypair.publicKey,
@@ -353,7 +357,7 @@ export class ProfileNFTMintingService {
           metadataProgramId
         );
 
-        const masterEditionIx = createCreateMasterEditionV3Instruction(
+        const masterEditionIx = mpl.createCreateMasterEditionV3Instruction(
           {
             edition: masterEditionPda,
             mint: mintKeypair.publicKey,
@@ -390,7 +394,7 @@ export class ProfileNFTMintingService {
           console.warn('⚠️ Metadata confirmation timeout:', e);
         }
       } catch (metadataError) {
-        console.warn('⚠️ Failed to create on-chain metadata:', metadataError);
+        console.warn('⚠️ Failed to create on-chain metadata (non-fatal):', metadataError);
         // Continue anyway - the NFT is still minted; UI may rely on later backfill
       }
 
