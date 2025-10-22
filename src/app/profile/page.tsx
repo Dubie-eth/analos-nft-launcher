@@ -500,8 +500,22 @@ export default function ProfilePage() {
                             setProfilePricing(null);
                             
                             // Refresh NFTs
-                            if (publicKey) {
-                              fetchUserNFTs(publicKey.toString());
+                            try {
+                              const nftsResponse = await fetch(`/api/user-nfts/${publicKey?.toString()}`);
+                              const nftsData = await nftsResponse.json();
+                              
+                              if (nftsData.nfts && nftsData.nfts.length > 0) {
+                                setUiNFTs(nftsData.nfts.map((nft: any) => ({
+                                  mint: nft.mint,
+                                  collection: nft.collectionName || 'Unknown Collection',
+                                  name: nft.name || 'Unnamed NFT',
+                                  image: nft.uri || '/api/placeholder/400/400',
+                                  collectionAddress: nft.collectionAddress,
+                                  description: nft.description
+                                })));
+                              }
+                            } catch (error) {
+                              console.error('Error refreshing NFTs:', error);
                             }
                           } else {
                             alert(`❌ Error: ${data.error}`);
