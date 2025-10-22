@@ -113,7 +113,10 @@ Join me on the Analos NFT Launchpad: https://onlyanal.fun`;
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-8 px-4"
+      onClick={onClose}
+    >
       {/* Matrix Background */}
       <div className="absolute inset-0 bg-black overflow-hidden">
         {matrixChars.map((char, index) => (
@@ -134,11 +137,15 @@ Join me on the Analos NFT Launchpad: https://onlyanal.fun`;
       </div>
 
       {/* Celebration Modal */}
-      <div className={`relative z-10 max-w-2xl mx-4 p-8 rounded-lg border-2 ${
+      <div
+        className={`relative z-10 w-full max-w-2xl mx-auto p-8 rounded-lg border-2 ${
         theme === 'dark' 
           ? 'bg-black border-green-500 shadow-green-500/50' 
           : 'bg-gray-900 border-green-400 shadow-green-400/50'
       } shadow-2xl ${showGlitch ? 'animate-pulse' : ''}`}>
+        
+        {/* Prevent closing when clicking inside */}
+        <div className="absolute inset-0 -z-10" onClick={(e) => e.stopPropagation()}></div>
         
         {/* Close Button */}
         <button
@@ -267,6 +274,30 @@ Join me on the Analos NFT Launchpad: https://onlyanal.fun`;
             {copied === 'referral' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             {copied === 'referral' ? 'COPIED!' : 'COPY.REFERRAL'}
           </button>
+
+          {/* View Profile */}
+          <a
+            href="/profile"
+            className={`flex items-center gap-2 px-4 py-2 rounded border font-mono transition-all hover:scale-105 ${
+              theme === 'dark'
+                ? 'bg-purple-900/30 border-purple-500 text-purple-300 hover:bg-purple-800/40'
+                : 'bg-purple-800/30 border-purple-400 text-purple-200 hover:bg-purple-700/40'
+            }`}
+          >
+            VIEW.PROFILE
+          </a>
+
+          {/* Open Marketplace */}
+          <a
+            href="/marketplace"
+            className={`flex items-center gap-2 px-4 py-2 rounded border font-mono transition-all hover:scale-105 ${
+              theme === 'dark'
+                ? 'bg-indigo-900/30 border-indigo-500 text-indigo-300 hover:bg-indigo-800/40'
+                : 'bg-indigo-800/30 border-indigo-400 text-indigo-200 hover:bg-indigo-700/40'
+            }`}
+          >
+            OPEN.MARKETPLACE
+          </a>
         </div>
 
         {/* Matrix Footer */}
@@ -275,6 +306,22 @@ Join me on the Analos NFT Launchpad: https://onlyanal.fun`;
         }`}>
           <div>WELCOME TO THE MATRIX</div>
           <div className="opacity-60">ANALOS NFT LAUNCHPAD v1.0</div>
+        </div>
+
+        {/* Mobile quick actions to move forward */}
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:hidden">
+          <a
+            href="/profile"
+            className="text-center px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm"
+          >
+            View Profile
+          </a>
+          <a
+            href="/marketplace"
+            className="text-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+          >
+            Marketplace
+          </a>
         </div>
       </div>
     </div>

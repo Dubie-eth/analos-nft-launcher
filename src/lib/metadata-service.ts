@@ -178,9 +178,12 @@ export class MetadataService {
    * Derive metadata PDA
    */
   private deriveMetadataPDA(mintAddress: PublicKey): [PublicKey, number] {
+    // Metaplex Metadata PDA derivation uses the program ID as a seed:
+    // ['metadata', metadata_program_id, mint]
     return PublicKey.findProgramAddressSync(
       [
         Buffer.from('metadata'),
+        this.programId.toBuffer(),
         mintAddress.toBuffer(),
       ],
       this.programId

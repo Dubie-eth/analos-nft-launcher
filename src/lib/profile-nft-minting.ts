@@ -10,6 +10,7 @@ import {
   SystemProgram,
   Keypair,
   LAMPORTS_PER_SOL,
+  ComputeBudgetProgram,
 } from '@solana/web3.js';
 import {
   TOKEN_PROGRAM_ID,
@@ -24,6 +25,7 @@ import {
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { uploadJSONToIPFS } from './backend-api';
 import { metadataService } from './metadata-service';
+import { METADATA_PROGRAM_CONFIG } from './metadata-service';
 
 export interface ProfileNFTMintParams {
   wallet: string;
@@ -31,7 +33,12 @@ export interface ProfileNFTMintParams {
   price: number;
   tier: string;
   signTransaction: (tx: Transaction) => Promise<Transaction>;
-  sendTransaction: (tx: Transaction, connection: Connection) => Promise<string>;
+  // Use a permissive type to be compatible with various wallet adapters
+  sendTransaction: (
+    tx: Transaction,
+    connection: Connection,
+    options?: any
+  ) => Promise<string>;
 }
 
 export interface ProfileNFTMintResult {
@@ -160,6 +167,15 @@ export class ProfileNFTMintingService {
       // 7. Build transaction (use legacy format for Analos compatibility)
       const transaction = new Transaction();
 
+      // 6a. Add compute budget and priority fee to avoid 0-priority txs
+      // Moderate defaults suitable for congested networks but inexpensive
+      const computeUnitLimit = 300_000; // typical for simple mints
+      const priorityMicroLamports = 5_000; // ~1,000 lamports extra for 200k CUs
+      transaction.add(
+        ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnitLimit }),
+        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityMicroLamports })
+      );
+
       // Add instruction to create mint account
       transaction.add(
         SystemProgram.createAccount({
@@ -226,43 +242,35 @@ export class ProfileNFTMintingService {
       console.log('📋 Transaction fee payer:', transaction.feePayer?.toString());
       console.log('📋 Transaction version property:', (transaction as any).version || 'none (legacy)');
 
-      // 9. Partially sign with mint keypair
-      transaction.partialSign(mintKeypair);
-
-      console.log('✍️ Signing transaction...');
-      // 10. Sign with user wallet
-      const signedTransaction = await signTransaction(transaction);
-      
-      // Debug transaction format before sending
-      console.log('🔍 Transaction details before sending:');
-      console.log('🔍 Transaction type:', signedTransaction.constructor.name);
-      console.log('🔍 Transaction version:', (signedTransaction as any).version || 'legacy');
-      console.log('🔍 Transaction message format:', (signedTransaction as any).message?.version || 'legacy');
-      
-      // Additional check: Ensure transaction is still in legacy format after signing
-      if ((signedTransaction as any).version !== undefined) {
-        console.warn('⚠️ WARNING: Transaction has version property after signing. This may cause issues on Analos network.');
-        console.warn('⚠️ Transaction version:', (signedTransaction as any).version);
-      }
-      
-      if ((signedTransaction as any).message) {
-        console.warn('⚠️ WARNING: Transaction has message property after signing. This may cause issues on Analos network.');
-        console.warn('⚠️ Message version:', (signedTransaction as any).message?.version);
-      }
-
-      console.log('📡 Sending transaction...');
-      // 11. Send transaction with legacy format enforcement
+      // 9. Send via wallet adapter with the mint keypair as an extra signer
+      // This avoids losing the partial signature on some mobile wallets
+      console.log('✍️ Requesting wallet to sign and send (with mint signer)...');
       let signature: string;
       try {
-        // Ensure transaction is serialized in legacy format for Analos compatibility
-        const serializedTx = signedTransaction.serialize();
-        console.log('🔍 Transaction serialized length:', serializedTx.length);
-        console.log('🔍 Transaction first byte (should be 0x01 for legacy):', '0x' + serializedTx[0].toString(16));
-        
-        signature = await sendTransaction(signedTransaction, this.connection);
-      } catch (sendError: any) {
-        console.error('❌ Transaction send error:', sendError);
-        throw new Error(`Failed to send transaction: ${sendError.message}`);
+        signature = await (sendTransaction as any)(transaction, this.connection, {
+          signers: [mintKeypair],
+          skipPreflight: false,
+        });
+      } catch (sendViaWalletError: any) {
+        console.error('❌ sendTransaction failed, attempting fallback flow:', sendViaWalletError);
+        try {
+          // Fallback path for mobile wallets that drop non-wallet signatures:
+          // 1) Ask wallet to sign first
+          // 2) Re-apply the mint keypair signature
+          // 3) Send raw transaction
+          const walletSignedTx = await signTransaction(transaction);
+          walletSignedTx.partialSign(mintKeypair);
+          signature = await this.connection.sendRawTransaction(walletSignedTx.serialize(), { skipPreflight: false });
+        } catch (fallbackError: any) {
+          // Final attempt: try the inverse order just in case
+          try {
+            transaction.partialSign(mintKeypair);
+            const secondAttemptSigned = await signTransaction(transaction);
+            signature = await this.connection.sendRawTransaction(secondAttemptSigned.serialize(), { skipPreflight: false });
+          } catch (_secondErr) {
+            throw new Error(`Failed to send transaction: ${fallbackError.message || sendViaWalletError.message}`);
+          }
+        }
       }
 
       console.log('⏳ Confirming transaction...');
@@ -299,18 +307,124 @@ export class ProfileNFTMintingService {
       // 13. Create Metaplex metadata account
       console.log('📝 Creating Metaplex metadata...');
       try {
-        await metadataService.createNFTMetadata(
+        // Dynamically import Metaplex helpers to avoid build-time dependency mismatch
+        let mpl: any = null;
+        try {
+          mpl = await import('@metaplex-foundation/mpl-token-metadata');
+        } catch (_e) {
+          mpl = null;
+        }
+
+        if (!mpl || (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction)) {
+          console.warn('⚠️ Metaplex helpers unavailable, skipping on-chain metadata creation');
+          throw new Error('MPL not available');
+        }
+
+        // 13a. Upload JSON (URI)
+        const metadataCreation = await metadataService.createNFTMetadata(
           mintKeypair.publicKey,
           'Analos Profile',
           'PROFILE',
-          1, // mint number (we could track this per-user)
+          1,
           profileNFTMetadata.attributes,
           profileNFTMetadata.image
         );
-        console.log('✅ Metaplex metadata created');
+
+        const metadataUriToUse = metadataCreation.metadataURI || metadataUri;
+
+        // 13b. Build on-chain metadata + master edition instructions (MPL-compatible)
+        const metadataProgramId = new PublicKey(METADATA_PROGRAM_CONFIG.PROGRAM_ID);
+
+        const [metadataPda] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from('metadata'),
+            metadataProgramId.toBuffer(),
+            mintKeypair.publicKey.toBuffer(),
+          ],
+          metadataProgramId
+        );
+
+        const [masterEditionPda] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from('metadata'),
+            metadataProgramId.toBuffer(),
+            mintKeypair.publicKey.toBuffer(),
+            Buffer.from('edition'),
+          ],
+          metadataProgramId
+        );
+
+        const metadataIx = mpl.createCreateMetadataAccountV3Instruction(
+          {
+            metadata: metadataPda,
+            mint: mintKeypair.publicKey,
+            mintAuthority: userPublicKey,
+            payer: userPublicKey,
+            updateAuthority: userPublicKey,
+          },
+          {
+            createMetadataAccountArgsV3: {
+              data: {
+                name: 'Analos Profile',
+                symbol: 'PROFILE',
+                uri: metadataUriToUse || metadataUri,
+                sellerFeeBasisPoints: 0,
+                creators: null,
+                collection: null,
+                uses: null,
+              },
+              isMutable: true,
+              collectionDetails: null,
+            },
+          },
+          metadataProgramId
+        );
+
+        const masterEditionIx = mpl.createCreateMasterEditionV3Instruction(
+          {
+            edition: masterEditionPda,
+            mint: mintKeypair.publicKey,
+            updateAuthority: userPublicKey,
+            mintAuthority: userPublicKey,
+            payer: userPublicKey,
+            metadata: metadataPda,
+          },
+          { createMasterEditionArgs: { maxSupply: 0 } },
+          metadataProgramId
+        );
+
+        // 13c. Send metadata transaction
+        const metaTx = new Transaction();
+        metaTx.add(
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5_000 }),
+          metadataIx,
+          masterEditionIx
+        );
+
+        const { blockhash: metaBh, lastValidBlockHeight: metaLvb } = await this.connection.getLatestBlockhash('confirmed');
+        metaTx.recentBlockhash = metaBh;
+        metaTx.feePayer = userPublicKey;
+        metaTx.lastValidBlockHeight = metaLvb;
+
+        let metaSig: string;
+        try {
+          metaSig = await (sendTransaction as any)(metaTx, this.connection, { skipPreflight: false });
+        } catch (_sendMetaErr) {
+          // Fallback for wallets that don't support sendTransaction properly
+          const signedMetaTx = await signTransaction(metaTx);
+          metaSig = await this.connection.sendRawTransaction(signedMetaTx.serialize(), { skipPreflight: false });
+        }
+
+        try {
+          await this.connection.confirmTransaction({ signature: metaSig, blockhash: metaBh, lastValidBlockHeight: metaLvb }, 'confirmed');
+          console.log('✅ Metadata + Master Edition created:', metaSig);
+        } catch (e) {
+          console.warn('⚠️ Metadata confirmation timeout:', e);
+        }
       } catch (metadataError) {
-        console.warn('⚠️ Failed to create Metaplex metadata:', metadataError);
-        // Continue anyway - the NFT is still minted
+        console.warn('⚠️ Failed to create on-chain metadata (non-fatal):', metadataError);
+        // Continue anyway - the NFT is still minted; UI may rely on later backfill
       }
 
       return {

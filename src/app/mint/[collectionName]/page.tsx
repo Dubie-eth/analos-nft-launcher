@@ -476,6 +476,23 @@ export default function MintPage() {
                           >
                             View on Explorer →
                           </button>
+                          {/* Quick actions after successful mint */}
+                          {mintResult.success && (
+                            <div className="mt-4 flex flex-wrap gap-3">
+                              <a
+                                href="/marketplace"
+                                className="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                              >
+                                Open Marketplace
+                              </a>
+                              <a
+                                href="/profile"
+                                className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                              >
+                                View Your Profile
+                              </a>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

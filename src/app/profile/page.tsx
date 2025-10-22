@@ -86,6 +86,8 @@ export default function ProfilePage() {
   const [showReveal, setShowReveal] = useState(false);
   const [revealedNFT, setRevealedNFT] = useState<UserNFT | null>(null);
   const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
+  const [lastTxSignature, setLastTxSignature] = useState<string | null>(null);
+  const [lastMintAddress, setLastMintAddress] = useState<string | null>(null);
 
   // Baseball card background examples for users to preview
   const cardBackgrounds = [
@@ -292,11 +294,19 @@ export default function ProfilePage() {
   // Fetch current mint count
   const fetchMintCount = async () => {
     try {
-      const response = await fetch('/api/profile-nft/mint-count');
+      // Use the correct API route
+      const response = await fetch('/api/profile-nft/mint-counter');
       const data = await response.json();
-      
+
       if (data.success) {
-        setMintNumber(data.count + 1); // Next mint number
+        // Prefer nextMintNumber if provided; fallback to currentMintNumber
+        const nextNum =
+          typeof data.nextMintNumber === 'number'
+            ? data.nextMintNumber
+            : typeof data.currentMintNumber === 'number'
+            ? (data.currentMintNumber as number)
+            : 1;
+        setMintNumber(nextNum);
       }
     } catch (error) {
       console.error('Error fetching mint count:', error);
@@ -304,8 +314,10 @@ export default function ProfilePage() {
   };
 
   // Trigger NFT reveal animation
-  const triggerReveal = (nft: UserNFT) => {
+  const triggerReveal = (nft: UserNFT, txSignature?: string, mintAddress?: string) => {
     setRevealedNFT(nft);
+    setLastTxSignature(txSignature || null);
+    setLastMintAddress(mintAddress || null);
     setShowReveal(true);
     setRevealAnimation('cover');
     
@@ -1165,8 +1177,10 @@ export default function ProfilePage() {
 
                                 // Increment mint count
                                 try {
-                                  await fetch('/api/profile-nft/mint-count', {
-                                    method: 'POST'
+                                  await fetch('/api/profile-nft/mint-counter', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ increment: 1 })
                                   });
                                   // Update local mint count
                                   setMintNumber(prev => prev ? prev + 1 : 1);
@@ -1196,8 +1210,11 @@ export default function ProfilePage() {
                                   ]
                                 };
 
+                                // Immediately reflect minted NFT in UI
+                                setUserProfileNFT(newNFT as any);
+
                                 // Trigger the reveal animation
-                                triggerReveal(newNFT);
+                                triggerReveal(newNFT, result.signature, result.mintAddress);
                                 
                                 // Reset form
                                 setUsername('');
@@ -1299,8 +1316,30 @@ export default function ProfilePage() {
 
           {/* NFT Reveal Animation */}
           {showReveal && revealedNFT && (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="relative max-w-md w-full">
+            <div
+              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-start justify-center p-4 py-8 overflow-y-auto"
+              onClick={() => {
+                setShowReveal(false);
+                setRevealAnimation('cover');
+                setRevealedNFT(null);
+              }}
+            >
+              <div
+                className="relative max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close (X) button */}
+                <button
+                  aria-label="Close reveal"
+                  className="absolute -top-2 -right-2 z-50 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full p-2 border border-gray-600"
+                  onClick={() => {
+                    setShowReveal(false);
+                    setRevealAnimation('cover');
+                    setRevealedNFT(null);
+                  }}
+                >
+                  ✕
+                </button>
                 {/* Reveal Card Container */}
                 <div className="relative">
                   {/* Cover Card */}
@@ -1382,7 +1421,18 @@ export default function ProfilePage() {
                         
                         {/* Card Footer */}
                         <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                          <p className="text-xs text-gray-400">
+                            <a
+                              href="https://launchonlos.fun"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline hover:text-white"
+                            >
+                              launchonlos.fun
+                            </a>
+                            {' '}
+                            • Analos
+                          </p>
                         </div>
                         
                         {/* Background Pattern Overlay */}
@@ -1456,6 +1506,34 @@ export default function ProfilePage() {
                         </div>
                       </div>
 
+                      {/* Transaction Details */}
+                      {(lastTxSignature || lastMintAddress) && (
+                        <div className="bg-black/30 rounded-lg p-3 border border-green-500/30 mb-4">
+                          {lastTxSignature && (
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-gray-300">Transaction</span>
+                              <button
+                                className="text-green-400 underline truncate max-w-[60%] text-left"
+                                onClick={() => window.open(`https://explorer.analos.io/tx/${lastTxSignature}`, '_blank')}
+                              >
+                                {lastTxSignature}
+                              </button>
+                            </div>
+                          )}
+                          {lastMintAddress && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-300">Mint</span>
+                              <button
+                                className="text-green-400 underline truncate max-w-[60%] text-left"
+                                onClick={() => window.open(`https://explorer.analos.io/address/${lastMintAddress}`, '_blank')}
+                              >
+                                {lastMintAddress}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Traits and Rarity Display */}
                       <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30">
                         <h4 className="text-lg font-bold text-white mb-3 text-center">🎉 Your Revealed Traits</h4>
@@ -1497,6 +1575,22 @@ export default function ProfilePage() {
                       >
                         ✨ Awesome! Close Reveal
                       </button>
+
+                      {/* Mobile quick links so users can proceed after success */}
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+                        <a
+                          href="/profile"
+                          className="text-center px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm"
+                        >
+                          View Profile
+                        </a>
+                        <a
+                          href="/marketplace"
+                          className="text-center px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                        >
+                          Marketplace
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1575,7 +1669,18 @@ export default function ProfilePage() {
                         
                         {/* Card Footer */}
                         <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                          <p className="text-xs text-gray-400">
+                            <a
+                              href="https://launchonlos.fun"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline hover:text-white"
+                            >
+                              launchonlos.fun
+                            </a>
+                            {' '}
+                            • Analos
+                          </p>
                         </div>
                         
                         {/* Background Pattern Overlay */}
