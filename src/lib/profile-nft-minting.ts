@@ -47,8 +47,20 @@ export class ProfileNFTMintingService {
   private connection: Connection;
 
   constructor(rpcUrl: string = ANALOS_RPC_URL) {
-    this.connection = new Connection(rpcUrl, 'confirmed');
+    // Configure connection for Analos network with extended timeouts
+    this.connection = new Connection(rpcUrl, {
+      commitment: 'confirmed',
+      disableRetryOnRateLimit: false,
+      confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+    });
+    
+    // Force disable WebSocket to prevent connection issues
+    (this.connection as any)._rpcWebSocket = null;
+    (this.connection as any)._rpcWebSocketConnected = false;
+    
     console.log('🎭 Profile NFT Minting Service initialized');
+    console.log('🔗 RPC URL:', rpcUrl);
   }
 
   /**
@@ -213,18 +225,35 @@ export class ProfileNFTMintingService {
       const signature = await sendTransaction(signedTransaction, this.connection);
 
       console.log('⏳ Confirming transaction...');
-      // 12. Confirm transaction
-      const confirmation = await this.connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight
-      }, 'confirmed');
+      // 12. Confirm transaction with extended timeout for Analos network
+      try {
+        const confirmation = await this.connection.confirmTransaction({
+          signature,
+          blockhash,
+          lastValidBlockHeight
+        }, 'confirmed');
 
-      if (confirmation.value.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+        if (confirmation.value.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+        }
+
+        console.log('✅ Transaction confirmed:', signature);
+      } catch (confirmError: any) {
+        // If confirmation times out, check if transaction was successful
+        console.log('⚠️ Confirmation timeout, checking transaction status...');
+        
+        try {
+          const txStatus = await this.connection.getSignatureStatus(signature);
+          if (txStatus.value && !txStatus.value.err) {
+            console.log('✅ Transaction confirmed via signature status check:', signature);
+          } else {
+            throw new Error(`Transaction failed or not found: ${signature}`);
+          }
+        } catch (statusError) {
+          console.error('❌ Transaction confirmation failed:', statusError);
+          throw new Error(`Transaction confirmation failed: ${confirmError.message || 'Unknown error'}`);
+        }
       }
-
-      console.log('✅ Transaction confirmed:', signature);
 
       // 13. Create Metaplex metadata account
       console.log('📝 Creating Metaplex metadata...');

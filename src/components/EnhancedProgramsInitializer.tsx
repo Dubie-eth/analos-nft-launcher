@@ -71,7 +71,17 @@ const EnhancedProgramsInitializer: React.FC = () => {
   const [results, setResults] = useState<InitializationResult[]>([]);
   const [currentInitializing, setCurrentInitializing] = useState<string>('');
 
-  const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
+  // Configure connection for Analos network with extended timeouts
+  const connection = new Connection(ANALOS_RPC_URL, {
+    commitment: 'confirmed',
+    disableRetryOnRateLimit: false,
+    confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+    confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+  });
+  
+  // Force disable WebSocket to prevent connection issues
+  (connection as any)._rpcWebSocket = null;
+  (connection as any)._rpcWebSocketConnected = false;
 
   const initializeProgram = async (program: ProgramInfo): Promise<InitializationResult> => {
     try {

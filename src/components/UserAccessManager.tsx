@@ -37,7 +37,21 @@ interface AccessRule {
 const UserAccessManager: React.FC = () => {
   const { publicKey } = useWallet();
   const { theme } = useTheme();
-  const [connection] = useState(() => new Connection(ANALOS_RPC_URL, 'confirmed'));
+  const [connection] = useState(() => {
+    // Configure connection for Analos network with extended timeouts
+    const conn = new Connection(ANALOS_RPC_URL, {
+      commitment: 'confirmed',
+      disableRetryOnRateLimit: false,
+      confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+    });
+    
+    // Force disable WebSocket to prevent connection issues
+    (conn as any)._rpcWebSocket = null;
+    (conn as any)._rpcWebSocketConnected = false;
+    
+    return conn;
+  });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'rules' | 'pages' | 'analytics'>('users');
   

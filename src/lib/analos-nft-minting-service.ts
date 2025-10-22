@@ -69,7 +69,17 @@ export class AnalosNFTMintingService {
   private program: Program<any>;
 
   constructor() {
-    this.connection = new Connection(ANALOS_RPC_URL, 'confirmed');
+    // Configure connection for Analos network with extended timeouts
+    this.connection = new Connection(ANALOS_RPC_URL, {
+      commitment: 'confirmed',
+      disableRetryOnRateLimit: false,
+      confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+    });
+    
+    // Force disable WebSocket to prevent connection issues
+    (this.connection as any)._rpcWebSocket = null;
+    (this.connection as any)._rpcWebSocketConnected = false;
     
     // Create a dummy provider for now
     const dummyKeypair = Keypair.generate();

@@ -72,7 +72,17 @@ export class BlockchainService {
 
   constructor() {
     // Use backend RPC proxy for rate limiting
-    this.connection = new Connection(ANALOS_RPC_URL, 'confirmed');
+    // Configure connection for Analos network with extended timeouts
+    this.connection = new Connection(ANALOS_RPC_URL, {
+      commitment: 'confirmed',
+      disableRetryOnRateLimit: false,
+      confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+    });
+    
+    // Force disable WebSocket to prevent connection issues
+    (this.connection as any)._rpcWebSocket = null;
+    (this.connection as any)._rpcWebSocketConnected = false;
     this.programIds = ANALOS_PROGRAMS;
     
     console.log('⛓️ Blockchain Service initialized');

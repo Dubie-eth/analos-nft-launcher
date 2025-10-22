@@ -35,7 +35,17 @@ try {
   ANALOS_RPC_URL = analosPrograms.ANALOS_RPC_URL;
   
   // Initialize connection and program
-  connection = new Connection(ANALOS_RPC_URL);
+  // Configure connection for Analos network with extended timeouts
+  connection = new Connection(ANALOS_RPC_URL, {
+    commitment: 'confirmed',
+    disableRetryOnRateLimit: false,
+    confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+    confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+  });
+  
+  // Force disable WebSocket to prevent connection issues
+  (connection as any)._rpcWebSocket = null;
+  (connection as any)._rpcWebSocketConnected = false;
   
   console.log('✅ All imports successful');
 } catch (importError) {

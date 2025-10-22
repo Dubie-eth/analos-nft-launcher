@@ -8,7 +8,17 @@ import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } f
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 
 // Initialize connection to Analos
-const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
+// Configure connection for Analos network with extended timeouts
+const connection = new Connection(ANALOS_RPC_URL, {
+  commitment: 'confirmed',
+  disableRetryOnRateLimit: false,
+  confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+  confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+});
+
+// Force disable WebSocket to prevent connection issues
+(connection as any)._rpcWebSocket = null;
+(connection as any)._rpcWebSocketConnected = false;
 
 export async function GET(request: NextRequest) {
   try {

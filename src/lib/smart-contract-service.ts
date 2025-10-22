@@ -41,7 +41,18 @@ export class SmartContractService {
   private programIds: typeof ANALOS_PROGRAMS;
 
   constructor() {
-    this.connection = new Connection(ANALOS_RPC_URL, 'confirmed');
+    // Configure connection for Analos network with extended timeouts
+    this.connection = new Connection(ANALOS_RPC_URL, {
+      commitment: 'confirmed',
+      disableRetryOnRateLimit: false,
+      confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+    });
+    
+    // Force disable WebSocket to prevent connection issues
+    (this.connection as any)._rpcWebSocket = null;
+    (this.connection as any)._rpcWebSocketConnected = false;
+    
     this.programIds = ANALOS_PROGRAMS;
     
     console.log('🔗 Smart Contract Service initialized');
@@ -154,12 +165,23 @@ export class SmartContractService {
 
       console.log('✅ Update config transaction sent:', signature);
 
-      // Wait for confirmation
+      // Wait for confirmation with extended timeout for Analos network
       try {
         await this.connection.confirmTransaction(signature, 'confirmed');
         console.log('✅ Update config transaction confirmed on blockchain');
-      } catch (confirmError) {
-        console.log('⚠️ Confirmation timeout, but transaction was sent:', signature);
+      } catch (confirmError: any) {
+        console.log('⚠️ Confirmation timeout, checking transaction status...');
+        
+        try {
+          const txStatus = await this.connection.getSignatureStatus(signature);
+          if (txStatus.value && !txStatus.value.err) {
+            console.log('✅ Transaction confirmed via signature status check:', signature);
+          } else {
+            console.log('⚠️ Transaction status unclear, but transaction was sent:', signature);
+          }
+        } catch (statusError) {
+          console.log('⚠️ Confirmation timeout, but transaction was sent:', signature);
+        }
       }
 
       return {

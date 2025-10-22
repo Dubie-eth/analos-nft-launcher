@@ -53,7 +53,21 @@ interface CollectionConfig {
 }
 
 const CollectionCreationWizard: React.FC = () => {
-  const [connection] = useState(() => new Connection(ANALOS_RPC_URL, 'confirmed'));
+  const [connection] = useState(() => {
+    // Configure connection for Analos network with extended timeouts
+    const conn = new Connection(ANALOS_RPC_URL, {
+      commitment: 'confirmed',
+      disableRetryOnRateLimit: false,
+      confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
+      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
+    });
+    
+    // Force disable WebSocket to prevent connection issues
+    (conn as any)._rpcWebSocket = null;
+    (conn as any)._rpcWebSocketConnected = false;
+    
+    return conn;
+  });
   const [program, setProgram] = useState<Program | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
