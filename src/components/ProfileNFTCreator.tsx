@@ -442,6 +442,16 @@ export default function ProfileNFTCreator({
           >
             View Profile
           </button>
+          <a
+            href="/marketplace"
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              theme === 'dark'
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-indigo-500 text-white hover:bg-indigo-600'
+            }`}
+          >
+            Open Marketplace
+          </a>
           {onClose && (
             <button
               onClick={onClose}
