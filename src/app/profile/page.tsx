@@ -902,55 +902,56 @@ export default function ProfilePage() {
                         </button>
                       </div>
                     </div>
-
-                {/* Profile NFT Preview */}
-                <div className="bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl p-6 border border-blue-500/30">
-                  <h3 className="text-2xl font-bold text-white mb-4 text-center">Preview</h3>
-                  
-                  <div className="bg-black/30 rounded-lg p-4 mb-4">
-                    <div className="text-center">
-                      <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-4xl">🎭</span>
-                      </div>
-                      <h4 className="text-white font-semibold text-lg">Your Profile NFT</h4>
-                      <p className="text-gray-300 text-sm">Unique #1</p>
-                    </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <h5 className="text-white font-semibold mb-2">Traits</h5>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">Rarity:</span>
-                          <span className="text-yellow-400">Legendary</span>
+                  {/* Profile NFT Preview */}
+                  <div className="bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl p-6 border border-blue-500/30">
+                    <h3 className="text-2xl font-bold text-white mb-4 text-center">Preview</h3>
+                    
+                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                      <div className="text-center">
+                        <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <span className="text-4xl">🎭</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">Type:</span>
-                          <span className="text-blue-400">Profile</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">Power:</span>
-                          <span className="text-green-400">100</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-300">Status:</span>
-                          <span className="text-purple-400">Active</span>
-                        </div>
+                        <h4 className="text-white font-semibold text-lg">Your Profile NFT</h4>
+                        <p className="text-gray-300 text-sm">Unique #1</p>
                       </div>
                     </div>
 
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <h5 className="text-white font-semibold mb-2">Benefits</h5>
-                      <ul className="text-sm text-gray-300 space-y-1">
-                        <li>• Exclusive community access</li>
-                        <li>• Special marketplace privileges</li>
-                        <li>• Governance voting rights</li>
-                        <li>• Early feature access</li>
-                      </ul>
+                    <div className="space-y-3">
+                      <div className="bg-black/30 rounded-lg p-3">
+                        <h5 className="text-white font-semibold mb-2">Traits</h5>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Rarity:</span>
+                            <span className="text-yellow-400">Legendary</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Type:</span>
+                            <span className="text-blue-400">Profile</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Power:</span>
+                            <span className="text-green-400">100</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-300">Status:</span>
+                            <span className="text-purple-400">Active</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-black/30 rounded-lg p-3">
+                        <h5 className="text-white font-semibold mb-2">Benefits</h5>
+                        <ul className="text-sm text-gray-300 space-y-1">
+                          <li>• Exclusive community access</li>
+                          <li>• Special marketplace privileges</li>
+                          <li>• Governance voting rights</li>
+                          <li>• Early feature access</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
-                </div>
               </div>
 
               {/* Profile NFT Status */}
