@@ -582,7 +582,7 @@ export default function FeaturesPage() {
                 <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-purple-500 mb-2">
-                      {Object.values(betaStats.featureVotes).reduce((a: number, b: number) => a + b, 0)}
+                      {Object.values(betaStats.featureVotes).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0)}
                     </div>
                     <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>Total Votes</div>
                   </div>
@@ -600,7 +600,7 @@ export default function FeaturesPage() {
                   {Object.entries(betaStats.featureVotes)
                     .sort(([,a], [,b]) => (b as number) - (a as number))
                     .map(([feature, votes]) => {
-                      const totalVotes = Object.values(betaStats.featureVotes).reduce((a: number, b: number) => a + b, 0);
+                      const totalVotes = Object.values(betaStats.featureVotes).reduce((a: number, b: unknown) => a + (typeof b === 'number' ? b : 0), 0);
                       const percentage = totalVotes > 0 ? ((votes as number) / totalVotes) * 100 : 0;
                       
                       return (
