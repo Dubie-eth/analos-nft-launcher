@@ -237,8 +237,29 @@ export default function Navigation() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute right-0 mt-3 w-64 bg-gray-900 border-2 border-blue-500/50 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95">
-                {navItems.slice(6).map((item) => (
+              
+              {/* Tooltip for non-connected users */}
+              {!connected && (
+                <div className="absolute right-0 mt-3 w-72 bg-gradient-to-br from-blue-900 to-purple-900 border-2 border-blue-500/50 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="text-3xl">🔒</div>
+                    <div>
+                      <h3 className="text-white font-bold text-sm mb-1">Connect Your Wallet</h3>
+                      <p className="text-blue-200 text-xs leading-relaxed">
+                        Connect your wallet to unlock additional features including Launch Collection, Marketplace, Swap, OTC Trading, Airdrops, Vesting, Token Lock, Explorer, and more!
+                      </p>
+                      <p className="text-yellow-300 text-xs mt-2 font-semibold">
+                        Admin-granted features will appear here once connected.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Dropdown menu for connected users */}
+              {connected && navItems.slice(6).length > 0 && (
+                <div className="absolute right-0 mt-3 w-64 bg-gray-900 border-2 border-blue-500/50 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95">
+                  {navItems.slice(6).map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -251,8 +272,9 @@ export default function Navigation() {
                     <span className="text-lg flex-shrink-0">{item.icon}</span>
                     <span className="flex-1 font-semibold">{item.label}</span>
                   </Link>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
