@@ -206,7 +206,6 @@ export default function ProfilePage() {
           return;
         }
 
-      try {
         // Load LOS balance (using SOL balance for now, will be updated to LOS token)
         const balance = await connection.getBalance(publicKey);
         setSolBalance(balance / LAMPORTS_PER_SOL);
@@ -296,9 +295,9 @@ export default function ProfilePage() {
           setRewardsSummary(rewardsData.summary);
         }
 
+        setLoading(false);
       } catch (error) {
-        console.error('❌ Error loading user data:', error);
-      } finally {
+        console.error('❌ Error checking page access or loading user data:', error);
         setLoading(false);
       }
     };
