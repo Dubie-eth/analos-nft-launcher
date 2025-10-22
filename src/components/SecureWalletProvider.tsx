@@ -25,7 +25,6 @@ export default function SecureWalletProvider({ children }: SecureWalletProviderP
       commitment: 'confirmed',
       disableRetryOnRateLimit: false,
       confirmTransactionInitialTimeout: 120000, // 2 minutes for Analos network
-      confirmTransactionTimeout: 120000, // 2 minutes for Analos network
     });
     
     // Force disable WebSocket by overriding the _rpcWebSocket property
