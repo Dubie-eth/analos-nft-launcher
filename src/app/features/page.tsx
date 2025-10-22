@@ -610,7 +610,7 @@ export default function FeaturesPage() {
                               {feature.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </span>
                             <span className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-                              {votes} votes ({percentage.toFixed(1)}%)
+                              {typeof votes === 'number' ? votes : 0} votes ({percentage.toFixed(1)}%)
                             </span>
                           </div>
                           <div className={`w-full ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2`}>
