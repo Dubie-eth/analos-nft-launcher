@@ -292,11 +292,19 @@ export default function ProfilePage() {
   // Fetch current mint count
   const fetchMintCount = async () => {
     try {
-      const response = await fetch('/api/profile-nft/mint-count');
+      // Use the correct API route
+      const response = await fetch('/api/profile-nft/mint-counter');
       const data = await response.json();
-      
+
       if (data.success) {
-        setMintNumber(data.count + 1); // Next mint number
+        // Prefer nextMintNumber if provided; fallback to currentMintNumber
+        const nextNum =
+          typeof data.nextMintNumber === 'number'
+            ? data.nextMintNumber
+            : typeof data.currentMintNumber === 'number'
+            ? (data.currentMintNumber as number)
+            : 1;
+        setMintNumber(nextNum);
       }
     } catch (error) {
       console.error('Error fetching mint count:', error);
@@ -1165,8 +1173,10 @@ export default function ProfilePage() {
 
                                 // Increment mint count
                                 try {
-                                  await fetch('/api/profile-nft/mint-count', {
-                                    method: 'POST'
+                                  await fetch('/api/profile-nft/mint-counter', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ increment: 1 })
                                   });
                                   // Update local mint count
                                   setMintNumber(prev => prev ? prev + 1 : 1);
@@ -1195,6 +1205,9 @@ export default function ProfilePage() {
                                     { trait_type: 'Anonymous', value: isAnonymous ? 'true' : 'false' }
                                   ]
                                 };
+
+                                // Immediately reflect minted NFT in UI
+                                setUserProfileNFT(newNFT as any);
 
                                 // Trigger the reveal animation
                                 triggerReveal(newNFT);
@@ -1299,8 +1312,30 @@ export default function ProfilePage() {
 
           {/* NFT Reveal Animation */}
           {showReveal && revealedNFT && (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="relative max-w-md w-full">
+            <div
+              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => {
+                setShowReveal(false);
+                setRevealAnimation('cover');
+                setRevealedNFT(null);
+              }}
+            >
+              <div
+                className="relative max-w-md w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close (X) button */}
+                <button
+                  aria-label="Close reveal"
+                  className="absolute -top-2 -right-2 z-50 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full p-2 border border-gray-600"
+                  onClick={() => {
+                    setShowReveal(false);
+                    setRevealAnimation('cover');
+                    setRevealedNFT(null);
+                  }}
+                >
+                  ✕
+                </button>
                 {/* Reveal Card Container */}
                 <div className="relative">
                   {/* Cover Card */}

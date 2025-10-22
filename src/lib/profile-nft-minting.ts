@@ -10,6 +10,7 @@ import {
   SystemProgram,
   Keypair,
   LAMPORTS_PER_SOL,
+  ComputeBudgetProgram,
 } from '@solana/web3.js';
 import {
   TOKEN_PROGRAM_ID,
@@ -159,6 +160,15 @@ export class ProfileNFTMintingService {
 
       // 7. Build transaction (use legacy format for Analos compatibility)
       const transaction = new Transaction();
+
+      // 6a. Add compute budget and priority fee to avoid 0-priority txs
+      // Moderate defaults suitable for congested networks but inexpensive
+      const computeUnitLimit = 300_000; // typical for simple mints
+      const priorityMicroLamports = 5_000; // ~1,000 lamports extra for 200k CUs
+      transaction.add(
+        ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnitLimit }),
+        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityMicroLamports })
+      );
 
       // Add instruction to create mint account
       transaction.add(
