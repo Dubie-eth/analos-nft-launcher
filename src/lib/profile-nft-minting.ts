@@ -33,7 +33,17 @@ export interface ProfileNFTMintParams {
   price: number;
   tier: string;
   signTransaction: (tx: Transaction) => Promise<Transaction>;
-  sendTransaction: (tx: Transaction, connection: Connection) => Promise<string>;
+  // Allow passing additional signers to ensure mint key is included
+  sendTransaction: (
+    tx: Transaction,
+    connection: Connection,
+    options?: {
+      signers?: Keypair[];
+      skipPreflight?: boolean;
+      preflightCommitment?: string;
+      maxRetries?: number;
+    }
+  ) => Promise<string>;
 }
 
 export interface ProfileNFTMintResult {
@@ -237,22 +247,25 @@ export class ProfileNFTMintingService {
       console.log('📋 Transaction fee payer:', transaction.feePayer?.toString());
       console.log('📋 Transaction version property:', (transaction as any).version || 'none (legacy)');
 
-      // 9. Partially sign with mint keypair
-      transaction.partialSign(mintKeypair);
-
-      console.log('✍️ Requesting wallet signature...');
-      // 10. Sign with user wallet while preserving mint partial signature
-      const signedTransaction = await signTransaction(transaction);
-
-      console.log('📡 Sending raw transaction...');
-      // 11. Send the exact signed bytes to avoid wallets re-building the message
+      // 9. Send via wallet adapter with the mint keypair as an extra signer
+      // This avoids losing the partial signature on some mobile wallets
+      console.log('✍️ Requesting wallet to sign and send (with mint signer)...');
       let signature: string;
       try {
-        const raw = signedTransaction.serialize();
-        signature = await this.connection.sendRawTransaction(raw, { skipPreflight: false });
-      } catch (sendError: any) {
-        console.error('❌ Transaction send error:', sendError);
-        throw new Error(`Failed to send transaction: ${sendError.message}`);
+        signature = await (sendTransaction as any)(transaction, this.connection, {
+          signers: [mintKeypair],
+          skipPreflight: false,
+        });
+      } catch (sendViaWalletError: any) {
+        console.error('❌ sendTransaction failed, attempting fallback flow:', sendViaWalletError);
+        try {
+          // Fallback: partial sign + signTransaction + sendRaw
+          transaction.partialSign(mintKeypair);
+          const signedTx = await signTransaction(transaction);
+          signature = await this.connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: false });
+        } catch (fallbackError: any) {
+          throw new Error(`Failed to send transaction: ${fallbackError.message || sendViaWalletError.message}`);
+        }
       }
 
       console.log('⏳ Confirming transaction...');
@@ -389,8 +402,14 @@ export class ProfileNFTMintingService {
         metaTx.feePayer = userPublicKey;
         metaTx.lastValidBlockHeight = metaLvb;
 
-        const signedMetaTx = await signTransaction(metaTx);
-        const metaSig = await this.connection.sendRawTransaction(signedMetaTx.serialize(), { skipPreflight: false });
+        let metaSig: string;
+        try {
+          metaSig = await (sendTransaction as any)(metaTx, this.connection, { skipPreflight: false });
+        } catch (_sendMetaErr) {
+          // Fallback for wallets that don't support sendTransaction properly
+          const signedMetaTx = await signTransaction(metaTx);
+          metaSig = await this.connection.sendRawTransaction(signedMetaTx.serialize(), { skipPreflight: false });
+        }
 
         try {
           await this.connection.confirmTransaction({ signature: metaSig, blockhash: metaBh, lastValidBlockHeight: metaLvb }, 'confirmed');
