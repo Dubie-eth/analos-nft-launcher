@@ -57,12 +57,12 @@ export class NFTService {
                 image: metadataJSON?.image || '/api/placeholder/400/400',
                 description: metadataJSON?.description || 'NFT from Analos',
                 attributes: metadataJSON?.attributes || [],
-                collection: metadata.collection?.toString() || '',
+                collection: '',
                 verified: false,
                 creators: [],
                 sellerFeeBasisPoints: 0,
                 primarySaleHappened: false,
-                isMutable: true,
+                isMutable: metadata.isMutable || true,
                 updateAuthority: metadata.updateAuthority?.toString() || ''
               };
             } else {
@@ -150,12 +150,12 @@ export class NFTService {
           image: metadataJSON?.image || '/api/placeholder/400/400',
           description: metadataJSON?.description || 'NFT from Analos',
           attributes: metadataJSON?.attributes || [],
-          collection: metadata.collection?.toString() || '',
+          collection: '',
           verified: false,
           creators: [],
           sellerFeeBasisPoints: 0,
           primarySaleHappened: false,
-          isMutable: true,
+          isMutable: metadata.isMutable || true,
           updateAuthority: metadata.updateAuthority?.toString() || ''
         };
       } else {
