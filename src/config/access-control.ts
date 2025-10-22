@@ -126,9 +126,10 @@ export const PAGE_ACCESS: PageAccess[] = [
     path: '/profile',
     name: 'User Profile',
     description: 'User account and settings',
-    requiredLevel: 'beta_user',
+    requiredLevel: 'public',
     requiresWallet: true,
-    isLocked: true,
+    isLocked: false,
+    publicAccess: false,
     customMessage: 'Connect your wallet to access your profile'
   },
   {
@@ -153,9 +154,10 @@ export const PAGE_ACCESS: PageAccess[] = [
     path: '/marketplace',
     name: 'NFT Marketplace',
     description: 'Buy and sell NFTs',
-    requiredLevel: 'beta_user',
+    requiredLevel: 'public',
     requiresWallet: true,
-    isLocked: true,
+    isLocked: false,
+    publicAccess: false,
     customMessage: 'Connect your wallet to access the marketplace'
   },
   {
