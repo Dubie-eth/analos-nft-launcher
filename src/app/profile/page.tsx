@@ -1313,7 +1313,7 @@ export default function ProfilePage() {
           {/* NFT Reveal Animation */}
           {showReveal && revealedNFT && (
             <div
-              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-start justify-center p-4 py-8 overflow-y-auto"
               onClick={() => {
                 setShowReveal(false);
                 setRevealAnimation('cover');
@@ -1417,7 +1417,18 @@ export default function ProfilePage() {
                         
                         {/* Card Footer */}
                         <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                          <p className="text-xs text-gray-400">
+                            <a
+                              href="https://launchonlos.fun"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline hover:text-white"
+                            >
+                              launchonlos.fun
+                            </a>
+                            {' '}
+                            • Analos
+                          </p>
                         </div>
                         
                         {/* Background Pattern Overlay */}
@@ -1532,6 +1543,22 @@ export default function ProfilePage() {
                       >
                         ✨ Awesome! Close Reveal
                       </button>
+
+                      {/* Mobile quick links so users can proceed after success */}
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+                        <a
+                          href="/profile"
+                          className="text-center px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm"
+                        >
+                          View Profile
+                        </a>
+                        <a
+                          href="/marketplace"
+                          className="text-center px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                        >
+                          Marketplace
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1610,7 +1637,18 @@ export default function ProfilePage() {
                         
                         {/* Card Footer */}
                         <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                          <p className="text-xs text-gray-400">
+                            <a
+                              href="https://launchonlos.fun"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline hover:text-white"
+                            >
+                              launchonlos.fun
+                            </a>
+                            {' '}
+                            • Analos
+                          </p>
                         </div>
                         
                         {/* Background Pattern Overlay */}
