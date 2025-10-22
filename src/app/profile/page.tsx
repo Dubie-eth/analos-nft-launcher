@@ -305,6 +305,18 @@ export default function ProfilePage() {
     checkPageAccessAndLoadData();
   }, [publicKey, connected, connection]);
 
+  // Show loading state while checking page access
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show connect wallet prompt only if wallet is required and not connected
   if (!isPublicAccess && !connected) {
     return (
