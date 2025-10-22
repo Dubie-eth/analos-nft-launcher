@@ -33,16 +33,11 @@ export interface ProfileNFTMintParams {
   price: number;
   tier: string;
   signTransaction: (tx: Transaction) => Promise<Transaction>;
-  // Allow passing additional signers to ensure mint key is included
+  // Use a permissive type to be compatible with various wallet adapters
   sendTransaction: (
     tx: Transaction,
     connection: Connection,
-    options?: {
-      signers?: Keypair[];
-      skipPreflight?: boolean;
-      preflightCommitment?: string;
-      maxRetries?: number;
-    }
+    options?: any
   ) => Promise<string>;
 }
 
