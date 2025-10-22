@@ -87,42 +87,110 @@ export default function ProfilePage() {
   const [revealedNFT, setRevealedNFT] = useState<UserNFT | null>(null);
   const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
 
-  // Card background examples for users to preview
+  // Baseball card background examples for users to preview
   const cardBackgrounds = [
     {
-      name: 'Matrix',
-      gradient: 'from-green-900 via-black to-green-800',
-      accent: 'green',
-      pattern: 'matrix',
-      description: 'Ultra-Rare Matrix variant with digital rain effects'
+      name: 'Classic',
+      gradient: 'from-yellow-100 via-yellow-50 to-yellow-200',
+      accent: 'yellow',
+      pattern: 'classic',
+      description: 'Classic 1950s Topps style with vintage borders',
+      textColor: 'text-black',
+      borderColor: 'border-yellow-800',
+      rarity: 'Common'
     },
     {
-      name: 'Royal',
-      gradient: 'from-purple-900 via-indigo-900 to-purple-800',
-      accent: 'purple',
-      pattern: 'royal',
-      description: 'Legendary Royal variant with gold accents'
-    },
-    {
-      name: 'Cyber',
-      gradient: 'from-blue-900 via-cyan-900 to-blue-800',
+      name: 'Rookie',
+      gradient: 'from-blue-100 via-blue-50 to-blue-200',
       accent: 'blue',
-      pattern: 'cyber',
-      description: 'Rare Cyber variant with neon highlights'
+      pattern: 'rookie',
+      description: 'Rookie card style with blue borders and stars',
+      textColor: 'text-black',
+      borderColor: 'border-blue-800',
+      rarity: 'Common'
     },
     {
-      name: 'Inferno',
-      gradient: 'from-red-900 via-orange-900 to-red-800',
+      name: 'All-Star',
+      gradient: 'from-red-100 via-red-50 to-red-200',
       accent: 'red',
-      pattern: 'inferno',
-      description: 'Ultra-Rare Inferno variant with flame effects'
+      pattern: 'allstar',
+      description: 'All-Star edition with red borders and gold accents',
+      textColor: 'text-black',
+      borderColor: 'border-red-800',
+      rarity: 'Rare'
+    },
+    {
+      name: 'Hall of Fame',
+      gradient: 'from-purple-100 via-purple-50 to-purple-200',
+      accent: 'purple',
+      pattern: 'hof',
+      description: 'Hall of Fame variant with purple borders and silver',
+      textColor: 'text-black',
+      borderColor: 'border-purple-800',
+      rarity: 'Epic'
+    },
+    {
+      name: 'World Series',
+      gradient: 'from-green-100 via-green-50 to-green-200',
+      accent: 'green',
+      pattern: 'worldseries',
+      description: 'World Series champion with green borders and gold',
+      textColor: 'text-black',
+      borderColor: 'border-green-800',
+      rarity: 'Legendary'
+    },
+    {
+      name: 'MFPurrs Cosmic',
+      gradient: 'from-pink-100 via-purple-50 to-indigo-200',
+      accent: 'pink',
+      pattern: 'mfpurrs',
+      description: 'Ultra-Rare MFPurrs Cosmic variant with space backgrounds',
+      textColor: 'text-black',
+      borderColor: 'border-pink-800',
+      rarity: 'Ultra-Rare',
+      backgroundImage: '/images/backgrounds/mfpurrs-1.png'
+    },
+    {
+      name: 'MFPurrs Galaxy',
+      gradient: 'from-purple-100 via-indigo-50 to-pink-200',
+      accent: 'purple',
+      pattern: 'mfpurrs',
+      description: 'Ultra-Rare MFPurrs Galaxy variant with nebula effects',
+      textColor: 'text-black',
+      borderColor: 'border-purple-800',
+      rarity: 'Ultra-Rare',
+      backgroundImage: '/images/backgrounds/mfpurrs-2.png'
+    },
+    {
+      name: 'MFPurrs Aurora',
+      gradient: 'from-indigo-100 via-pink-50 to-purple-200',
+      accent: 'indigo',
+      pattern: 'mfpurrs',
+      description: 'Ultra-Rare MFPurrs Aurora variant with rainbow lights',
+      textColor: 'text-black',
+      borderColor: 'border-indigo-800',
+      rarity: 'Ultra-Rare',
+      backgroundImage: '/images/backgrounds/mfpurrs-3.png'
     },
     {
       name: 'Cosmic',
-      gradient: 'from-indigo-900 via-purple-900 to-pink-900',
-      accent: 'pink',
+      gradient: 'from-indigo-100 via-purple-50 to-pink-200',
+      accent: 'indigo',
       pattern: 'cosmic',
-      description: 'Legendary Cosmic variant with starfield'
+      description: 'Legendary Cosmic variant with starfield effects',
+      textColor: 'text-black',
+      borderColor: 'border-indigo-800',
+      rarity: 'Legendary'
+    },
+    {
+      name: 'Diamond',
+      gradient: 'from-gray-100 via-white to-gray-200',
+      accent: 'gray',
+      pattern: 'diamond',
+      description: 'Ultra-Rare Diamond variant with holographic effects',
+      textColor: 'text-black',
+      borderColor: 'border-gray-800',
+      rarity: 'Ultra-Rare'
     }
   ];
   const [usernameStatus, setUsernameStatus] = useState<{
@@ -265,24 +333,24 @@ export default function ProfilePage() {
           publicAccess = config.publicAccess && !config.isLocked;
           setIsPublicAccess(publicAccess);
         } else {
-          // Default to requiring wallet if we can't check
-          setIsPublicAccess(false);
-        }
+        // Default to requiring wallet if we can't check
+        setIsPublicAccess(false);
+      }
 
-        // Generate fresh example data each time
-        setExampleData(getFreshExample(publicKey?.toString()));
-        
-        // If public access is allowed and no wallet connected, show public view
+    // Generate fresh example data each time
+    setExampleData(getFreshExample(publicKey?.toString()));
+    
+      // If public access is allowed and no wallet connected, show public view
         if (publicAccess && (!publicKey || !connected)) {
-          setLoading(false);
-          return;
-        }
+        setLoading(false);
+        return;
+      }
 
-        // If wallet is required but not connected, show connect prompt
+      // If wallet is required but not connected, show connect prompt
         if (!publicAccess && (!publicKey || !connected)) {
-          setLoading(false);
-          return;
-        }
+        setLoading(false);
+        return;
+      }
 
         // Load LOS balance (using SOL balance for now, will be updated to LOS token)
         const balance = await connection.getBalance(publicKey);
@@ -656,37 +724,55 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         
-                        {/* Playing Card Design */}
+                        {/* Baseball Card Design */}
                         <div className="relative">
-                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-2xl p-6 shadow-2xl border-2 border-${cardBackgrounds[currentCardBackground].accent}-500/50 transform hover:scale-105 transition-all duration-300`}>
+                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-lg p-4 shadow-2xl border-4 ${cardBackgrounds[currentCardBackground].borderColor} transform hover:scale-105 transition-all duration-300 relative overflow-hidden`}>
+                            {/* Custom Background Image */}
+                            {cardBackgrounds[currentCardBackground].backgroundImage && (
+                              <div className="absolute inset-0 opacity-20">
+                                <img src={cardBackgrounds[currentCardBackground].backgroundImage} alt="Card Background" className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                            
                             {/* Card Border Pattern */}
-                            <div className="absolute inset-2 border border-${cardBackgrounds[currentCardBackground].accent}-400/30 rounded-xl"></div>
+                            <div className="absolute inset-1 border-2 border-black rounded-md z-10"></div>
+                            
+                            {/* Rarity Badge */}
+                            <div className={`absolute top-2 right-2 z-20 px-2 py-1 rounded text-xs font-bold ${
+                              cardBackgrounds[currentCardBackground].rarity === 'Ultra-Rare' ? 'bg-pink-500 text-white' :
+                              cardBackgrounds[currentCardBackground].rarity === 'Legendary' ? 'bg-purple-500 text-white' :
+                              cardBackgrounds[currentCardBackground].rarity === 'Epic' ? 'bg-blue-500 text-white' :
+                              cardBackgrounds[currentCardBackground].rarity === 'Rare' ? 'bg-green-500 text-white' :
+                              'bg-gray-500 text-white'
+                            }`}>
+                              {cardBackgrounds[currentCardBackground].rarity}
+                            </div>
+                            
+                            {/* Banner Image */}
+                            {bannerUrl && (
+                              <div className="relative mb-3 rounded-md overflow-hidden z-10">
+                                <img src={bannerUrl} alt="Banner" className="w-full h-16 object-cover" />
+                                <div className="absolute inset-0 bg-black/20"></div>
+                              </div>
+                            )}
                             
                             {/* Card Header */}
-                            <div className="text-center mb-4 relative z-10">
-                              <div className="flex items-center justify-center mb-2">
-                                <div className={`w-8 h-8 bg-${cardBackgrounds[currentCardBackground].accent}-600 rounded-full flex items-center justify-center mr-2`}>
-                                  <span className="text-white text-sm font-bold">A</span>
-                                </div>
-                                <h3 className="text-lg font-bold text-white">ANALOS</h3>
-                                <div className={`w-8 h-8 bg-${cardBackgrounds[currentCardBackground].accent}-600 rounded-full flex items-center justify-center ml-2`}>
-                                  <span className="text-white text-sm font-bold">♠</span>
-                                </div>
-                              </div>
-                              <p className="text-xs text-gray-300">PROFILE CARDS</p>
+                            <div className="text-center mb-3 relative z-10">
+                              <h3 className={`text-sm font-bold ${cardBackgrounds[currentCardBackground].textColor} mb-1`}>ANALOS PROFILE CARDS</h3>
+                              <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-70`}>2024 Series</p>
                             </div>
                             
                             {/* Profile Section */}
-                            <div className="text-center mb-4 relative z-10">
-                              <div className="relative inline-block mb-3">
-                                <div className={`w-20 h-20 bg-gradient-to-br from-${cardBackgrounds[currentCardBackground].accent}-500 to-${cardBackgrounds[currentCardBackground].accent}-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-${cardBackgrounds[currentCardBackground].accent}-400`}>
+                            <div className="text-center mb-3 relative z-10">
+                              <div className="relative inline-block mb-2">
+                                <div className={`w-16 h-16 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full flex items-center justify-center text-xl font-bold ${cardBackgrounds[currentCardBackground].textColor} overflow-hidden mx-auto border-2 border-black`}>
                                   {avatarUrl ? (
                                     <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
                                   ) : (
                                     <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
                                   )}
                                 </div>
-                                <div className={`absolute -top-1 -right-1 w-6 h-6 bg-${cardBackgrounds[currentCardBackground].accent}-800 rounded-full flex items-center justify-center border border-${cardBackgrounds[currentCardBackground].accent}-400`}>
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center border border-white">
                                   <span className="text-white text-xs font-bold">
                                     {userProfileNFT ? 
                                       userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1' : 
@@ -696,44 +782,57 @@ export default function ProfilePage() {
                                 </div>
                               </div>
                               
-                              <h4 className="text-lg font-bold text-white mb-1">{displayName || 'Your Name'}</h4>
-                              <p className="text-gray-300 text-sm mb-2">@{username || 'username'}</p>
+                              <h4 className={`text-sm font-bold ${cardBackgrounds[currentCardBackground].textColor} mb-1`}>{displayName || 'Your Name'}</h4>
+                              <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-80 mb-1`}>@{username || 'username'}</p>
                               {bio && (
-                                <p className="text-gray-300 text-xs leading-relaxed">{bio}</p>
+                                <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-70 leading-tight`}>{bio}</p>
                               )}
                             </div>
                             
-                            {/* Referral Code Section */}
-                            <div className={`bg-${cardBackgrounds[currentCardBackground].accent}-900/50 border border-${cardBackgrounds[currentCardBackground].accent}-400/50 rounded-lg p-3 mb-4 relative z-10`}>
-                              <div className="text-center">
-                                <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
-                                <p className={`text-xl font-bold text-${cardBackgrounds[currentCardBackground].accent}-300`}>
-                                  {username ? username.toUpperCase() : 'USER'}
-                                </p>
+                            {/* Stats Section */}
+                            <div className="bg-white/80 rounded border border-black p-2 mb-3 relative z-10">
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div className="text-center">
+                                  <p className="font-bold text-black">REFERRAL</p>
+                                  <p className="font-bold text-black">{username ? username.toUpperCase() : 'USER'}</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-bold text-black">TIER</p>
+                                  <p className="font-bold text-black">{cardBackgrounds[currentCardBackground].name.toUpperCase()}</p>
+                                </div>
                               </div>
                             </div>
                             
                             {/* Card Footer */}
                             <div className="text-center relative z-10">
-                              <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                              <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-60`}>launchonlos.fun • Analos</p>
                             </div>
                             
                             {/* Background Pattern Overlay */}
-                            <div className="absolute inset-0 opacity-10">
-                              {cardBackgrounds[currentCardBackground].pattern === 'matrix' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
+                            <div className="absolute inset-0 opacity-5 z-0">
+                              {cardBackgrounds[currentCardBackground].pattern === 'classic' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/20 to-transparent"></div>
                               )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'royal' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-transparent"></div>
+                              {cardBackgrounds[currentCardBackground].pattern === 'rookie' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent"></div>
                               )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'cyber' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                              {cardBackgrounds[currentCardBackground].pattern === 'allstar' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-transparent"></div>
                               )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'inferno' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-transparent"></div>
+                              {cardBackgrounds[currentCardBackground].pattern === 'hof' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'worldseries' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-green-600/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'mfpurrs' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 to-transparent"></div>
                               )}
                               {cardBackgrounds[currentCardBackground].pattern === 'cosmic' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-pink-400/20 to-transparent"></div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'diamond' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-gray-600/20 to-transparent"></div>
                               )}
                             </div>
                           </div>
