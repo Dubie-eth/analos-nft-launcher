@@ -254,12 +254,22 @@ export class ProfileNFTMintingService {
       } catch (sendViaWalletError: any) {
         console.error('❌ sendTransaction failed, attempting fallback flow:', sendViaWalletError);
         try {
-          // Fallback: partial sign + signTransaction + sendRaw
-          transaction.partialSign(mintKeypair);
-          const signedTx = await signTransaction(transaction);
-          signature = await this.connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: false });
+          // Fallback path for mobile wallets that drop non-wallet signatures:
+          // 1) Ask wallet to sign first
+          // 2) Re-apply the mint keypair signature
+          // 3) Send raw transaction
+          const walletSignedTx = await signTransaction(transaction);
+          walletSignedTx.partialSign(mintKeypair);
+          signature = await this.connection.sendRawTransaction(walletSignedTx.serialize(), { skipPreflight: false });
         } catch (fallbackError: any) {
-          throw new Error(`Failed to send transaction: ${fallbackError.message || sendViaWalletError.message}`);
+          // Final attempt: try the inverse order just in case
+          try {
+            transaction.partialSign(mintKeypair);
+            const secondAttemptSigned = await signTransaction(transaction);
+            signature = await this.connection.sendRawTransaction(secondAttemptSigned.serialize(), { skipPreflight: false });
+          } catch (_secondErr) {
+            throw new Error(`Failed to send transaction: ${fallbackError.message || sendViaWalletError.message}`);
+          }
         }
       }
 
