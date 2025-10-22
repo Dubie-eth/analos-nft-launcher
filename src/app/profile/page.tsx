@@ -173,43 +173,38 @@ export default function ProfilePage() {
     }
   };
 
-  // Check page access configuration
+  // Check page access configuration and load user data
   useEffect(() => {
-    const checkPageAccess = async () => {
+    const checkPageAccessAndLoadData = async () => {
       try {
+        // Check page access first
         const response = await fetch('/api/page-access/profile');
+        let publicAccess = false;
+        
         if (response.ok) {
           const config = await response.json();
           setPageAccessConfig(config);
-          setIsPublicAccess(config.publicAccess && !config.isLocked);
+          publicAccess = config.publicAccess && !config.isLocked;
+          setIsPublicAccess(publicAccess);
+        } else {
+          // Default to requiring wallet if we can't check
+          setIsPublicAccess(false);
         }
-      } catch (error) {
-        console.error('Error checking page access:', error);
-        // Default to requiring wallet if we can't check
-        setIsPublicAccess(false);
-      }
-    };
 
-    checkPageAccess();
-  }, []);
+        // Generate fresh example data each time
+        setExampleData(getFreshExample(publicKey?.toString()));
+        
+        // If public access is allowed and no wallet connected, show public view
+        if (publicAccess && (!publicKey || !connected)) {
+          setLoading(false);
+          return;
+        }
 
-  // Load user data
-  useEffect(() => {
-    // Generate fresh example data each time
-    setExampleData(getFreshExample(publicKey?.toString()));
-    
-    const loadUserData = async () => {
-      // If public access is allowed and no wallet connected, show public view
-      if (isPublicAccess && (!publicKey || !connected)) {
-        setLoading(false);
-        return;
-      }
-
-      // If wallet is required but not connected, show connect prompt
-      if (!isPublicAccess && (!publicKey || !connected)) {
-        setLoading(false);
-        return;
-      }
+        // If wallet is required but not connected, show connect prompt
+        if (!publicAccess && (!publicKey || !connected)) {
+          setLoading(false);
+          return;
+        }
 
       try {
         // Load LOS balance (using SOL balance for now, will be updated to LOS token)
@@ -308,8 +303,8 @@ export default function ProfilePage() {
       }
     };
 
-    loadUserData();
-  }, [publicKey, connected, connection, isPublicAccess]);
+    checkPageAccessAndLoadData();
+  }, [publicKey, connected, connection]);
 
   // Show connect wallet prompt only if wallet is required and not connected
   if (!isPublicAccess && !connected) {

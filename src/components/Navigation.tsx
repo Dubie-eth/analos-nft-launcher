@@ -92,7 +92,7 @@ export default function Navigation() {
     { href: '/how-it-works', label: 'How It Works', icon: '📖', requiresWallet: false },
     { href: '/faq', label: 'FAQ', icon: '❓', requiresWallet: false },
     { href: '/features', label: 'Features', icon: '⭐', requiresWallet: false },
-    { href: '/profile', label: 'Profile', icon: '👤', requiresWallet: true },
+    { href: '/profile', label: 'Profile', icon: '👤', requiresWallet: false },
     { href: '/launch-collection', label: 'Launch Collection', icon: '🚀', requiresWallet: true },
     { href: '/marketplace', label: 'Marketplace', icon: '🏪', requiresWallet: true },
     { href: '/swap', label: 'Swap', icon: '🔄', requiresWallet: true },
