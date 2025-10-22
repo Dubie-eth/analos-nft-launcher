@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
@@ -37,6 +38,9 @@ interface ProgramActivity {
 export default function ExplorerPage() {
   const { connected, publicKey } = useWallet();
   const { connection } = useConnection();
+  const searchParams = useSearchParams();
+  const addressParam = searchParams?.get('address') || '';
+  const signatureParam = searchParams?.get('signature') || '';
   
   // State management
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -54,7 +58,11 @@ export default function ExplorerPage() {
         console.log('🔍 Loading real explorer data from Analos blockchain...');
         
         // Fetch real transaction data
-        const transactionsResponse = await fetch('/api/explorer/transactions?limit=50');
+        const url = new URL('/api/explorer/transactions', window.location.origin);
+        url.searchParams.set('limit', '50');
+        if (addressParam) url.searchParams.set('address', addressParam);
+        if (signatureParam) url.searchParams.set('signature', signatureParam);
+        const transactionsResponse = await fetch(url.toString());
         if (transactionsResponse.ok) {
           const transactionsData = await transactionsResponse.json();
           if (transactionsData.success) {
@@ -149,7 +157,7 @@ export default function ExplorerPage() {
     };
 
     loadExplorerData();
-  }, []);
+  }, [addressParam, signatureParam]);
 
   // Filter transactions
   const filteredTransactions = transactions.filter(tx => {
