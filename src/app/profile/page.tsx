@@ -531,35 +531,35 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-8">
-      <div className="max-w-6xl mx-auto px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-4 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-4">
             🎨 Your Profile
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto px-4">
             Manage your profile, showcase your NFTs, and connect with the community
           </p>
         </div>
 
         {/* Wallet Info Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-xl">
                   {connected ? publicKey?.toString().slice(0, 2).toUpperCase() : '👤'}
                 </span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
                   {connected ? 'Your Profile' : 'Public Profile View'}
                 </h2>
-                <div className="text-gray-300 space-y-1">
+                <div className="text-xs sm:text-sm text-gray-300 space-y-1">
                   {connected ? (
                     <>
-                      <div>Wallet: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}</div>
+                      <div className="break-all">Wallet: {publicKey?.toString().slice(0, 6)}...{publicKey?.toString().slice(-6)}</div>
                       <div>LOS Balance: {solBalance.toFixed(4)} LOS</div>
                       <div>Member Since: {new Date().toLocaleDateString()}</div>
                     </>
@@ -575,7 +575,7 @@ export default function ProfilePage() {
             {connected && (
               <button
                 onClick={disconnect}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+                className="px-4 py-2 sm:px-6 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors text-sm sm:text-base w-full sm:w-auto"
               >
                 Disconnect Wallet
               </button>
@@ -584,38 +584,38 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-2">🎨</div>
-            <div className="text-2xl font-bold text-white">{uiNFTs.length}</div>
-            <div className="text-gray-300">Total NFTs</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
+            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🎨</div>
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{uiNFTs.length}</div>
+            <div className="text-xs sm:text-sm text-gray-300">Total NFTs</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-2">📦</div>
-            <div className="text-2xl font-bold text-white">{uiCollections.length}</div>
-            <div className="text-gray-300">Collections Created</div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
+            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">📦</div>
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{uiCollections.length}</div>
+            <div className="text-xs sm:text-sm text-gray-300">Collections Created</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-2">💎</div>
-            <div className="text-2xl font-bold text-white">$0</div>
-            <div className="text-gray-300">Total Spent</div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
+            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💎</div>
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">$0</div>
+            <div className="text-xs sm:text-sm text-gray-300">Total Spent</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-2">⭐</div>
-            <div className="text-2xl font-bold text-white">None</div>
-            <div className="text-gray-300">Favorite Collection</div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
+            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">⭐</div>
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">None</div>
+            <div className="text-xs sm:text-sm text-gray-300">Favorite Collection</div>
           </div>
         </div>
 
         {/* Profile NFT Showcase - Only show if user has a Profile NFT */}
         {connected && userProfileNFT && (
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-purple-500/30">
-              <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold text-white mb-2">
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-purple-500/30">
+              <div className="text-center mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
                   🎭 Your Profile NFT
                 </h2>
-                <p className="text-gray-300">
+                <p className="text-sm sm:text-base text-gray-300">
                   Your unique identity on the Analos platform
                 </p>
               </div>
@@ -641,48 +641,49 @@ export default function ProfilePage() {
         )}
 
         {/* Navigation Tabs */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
-          <nav className="flex flex-wrap justify-center gap-2">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-6 sm:mb-8">
+          <nav className="flex flex-wrap justify-center gap-1 sm:gap-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`
-                  flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200
+                  flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm md:text-base
                   ${activeTab === tab.id 
                     ? 'bg-white text-gray-900 shadow-lg' 
                     : 'text-white hover:bg-white/10'
                   }
                 `}
               >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
+                <span className="text-sm sm:text-base">{tab.icon}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
             ))}
           </nav>
         </div>
 
         {/* Tab Content */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {activeTab === 'profile-nft' && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Profile Card Preview Section */}
-              <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-purple-500/30">
-                <div className="text-center mb-6">
-                  <h2 className="text-3xl font-bold text-white mb-2">
+              <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-purple-500/30">
+                <div className="text-center mb-4 sm:mb-6">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
                     🎭 Create Your Profile NFT
                   </h2>
-                  <p className="text-gray-300">
+                  <p className="text-sm sm:text-base text-gray-300">
                     Set up your blockchain profile and mint your unique NFT
                   </p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-8">
+                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                   {/* Profile Card Preview */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-white">Your Profile Card Preview</h3>
-                      <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white">Your Profile Card Preview</h3>
+                      <button className="px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm sm:text-base">
                         Standard Edition
                       </button>
                     </div>
@@ -704,15 +705,15 @@ export default function ProfilePage() {
                       </div>
                       
                       {/* Profile Card Preview */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-xl font-semibold text-white">Your Profile Card Preview</h3>
-                          <div className="flex gap-2">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                          <h3 className="text-lg sm:text-xl font-semibold text-white">Your Profile Card Preview</h3>
+                          <div className="flex flex-wrap gap-1 sm:gap-2">
                             {cardBackgrounds.map((bg, index) => (
                               <button
                                 key={index}
                                 onClick={() => setCurrentCardBackground(index)}
-                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                                   currentCardBackground === index
                                     ? 'bg-white text-black'
                                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -725,8 +726,8 @@ export default function ProfilePage() {
                         </div>
                         
                         {/* Baseball Card Design */}
-                        <div className="relative">
-                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-lg p-4 shadow-2xl border-4 ${cardBackgrounds[currentCardBackground].borderColor} transform hover:scale-105 transition-all duration-300 relative overflow-hidden`}>
+                        <div className="relative max-w-sm mx-auto">
+                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-lg p-3 sm:p-4 shadow-2xl border-4 ${cardBackgrounds[currentCardBackground].borderColor} transform hover:scale-105 transition-all duration-300 relative overflow-hidden`}>
                             {/* Custom Background Image */}
                             {cardBackgrounds[currentCardBackground].backgroundImage && (
                               <div className="absolute inset-0 opacity-20">
@@ -847,11 +848,11 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Profile Configuration */}
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-semibold text-white">Profile Configuration</h3>
+                  <div className="space-y-4 sm:space-y-6">
+                    <h3 className="text-lg sm:text-xl font-semibold text-white">Profile Configuration</h3>
                     
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                      <div className="space-y-4">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
+                      <div className="space-y-3 sm:space-y-4">
                         {/* Basic Information */}
                         <div className="bg-black/30 rounded-lg p-4">
                           <h4 className="text-white font-semibold mb-3">📝 Basic Information</h4>
@@ -877,11 +878,11 @@ export default function ProfilePage() {
                                   setProfilePricing(null);
                                 }
                               }}
-                              className={`w-full px-3 py-2 bg-black/50 border ${
+                              className={`w-full px-3 py-3 sm:py-2 bg-black/50 border ${
                                 usernameStatus.available === true ? 'border-green-500' :
                                 usernameStatus.available === false ? 'border-red-500' :
                                 'border-gray-600'
-                              } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none`}
+                              } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none text-base`}
                             />
                             {/* Username availability status */}
                             {usernameStatus.message && (
@@ -981,7 +982,7 @@ export default function ProfilePage() {
                         <div className="bg-black/30 rounded-lg p-4 mb-4">
                           <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
                       
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {/* Twitter */}
                             <div>
                               <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -1246,7 +1247,7 @@ export default function ProfilePage() {
                             }
                           }}
                           disabled={!username.trim() || username.length < 3 || !profilePricing || usernameStatus.available !== true}
-                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm sm:text-base"
                         >
                           {!username.trim() ? '⚡ Enter Username First' :
                           username.length < 3 ? '❌ Username Too Short (Min 3 chars)' :
@@ -1394,7 +1395,7 @@ export default function ProfilePage() {
 
                   {/* Fully Revealed Card with Traits */}
                   {revealAnimation === 'revealed' && (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {/* Main Card */}
                       <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50 transform scale-100 transition-all duration-1000">
                         <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
@@ -1504,7 +1505,7 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'update-profile' && userProfileNFT && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Update Profile Section */}
               <div className="bg-gradient-to-r from-green-600/20 via-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-green-500/30">
                 <div className="text-center mb-6">
@@ -1518,7 +1519,7 @@ export default function ProfilePage() {
 
                 <div className="grid lg:grid-cols-2 gap-8">
                   {/* Current Profile Display */}
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <h3 className="text-xl font-semibold text-white">Current Profile</h3>
                     
                     <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl p-6 border border-purple-500/30">
@@ -1586,11 +1587,11 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Update Form */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     <h3 className="text-xl font-semibold text-white">Update Information</h3>
                     
                     <div className="bg-black/30 rounded-lg p-6">
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         {/* Display Name */}
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-2">Display Name</label>
@@ -1758,7 +1759,7 @@ export default function ProfilePage() {
                   <p className="text-gray-300">Loading your NFTs...</p>
                 </div>
               ) : uiNFTs.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {uiNFTs.map((nft) => (
                     <NFTCard
                       key={nft.mint}
@@ -1794,7 +1795,7 @@ export default function ProfilePage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6">My Collections</h2>
               {uiCollections.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {uiCollections.map((collection, index) => (
                     <div key={index} className="bg-white/5 rounded-lg overflow-hidden border border-white/10">
                       <img 
@@ -1828,28 +1829,28 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'rewards' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Rewards Summary */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <h2 className="text-2xl font-bold text-white mb-6">💰 Creator Rewards</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">💰 Creator Rewards</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400 mb-2">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-400 mb-2">
                       {rewardsSummary.total_claimable.toFixed(2)}
                     </div>
-                    <div className="text-gray-300">Claimable (LOS)</div>
+                    <div className="text-xs sm:text-sm text-gray-300">Claimable (LOS)</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400 mb-2">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">
                       {rewardsSummary.total_claimed.toFixed(2)}
                     </div>
-                    <div className="text-gray-300">Total Claimed (LOS)</div>
+                    <div className="text-xs sm:text-sm text-gray-300">Total Claimed (LOS)</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-400 mb-2">
+                    <div className="text-2xl sm:text-3xl font-bold text-orange-400 mb-2">
                       {rewardsSummary.pending_rewards.toFixed(2)}
                     </div>
-                    <div className="text-gray-300">Pending (LOS)</div>
+                    <div className="text-xs sm:text-sm text-gray-300">Pending (LOS)</div>
                   </div>
                 </div>
                 
@@ -1858,7 +1859,7 @@ export default function ProfilePage() {
                     <button
                       onClick={handleClaimRewards}
                       disabled={claiming}
-                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                     >
                       {claiming ? 'Claiming...' : `Claim ${rewardsSummary.total_claimable.toFixed(2)} LOS`}
                     </button>
@@ -1870,7 +1871,7 @@ export default function ProfilePage() {
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                 <h3 className="text-xl font-bold text-white mb-4">Rewards History</h3>
                 {rewards.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {rewards.map((reward) => (
                       <div key={reward.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
                         <div className="flex items-center justify-between">
