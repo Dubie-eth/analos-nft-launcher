@@ -108,7 +108,7 @@ export default function ProfilePage() {
       }
 
       try {
-        // Load SOL balance
+        // Load LOS balance (using SOL balance for now, will be updated to LOS token)
         const balance = await connection.getBalance(publicKey);
         setSolBalance(balance / LAMPORTS_PER_SOL);
 
@@ -284,7 +284,7 @@ export default function ProfilePage() {
                   {connected ? (
                     <>
                       <div>Wallet: {publicKey?.toString().slice(0, 8)}...{publicKey?.toString().slice(-8)}</div>
-                      <div>SOL Balance: {solBalance.toFixed(4)} SOL</div>
+                      <div>LOS Balance: {solBalance.toFixed(4)} LOS</div>
                       <div>Member Since: {new Date().toLocaleDateString()}</div>
                     </>
                   ) : (
@@ -394,15 +394,15 @@ export default function ProfilePage() {
                       <div className="text-sm text-gray-300">
                         <div className="flex justify-between">
                           <span>Minting Fee:</span>
-                          <span className="text-green-400">0.1 SOL</span>
+                          <span className="text-green-400">100 LOS</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Platform Fee:</span>
-                          <span className="text-gray-400">0.01 SOL</span>
+                          <span className="text-gray-400">10 LOS</span>
                         </div>
                         <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
                           <span>Total:</span>
-                          <span className="text-green-400">0.11 SOL</span>
+                          <span className="text-green-400">110 LOS</span>
                         </div>
                       </div>
                     </div>

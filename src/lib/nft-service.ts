@@ -3,10 +3,7 @@ import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { metadataService } from './metadata-service';
 import { 
   findMetadataPda, 
-  getMetadataAccount, 
-  getMetadataV1Account,
-  MetadataV1,
-  MetadataV1Account
+  getMetadataAccount
 } from '@metaplex-foundation/mpl-token-metadata';
 
 // NFT Service for fetching user NFTs directly from blockchain
