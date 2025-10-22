@@ -2,351 +2,353 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Save, RefreshCw, Eye, EyeOff, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { BarChart3, Plus, Edit3, Trash2, Save, X, Coins, Users, TrendingUp } from 'lucide-react';
 
-interface Feature {
+interface FeatureRequest {
   id: string;
-  feature_key: string;
-  feature_name: string;
+  name: string;
   description: string;
-  icon: string;
-  completion_percentage: number;
-  access_level: 'locked' | 'beta' | 'public';
-  status: 'development' | 'testing' | 'live' | 'deprecated';
-  is_visible: boolean;
-  details: string[];
-  deployment_info?: any;
-  created_at: string;
-  updated_at: string;
-  updated_by?: string;
+  targetThreshold: number;
+  currentVotes: number;
+  totalWeight: number;
+  progress: number;
+  status: 'active' | 'funded' | 'in_development' | 'completed';
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export default function FeatureManagementPanel() {
+const FeatureManagementPanel: React.FC = () => {
   const { publicKey, connected } = useWallet();
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [features, setFeatures] = useState<FeatureRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingFeature, setEditingFeature] = useState<FeatureRequest | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newFeature, setNewFeature] = useState({
+    name: '',
+    description: '',
+    targetThreshold: 100000000
+  });
 
-  // Fetch features from admin API
-  const fetchFeatures = async () => {
-    if (!connected || !publicKey) return;
-    
-    setLoading(true);
+  useEffect(() => {
+    if (connected) {
+      loadFeatures();
+    }
+  }, [connected]);
+
+  const loadFeatures = async () => {
     try {
-      const response = await fetch(`/api/admin/features?adminWallet=${publicKey.toString()}`);
-      const data = await response.json();
-      
-      if (data.features) {
-        setFeatures(data.features);
-      } else {
-        setMessage({ type: 'error', text: 'Failed to fetch features' });
+      const response = await fetch('/api/feature-voting');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.features) {
+          setFeatures(data.features);
+        }
       }
     } catch (error) {
-      console.error('Error fetching features:', error);
-      setMessage({ type: 'error', text: 'Error fetching features' });
+      console.error('Error loading features:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (connected && publicKey) {
-      fetchFeatures();
-    }
-  }, [connected, publicKey]);
-
-  // Update feature
-  const updateFeature = async (featureId: string, updates: Partial<Feature>) => {
-    if (!connected || !publicKey) return;
-
-    setSaving(true);
+  const handleUpdateFeature = async (featureId: string, updates: Partial<FeatureRequest>) => {
     try {
-      const response = await fetch('/api/features', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          featureId,
-          updates,
-          adminWallet: publicKey.toString()
-        })
+      const response = await fetch('/api/feature-voting', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featureId, updates })
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Feature updated successfully' });
-        // Update local state
-        setFeatures(prev => prev.map(f => 
-          f.id === featureId ? { ...f, ...updates } : f
-        ));
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to update feature' });
+      if (response.ok) {
+        await loadFeatures();
+        setEditingFeature(null);
       }
     } catch (error) {
       console.error('Error updating feature:', error);
-      setMessage({ type: 'error', text: 'Error updating feature' });
-    } finally {
-      setSaving(false);
     }
   };
 
-  // Bulk update features
-  const bulkUpdateFeatures = async () => {
-    if (!connected || !publicKey) return;
-
-    setSaving(true);
+  const handleAddFeature = async () => {
     try {
-      const updates = features.map(feature => ({
-        featureId: feature.id,
-        updates: {
-          completion_percentage: feature.completion_percentage,
-          access_level: feature.access_level,
-          status: feature.status,
-          is_visible: feature.is_visible
-        }
-      }));
-
-      const response = await fetch('/api/admin/features', {
+      const response = await fetch('/api/feature-voting', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          updates,
-          adminWallet: publicKey.toString()
+          name: newFeature.name,
+          description: newFeature.description,
+          targetThreshold: newFeature.targetThreshold
         })
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setMessage({ type: 'success', text: `${data.updatedCount} features updated successfully` });
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to update features' });
+      if (response.ok) {
+        await loadFeatures();
+        setShowAddForm(false);
+        setNewFeature({ name: '', description: '', targetThreshold: 100000000 });
       }
     } catch (error) {
-      console.error('Error bulk updating features:', error);
-      setMessage({ type: 'error', text: 'Error updating features' });
-    } finally {
-      setSaving(false);
+      console.error('Error adding feature:', error);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'live': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300';
-      case 'testing': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'development': return 'text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300';
-      case 'deprecated': return 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300';
-      default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300';
+      case 'funded': return 'bg-green-500/20 text-green-300 border-green-500/30';
+      case 'in_development': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'completed': return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
   };
 
-  const getAccessLevelColor = (level: string) => {
-    switch (level) {
-      case 'public': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300';
-      case 'beta': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'locked': return 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300';
-      default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300';
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'funded': return '🎯 Ready for Development';
+      case 'in_development': return '🚧 In Development';
+      case 'completed': return '✅ Completed';
+      default: return '🗳️ Active Voting';
     }
   };
 
-  if (!connected || !publicKey) {
+  if (!connected) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20">
         <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Admin Access Required
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300">
-            Please connect your admin wallet to manage features.
-          </p>
+          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">Connect Your Wallet</h3>
+          <p className="text-gray-400">Connect your wallet to manage feature requests</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/20">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading feature requests...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Feature Management
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300 text-sm">
-            Manage feature completion status, access levels, and visibility
-          </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2">🗳️ Feature Request Management</h2>
+            <p className="text-gray-300">Manage community-driven feature requests with weighted voting</p>
+          </div>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Feature</span>
+          </button>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={fetchFeatures}
-            disabled={loading}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-          <button
-            onClick={bulkUpdateFeatures}
-            disabled={saving}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save All'}
-          </button>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white/5 rounded-lg p-4 text-center">
+            <Users className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-white">
+              {features.reduce((sum, f) => sum + f.currentVotes, 0)}
+            </div>
+            <div className="text-gray-400 text-sm">Total Voters</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-4 text-center">
+            <BarChart3 className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-white">
+              {features.reduce((sum, f) => sum + f.totalWeight, 0).toLocaleString()}
+            </div>
+            <div className="text-gray-400 text-sm">Total Vote Weight</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-4 text-center">
+            <TrendingUp className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-white">
+              {features.filter(f => f.status === 'funded').length}
+            </div>
+            <div className="text-gray-400 text-sm">Features Funded</div>
+          </div>
         </div>
       </div>
 
-      {message && (
-        <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
-          message.type === 'success' 
-            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-            : message.type === 'error'
-            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-            : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-        }`}>
-          {message.type === 'success' && <CheckCircle className="w-4 h-4" />}
-          {message.type === 'error' && <XCircle className="w-4 h-4" />}
-          {message.type === 'info' && <AlertTriangle className="w-4 h-4" />}
-          {message.text}
+      {/* Add Feature Form */}
+      {showAddForm && (
+        <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+          <h3 className="text-xl font-bold text-white mb-4">Add New Feature Request</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-white font-semibold mb-2">Feature Name</label>
+              <input
+                type="text"
+                value={newFeature.name}
+                onChange={(e) => setNewFeature(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                placeholder="Enter feature name"
+              />
+            </div>
+            <div>
+              <label className="block text-white font-semibold mb-2">Description</label>
+              <textarea
+                value={newFeature.description}
+                onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
+                placeholder="Describe the feature"
+              />
+            </div>
+            <div>
+              <label className="block text-white font-semibold mb-2">Target Threshold (LOL tokens)</label>
+              <input
+                type="number"
+                value={newFeature.targetThreshold}
+                onChange={(e) => setNewFeature(prev => ({ ...prev, targetThreshold: parseInt(e.target.value) || 0 }))}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                placeholder="100000000"
+              />
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleAddFeature}
+                disabled={!newFeature.name || !newFeature.description}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save Feature</span>
+              </button>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all"
+              >
+                <X className="w-4 h-4" />
+                <span>Cancel</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-300">Loading features...</span>
-        </div>
-      ) : (
+      {/* Features List */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+        <h3 className="text-xl font-bold text-white mb-6">Feature Requests</h3>
         <div className="space-y-4">
           {features.map((feature) => (
-            <div key={feature.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border dark:border-gray-600">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{feature.icon}</span>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
-                      {feature.feature_name}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {feature.feature_key}
-                    </p>
+            <div key={feature.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold text-white mb-2">{feature.name}</h4>
+                  <p className="text-gray-300 text-sm mb-3">{feature.description}</p>
+                  
+                  {/* Progress Bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>Progress</span>
+                      <span>{feature.progress.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          feature.progress >= 100 
+                            ? 'bg-gradient-to-r from-green-500 to-green-400' 
+                            : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(feature.progress, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(feature.status)}`}>
-                    {feature.status}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAccessLevelColor(feature.access_level)}`}>
-                    {feature.access_level}
-                  </span>
-                  <button
-                    onClick={() => updateFeature(feature.id, { is_visible: !feature.is_visible })}
-                    className={`p-1 rounded transition-colors ${
-                      feature.is_visible 
-                        ? 'text-green-600 hover:text-green-700' 
-                        : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
-                    {feature.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Completion Percentage */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Completion %
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={feature.completion_percentage}
-                      onChange={(e) => updateFeature(feature.id, { completion_percentage: parseInt(e.target.value) })}
-                      className="flex-1"
-                    />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white w-12">
-                      {feature.completion_percentage}%
+                  
+                  {/* Stats */}
+                  <div className="flex justify-between text-sm">
+                    <div className="flex items-center space-x-1">
+                      <Coins className="w-4 h-4 text-green-400" />
+                      <span className="text-gray-300">
+                        {feature.totalWeight.toLocaleString()} / {feature.targetThreshold.toLocaleString()} LOL
+                      </span>
+                    </div>
+                    <span className="text-gray-400">
+                      {feature.currentVotes} votes
                     </span>
                   </div>
                 </div>
-
-                {/* Access Level */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Access Level
-                  </label>
-                  <select
-                    value={feature.access_level}
-                    onChange={(e) => updateFeature(feature.id, { access_level: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="locked">Locked</option>
-                    <option value="beta">Beta</option>
-                    <option value="public">Public</option>
-                  </select>
-                </div>
-
-                {/* Status */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={feature.status}
-                    onChange={(e) => updateFeature(feature.id, { status: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="development">Development</option>
-                    <option value="testing">Testing</option>
-                    <option value="live">Live</option>
-                    <option value="deprecated">Deprecated</option>
-                  </select>
-                </div>
-
-                {/* Visibility */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Visibility
-                  </label>
+                
+                <div className="flex items-center space-x-2 ml-4">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(feature.status)}`}>
+                    {getStatusLabel(feature.status)}
+                  </span>
                   <button
-                    onClick={() => updateFeature(feature.id, { is_visible: !feature.is_visible })}
-                    className={`w-full px-3 py-2 rounded-lg font-medium transition-colors ${
-                      feature.is_visible
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900 dark:text-green-300'
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300'
-                    }`}
+                    onClick={() => setEditingFeature(feature)}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                   >
-                    {feature.is_visible ? 'Visible' : 'Hidden'}
+                    <Edit3 className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
-
-              {/* Description */}
-              <div className="mt-3">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {feature.description}
-                </p>
-              </div>
-
-              {/* Last Updated */}
-              <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Last updated: {new Date(feature.updated_at).toLocaleString()}
-                {feature.updated_by && (
-                  <span className="ml-2">by {feature.updated_by.slice(0, 8)}...</span>
-                )}
               </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Edit Feature Modal */}
+      {editingFeature && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 w-full max-w-md">
+            <h3 className="text-xl font-bold text-white mb-4">Edit Feature</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-white font-semibold mb-2">Status</label>
+                <select
+                  value={editingFeature.status}
+                  onChange={(e) => setEditingFeature(prev => prev ? { ...prev, status: e.target.value as any } : null)}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="active">Active Voting</option>
+                  <option value="funded">Ready for Development</option>
+                  <option value="in_development">In Development</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-white font-semibold mb-2">Target Threshold</label>
+                <input
+                  type="number"
+                  value={editingFeature.targetThreshold}
+                  onChange={(e) => setEditingFeature(prev => prev ? { ...prev, targetThreshold: parseInt(e.target.value) || 0 } : null)}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    if (editingFeature) {
+                      handleUpdateFeature(editingFeature.id, {
+                        status: editingFeature.status,
+                        targetThreshold: editingFeature.targetThreshold
+                      });
+                    }
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </button>
+                <button
+                  onClick={() => setEditingFeature(null)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
-}
+};
+
+export default FeatureManagementPanel;

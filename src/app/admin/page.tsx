@@ -614,6 +614,7 @@ export default function AdminDashboard() {
             {[
               { id: 'matrix-collection', label: 'Matrix Collection', icon: '🎴' },
               { id: 'admin-analytics', label: 'Analytics', icon: '📈' },
+              { id: 'feature-management', label: 'Feature Management', icon: '🗳️' },
               { id: 'batch-mint', label: 'Batch Mint', icon: '🧰' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
@@ -662,6 +663,12 @@ export default function AdminDashboard() {
         {activeTab === 'admin-analytics' && (
           <div className="space-y-8">
             <AdminAnalyticsDashboard />
+          </div>
+        )}
+
+        {activeTab === 'feature-management' && (
+          <div className="space-y-8">
+            <FeatureManagementPanel />
           </div>
         )}
 

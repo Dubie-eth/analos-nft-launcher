@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { CheckCircle, Wallet, Star, Users, TrendingUp, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { CheckCircle, Wallet, Star, Users, TrendingUp, Zap, BarChart3, Coins } from 'lucide-react';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,11 @@ interface FeatureRequest {
   id: string;
   name: string;
   description: string;
-  votes: number;
+  targetThreshold: number;
+  currentVotes: number;
+  totalWeight: number;
+  progress: number;
+  status: 'active' | 'funded' | 'in_development' | 'completed';
   userVoted: boolean;
 }
 
@@ -37,6 +42,7 @@ interface UserInfo {
 const BetaSignupPage: React.FC = () => {
   const { theme } = useTheme();
   const { publicKey, connected, connect } = useWallet();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
@@ -59,6 +65,9 @@ const BetaSignupPage: React.FC = () => {
     allowDataExport: true,
     allowAnalytics: true
   });
+  const [userBalance, setUserBalance] = useState<number>(0);
+  const [voteWeight, setVoteWeight] = useState<number>(0);
+  const [hasExistingProfile, setHasExistingProfile] = useState<boolean>(false);
 
   // Sample feature requests
   const defaultFeatures: FeatureRequest[] = [
@@ -107,8 +116,49 @@ const BetaSignupPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    setFeatureRequests(defaultFeatures);
-  }, []);
+    if (connected && publicKey) {
+      checkExistingProfile();
+      loadFeatureRequests();
+    }
+  }, [connected, publicKey]);
+
+  const checkExistingProfile = async () => {
+    if (!publicKey) return;
+    
+    try {
+      const response = await fetch(`/api/user-profile/check?walletAddress=${publicKey.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.hasProfile) {
+          setHasExistingProfile(true);
+          // Redirect to profile page after a short delay
+          setTimeout(() => {
+            router.push('/profile');
+          }, 2000);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing profile:', error);
+    }
+  };
+
+  const loadFeatureRequests = async () => {
+    try {
+      const response = await fetch('/api/feature-voting');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.features) {
+          setFeatureRequests(data.features);
+        }
+      } else {
+        // Fallback to default features
+        setFeatureRequests(defaultFeatures);
+      }
+    } catch (error) {
+      console.error('Error loading feature requests:', error);
+      setFeatureRequests(defaultFeatures);
+    }
+  };
 
   const handleFeatureToggle = (featureId: string) => {
     setSelectedFeatures(prev => 
@@ -136,37 +186,70 @@ const BetaSignupPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/beta-signup', {
+      // Submit feature votes
+      const voteResponse = await fetch('/api/feature-voting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           walletAddress: publicKey.toString(),
-          requestedFeatures: selectedFeatures,
-          userInfo: userInfo,
-          timestamp: new Date().toISOString()
+          featureIds: selectedFeatures
         })
       });
 
-      if (response.ok) {
+      if (voteResponse.ok) {
+        const voteData = await voteResponse.json();
+        setUserBalance(voteData.userBalance);
+        setVoteWeight(voteData.voteWeight);
+        setFeatureRequests(voteData.features);
+      }
+
+      // Create user profile
+      const profileResponse = await fetch('/api/user-profile/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: publicKey.toString(),
+          ...userInfo
+        })
+      });
+
+      if (profileResponse.ok) {
         setSubmitted(true);
-        // Update feature votes
-        setFeatureRequests(prev => 
-          prev.map(feature => ({
-            ...feature,
-            votes: selectedFeatures.includes(feature.id) ? feature.votes + 1 : feature.votes,
-            userVoted: selectedFeatures.includes(feature.id)
-          }))
-        );
+        // Redirect to profile page after success
+        setTimeout(() => {
+          router.push('/profile');
+        }, 3000);
       } else {
-        throw new Error('Failed to submit beta signup');
+        throw new Error('Failed to create profile');
       }
     } catch (error) {
-      console.error('Error submitting beta signup:', error);
-      alert('Failed to submit beta signup. Please try again.');
+      console.error('Error submitting:', error);
+      alert('Failed to submit. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  // Show redirect message for existing users
+  if (hasExistingProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center border border-white/20">
+            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-white mb-4">Welcome Back! 🎉</h1>
+            <p className="text-gray-300 mb-6">
+              You already have a profile! Redirecting you to your profile page...
+            </p>
+            <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+              <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            </div>
+            <p className="text-sm text-gray-400">Redirecting in 2 seconds...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -176,11 +259,24 @@ const BetaSignupPage: React.FC = () => {
             <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-6" />
             <h1 className="text-3xl font-bold text-white mb-4">Welcome to Analos! 🎉</h1>
             <p className="text-gray-300 mb-6">
-              Thanks for joining our beta program! We'll keep you updated on the features you're interested in.
+              Thanks for joining our beta program! Your votes have been recorded with weighted voting power.
             </p>
             <div className="space-y-4">
               <div className="bg-white/5 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-white mb-2">Your Feature Requests:</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">Your Voting Power:</h3>
+                <div className="flex items-center justify-center space-x-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">{userBalance.toLocaleString()}</div>
+                    <div className="text-sm text-gray-300">LOL Tokens</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">{voteWeight.toLocaleString()}</div>
+                    <div className="text-sm text-gray-300">Vote Weight</div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-white mb-2">Your Feature Votes:</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedFeatures.map(featureId => {
                     const feature = featureRequests.find(f => f.id === featureId);
@@ -409,14 +505,14 @@ const BetaSignupPage: React.FC = () => {
           {connected && showUserInfo && (
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
             <div className="flex items-center mb-6">
-              <Star className="w-6 h-6 text-yellow-400 mr-2" />
-              <h2 className="text-2xl font-bold text-white">Vote on Features</h2>
+              <BarChart3 className="w-6 h-6 text-yellow-400 mr-2" />
+              <h2 className="text-2xl font-bold text-white">Weighted Feature Voting</h2>
             </div>
             <p className="text-gray-300 mb-6">
-              Select the features you're most excited about. This helps us prioritize development!
+              Vote with your LOL token holdings! Your voting power is calculated based on your token balance.
             </p>
             
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="space-y-4 max-h-96 overflow-y-auto">
               {featureRequests.map((feature) => (
                 <div
                   key={feature.id}
@@ -427,7 +523,7 @@ const BetaSignupPage: React.FC = () => {
                   }`}
                   onClick={() => handleFeatureToggle(feature.id)}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <h3 className="font-semibold text-white mb-1">{feature.name}</h3>
                       <p className="text-gray-400 text-sm">{feature.description}</p>
@@ -437,6 +533,55 @@ const BetaSignupPage: React.FC = () => {
                         <CheckCircle className="w-5 h-5 text-purple-400" />
                       )}
                     </div>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="mb-2">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>Progress</span>
+                      <span>{feature.progress.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          feature.progress >= 100 
+                            ? 'bg-gradient-to-r from-green-500 to-green-400' 
+                            : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(feature.progress, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* Voting Stats */}
+                  <div className="flex justify-between text-xs">
+                    <div className="flex items-center space-x-1">
+                      <Coins className="w-3 h-3 text-green-400" />
+                      <span className="text-gray-300">
+                        {feature.totalWeight.toLocaleString()} / {feature.targetThreshold.toLocaleString()} LOL
+                      </span>
+                    </div>
+                    <span className="text-gray-400">
+                      {feature.currentVotes} votes
+                    </span>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  <div className="mt-2">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                      feature.status === 'funded' 
+                        ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                        : feature.status === 'in_development'
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                        : feature.status === 'completed'
+                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                        : 'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+                    }`}>
+                      {feature.status === 'funded' && '🎯 Ready for Development'}
+                      {feature.status === 'in_development' && '🚧 In Development'}
+                      {feature.status === 'completed' && '✅ Completed'}
+                      {feature.status === 'active' && '🗳️ Active Voting'}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -453,7 +598,7 @@ const BetaSignupPage: React.FC = () => {
               disabled={loading || selectedFeatures.length === 0}
               className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-12 py-4 rounded-lg font-semibold text-lg hover:from-purple-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Submitting...' : `Submit ${selectedFeatures.length} Feature Request${selectedFeatures.length !== 1 ? 's' : ''}`}
+              {loading ? 'Submitting Votes...' : `Submit ${selectedFeatures.length} Vote${selectedFeatures.length !== 1 ? 's' : ''} with Weighted Power`}
             </button>
             <p className="text-gray-400 text-sm mt-2">
               Selected {selectedFeatures.length} feature{selectedFeatures.length !== 1 ? 's' : ''}
@@ -465,18 +610,18 @@ const BetaSignupPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-4 mt-12">
           <div className="bg-white/5 rounded-lg p-4 text-center">
             <Users className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">1,234</p>
-            <p className="text-gray-400 text-sm">Beta Users</p>
+            <p className="text-2xl font-bold text-white">{featureRequests.reduce((sum, f) => sum + f.currentVotes, 0)}</p>
+            <p className="text-gray-400 text-sm">Total Voters</p>
           </div>
           <div className="bg-white/5 rounded-lg p-4 text-center">
-            <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">89%</p>
-            <p className="text-gray-400 text-sm">Feature Requests</p>
+            <BarChart3 className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{featureRequests.reduce((sum, f) => sum + f.totalWeight, 0).toLocaleString()}</p>
+            <p className="text-gray-400 text-sm">Total Vote Weight</p>
           </div>
           <div className="bg-white/5 rounded-lg p-4 text-center">
-            <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white">15</p>
-            <p className="text-gray-400 text-sm">Features Built</p>
+            <Coins className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{featureRequests.filter(f => f.status === 'funded').length}</p>
+            <p className="text-gray-400 text-sm">Features Funded</p>
           </div>
         </div>
       </div>
