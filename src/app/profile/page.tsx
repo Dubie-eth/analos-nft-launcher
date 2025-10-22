@@ -82,6 +82,46 @@ export default function ProfilePage() {
   const [username, setUsername] = useState('');
   const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
   const [mintNumber, setMintNumber] = useState<number | null>(null);
+  const [currentCardBackground, setCurrentCardBackground] = useState(0);
+
+  // Card background examples for users to preview
+  const cardBackgrounds = [
+    {
+      name: 'Matrix',
+      gradient: 'from-green-900 via-black to-green-800',
+      accent: 'green',
+      pattern: 'matrix',
+      description: 'Ultra-Rare Matrix variant with digital rain effects'
+    },
+    {
+      name: 'Royal',
+      gradient: 'from-purple-900 via-indigo-900 to-purple-800',
+      accent: 'purple',
+      pattern: 'royal',
+      description: 'Legendary Royal variant with gold accents'
+    },
+    {
+      name: 'Cyber',
+      gradient: 'from-blue-900 via-cyan-900 to-blue-800',
+      accent: 'blue',
+      pattern: 'cyber',
+      description: 'Rare Cyber variant with neon highlights'
+    },
+    {
+      name: 'Inferno',
+      gradient: 'from-red-900 via-orange-900 to-red-800',
+      accent: 'red',
+      pattern: 'inferno',
+      description: 'Ultra-Rare Inferno variant with flame effects'
+    },
+    {
+      name: 'Cosmic',
+      gradient: 'from-indigo-900 via-purple-900 to-pink-900',
+      accent: 'pink',
+      pattern: 'cosmic',
+      description: 'Legendary Cosmic variant with starfield'
+    }
+  ];
   const [usernameStatus, setUsernameStatus] = useState<{
     checking: boolean;
     available: boolean | null;
@@ -577,53 +617,111 @@ export default function ProfilePage() {
                       </div>
                       
                       {/* Profile Card Preview */}
-                      <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl p-6 border border-purple-500/30">
-                        <div className="bg-white rounded-xl p-6 shadow-2xl">
-                          {/* Card Header */}
-                          <div className="text-center mb-6">
-                            <h3 className="text-2xl font-bold text-black mb-1">ANALOS PROFILE CARDS</h3>
-                            <p className="text-sm text-gray-600 mb-1">Master Open Edition Collection</p>
-                            <p className="text-xs text-gray-500">launchonlos.fun</p>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xl font-semibold text-white">Your Profile Card Preview</h3>
+                          <div className="flex gap-2">
+                            {cardBackgrounds.map((bg, index) => (
+                              <button
+                                key={index}
+                                onClick={() => setCurrentCardBackground(index)}
+                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                  currentCardBackground === index
+                                    ? 'bg-white text-black'
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
+                              >
+                                {bg.name}
+                              </button>
+                            ))}
                           </div>
-                          
-                          {/* Profile Section */}
-                          <div className="text-center mb-6">
-                            <div className="relative inline-block mb-4">
-                              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-3xl font-bold text-white overflow-hidden mx-auto">
-                                {avatarUrl ? (
-                                  <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                                ) : (
-                                  <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
-                                )}
+                        </div>
+                        
+                        {/* Playing Card Design */}
+                        <div className="relative">
+                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-2xl p-6 shadow-2xl border-2 border-${cardBackgrounds[currentCardBackground].accent}-500/50 transform hover:scale-105 transition-all duration-300`}>
+                            {/* Card Border Pattern */}
+                            <div className="absolute inset-2 border border-${cardBackgrounds[currentCardBackground].accent}-400/30 rounded-xl"></div>
+                            
+                            {/* Card Header */}
+                            <div className="text-center mb-4 relative z-10">
+                              <div className="flex items-center justify-center mb-2">
+                                <div className={`w-8 h-8 bg-${cardBackgrounds[currentCardBackground].accent}-600 rounded-full flex items-center justify-center mr-2`}>
+                                  <span className="text-white text-sm font-bold">A</span>
+                                </div>
+                                <h3 className="text-lg font-bold text-white">ANALOS</h3>
+                                <div className={`w-8 h-8 bg-${cardBackgrounds[currentCardBackground].accent}-600 rounded-full flex items-center justify-center ml-2`}>
+                                  <span className="text-white text-sm font-bold">♠</span>
+                                </div>
                               </div>
-                              <div className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">
-                                  {userProfileNFT ? 
-                                    `#${userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}` : 
-                                    (mintNumber ? `#${mintNumber}` : '#?')
-                                  }
-                                </span>
+                              <p className="text-xs text-gray-300">PROFILE CARDS</p>
+                            </div>
+                            
+                            {/* Profile Section */}
+                            <div className="text-center mb-4 relative z-10">
+                              <div className="relative inline-block mb-3">
+                                <div className={`w-20 h-20 bg-gradient-to-br from-${cardBackgrounds[currentCardBackground].accent}-500 to-${cardBackgrounds[currentCardBackground].accent}-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-${cardBackgrounds[currentCardBackground].accent}-400`}>
+                                  {avatarUrl ? (
+                                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
+                                  )}
+                                </div>
+                                <div className={`absolute -top-1 -right-1 w-6 h-6 bg-${cardBackgrounds[currentCardBackground].accent}-800 rounded-full flex items-center justify-center border border-${cardBackgrounds[currentCardBackground].accent}-400`}>
+                                  <span className="text-white text-xs font-bold">
+                                    {userProfileNFT ? 
+                                      userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1' : 
+                                      (mintNumber ? mintNumber : '?')
+                                    }
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <h4 className="text-lg font-bold text-white mb-1">{displayName || 'Your Name'}</h4>
+                              <p className="text-gray-300 text-sm mb-2">@{username || 'username'}</p>
+                              {bio && (
+                                <p className="text-gray-300 text-xs leading-relaxed">{bio}</p>
+                              )}
+                            </div>
+                            
+                            {/* Referral Code Section */}
+                            <div className={`bg-${cardBackgrounds[currentCardBackground].accent}-900/50 border border-${cardBackgrounds[currentCardBackground].accent}-400/50 rounded-lg p-3 mb-4 relative z-10`}>
+                              <div className="text-center">
+                                <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
+                                <p className={`text-xl font-bold text-${cardBackgrounds[currentCardBackground].accent}-300`}>
+                                  {username ? username.toUpperCase() : 'USER'}
+                                </p>
                               </div>
                             </div>
                             
-                            <h4 className="text-xl font-bold text-black mb-1">{displayName || 'Your Display Name'}</h4>
-                            <p className="text-gray-600 mb-2">@{username || 'yourusername'}</p>
-                            {bio && (
-                              <p className="text-black text-sm">{bio}</p>
-                            )}
-                          </div>
-                          
-                          {/* Referral Code Section */}
-                          <div className="bg-gray-100 rounded-lg p-4 mb-4">
-                            <div className="text-center">
-                              <p className="text-sm font-semibold text-gray-700 mb-1">REFERRAL CODE</p>
-                              <p className="text-2xl font-bold text-orange-500">{username ? username.toUpperCase() : 'TEST'}</p>
+                            {/* Card Footer */}
+                            <div className="text-center relative z-10">
+                              <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                            </div>
+                            
+                            {/* Background Pattern Overlay */}
+                            <div className="absolute inset-0 opacity-10">
+                              {cardBackgrounds[currentCardBackground].pattern === 'matrix' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'royal' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'cyber' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'inferno' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-transparent"></div>
+                              )}
+                              {cardBackgrounds[currentCardBackground].pattern === 'cosmic' && (
+                                <div className="absolute inset-0 bg-gradient-to-br from-pink-400/20 to-transparent"></div>
+                              )}
                             </div>
                           </div>
                           
-                          {/* Card Footer */}
-                          <div className="text-center">
-                            <p className="text-xs text-gray-500">Open Edition • Minted on Analos • launchonlos.fun</p>
+                          {/* Background Description */}
+                          <div className="mt-3 text-center">
+                            <p className="text-sm text-gray-300">{cardBackgrounds[currentCardBackground].description}</p>
                           </div>
                         </div>
                       </div>
@@ -1076,48 +1174,64 @@ export default function ProfilePage() {
                     <h3 className="text-xl font-semibold text-white">Current Profile</h3>
                     
                     <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl p-6 border border-purple-500/30">
-                      <div className="bg-white rounded-xl p-6 shadow-2xl">
+                      {/* Current Playing Card Design */}
+                      <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50">
+                        {/* Card Border Pattern */}
+                        <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
+                        
                         {/* Card Header */}
-                        <div className="text-center mb-6">
-                          <h3 className="text-2xl font-bold text-black mb-1">ANALOS PROFILE CARDS</h3>
-                          <p className="text-sm text-gray-600 mb-1">Master Open Edition Collection</p>
-                          <p className="text-xs text-gray-500">launchonlos.fun</p>
+                        <div className="text-center mb-4 relative z-10">
+                          <div className="flex items-center justify-center mb-2">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
+                              <span className="text-white text-sm font-bold">A</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-white">ANALOS</h3>
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2">
+                              <span className="text-white text-sm font-bold">♠</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-300">PROFILE CARDS</p>
                         </div>
                         
                         {/* Profile Section */}
-                        <div className="text-center mb-6">
-                          <div className="relative inline-block mb-4">
-                            <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-3xl font-bold text-white overflow-hidden mx-auto">
+                        <div className="text-center mb-4 relative z-10">
+                          <div className="relative inline-block mb-3">
+                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-green-400">
                               {userProfileNFT.image ? (
                                 <img src={userProfileNFT.image} alt="Profile" className="w-full h-full object-cover" />
                               ) : (
                                 <span>{userProfileNFT.name ? userProfileNFT.name.charAt(0).toUpperCase() : 'P'}</span>
                               )}
                             </div>
-                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                              <span className="text-white text-sm font-bold">
-                                {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '#1'}
+                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-800 rounded-full flex items-center justify-center border border-green-400">
+                              <span className="text-white text-xs font-bold">
+                                {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}
                               </span>
                             </div>
                           </div>
                           
-                          <h4 className="text-xl font-bold text-black mb-1">{userProfileNFT.name || 'Profile NFT'}</h4>
-                          <p className="text-gray-600 mb-2">{userProfileNFT.description || 'No description'}</p>
+                          <h4 className="text-lg font-bold text-white mb-1">{userProfileNFT.name || 'Profile NFT'}</h4>
+                          <p className="text-gray-300 text-sm mb-2">{userProfileNFT.description || 'No description'}</p>
                         </div>
                         
                         {/* Referral Code Section */}
-                        <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                        <div className="bg-green-900/50 border border-green-400/50 rounded-lg p-3 mb-4 relative z-10">
                           <div className="text-center">
-                            <p className="text-sm font-semibold text-gray-700 mb-1">REFERRAL CODE</p>
-                            <p className="text-2xl font-bold text-orange-500">
+                            <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
+                            <p className="text-xl font-bold text-green-300">
                               {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
                             </p>
                           </div>
                         </div>
                         
                         {/* Card Footer */}
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Open Edition • Minted on Analos • launchonlos.fun</p>
+                        <div className="text-center relative z-10">
+                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                        </div>
+                        
+                        {/* Background Pattern Overlay */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
                         </div>
                       </div>
                     </div>
