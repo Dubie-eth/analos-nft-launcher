@@ -202,14 +202,18 @@ export class BackendAPIClient {
     try {
       console.log('📤 Uploading JSON to IPFS:', name);
       
-      const response = await this.authenticatedFetch(API_ENDPOINTS.IPFS_UPLOAD_JSON, {
+      // Use direct local API route instead of proxy
+      const response = await fetch('/api/ipfs/upload-json', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ name, jsonContent }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Upload failed: ${response.status}`);
+        throw new Error(errorData.error || `Upload failed: ${response.status}`);
       }
 
       const data = await response.json();

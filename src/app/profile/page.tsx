@@ -96,6 +96,7 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState('');
   const [discord, setDiscord] = useState('');
   const [github, setGithub] = useState('');
+  const [telegram, setTelegram] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
 
   // Handle image upload
@@ -532,8 +533,19 @@ export default function ProfilePage() {
                     
                     <div className="bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-pink-900/30 rounded-xl p-4 border border-purple-400/50">
                       <p className="text-sm text-purple-300 mb-4">
-                        This is a preview of your profile card. Upload your own profile picture and banner image to customize your NFT! 🖼️✨
+                        This is a preview of your standard profile card. Upon minting, you may receive an ultra-rare Matrix variant! 🎆
                       </p>
+                      
+                      {/* Blind Mint Information */}
+                      <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-4 border border-yellow-500/30 mb-4">
+                        <h4 className="text-yellow-300 font-semibold mb-2">🎲 Blind Mint Information</h4>
+                        <div className="text-sm text-yellow-200 space-y-1">
+                          <p>• <strong>Standard Edition:</strong> Common profile cards with basic traits</p>
+                          <p>• <strong>Rare Variants:</strong> Matrix-themed backgrounds and special effects</p>
+                          <p>• <strong>Ultra-Rare:</strong> MFPurrs backgrounds with unique animations</p>
+                          <p>• <strong>Legendary:</strong> Exclusive traits and special community access</p>
+                        </div>
+                      </div>
                       
                       {/* Profile Card Preview */}
                       <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-xl p-6 border border-purple-500/30">
@@ -569,6 +581,16 @@ export default function ProfilePage() {
                           {github && (
                             <span className="px-2 py-1 bg-gray-600/20 border border-gray-500/30 rounded text-xs text-gray-300">
                               💻 GitHub
+                            </span>
+                          )}
+                          {telegram && (
+                            <span className="px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                              📱 Telegram
+                            </span>
+                          )}
+                          {discord && (
+                            <span className="px-2 py-1 bg-indigo-600/20 border border-indigo-500/30 rounded text-xs text-indigo-300">
+                              💬 Discord
                             </span>
                           )}
                         </div>
@@ -760,6 +782,20 @@ export default function ProfilePage() {
                                 className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                               />
                             </div>
+
+                            {/* Telegram */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Telegram
+                              </label>
+                              <input
+                                type="text"
+                                value={telegram}
+                                onChange={(e) => setTelegram(e.target.value)}
+                                placeholder="@username"
+                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
                           </div>
                         </div>
 
@@ -947,39 +983,42 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="bg-black/30 rounded-lg p-3">
-                        <h5 className="text-white font-semibold mb-2">Traits</h5>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-300">Rarity:</span>
-                            <span className="text-yellow-400">Legendary</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-300">Type:</span>
-                            <span className="text-blue-400">Profile</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-300">Power:</span>
-                            <span className="text-green-400">100</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-300">Status:</span>
-                            <span className="text-purple-400">Active</span>
+                    {/* Only show traits after minting */}
+                    {userProfileNFT && (
+                      <div className="space-y-3">
+                        <div className="bg-black/30 rounded-lg p-3">
+                          <h5 className="text-white font-semibold mb-2">Traits</h5>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Rarity:</span>
+                              <span className="text-yellow-400">Legendary</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Type:</span>
+                              <span className="text-blue-400">Profile</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Power:</span>
+                              <span className="text-green-400">100</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-300">Status:</span>
+                              <span className="text-purple-400">Active</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="bg-black/30 rounded-lg p-3">
-                        <h5 className="text-white font-semibold mb-2">Benefits</h5>
-                        <ul className="text-sm text-gray-300 space-y-1">
-                          <li>• Exclusive community access</li>
-                          <li>• Special marketplace privileges</li>
-                          <li>• Governance voting rights</li>
-                          <li>• Early feature access</li>
-                        </ul>
+                        <div className="bg-black/30 rounded-lg p-3">
+                          <h5 className="text-white font-semibold mb-2">Benefits</h5>
+                          <ul className="text-sm text-gray-300 space-y-1">
+                            <li>• Exclusive community access</li>
+                            <li>• Special marketplace privileges</li>
+                            <li>• Governance voting rights</li>
+                            <li>• Early feature access</li>
+                          </ul>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
               </div>
 
