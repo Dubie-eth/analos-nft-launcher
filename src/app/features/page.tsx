@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useWallet } from '@solana/wallet-adapter-react';
+import UserProfileManager from '@/components/UserProfileManager';
 
 interface Feature {
   id: string;
@@ -25,7 +26,7 @@ export default function FeaturesPage() {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'features' | 'tracking'>('features');
+  const [activeTab, setActiveTab] = useState<'features' | 'tracking' | 'profile'>('features');
   const [betaStats, setBetaStats] = useState<any>(null);
 
   // Fallback features if API fails - wrapped in useMemo to prevent re-renders
@@ -298,6 +299,16 @@ export default function FeaturesPage() {
               }`}
             >
               Feature Tracking
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-6 py-3 rounded-md font-semibold transition-all ${
+                activeTab === 'profile'
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                  : theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Profile
             </button>
           </div>
         </div>
@@ -676,6 +687,28 @@ export default function FeaturesPage() {
                 Join Beta Program
               </a>
             </div>
+          </div>
+        )}
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className={`text-3xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                User Profile Management
+              </h2>
+              <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                Manage your profile information and preferences.
+              </p>
+            </div>
+
+            <UserProfileManager 
+              showEditButton={true}
+              compact={false}
+              onProfileUpdate={(profile) => {
+                console.log('Profile updated:', profile);
+              }}
+            />
           </div>
         )}
       </div>

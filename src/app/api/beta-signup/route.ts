@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface UserInfo {
+  username: string;
+  bio?: string;
+  email?: string;
+  socials: {
+    twitter?: string;
+    telegram?: string;
+    discord?: string;
+    website?: string;
+    github?: string;
+  };
+  profilePicture?: string;
+  bannerImage?: string;
+  privacyLevel: 'public' | 'private' | 'friends';
+  allowDataExport: boolean;
+  allowAnalytics: boolean;
+}
+
 interface BetaSignupData {
   walletAddress: string;
   requestedFeatures: string[];
+  userInfo?: UserInfo;
   timestamp: string;
 }
 
@@ -22,12 +41,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate user info if provided
+    if (data.userInfo && (!data.userInfo.username || data.userInfo.username.length < 3)) {
+      return NextResponse.json(
+        { error: 'Username must be at least 3 characters' },
+        { status: 400 }
+      );
+    }
+
     // Check if wallet already signed up
     const existingSignup = betaSignups.find(signup => signup.walletAddress === data.walletAddress);
     
     if (existingSignup) {
       // Update existing signup
       existingSignup.requestedFeatures = data.requestedFeatures;
+      existingSignup.userInfo = data.userInfo;
       existingSignup.timestamp = data.timestamp;
     } else {
       // Add new signup
@@ -43,7 +71,8 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Beta signup submitted successfully',
       totalSignups: betaSignups.length,
-      featureVotes
+      featureVotes,
+      userInfo: data.userInfo
     });
 
   } catch (error) {

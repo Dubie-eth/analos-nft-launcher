@@ -2,27 +2,42 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { userProfileService, UserProfile, LeaderboardEntry } from '@/lib/database/page-access-service';
+import { User, Save, Edit3, X, Check } from 'lucide-react';
 
-interface UserProfileManagerProps {
-  className?: string;
+interface UserProfileData {
+  username: string;
+  bio?: string;
+  email?: string;
+  socials: {
+    twitter?: string;
+    telegram?: string;
+    discord?: string;
+    website?: string;
+    github?: string;
+  };
+  profilePicture?: string;
+  bannerImage?: string;
+  privacyLevel: 'public' | 'private' | 'friends';
+  allowDataExport: boolean;
+  allowAnalytics: boolean;
 }
 
-const UserProfileManager: React.FC<UserProfileManagerProps> = ({ className = '' }) => {
-  const { publicKey, connected } = useWallet();
-  const [activeTab, setActiveTab] = useState<'profile' | 'leaderboard' | 'referrals'>('profile');
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
+interface UserProfileManagerProps {
+  onProfileUpdate?: (profile: UserProfileData) => void;
+  showEditButton?: boolean;
+  compact?: boolean;
+}
 
-  // Profile form state
-  const [profileForm, setProfileForm] = useState({
+const UserProfileManager: React.FC<UserProfileManagerProps> = ({
+  onProfileUpdate,
+  showEditButton = true,
+  compact = false
+}) => {
+  const { publicKey, connected } = useWallet();
+  const [profile, setProfile] = useState<UserProfileData>({
     username: '',
     bio: '',
-    description: '',
-    profilePictureUrl: '',
-    bannerImageUrl: '',
+    email: '',
     socials: {
       twitter: '',
       telegram: '',
@@ -30,475 +45,287 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({ className = '' 
       website: '',
       github: ''
     },
-    favoriteCollections: [] as string[],
-    privacyLevel: 'public'
+    profilePicture: '',
+    bannerImage: '',
+    privacyLevel: 'public',
+    allowDataExport: true,
+    allowAnalytics: true
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
+  // Load profile data
   useEffect(() => {
     if (connected && publicKey) {
-      loadUserProfile();
-      loadLeaderboard();
+      loadProfile();
     }
   }, [connected, publicKey]);
 
-  const loadUserProfile = async () => {
+  const loadProfile = async () => {
     if (!publicKey) return;
     
+    setLoading(true);
     try {
-      setLoading(true);
-      const userProfile = await userProfileService.getUserProfile(publicKey.toString());
-      
-      if (userProfile) {
-        setProfile(userProfile);
-        setProfileForm({
-          username: userProfile.username,
-          bio: userProfile.bio || '',
-          description: userProfile.description || '',
-          profilePictureUrl: userProfile.profilePictureUrl || '',
-          bannerImageUrl: userProfile.bannerImageUrl || '',
-          socials: {
-            twitter: userProfile.socials?.twitter || '',
-            telegram: userProfile.socials?.telegram || '',
-            discord: userProfile.socials?.discord || '',
-            website: userProfile.socials?.website || '',
-            github: userProfile.socials?.github || '',
-            ...userProfile.socials
-          },
-          favoriteCollections: userProfile.favoriteCollections,
-          privacyLevel: userProfile.privacyLevel
-        });
+      // In a real app, this would fetch from your database
+      // For now, we'll use localStorage or a mock API
+      const savedProfile = localStorage.getItem(`profile_${publicKey.toString()}`);
+      if (savedProfile) {
+        setProfile(JSON.parse(savedProfile));
       }
     } catch (error) {
-      console.error('Failed to load user profile:', error);
+      console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadLeaderboard = async () => {
-    try {
-      const response = await fetch('/api/leaderboard?limit=20');
-      if (response.ok) {
-        const data = await response.json();
-        setLeaderboard(data);
-      }
-    } catch (error) {
-      console.error('Failed to load leaderboard:', error);
     }
   };
 
   const saveProfile = async () => {
     if (!publicKey) return;
     
+    setSaving(true);
     try {
-      setLoading(true);
-      const updatedProfile = await userProfileService.upsertUserProfile(profileForm, publicKey.toString());
-      setProfile(updatedProfile);
-      setEditing(false);
-      alert('✅ Profile updated successfully!');
+      // Validate required fields
+      if (!profile.username || profile.username.length < 3) {
+        alert('Username must be at least 3 characters');
+        return;
+      }
+
+      // Save to localStorage (in production, save to database)
+      localStorage.setItem(`profile_${publicKey.toString()}`, JSON.stringify(profile));
+      
+      // Call the callback if provided
+      if (onProfileUpdate) {
+        onProfileUpdate(profile);
+      }
+      
+      setIsEditing(false);
     } catch (error) {
-      console.error('Failed to save profile:', error);
-      alert('❌ Failed to update profile');
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleSocialChange = (platform: string, value: string) => {
-    setProfileForm(prev => ({
-      ...prev,
-      socials: {
-        ...prev.socials,
-        [platform]: value
-      }
-    }));
-  };
-
-  const addFavoriteCollection = () => {
-    const address = prompt('Enter collection address:');
-    if (address && !profileForm.favoriteCollections.includes(address)) {
-      setProfileForm(prev => ({
+  const handleInputChange = (field: string, value: any) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setProfile(prev => ({
         ...prev,
-        favoriteCollections: [...prev.favoriteCollections, address]
+        [parent]: {
+          ...prev[parent as keyof UserProfileData],
+          [child]: value
+        }
+      }));
+    } else {
+      setProfile(prev => ({
+        ...prev,
+        [field]: value
       }));
     }
   };
 
-  const removeFavoriteCollection = (address: string) => {
-    setProfileForm(prev => ({
-      ...prev,
-      favoriteCollections: prev.favoriteCollections.filter(addr => addr !== address)
-    }));
-  };
-
   if (!connected) {
     return (
-      <div className={`bg-white p-6 rounded-lg border ${className}`}>
-        <h2 className="text-xl font-bold mb-4">👤 User Profile</h2>
-        <p className="text-gray-600">Please connect your wallet to view and manage your profile.</p>
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+        <div className="text-center">
+          <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">Connect Your Wallet</h3>
+          <p className="text-gray-400">Connect your wallet to manage your profile</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`bg-white rounded-lg border ${className}`}>
-      {/* Header */}
-      <div className="p-6 border-b">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">👤 User Profile</h2>
-          {profile && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Rank #{profile.rank}</span>
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-sm font-medium">
-                {profile.totalPoints} pts
-              </span>
+    <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <User className="w-6 h-6 text-purple-400" />
+          <h3 className="text-xl font-bold text-white">User Profile</h3>
+        </div>
+        {showEditButton && (
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg hover:bg-purple-500/30 transition-all"
+          >
+            {isEditing ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+            <span>{isEditing ? 'Cancel' : 'Edit'}</span>
+          </button>
+        )}
+      </div>
+
+      {compact ? (
+        // Compact view
+        <div className="space-y-4">
+          <div>
+            <label className="block text-white font-semibold mb-2">Username</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={profile.username}
+                onChange={(e) => handleInputChange('username', e.target.value)}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                placeholder="Enter username"
+              />
+            ) : (
+              <p className="text-gray-300">{profile.username || 'Not set'}</p>
+            )}
+          </div>
+          
+          {profile.bio && (
+            <div>
+              <label className="block text-white font-semibold mb-2">Bio</label>
+              <p className="text-gray-300">{profile.bio}</p>
             </div>
           )}
         </div>
-        
-        {/* Tabs */}
-        <div className="flex space-x-1 mt-4">
-          {[
-            { id: 'profile', label: 'Profile', icon: '👤' },
-            { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
-            { id: 'referrals', label: 'Referrals', icon: '🔗' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-purple-100 text-purple-700'
-                  : 'text-gray-600 hover:text-purple-600'
-              }`}
-            >
-              <span className="mr-2">{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      ) : (
+        // Full view
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-white font-semibold mb-2">Username *</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={profile.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  placeholder="Enter username"
+                  required
+                />
+              ) : (
+                <p className="text-gray-300">{profile.username || 'Not set'}</p>
+              )}
+            </div>
+            
+            <div>
+              <label className="block text-white font-semibold mb-2">Email</label>
+              {isEditing ? (
+                <input
+                  type="email"
+                  value={profile.email || ''}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  placeholder="your@email.com"
+                />
+              ) : (
+                <p className="text-gray-300">{profile.email || 'Not set'}</p>
+              )}
+            </div>
+          </div>
 
-      {/* Content */}
-      <div className="p-6">
-        {activeTab === 'profile' && (
-          <div className="space-y-6">
-            {editing ? (
-              <div className="space-y-4">
-                {/* Profile Picture & Banner */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Profile Picture URL
-                    </label>
-                    <input
-                      type="url"
-                      value={profileForm.profilePictureUrl}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, profilePictureUrl: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Banner Image URL
-                    </label>
-                    <input
-                      type="url"
-                      value={profileForm.bannerImageUrl}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, bannerImageUrl: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
-
-                {/* Username & Bio */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Username *
-                    </label>
-                    <input
-                      type="text"
-                      value={profileForm.username}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, username: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                      placeholder="Your username"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Privacy Level
-                    </label>
-                    <select
-                      value={profileForm.privacyLevel}
-                      onChange={(e) => setProfileForm(prev => ({ ...prev, privacyLevel: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="public">Public</option>
-                      <option value="friends">Friends Only</option>
-                      <option value="private">Private</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Bio & Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    value={profileForm.bio}
-                    onChange={(e) => setProfileForm(prev => ({ ...prev, bio: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                    placeholder="Short bio..."
-                    data-1p-ignore
-                    data-lpignore="true"
-                    autoComplete="off"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={profileForm.description}
-                    onChange={(e) => setProfileForm(prev => ({ ...prev, description: e.target.value }))}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                    placeholder="Extended description..."
-                    data-1p-ignore
-                    data-lpignore="true"
-                    autoComplete="off"
-                  />
-                </div>
-
-                {/* Social Links */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">🔗 Social Links</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {[
-                      { key: 'twitter', label: 'Twitter', placeholder: '@username' },
-                      { key: 'telegram', label: 'Telegram', placeholder: '@username' },
-                      { key: 'discord', label: 'Discord', placeholder: 'username#1234' },
-                      { key: 'website', label: 'Website', placeholder: 'https://...' },
-                      { key: 'github', label: 'GitHub', placeholder: 'username' }
-                    ].map(social => (
-                      <div key={social.key}>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {social.label}
-                        </label>
-                        <input
-                          type="text"
-                          value={profileForm.socials[social.key as keyof typeof profileForm.socials]}
-                          onChange={(e) => handleSocialChange(social.key, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
-                          placeholder={social.placeholder}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Favorite Collections */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold">⭐ Favorite Collections</h3>
-                    <button
-                      onClick={addFavoriteCollection}
-                      className="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm hover:bg-purple-200"
-                    >
-                      + Add Collection
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {profileForm.favoriteCollections.map((address, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <span className="text-sm font-mono">{address}</span>
-                        <button
-                          onClick={() => removeFavoriteCollection(address)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                    {profileForm.favoriteCollections.length === 0 && (
-                      <p className="text-gray-500 text-sm">No favorite collections added yet.</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    onClick={saveProfile}
-                    disabled={loading}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {loading ? 'Saving...' : 'Save Profile'}
-                  </button>
-                  <button
-                    onClick={() => setEditing(false)}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
+          <div>
+            <label className="block text-white font-semibold mb-2">Bio</label>
+            {isEditing ? (
+              <textarea
+                value={profile.bio || ''}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
+                placeholder="Tell us about yourself..."
+              />
             ) : (
-              <div className="space-y-6">
-                {/* Profile Display */}
-                {profile && (
-                  <div className="space-y-4">
-                    {/* Profile Header */}
-                    <div className="flex items-start space-x-4">
-                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-                        {profile.profilePictureUrl ? (
-                          <img src={profile.profilePictureUrl} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
-                        ) : (
-                          <span className="text-2xl">👤</span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold">{profile.username}</h3>
-                        <p className="text-gray-600">{profile.bio}</p>
-                        <div className="flex items-center space-x-4 mt-2">
-                          <span className="text-sm text-gray-500">Rank #{profile.rank}</span>
-                          <span className="text-sm text-gray-500">{profile.totalPoints} points</span>
-                          <span className="text-sm text-gray-500">{profile.totalReferrals} referrals</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    {profile.description && (
-                      <div>
-                        <h4 className="font-semibold mb-2">Description</h4>
-                        <p className="text-gray-700">{profile.description}</p>
-                      </div>
-                    )}
-
-                    {/* Social Links */}
-                    {Object.values(profile.socials).some(link => link) && (
-                      <div>
-                        <h4 className="font-semibold mb-2">🔗 Social Links</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {Object.entries(profile.socials).map(([platform, link]) => 
-                            link && (
-                              <a
-                                key={platform}
-                                href={platform === 'website' ? link : `https://${platform}.com/${link.replace('@', '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200"
-                              >
-                                {platform}: {link}
-                              </a>
-                            )
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Favorite Collections */}
-                    {profile.favoriteCollections.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-2">⭐ Favorite Collections</h4>
-                        <div className="space-y-1">
-                          {profile.favoriteCollections.map((address, index) => (
-                            <div key={index} className="text-sm font-mono text-gray-600 bg-gray-50 p-2 rounded">
-                              {address}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setEditing(true)}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                >
-                  Edit Profile
-                </button>
-              </div>
+              <p className="text-gray-300">{profile.bio || 'Not set'}</p>
             )}
           </div>
-        )}
 
-        {activeTab === 'leaderboard' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">🏆 Leaderboard</h3>
-            <div className="space-y-2">
-              {leaderboard.map((entry, index) => (
-                <div key={entry.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <span className="w-8 text-center font-bold">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <div className="font-medium">{entry.username}</div>
-                      <div className="text-sm text-gray-500">{entry.totalPoints} points</div>
-                    </div>
-                  </div>
-                  <div className="text-right text-sm">
-                    <div className="text-purple-600">{entry.referralPoints} ref</div>
-                    <div className="text-blue-600">{entry.activityPoints} act</div>
-                  </div>
+          <div>
+            <label className="block text-white font-semibold mb-3">Social Links</label>
+            <div className="grid md:grid-cols-2 gap-4">
+              {Object.entries(profile.socials).map(([platform, value]) => (
+                <div key={platform}>
+                  <label className="block text-gray-300 text-sm mb-1 capitalize">{platform}</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={value || ''}
+                      onChange={(e) => handleInputChange(`socials.${platform}`, e.target.value)}
+                      className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                      placeholder={`@username`}
+                    />
+                  ) : (
+                    <p className="text-gray-300">{value || 'Not set'}</p>
+                  )}
                 </div>
               ))}
             </div>
           </div>
-        )}
 
-        {activeTab === 'referrals' && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">🔗 Referrals</h3>
-            {profile && (
-              <div className="space-y-4">
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <h4 className="font-semibold mb-2">Your Referral Code</h4>
-                  <div className="flex items-center space-x-2">
-                    <code className="px-3 py-1 bg-white border rounded font-mono">
-                      {profile.referralCode}
-                    </code>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(profile.referralCode)}
-                      className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2">
-                    Share this code with friends to earn referral points!
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-green-50 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-green-600">{profile.totalReferrals}</div>
-                    <div className="text-sm text-gray-600">Total Referrals</div>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-blue-600">{profile.referralPoints}</div>
-                    <div className="text-sm text-gray-600">Referral Points</div>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-purple-600">{profile.rank}</div>
-                    <div className="text-sm text-gray-600">Leaderboard Rank</div>
-                  </div>
-                </div>
+          <div>
+            <label className="block text-white font-semibold mb-3">Privacy Settings</label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300">Allow data export</span>
+                {isEditing ? (
+                  <input
+                    type="checkbox"
+                    checked={profile.allowDataExport}
+                    onChange={(e) => handleInputChange('allowDataExport', e.target.checked)}
+                    className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500"
+                  />
+                ) : (
+                  <span className="text-gray-300">{profile.allowDataExport ? 'Yes' : 'No'}</span>
+                )}
               </div>
-            )}
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300">Allow analytics tracking</span>
+                {isEditing ? (
+                  <input
+                    type="checkbox"
+                    checked={profile.allowAnalytics}
+                    onChange={(e) => handleInputChange('allowAnalytics', e.target.checked)}
+                    className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500"
+                  />
+                ) : (
+                  <span className="text-gray-300">{profile.allowAnalytics ? 'Yes' : 'No'}</span>
+                )}
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {isEditing && (
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={() => setIsEditing(false)}
+            className="px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={saveProfile}
+            disabled={saving || !profile.username || profile.username.length < 3}
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save Profile</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

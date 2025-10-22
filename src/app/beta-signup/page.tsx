@@ -16,6 +16,24 @@ interface FeatureRequest {
   userVoted: boolean;
 }
 
+interface UserInfo {
+  username: string;
+  bio?: string;
+  email?: string;
+  socials: {
+    twitter?: string;
+    telegram?: string;
+    discord?: string;
+    website?: string;
+    github?: string;
+  };
+  profilePicture?: string;
+  bannerImage?: string;
+  privacyLevel: 'public' | 'private' | 'friends';
+  allowDataExport: boolean;
+  allowAnalytics: boolean;
+}
+
 const BetaSignupPage: React.FC = () => {
   const { theme } = useTheme();
   const { publicKey, connected, connect } = useWallet();
@@ -23,6 +41,24 @@ const BetaSignupPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [featureRequests, setFeatureRequests] = useState<FeatureRequest[]>([]);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [showUserInfo, setShowUserInfo] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    username: '',
+    bio: '',
+    email: '',
+    socials: {
+      twitter: '',
+      telegram: '',
+      discord: '',
+      website: '',
+      github: ''
+    },
+    profilePicture: '',
+    bannerImage: '',
+    privacyLevel: 'public',
+    allowDataExport: true,
+    allowAnalytics: true
+  });
 
   // Sample feature requests
   const defaultFeatures: FeatureRequest[] = [
@@ -93,6 +129,11 @@ const BetaSignupPage: React.FC = () => {
       return;
     }
 
+    if (!userInfo.username || userInfo.username.length < 3) {
+      alert('Please enter a username (at least 3 characters)');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/beta-signup', {
@@ -101,6 +142,7 @@ const BetaSignupPage: React.FC = () => {
         body: JSON.stringify({
           walletAddress: publicKey.toString(),
           requestedFeatures: selectedFeatures,
+          userInfo: userInfo,
           timestamp: new Date().toISOString()
         })
       });
@@ -211,8 +253,161 @@ const BetaSignupPage: React.FC = () => {
             </div>
           </div>
 
+          {/* User Info Section - Show after wallet connection */}
+          {connected && !showUserInfo && (
+            <div className="md:col-span-2 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <h2 className="text-2xl font-bold text-white mb-4 text-center">Complete Your Profile</h2>
+              <p className="text-gray-300 mb-6 text-center">
+                Help us personalize your experience by providing some basic information.
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-white font-semibold mb-2">Username *</label>
+                  <input
+                    type="text"
+                    value={userInfo.username}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, username: e.target.value }))}
+                    placeholder="Enter your username"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                    required
+                  />
+                  {userInfo.username && userInfo.username.length < 3 && (
+                    <p className="text-red-400 text-sm mt-1">Username must be at least 3 characters</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={userInfo.email}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-white font-semibold mb-2">Bio</label>
+                  <textarea
+                    value={userInfo.bio}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Tell us about yourself..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none resize-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-2">Twitter</label>
+                  <input
+                    type="text"
+                    value={userInfo.socials.twitter}
+                    onChange={(e) => setUserInfo(prev => ({ 
+                      ...prev, 
+                      socials: { ...prev.socials, twitter: e.target.value }
+                    }))}
+                    placeholder="@username"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-2">Telegram</label>
+                  <input
+                    type="text"
+                    value={userInfo.socials.telegram}
+                    onChange={(e) => setUserInfo(prev => ({ 
+                      ...prev, 
+                      socials: { ...prev.socials, telegram: e.target.value }
+                    }))}
+                    placeholder="@username"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-2">Discord</label>
+                  <input
+                    type="text"
+                    value={userInfo.socials.discord}
+                    onChange={(e) => setUserInfo(prev => ({ 
+                      ...prev, 
+                      socials: { ...prev.socials, discord: e.target.value }
+                    }))}
+                    placeholder="username#1234"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-2">Website</label>
+                  <input
+                    type="url"
+                    value={userInfo.socials.website}
+                    onChange={(e) => setUserInfo(prev => ({ 
+                      ...prev, 
+                      socials: { ...prev.socials, website: e.target.value }
+                    }))}
+                    placeholder="https://yourwebsite.com"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-semibold mb-2">GitHub</label>
+                  <input
+                    type="text"
+                    value={userInfo.socials.github}
+                    onChange={(e) => setUserInfo(prev => ({ 
+                      ...prev, 
+                      socials: { ...prev.socials, github: e.target.value }
+                    }))}
+                    placeholder="username"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-white font-semibold mb-3">Privacy Settings</label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-300">Allow data export</span>
+                      <input
+                        type="checkbox"
+                        checked={userInfo.allowDataExport}
+                        onChange={(e) => setUserInfo(prev => ({ ...prev, allowDataExport: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-300">Allow analytics tracking</span>
+                      <input
+                        type="checkbox"
+                        checked={userInfo.allowAnalytics}
+                        onChange={(e) => setUserInfo(prev => ({ ...prev, allowAnalytics: e.target.checked }))}
+                        className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setShowUserInfo(true)}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all"
+                >
+                  Continue to Features
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Right Column - Feature Requests */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+          {connected && showUserInfo && (
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
             <div className="flex items-center mb-6">
               <Star className="w-6 h-6 text-yellow-400 mr-2" />
               <h2 className="text-2xl font-bold text-white">Vote on Features</h2>
@@ -247,10 +442,11 @@ const BetaSignupPage: React.FC = () => {
               ))}
             </div>
           </div>
+          )}
         </div>
 
         {/* Submit Button */}
-        {connected && (
+        {connected && showUserInfo && (
           <div className="text-center mt-8">
             <button
               onClick={handleSubmit}
