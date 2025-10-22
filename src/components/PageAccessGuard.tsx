@@ -143,7 +143,7 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
     checkPageAccess();
   }, [pathname, router, connected, publicKey]);
 
-  // Show loading state while checking
+  // Always render something to maintain hook order
   if (isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -155,10 +155,15 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
     );
   }
 
-  // If user doesn't have access, the component will redirect
-  // so we don't need to render anything here
+  // If user doesn't have access, show a message instead of returning null
   if (!hasAccess) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <p className="text-gray-300">Access denied. Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
