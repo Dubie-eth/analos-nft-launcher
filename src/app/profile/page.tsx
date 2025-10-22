@@ -167,9 +167,13 @@ export default function ProfilePage() {
           price: data.price,
           currency: data.currency
         });
+      } else {
+        // Clear pricing if there's an error (like username too short)
+        setProfilePricing(null);
       }
     } catch (error) {
       console.error('Error fetching pricing:', error);
+      setProfilePricing(null);
     }
   };
 
@@ -554,51 +558,49 @@ export default function ProfilePage() {
                       </div>
                       
                       {/* Profile Card Preview */}
-                      <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-xl p-6 border border-purple-500/30">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
-                            {avatarUrl ? (
-                              <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                            ) : (
-                              <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
+                      <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl p-6 border border-purple-500/30">
+                        <div className="bg-white rounded-xl p-6 shadow-2xl">
+                          {/* Card Header */}
+                          <div className="text-center mb-6">
+                            <h3 className="text-2xl font-bold text-black mb-1">ANALOS PROFILE CARDS</h3>
+                            <p className="text-sm text-gray-600 mb-1">Master Open Edition Collection</p>
+                            <p className="text-xs text-gray-500">launchonlos.fun</p>
+                          </div>
+                          
+                          {/* Profile Section */}
+                          <div className="text-center mb-6">
+                            <div className="relative inline-block mb-4">
+                              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-3xl font-bold text-white overflow-hidden mx-auto">
+                                {avatarUrl ? (
+                                  <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
+                                )}
+                              </div>
+                              <div className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-bold">#3</span>
+                              </div>
+                            </div>
+                            
+                            <h4 className="text-xl font-bold text-black mb-1">{displayName || 'Your Display Name'}</h4>
+                            <p className="text-gray-600 mb-2">@{username || 'yourusername'}</p>
+                            {bio && (
+                              <p className="text-black text-sm">{bio}</p>
                             )}
                           </div>
-                          <div>
-                            <h4 className="text-lg font-bold text-white">{displayName || 'Your Display Name'}</h4>
-                            <p className="text-purple-300">@{username || 'yourusername'}</p>
+                          
+                          {/* Referral Code Section */}
+                          <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                            <div className="text-center">
+                              <p className="text-sm font-semibold text-gray-700 mb-1">REFERRAL CODE</p>
+                              <p className="text-2xl font-bold text-orange-500">{username ? username.toUpperCase() : 'TEST'}</p>
+                            </div>
                           </div>
-                        </div>
-                        
-                        {bio && (
-                          <p className="text-gray-300 text-sm mb-4">{bio}</p>
-                        )}
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {twitterHandle && (
-                            <span className="px-2 py-1 bg-blue-600/20 border border-blue-500/30 rounded text-xs text-blue-300">
-                              🐦 Twitter
-                            </span>
-                          )}
-                          {website && (
-                            <span className="px-2 py-1 bg-green-600/20 border border-green-500/30 rounded text-xs text-green-300">
-                              🌐 Website
-                            </span>
-                          )}
-                          {github && (
-                            <span className="px-2 py-1 bg-gray-600/20 border border-gray-500/30 rounded text-xs text-gray-300">
-                              💻 GitHub
-                            </span>
-                          )}
-                          {telegram && (
-                            <span className="px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded text-xs text-blue-300">
-                              📱 Telegram
-                            </span>
-                          )}
-                          {discord && (
-                            <span className="px-2 py-1 bg-indigo-600/20 border border-indigo-500/30 rounded text-xs text-indigo-300">
-                              💬 Discord
-                            </span>
-                          )}
+                          
+                          {/* Card Footer */}
+                          <div className="text-center">
+                            <p className="text-xs text-gray-500">Open Edition • Minted on Analos • launchonlos.fun</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -652,6 +654,13 @@ export default function ProfilePage() {
                                 {usernameStatus.available === true && <span>✅</span>}
                                 {usernameStatus.available === false && <span>❌</span>}
                                 <span>{usernameStatus.message}</span>
+                              </div>
+                            )}
+                            {/* Username length validation */}
+                            {username && username.length < 3 && (
+                              <div className="text-xs mt-1 text-red-400 flex items-center gap-1">
+                                <span>❌</span>
+                                <span>Username must be at least 3 characters long</span>
                               </div>
                             )}
                           </div>
@@ -844,9 +853,10 @@ export default function ProfilePage() {
                             <div className="text-sm text-gray-400">
                               <p>Enter your username to see pricing</p>
                               <div className="mt-2 text-xs">
-                                <p>• 3-digit names: 420 LOS</p>
+                                <p>• 3-digit names: 420 LOS (minimum)</p>
                                 <p>• 4-digit names: 42 LOS</p>
                                 <p>• 5+ digit names: 4.20 LOS</p>
+                                <p className="text-red-400 mt-1">• Usernames under 3 characters are not allowed</p>
                               </div>
                             </div>
                           )}
@@ -961,10 +971,11 @@ export default function ProfilePage() {
                               alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
                             }
                           }}
-                          disabled={!username.trim() || !profilePricing || usernameStatus.available !== true}
+                          disabled={!username.trim() || username.length < 3 || !profilePricing || usernameStatus.available !== true}
                           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
                         >
                           {!username.trim() ? '⚡ Enter Username First' :
+                          username.length < 3 ? '❌ Username Too Short (Min 3 chars)' :
                           usernameStatus.available === false ? '❌ Username Taken' :
                           usernameStatus.checking ? '⏳ Checking...' :
                           usernameStatus.available !== true ? '⏳ Check Availability' :
@@ -975,57 +986,6 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Profile NFT Preview */}
-                  <div className="bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl p-6 border border-blue-500/30">
-                    <h3 className="text-2xl font-bold text-white mb-4 text-center">Preview</h3>
-                    
-                    <div className="bg-black/30 rounded-lg p-4 mb-4">
-                      <div className="text-center">
-                        <div className="w-32 h-32 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-4xl">🎭</span>
-                        </div>
-                        <h4 className="text-white font-semibold text-lg">Your Profile NFT</h4>
-                        <p className="text-gray-300 text-sm">Unique #1</p>
-                      </div>
-                    </div>
-
-                    {/* Only show traits after minting */}
-                    {userProfileNFT && (
-                      <div className="space-y-3">
-                        <div className="bg-black/30 rounded-lg p-3">
-                          <h5 className="text-white font-semibold mb-2">Traits</h5>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Rarity:</span>
-                              <span className="text-yellow-400">Legendary</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Type:</span>
-                              <span className="text-blue-400">Profile</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Power:</span>
-                              <span className="text-green-400">100</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-300">Status:</span>
-                              <span className="text-purple-400">Active</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-black/30 rounded-lg p-3">
-                          <h5 className="text-white font-semibold mb-2">Benefits</h5>
-                          <ul className="text-sm text-gray-300 space-y-1">
-                            <li>• Exclusive community access</li>
-                            <li>• Special marketplace privileges</li>
-                            <li>• Governance voting rights</li>
-                            <li>• Early feature access</li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                  </div>
               </div>
 
               {/* Profile NFT Status */}

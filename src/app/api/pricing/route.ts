@@ -31,10 +31,20 @@ export async function GET(request: NextRequest) {
 
     // Determine pricing tier based on username length
     const usernameLength = username.length;
+    
+    // Minimum username length is 3 characters
+    if (usernameLength < 3) {
+      return NextResponse.json({
+        success: false,
+        error: 'Username must be at least 3 characters long',
+        message: 'Minimum username length is 3 characters'
+      }, { status: 400 });
+    }
+    
     let tier: string;
     let price: number;
 
-    if (usernameLength <= 3) {
+    if (usernameLength === 3) {
       tier = '3-digit';
       price = currentPricing['3-digit'];
     } else if (usernameLength === 4) {
