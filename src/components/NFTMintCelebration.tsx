@@ -267,6 +267,30 @@ Join me on the Analos NFT Launchpad: https://onlyanal.fun`;
             {copied === 'referral' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             {copied === 'referral' ? 'COPIED!' : 'COPY.REFERRAL'}
           </button>
+
+          {/* View Profile */}
+          <a
+            href="/profile"
+            className={`flex items-center gap-2 px-4 py-2 rounded border font-mono transition-all hover:scale-105 ${
+              theme === 'dark'
+                ? 'bg-purple-900/30 border-purple-500 text-purple-300 hover:bg-purple-800/40'
+                : 'bg-purple-800/30 border-purple-400 text-purple-200 hover:bg-purple-700/40'
+            }`}
+          >
+            VIEW.PROFILE
+          </a>
+
+          {/* Open Marketplace */}
+          <a
+            href="/marketplace"
+            className={`flex items-center gap-2 px-4 py-2 rounded border font-mono transition-all hover:scale-105 ${
+              theme === 'dark'
+                ? 'bg-indigo-900/30 border-indigo-500 text-indigo-300 hover:bg-indigo-800/40'
+                : 'bg-indigo-800/30 border-indigo-400 text-indigo-200 hover:bg-indigo-700/40'
+            }`}
+          >
+            OPEN.MARKETPLACE
+          </a>
         </div>
 
         {/* Matrix Footer */}
