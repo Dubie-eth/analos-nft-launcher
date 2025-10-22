@@ -81,6 +81,47 @@ export default function ProfilePage() {
   } | null>(null);
   const [username, setUsername] = useState('');
   const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
+  const [usernameStatus, setUsernameStatus] = useState<{
+    checking: boolean;
+    available: boolean | null;
+    message: string;
+  }>({ checking: false, available: null, message: '' });
+
+  // Check username availability
+  const checkUsername = async (username: string) => {
+    if (!username.trim()) {
+      setUsernameStatus({ checking: false, available: null, message: '' });
+      return;
+    }
+
+    setUsernameStatus({ checking: true, available: null, message: 'Checking...' });
+
+    try {
+      const response = await fetch(`/api/profile-nft/check-username?username=${encodeURIComponent(username)}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setUsernameStatus({
+          checking: false,
+          available: data.available,
+          message: data.message
+        });
+      } else {
+        setUsernameStatus({
+          checking: false,
+          available: false,
+          message: data.error || 'Invalid username'
+        });
+      }
+    } catch (error) {
+      console.error('Error checking username:', error);
+      setUsernameStatus({
+        checking: false,
+        available: null,
+        message: 'Failed to check username'
+      });
+    }
+  };
 
   // Fetch pricing for Profile NFT
   const fetchProfilePricing = async (username: string) => {
@@ -396,7 +437,11 @@ export default function ProfilePage() {
               
               <div className="max-w-md mx-auto">
                 <ProfileNFTDisplay
-                  nft={userProfileNFT}
+                  nft={{
+                    ...userProfileNFT,
+                    description: userProfileNFT.description || 'Profile NFT',
+                    attributes: userProfileNFT.attributes || []
+                  }}
                   onView={() => {
                     window.open(`https://explorer.analos.io/address/${userProfileNFT.mint}`, '_blank');
                   }}
@@ -477,18 +522,38 @@ export default function ProfilePage() {
                             placeholder="Enter your username"
                             value={username}
                             onChange={(e) => {
-                              setUsername(e.target.value);
-                              fetchProfilePricing(e.target.value);
+                              const value = e.target.value;
+                              setUsername(value);
+                              // Check both username availability and pricing
+                              if (value.trim()) {
+                                checkUsername(value);
+                                fetchProfilePricing(value);
+                              } else {
+                                setUsernameStatus({ checking: false, available: null, message: '' });
+                                setProfilePricing(null);
+                              }
                             }}
-                            className="flex-1 px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                            className={`flex-1 px-3 py-2 bg-black/50 border ${
+                              usernameStatus.available === true ? 'border-green-500' :
+                              usernameStatus.available === false ? 'border-red-500' :
+                              'border-gray-600'
+                            } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none`}
                           />
-                          <button
-                            onClick={() => fetchProfilePricing(username)}
-                            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
-                          >
-                            Check Price
-                          </button>
                         </div>
+                        
+                        {/* Username availability status */}
+                        {usernameStatus.message && (
+                          <div className={`text-xs mb-2 flex items-center gap-1 ${
+                            usernameStatus.checking ? 'text-gray-400' :
+                            usernameStatus.available ? 'text-green-400' :
+                            'text-red-400'
+                          }`}>
+                            {usernameStatus.checking && <span>⏳</span>}
+                            {usernameStatus.available === true && <span>✅</span>}
+                            {usernameStatus.available === false && <span>❌</span>}
+                            <span>{usernameStatus.message}</span>
+                          </div>
+                        )}
                       </div>
                       
                       {profilePricing ? (
@@ -535,6 +600,17 @@ export default function ProfilePage() {
                           return;
                         }
 
+                        // Check if username is available
+                        if (usernameStatus.available === false) {
+                          alert('❌ This username is already taken. Please choose a different one.');
+                          return;
+                        }
+
+                        if (usernameStatus.available !== true) {
+                          alert('⏳ Please wait for username availability check to complete.');
+                          return;
+                        }
+
                         try {
                           // Dynamically import the Profile NFT minting service
                           const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
@@ -552,11 +628,27 @@ export default function ProfilePage() {
                           });
 
                           if (result.success) {
+                            // Register the username as taken
+                            try {
+                              await fetch('/api/profile-nft/check-username', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  username: username,
+                                  mint: result.mintAddress,
+                                  owner: publicKey.toString()
+                                })
+                              });
+                            } catch (error) {
+                              console.error('Failed to register username:', error);
+                            }
+
                             alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nMint Address: ${result.mintAddress}\nTransaction: ${result.signature}\n\nView on Explorer: https://explorer.analos.io/tx/${result.signature}`);
                             
                             // Reset form
                             setUsername('');
                             setProfilePricing(null);
+                            setUsernameStatus({ checking: false, available: null, message: '' });
                             
                             // Refresh NFTs after a short delay
                             setTimeout(async () => {
@@ -600,10 +692,13 @@ export default function ProfilePage() {
                           alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
                         }
                       }}
-                      disabled={!username.trim() || !profilePricing}
+                      disabled={!username.trim() || !profilePricing || usernameStatus.available !== true}
                       className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
                     >
                       {!username.trim() ? '🎭 Enter Username First' : 
+                       usernameStatus.available === false ? '❌ Username Taken' :
+                       usernameStatus.checking ? '⏳ Checking...' :
+                       usernameStatus.available !== true ? '⏳ Check Availability' :
                        !profilePricing ? '🎭 Check Pricing First' : 
                        `🎭 Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
                     </button>
