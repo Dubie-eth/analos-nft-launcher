@@ -5,7 +5,6 @@ import {
   PricingConfig 
 } from '@/lib/pricing-config-utils';
 import { recordPricingChange } from '@/lib/pricing-history';
-import { recordPricingChange } from '@/lib/pricing-history';
 
 /**
  * PRICING CONFIGURATION API
