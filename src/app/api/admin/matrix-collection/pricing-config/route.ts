@@ -4,6 +4,8 @@ import {
   setCurrentPricingConfig, 
   PricingConfig 
 } from '@/lib/pricing-config-utils';
+import { recordPricingChange } from '@/lib/pricing-history';
+import { recordPricingChange } from '@/lib/pricing-history';
 
 /**
  * PRICING CONFIGURATION API
@@ -75,6 +77,22 @@ export async function POST(request: NextRequest) {
     };
 
     setCurrentPricingConfig(updatedConfig);
+
+    // Record pricing change for history/analytics (best-effort)
+    try {
+      const adminActor = request.headers.get('x-admin-wallet') || undefined;
+      await recordPricingChange(updatedConfig, adminActor || undefined);
+    } catch (e) {
+      console.warn('Failed to record pricing change history:', e);
+    }
+
+    // Record pricing change for history/analytics
+    try {
+      const adminActor = request.headers.get('x-admin-wallet') || undefined;
+      await recordPricingChange(updatedConfig, adminActor || undefined);
+    } catch (e) {
+      console.warn('Failed to record pricing change history:', e);
+    }
 
     return NextResponse.json({
       success: true,
