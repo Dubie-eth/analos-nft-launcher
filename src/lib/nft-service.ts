@@ -2,8 +2,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { metadataService } from './metadata-service';
 import { 
-  findMetadataPda, 
-  getMetadataAccount
+  findMetadataPda
 } from '@metaplex-foundation/mpl-token-metadata';
 
 // NFT Service for fetching user NFTs directly from blockchain
@@ -41,41 +40,7 @@ export class NFTService {
           try {
             const mintAddress = nft.account.data.parsed.info.mint;
             
-            // Use Metaplex standards to get NFT metadata
-            const metadataPda = findMetadataPda({ mint: new PublicKey(mintAddress) });
-            
-            try {
-              // Try to get metadata account using Metaplex standards
-              const metadataAccount = await getMetadataAccount(this.connection, metadataPda);
-              
-              if (metadataAccount) {
-                // Fetch the JSON metadata from URI
-                let metadataJSON = null;
-                if (metadataAccount.uri) {
-                  metadataJSON = await metadataService.fetchMetadataJSON(metadataAccount.uri);
-                }
-
-                return {
-                  mint: mintAddress,
-                  name: metadataAccount.name || `NFT #${mintAddress.slice(0, 8)}`,
-                  symbol: metadataAccount.symbol || 'NFT',
-                  image: metadataJSON?.image || '/api/placeholder/400/400',
-                  description: metadataJSON?.description || 'NFT from Analos',
-                  attributes: metadataJSON?.attributes || [],
-                  collection: metadataAccount.collection?.toString() || '',
-                  verified: metadataAccount.collection?.verified || false,
-                  creators: metadataAccount.creators || [],
-                  sellerFeeBasisPoints: metadataAccount.sellerFeeBasisPoints || 0,
-                  primarySaleHappened: metadataAccount.primarySaleHappened || false,
-                  isMutable: metadataAccount.isMutable || true,
-                  updateAuthority: metadataAccount.updateAuthority?.toString() || ''
-                };
-              }
-            } catch (metaplexError) {
-              console.warn(`Metaplex metadata not found for ${mintAddress}, trying fallback`);
-            }
-
-            // Fallback: Use our existing metadata service
+            // Use our metadata service to get NFT metadata
             const metadata = await metadataService.getMetadata(mintAddress);
             
             if (metadata) {
