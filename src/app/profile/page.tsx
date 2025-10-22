@@ -86,6 +86,35 @@ export default function ProfilePage() {
     available: boolean | null;
     message: string;
   }>({ checking: false, available: null, message: '' });
+  
+  // Profile form fields
+  const [displayName, setDisplayName] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [twitterHandle, setTwitterHandle] = useState('');
+  const [website, setWebsite] = useState('');
+  const [discord, setDiscord] = useState('');
+  const [github, setGithub] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // For now, create a local URL (in production, you'd upload to IPFS or a CDN)
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      if (type === 'avatar') {
+        setAvatarUrl(result);
+      } else {
+        setBannerUrl(result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Check username availability
   const checkUsername = async (username: string) => {
