@@ -630,278 +630,278 @@ export default function ProfilePage() {
                           </div>
                         </div>
 
-                    {/* Profile Images */}
-                    <div className="bg-black/30 rounded-lg p-4 mb-4">
-                      <h4 className="text-white font-semibold mb-3">🖼️ Profile Images</h4>
+                        {/* Profile Images */}
+                        <div className="bg-black/30 rounded-lg p-4 mb-4">
+                          <h4 className="text-white font-semibold mb-3">🖼️ Profile Images</h4>
                       
-                      {/* Profile Picture */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Profile Picture
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'avatar')}
-                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                        />
-                        {avatarUrl && (
-                          <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500 mx-auto">
-                            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                          {/* Profile Picture */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Profile Picture
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e, 'avatar')}
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                            />
+                            {avatarUrl && (
+                              <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500 mx-auto">
+                                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Banner Image */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Banner Image
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, 'banner')}
-                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                        />
-                        {bannerUrl && (
-                          <div className="mt-2 w-24 h-12 rounded overflow-hidden border-2 border-blue-500 mx-auto">
-                            <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                          {/* Banner Image */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Banner Image
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(e, 'banner')}
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                            />
+                            {bannerUrl && (
+                              <div className="mt-2 w-24 h-12 rounded overflow-hidden border-2 border-blue-500 mx-auto">
+                                <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
 
-                    {/* Social Links */}
-                    <div className="bg-black/30 rounded-lg p-4 mb-4">
-                      <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
+                        {/* Social Links */}
+                        <div className="bg-black/30 rounded-lg p-4 mb-4">
+                          <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* Twitter */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Twitter
-                          </label>
-                          <input
-                            type="text"
-                            value={twitterHandle}
-                            onChange={(e) => setTwitterHandle(e.target.value)}
-                            placeholder="@username"
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                          />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* Twitter */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Twitter
+                              </label>
+                              <input
+                                type="text"
+                                value={twitterHandle}
+                                onChange={(e) => setTwitterHandle(e.target.value)}
+                                placeholder="@username"
+                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+
+                            {/* Website */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Website
+                              </label>
+                              <input
+                                type="url"
+                                value={website}
+                                onChange={(e) => setWebsite(e.target.value)}
+                                placeholder="https://yourwebsite.com"
+                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+
+                            {/* Discord */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                Discord
+                              </label>
+                              <input
+                                type="text"
+                                value={discord}
+                                onChange={(e) => setDiscord(e.target.value)}
+                                placeholder="username#1234"
+                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+
+                            {/* GitHub */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-1">
+                                GitHub
+                              </label>
+                              <input
+                                type="text"
+                                value={github}
+                                onChange={(e) => setGithub(e.target.value)}
+                                placeholder="username"
+                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                              />
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Website */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Website
-                          </label>
-                          <input
-                            type="url"
-                            value={website}
-                            onChange={(e) => setWebsite(e.target.value)}
-                            placeholder="https://yourwebsite.com"
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                          />
+                        {/* Privacy Option */}
+                        <div className="bg-black/30 rounded-lg p-4 mb-4">
+                          <h4 className="text-white font-semibold mb-3">🔒 Privacy Settings</h4>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id="isAnonymous"
+                              checked={isAnonymous}
+                              onChange={(e) => setIsAnonymous(e.target.checked)}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="isAnonymous" className="text-sm text-gray-300">
+                              Keep profile anonymous (hide social links from public view)
+                            </label>
+                          </div>
                         </div>
 
-                        {/* Discord */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Discord
-                          </label>
-                          <input
-                            type="text"
-                            value={discord}
-                            onChange={(e) => setDiscord(e.target.value)}
-                            placeholder="username#1234"
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                          />
-                        </div>
-
-                        {/* GitHub */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            GitHub
-                          </label>
-                          <input
-                            type="text"
-                            value={github}
-                            onChange={(e) => setGithub(e.target.value)}
-                            placeholder="username"
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Privacy Option */}
-                    <div className="bg-black/30 rounded-lg p-4 mb-4">
-                      <h4 className="text-white font-semibold mb-3">🔒 Privacy Settings</h4>
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id="isAnonymous"
-                          checked={isAnonymous}
-                          onChange={(e) => setIsAnonymous(e.target.checked)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                        />
-                        <label htmlFor="isAnonymous" className="text-sm text-gray-300">
-                          Keep profile anonymous (hide social links from public view)
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="bg-black/30 rounded-lg p-4">
-                      <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
+                        <div className="bg-black/30 rounded-lg p-4">
+                          <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
                       
-                      {profilePricing ? (
-                        <div className="text-sm text-gray-300">
-                          <div className="flex justify-between">
-                            <span>Username:</span>
-                            <span className="text-blue-400">{username}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Tier:</span>
-                            <span className="text-yellow-400">{profilePricing.tier}</span>
-                          </div>
-                          <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
-                            <span>Total Cost:</span>
-                            <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
-                          </div>
+                          {profilePricing ? (
+                            <div className="text-sm text-gray-300">
+                              <div className="flex justify-between">
+                                <span>Username:</span>
+                                <span className="text-blue-400">{username}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Tier:</span>
+                                <span className="text-yellow-400">{profilePricing.tier}</span>
+                              </div>
+                              <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
+                                <span>Total Cost:</span>
+                                <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-400">
+                              <p>Enter your username to see pricing</p>
+                              <div className="mt-2 text-xs">
+                                <p>• 3-digit names: 420 LOS</p>
+                                <p>• 4-digit names: 42 LOS</p>
+                                <p>• 5+ digit names: 4.20 LOS</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-sm text-gray-400">
-                          <p>Enter your username to see pricing</p>
-                          <div className="mt-2 text-xs">
-                            <p>• 3-digit names: 420 LOS</p>
-                            <p>• 4-digit names: 42 LOS</p>
-                            <p>• 5+ digit names: 4.20 LOS</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
-                    <button
-                      onClick={async () => {
-                        if (!username.trim()) {
-                          alert('Please enter a username first');
-                          return;
-                        }
-                        
-                        if (!profilePricing) {
-                          alert('Please check pricing first');
-                          return;
-                        }
-
-                        if (!publicKey || !signTransaction || !sendTransaction) {
-                          alert('Please connect your wallet first');
-                          return;
-                        }
-
-                        // Check if username is available
-                        if (usernameStatus.available === false) {
-                          alert('❌ This username is already taken. Please choose a different one.');
-                          return;
-                        }
-
-                        if (usernameStatus.available !== true) {
-                          alert('⏳ Please wait for username availability check to complete.');
-                          return;
-                        }
-
-                        try {
-                          // Dynamically import the Profile NFT minting service
-                          const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
-
-                          alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\nCost: ${profilePricing.price} ${profilePricing.currency}`);
-
-                          // Call the minting service with wallet functions
-                          const result = await profileNFTMintingService.mintProfileNFT({
-                            wallet: publicKey.toString(),
-                            username: username,
-                            price: profilePricing.price,
-                            tier: profilePricing.tier,
-                            signTransaction: signTransaction,
-                            sendTransaction: sendTransaction
-                          });
-
-                          if (result.success) {
-                            // Register the username as taken
-                            try {
-                              await fetch('/api/profile-nft/check-username', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  username: username,
-                                  mint: result.mintAddress,
-                                  owner: publicKey.toString()
-                                })
-                              });
-                            } catch (error) {
-                              console.error('Failed to register username:', error);
+                        <button
+                          onClick={async () => {
+                            if (!username.trim()) {
+                              alert('Please enter a username first');
+                              return;
+                            }
+                            
+                            if (!profilePricing) {
+                              alert('Please check pricing first');
+                              return;
                             }
 
-                            alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nMint Address: ${result.mintAddress}\nTransaction: ${result.signature}\n\nView on Explorer: https://explorer.analos.io/tx/${result.signature}`);
-                            
-                            // Reset form
-                            setUsername('');
-                            setProfilePricing(null);
-                            setUsernameStatus({ checking: false, available: null, message: '' });
-                            
-                            // Refresh NFTs after a short delay
-                            setTimeout(async () => {
-                              try {
-                                const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
-                                const nftsData = await nftsResponse.json();
-                                
-                                if (nftsData.nfts && nftsData.nfts.length > 0) {
-                                  const mappedNFTs = nftsData.nfts.map((nft: any) => ({
-                                    mint: nft.mint,
-                                    collection: nft.collectionName || 'Unknown Collection',
-                                    name: nft.name || 'Unnamed NFT',
-                                    image: nft.uri || '/api/placeholder/400/400',
-                                    collectionAddress: nft.collectionAddress,
-                                    description: nft.description,
-                                    attributes: nft.attributes || []
-                                  }));
-                                  
-                                  // Find Profile NFT
-                                  const profileNFT = mappedNFTs.find((nft: any) => 
-                                    nft.name.includes('@') || 
-                                    nft.description?.includes('Profile NFT') ||
-                                    nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
-                                  );
-                                  
-                                  if (profileNFT) {
-                                    setUserProfileNFT(profileNFT);
-                                  }
-                                  
-                                  setUiNFTs(mappedNFTs);
+                            if (!publicKey || !signTransaction || !sendTransaction) {
+                              alert('Please connect your wallet first');
+                              return;
+                            }
+
+                            // Check if username is available
+                            if (usernameStatus.available === false) {
+                              alert('❌ This username is already taken. Please choose a different one.');
+                              return;
+                            }
+
+                            if (usernameStatus.available !== true) {
+                              alert('⏳ Please wait for username availability check to complete.');
+                              return;
+                            }
+
+                            try {
+                              // Dynamically import the Profile NFT minting service
+                              const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
+
+                              alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\nCost: ${profilePricing.price} ${profilePricing.currency}`);
+
+                              // Call the minting service with wallet functions
+                              const result = await profileNFTMintingService.mintProfileNFT({
+                                wallet: publicKey.toString(),
+                                username: username,
+                                price: profilePricing.price,
+                                tier: profilePricing.tier,
+                                signTransaction: signTransaction,
+                                sendTransaction: sendTransaction
+                              });
+
+                              if (result.success) {
+                                // Register the username as taken
+                                try {
+                                  await fetch('/api/profile-nft/check-username', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      username: username,
+                                      mint: result.mintAddress,
+                                      owner: publicKey.toString()
+                                    })
+                                  });
+                                } catch (error) {
+                                  console.error('Failed to register username:', error);
                                 }
-                              } catch (error) {
-                                console.error('Error refreshing NFTs:', error);
+
+                                alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nMint Address: ${result.mintAddress}\nTransaction: ${result.signature}\n\nView on Explorer: https://explorer.analos.io/tx/${result.signature}`);
+                                
+                                // Reset form
+                                setUsername('');
+                                setProfilePricing(null);
+                                setUsernameStatus({ checking: false, available: null, message: '' });
+                                
+                                // Refresh NFTs after a short delay
+                                setTimeout(async () => {
+                                  try {
+                                    const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
+                                    const nftsData = await nftsResponse.json();
+                                    
+                                    if (nftsData.nfts && nftsData.nfts.length > 0) {
+                                      const mappedNFTs = nftsData.nfts.map((nft: any) => ({
+                                        mint: nft.mint,
+                                        collection: nft.collectionName || 'Unknown Collection',
+                                        name: nft.name || 'Unnamed NFT',
+                                        image: nft.uri || '/api/placeholder/400/400',
+                                        collectionAddress: nft.collectionAddress,
+                                        description: nft.description,
+                                        attributes: nft.attributes || []
+                                      }));
+                                      
+                                      // Find Profile NFT
+                                      const profileNFT = mappedNFTs.find((nft: any) => 
+                                        nft.name.includes('@') || 
+                                        nft.description?.includes('Profile NFT') ||
+                                        nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
+                                      );
+                                      
+                                      if (profileNFT) {
+                                        setUserProfileNFT(profileNFT);
+                                      }
+                                      
+                                      setUiNFTs(mappedNFTs);
+                                    }
+                                  } catch (error) {
+                                    console.error('Error refreshing NFTs:', error);
+                                  }
+                                }, 3000);
+                              } else {
+                                alert(`❌ Error: ${result.message}\n\n${result.error || ''}`);
                               }
-                            }, 3000);
-                          } else {
-                            alert(`❌ Error: ${result.message}\n\n${result.error || ''}`);
-                          }
-                        } catch (error: any) {
-                          console.error('Minting error:', error);
-                          alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
-                        }
-                      }}
-                      disabled={!username.trim() || !profilePricing || usernameStatus.available !== true}
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
-                    >
-                    {!username.trim() ? '⚡ Enter Username First' :
-                    usernameStatus.available === false ? '❌ Username Taken' :
-                    usernameStatus.checking ? '⏳ Checking...' :
-                    usernameStatus.available !== true ? '⏳ Check Availability' :
-                    !profilePricing ? '⚡ Check Pricing First' :
-                    `⚡ Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
-                    </button>
-                  </div>
-                </div>
+                            } catch (error: any) {
+                              console.error('Minting error:', error);
+                              alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
+                            }
+                          }}
+                          disabled={!username.trim() || !profilePricing || usernameStatus.available !== true}
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
+                        >
+                          {!username.trim() ? '⚡ Enter Username First' :
+                          usernameStatus.available === false ? '❌ Username Taken' :
+                          usernameStatus.checking ? '⏳ Checking...' :
+                          usernameStatus.available !== true ? '⏳ Check Availability' :
+                          !profilePricing ? '⚡ Check Pricing First' :
+                          `⚡ Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
+                        </button>
+                      </div>
+                    </div>
 
                 {/* Profile NFT Preview */}
                 <div className="bg-gradient-to-br from-blue-500/20 to-green-500/20 rounded-xl p-6 border border-blue-500/30">
