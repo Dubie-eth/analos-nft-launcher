@@ -557,78 +557,78 @@ export default function ProfilePage() {
                         <div className="bg-black/30 rounded-lg p-4">
                           <h4 className="text-white font-semibold mb-3">📝 Basic Information</h4>
                       
-                      {/* Username */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Username *
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Enter your username"
-                          value={username}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setUsername(value);
-                            // Check both username availability and pricing
-                            if (value.trim()) {
-                              checkUsername(value);
-                              fetchProfilePricing(value);
-                            } else {
-                              setUsernameStatus({ checking: false, available: null, message: '' });
-                              setProfilePricing(null);
-                            }
-                          }}
-                          className={`w-full px-3 py-2 bg-black/50 border ${
-                            usernameStatus.available === true ? 'border-green-500' :
-                            usernameStatus.available === false ? 'border-red-500' :
-                            'border-gray-600'
-                          } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none`}
-                        />
-                        {/* Username availability status */}
-                        {usernameStatus.message && (
-                          <div className={`text-xs mt-1 flex items-center gap-1 ${
-                            usernameStatus.checking ? 'text-gray-400' :
-                            usernameStatus.available ? 'text-green-400' :
-                            'text-red-400'
-                          }`}>
-                            {usernameStatus.checking && <span>⏳</span>}
-                            {usernameStatus.available === true && <span>✅</span>}
-                            {usernameStatus.available === false && <span>❌</span>}
-                            <span>{usernameStatus.message}</span>
+                          {/* Username */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Username *
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Enter your username"
+                              value={username}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setUsername(value);
+                                // Check both username availability and pricing
+                                if (value.trim()) {
+                                  checkUsername(value);
+                                  fetchProfilePricing(value);
+                                } else {
+                                  setUsernameStatus({ checking: false, available: null, message: '' });
+                                  setProfilePricing(null);
+                                }
+                              }}
+                              className={`w-full px-3 py-2 bg-black/50 border ${
+                                usernameStatus.available === true ? 'border-green-500' :
+                                usernameStatus.available === false ? 'border-red-500' :
+                                'border-gray-600'
+                              } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none`}
+                            />
+                            {/* Username availability status */}
+                            {usernameStatus.message && (
+                              <div className={`text-xs mt-1 flex items-center gap-1 ${
+                                usernameStatus.checking ? 'text-gray-400' :
+                                usernameStatus.available ? 'text-green-400' :
+                                'text-red-400'
+                              }`}>
+                                {usernameStatus.checking && <span>⏳</span>}
+                                {usernameStatus.available === true && <span>✅</span>}
+                                {usernameStatus.available === false && <span>❌</span>}
+                                <span>{usernameStatus.message}</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Display Name */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Display Name
-                        </label>
-                        <input
-                          type="text"
-                          value={displayName}
-                          onChange={(e) => setDisplayName(e.target.value)}
-                          placeholder="Enter your display name"
-                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
+                          {/* Display Name */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Display Name
+                            </label>
+                            <input
+                              type="text"
+                              value={displayName}
+                              onChange={(e) => setDisplayName(e.target.value)}
+                              placeholder="Enter your display name"
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                            />
+                          </div>
 
-                      {/* Bio */}
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                          Bio
-                        </label>
-                        <textarea
-                          value={bio}
-                          onChange={(e) => setBio(e.target.value)}
-                          placeholder="Tell us about yourself..."
-                          rows={3}
-                          maxLength={500}
-                          className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
-                        />
-                        <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
-                      </div>
-                    </div>
+                          {/* Bio */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Bio
+                            </label>
+                            <textarea
+                              value={bio}
+                              onChange={(e) => setBio(e.target.value)}
+                              placeholder="Tell us about yourself..."
+                              rows={3}
+                              maxLength={500}
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
+                            />
+                            <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
+                          </div>
+                        </div>
 
                     {/* Profile Images */}
                     <div className="bg-black/30 rounded-lg p-4 mb-4">
