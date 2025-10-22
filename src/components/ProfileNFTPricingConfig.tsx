@@ -17,6 +17,7 @@ import {
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
+import PricingHistoryAnalytics from './PricingHistoryAnalytics';
 
 interface PricingConfig {
   enabled: boolean;
@@ -423,6 +424,9 @@ export default function ProfileNFTPricingConfig({ onClose }: ProfileNFTPricingCo
           {saving ? 'Saving...' : 'Save Configuration'}
         </button>
       </div>
+
+      {/* History/Analytics */}
+      <PricingHistoryAnalytics />
 
       {/* Info Alert */}
       <div className={`mt-6 p-4 rounded border flex gap-3 ${
