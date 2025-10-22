@@ -157,7 +157,7 @@ export class ProfileNFTMintingService {
       const lamportsForMint = await getMinimumBalanceForRentExemptMint(this.connection);
       console.log('💵 Rent for mint:', lamportsForMint / LAMPORTS_PER_SOL, 'SOL');
 
-      // 7. Build transaction
+      // 7. Build transaction (use legacy format for Analos compatibility)
       const transaction = new Transaction();
 
       // Add instruction to create mint account
@@ -206,11 +206,25 @@ export class ProfileNFTMintingService {
         )
       );
 
-      // 8. Get recent blockhash
+      // 8. Get recent blockhash and configure transaction for Analos compatibility
       const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = userPublicKey;
       transaction.lastValidBlockHeight = lastValidBlockHeight;
+      
+      // Ensure we're using legacy transaction format for Analos compatibility
+      // Force legacy format by ensuring no version property is set
+      if ((transaction as any).version) {
+        delete (transaction as any).version;
+      }
+      if ((transaction as any).message) {
+        delete (transaction as any).message;
+      }
+      
+      console.log('📋 Transaction format: Legacy (Analos compatible)');
+      console.log('📋 Transaction instructions count:', transaction.instructions.length);
+      console.log('📋 Transaction fee payer:', transaction.feePayer?.toString());
+      console.log('📋 Transaction version property:', (transaction as any).version || 'none (legacy)');
 
       // 9. Partially sign with mint keypair
       transaction.partialSign(mintKeypair);
@@ -218,10 +232,38 @@ export class ProfileNFTMintingService {
       console.log('✍️ Signing transaction...');
       // 10. Sign with user wallet
       const signedTransaction = await signTransaction(transaction);
+      
+      // Debug transaction format before sending
+      console.log('🔍 Transaction details before sending:');
+      console.log('🔍 Transaction type:', signedTransaction.constructor.name);
+      console.log('🔍 Transaction version:', (signedTransaction as any).version || 'legacy');
+      console.log('🔍 Transaction message format:', (signedTransaction as any).message?.version || 'legacy');
+      
+      // Additional check: Ensure transaction is still in legacy format after signing
+      if ((signedTransaction as any).version !== undefined) {
+        console.warn('⚠️ WARNING: Transaction has version property after signing. This may cause issues on Analos network.');
+        console.warn('⚠️ Transaction version:', (signedTransaction as any).version);
+      }
+      
+      if ((signedTransaction as any).message) {
+        console.warn('⚠️ WARNING: Transaction has message property after signing. This may cause issues on Analos network.');
+        console.warn('⚠️ Message version:', (signedTransaction as any).message?.version);
+      }
 
       console.log('📡 Sending transaction...');
-      // 11. Send transaction
-      const signature = await sendTransaction(signedTransaction, this.connection);
+      // 11. Send transaction with legacy format enforcement
+      let signature: string;
+      try {
+        // Ensure transaction is serialized in legacy format for Analos compatibility
+        const serializedTx = signedTransaction.serialize();
+        console.log('🔍 Transaction serialized length:', serializedTx.length);
+        console.log('🔍 Transaction first byte (should be 0x01 for legacy):', '0x' + serializedTx[0].toString(16));
+        
+        signature = await sendTransaction(signedTransaction, this.connection);
+      } catch (sendError: any) {
+        console.error('❌ Transaction send error:', sendError);
+        throw new Error(`Failed to send transaction: ${sendError.message}`);
+      }
 
       console.log('⏳ Confirming transaction...');
       // 12. Confirm transaction with extended timeout for Analos network
