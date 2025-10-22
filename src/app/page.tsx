@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ANALOS_PROGRAMS, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
@@ -10,6 +10,35 @@ export const dynamic = 'force-dynamic';
 
 const HomePage: React.FC = () => {
   const { publicKey, connected } = useWallet();
+  const [stats, setStats] = useState({
+    totalMints: 0,
+    totalRevenueLOS: 0,
+    uniqueHolders: 0,
+    last24hMints: 0,
+    totalCollections: 0,
+    totalTransactions: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // Load real platform stats
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const response = await fetch('/api/analytics/platform');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.analytics) {
+            setStats(data.analytics);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    loadStats();
+  }, []);
   
   // Admin wallet addresses - only these wallets can access admin
   const ADMIN_WALLETS = [
@@ -100,6 +129,58 @@ const HomePage: React.FC = () => {
                 Admin Dashboard
               </Link>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Live Platform Stats */}
+      <section className="py-12 bg-gradient-to-r from-blue-900/50 to-purple-900/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-white text-center mb-8">
+            📊 Live Platform Stats from Analos Blockchain
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-green-400">
+                {loadingStats ? '...' : stats.totalMints.toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-300 mt-1">Total Mints</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-blue-400">
+                {loadingStats ? '...' : stats.uniqueHolders.toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-300 mt-1">Unique Holders</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-yellow-400">
+                {loadingStats ? '...' : stats.last24hMints.toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-300 mt-1">24h Mints</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-purple-400">
+                {loadingStats ? '...' : stats.totalCollections.toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-300 mt-1">Collections</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-pink-400">
+                {loadingStats ? '...' : stats.totalRevenueLOS.toFixed(2)}
+              </div>
+              <div className="text-sm text-gray-300 mt-1">Total LOS Volume</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-orange-400">
+                {loadingStats ? '...' : stats.totalTransactions.toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-300 mt-1">Transactions</div>
+            </div>
+          </div>
+          <div className="text-center mt-6">
+            <Link href="/explorer" className="text-blue-400 hover:text-blue-300 text-sm">
+              View Explorer →
+            </Link>
           </div>
         </div>
       </section>

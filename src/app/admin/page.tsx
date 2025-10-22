@@ -223,50 +223,58 @@ export default function AdminDashboard() {
       setLoading(true);
       console.log('🔍 Loading admin data from Analos blockchain...');
       
-      // TODO: Implement actual admin data loading
-      // This would:
-      // 1. Query all collection configs from NFT_LAUNCHPAD program
-      // 2. Get current LOS price from PRICE_ORACLE
-      // 3. Get rarity data from RARITY_ORACLE
-      // 4. Get bonding curve data from TOKEN_LAUNCH
-      // 5. Calculate platform statistics
-      
-      // For now, simulate with demo data
-      const demoCollections: CollectionStats[] = [
-        {
-          name: 'Los Bros Collection',
-          totalSupply: 2222,
-          currentSupply: 0,
-          mintedPercentage: 0,
-          mintPriceUSD: 42.00,
-          isActive: true,
-          mintingEnabled: true,
-          programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
-          collectionConfig: 'DemoCollectionConfigPDA',
-          address: 'DemoCollectionConfigPDA'
+      // Fetch real platform analytics
+      const analyticsResponse = await fetch('/api/analytics/platform');
+      if (analyticsResponse.ok) {
+        const analyticsData = await analyticsResponse.json();
+        if (analyticsData.success && analyticsData.analytics) {
+          console.log('✅ Platform analytics loaded:', analyticsData.analytics);
         }
-      ];
+      }
 
-      const demoProgramStatus: ProgramStatus[] = [
-        // Core Programs
+      // Fetch real collection stats
+      const collectionsResponse = await fetch('/api/analytics/collections');
+      let realCollections: CollectionStats[] = [];
+      if (collectionsResponse.ok) {
+        const collectionsData = await collectionsResponse.json();
+        if (collectionsData.success) {
+          realCollections = collectionsData.collections;
+          console.log(`✅ Loaded ${realCollections.length} real collections from blockchain`);
+        }
+      }
+
+      // Fetch real program status
+      const programsResponse = await fetch('/api/analytics/programs');
+      let realPrograms: ProgramStatus[] = [];
+      if (programsResponse.ok) {
+        const programsData = await programsResponse.json();
+        if (programsData.success) {
+          realPrograms = programsData.programs;
+          console.log(`✅ Loaded ${realPrograms.length} real program statuses from blockchain`);
+        }
+      }
+
+      // Use real data if available, otherwise use fallback
+      const demoProgramStatus: ProgramStatus[] = realPrograms.length > 0 ? realPrograms : [
+        // Fallback data if blockchain query fails
         {
           name: 'NFT Launchpad',
           programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD.toString(),
-          isActive: true,
-          transactionCount: 2,
+          isActive: false,
+          transactionCount: 0,
           lastActivity: new Date().toISOString()
         },
         {
           name: 'Price Oracle',
           programId: ANALOS_PROGRAMS.PRICE_ORACLE.toString(),
-          isActive: true,
-          transactionCount: 1,
-          lastActivity: new Date(Date.now() - 1000 * 60 * 30).toISOString()
+          isActive: false,
+          transactionCount: 0,
+          lastActivity: new Date().toISOString()
         },
         {
           name: 'Rarity Oracle',
           programId: ANALOS_PROGRAMS.RARITY_ORACLE.toString(),
-          isActive: true,
+          isActive: false,
           transactionCount: 0,
           lastActivity: new Date().toISOString()
         },
@@ -315,18 +323,37 @@ export default function AdminDashboard() {
         }
       ];
 
-      setCollections(demoCollections);
+      // Use real collections if available
+      const collectionsToUse = realCollections.length > 0 ? realCollections : [];
+      setCollections(collectionsToUse);
       setProgramStatus(demoProgramStatus);
+
+      // Calculate stats from real data
+      const totalNFTsMinted = collectionsToUse.reduce((sum, col) => sum + col.currentSupply, 0);
+      const totalVolume = collectionsToUse.reduce((sum, col) => sum + (col.currentSupply * col.mintPriceUSD), 0);
+
+      // Get real LOS price
+      let losPrice = 0.10;
+      try {
+        const priceResponse = await fetch('/api/oracle/los-price');
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          losPrice = priceData.price || 0.10;
+        }
+      } catch (priceError) {
+        console.warn('⚠️ Error fetching LOS price:', priceError);
+      }
+
       setAdminStats({
-        totalCollections: demoCollections.length,
-        activeCollections: demoCollections.filter(col => col.isActive).length,
-        totalNFTsMinted: demoCollections.reduce((sum, col) => sum + col.currentSupply, 0),
-        totalVolume: demoCollections.reduce((sum, col) => sum + (col.currentSupply * col.mintPriceUSD), 0),
-        platformFees: 0,
-        losPrice: 0.10
+        totalCollections: collectionsToUse.length,
+        activeCollections: collectionsToUse.filter(col => col.isActive).length,
+        totalNFTsMinted,
+        totalVolume,
+        platformFees: totalVolume * 0.025, // 2.5% platform fee
+        losPrice
       });
 
-      console.log('✅ Admin data loaded');
+      console.log('✅ Real admin data loaded from Analos blockchain');
     } catch (error) {
       console.error('❌ Error loading admin data:', error);
     } finally {
