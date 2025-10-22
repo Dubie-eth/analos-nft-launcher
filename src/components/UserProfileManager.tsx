@@ -111,16 +111,23 @@ const UserProfileManager: React.FC<UserProfileManagerProps> = ({
   const handleInputChange = (field: string, value: any) => {
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
-      setProfile(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof UserProfileData],
-          [child]: value
+      setProfile(prev => {
+        if (!prev) return prev;
+        const parentValue = prev[parent as keyof UserProfileData];
+        if (typeof parentValue === 'object' && parentValue !== null) {
+          return {
+            ...prev,
+            [parent]: {
+              ...parentValue,
+              [child]: value
+            }
+          };
         }
-      }));
+        return prev;
+      });
     } else {
       setProfile(prev => ({
-        ...prev,
+        ...prev!,
         [field]: value
       }));
     }

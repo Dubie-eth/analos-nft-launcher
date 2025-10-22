@@ -75,42 +75,66 @@ const BetaSignupPage: React.FC = () => {
       id: 'profile-nft',
       name: 'Profile NFTs',
       description: 'Mint unique profile NFTs with custom avatars and metadata',
-      votes: 0,
+      targetThreshold: 100000000,
+      currentVotes: 0,
+      totalWeight: 0,
+      progress: 0,
+      status: 'active',
       userVoted: false
     },
     {
       id: 'nft-marketplace',
       name: 'NFT Marketplace',
       description: 'Buy and sell NFTs with advanced filtering and analytics',
-      votes: 0,
+      targetThreshold: 150000000,
+      currentVotes: 0,
+      totalWeight: 0,
+      progress: 0,
+      status: 'active',
       userVoted: false
     },
     {
       id: 'collection-launcher',
       name: 'Collection Launcher',
       description: 'Launch your own NFT collections with custom metadata',
-      votes: 0,
+      targetThreshold: 200000000,
+      currentVotes: 0,
+      totalWeight: 0,
+      progress: 0,
+      status: 'active',
       userVoted: false
     },
     {
       id: 'staking-rewards',
       name: 'NFT Staking',
       description: 'Stake your NFTs to earn rewards and passive income',
-      votes: 0,
+      targetThreshold: 120000000,
+      currentVotes: 0,
+      totalWeight: 0,
+      progress: 0,
+      status: 'active',
       userVoted: false
     },
     {
       id: 'referral-system',
       name: 'Referral System',
       description: 'Earn rewards for referring new users to the platform',
-      votes: 0,
+      targetThreshold: 80000000,
+      currentVotes: 0,
+      totalWeight: 0,
+      progress: 0,
+      status: 'active',
       userVoted: false
     },
     {
       id: 'token-swap',
       name: 'Token Swap',
       description: 'Swap tokens directly on the Analos blockchain',
-      votes: 0,
+      targetThreshold: 180000000,
+      currentVotes: 0,
+      totalWeight: 0,
+      progress: 0,
+      status: 'active',
       userVoted: false
     }
   ];
