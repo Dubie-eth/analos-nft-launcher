@@ -86,6 +86,8 @@ export default function ProfilePage() {
   const [showReveal, setShowReveal] = useState(false);
   const [revealedNFT, setRevealedNFT] = useState<UserNFT | null>(null);
   const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
+  const [lastTxSignature, setLastTxSignature] = useState<string | null>(null);
+  const [lastMintAddress, setLastMintAddress] = useState<string | null>(null);
 
   // Baseball card background examples for users to preview
   const cardBackgrounds = [
@@ -312,8 +314,10 @@ export default function ProfilePage() {
   };
 
   // Trigger NFT reveal animation
-  const triggerReveal = (nft: UserNFT) => {
+  const triggerReveal = (nft: UserNFT, txSignature?: string, mintAddress?: string) => {
     setRevealedNFT(nft);
+    setLastTxSignature(txSignature || null);
+    setLastMintAddress(mintAddress || null);
     setShowReveal(true);
     setRevealAnimation('cover');
     
@@ -1210,7 +1214,7 @@ export default function ProfilePage() {
                                 setUserProfileNFT(newNFT as any);
 
                                 // Trigger the reveal animation
-                                triggerReveal(newNFT);
+                                triggerReveal(newNFT, result.signature, result.mintAddress);
                                 
                                 // Reset form
                                 setUsername('');
@@ -1501,6 +1505,34 @@ export default function ProfilePage() {
                           <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
                         </div>
                       </div>
+
+                      {/* Transaction Details */}
+                      {(lastTxSignature || lastMintAddress) && (
+                        <div className="bg-black/30 rounded-lg p-3 border border-green-500/30 mb-4">
+                          {lastTxSignature && (
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-gray-300">Transaction</span>
+                              <button
+                                className="text-green-400 underline truncate max-w-[60%] text-left"
+                                onClick={() => window.open(`https://explorer.analos.io/tx/${lastTxSignature}`, '_blank')}
+                              >
+                                {lastTxSignature}
+                              </button>
+                            </div>
+                          )}
+                          {lastMintAddress && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-300">Mint</span>
+                              <button
+                                className="text-green-400 underline truncate max-w-[60%] text-left"
+                                onClick={() => window.open(`https://explorer.analos.io/address/${lastMintAddress}`, '_blank')}
+                              >
+                                {lastMintAddress}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Traits and Rarity Display */}
                       <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30">
