@@ -81,6 +81,7 @@ export default function ProfilePage() {
   } | null>(null);
   const [username, setUsername] = useState('');
   const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
+  const [mintNumber, setMintNumber] = useState<number | null>(null);
   const [usernameStatus, setUsernameStatus] = useState<{
     checking: boolean;
     available: boolean | null;
@@ -177,6 +178,20 @@ export default function ProfilePage() {
     }
   };
 
+  // Fetch current mint count
+  const fetchMintCount = async () => {
+    try {
+      const response = await fetch('/api/profile-nft/mint-count');
+      const data = await response.json();
+      
+      if (data.success) {
+        setMintNumber(data.count + 1); // Next mint number
+      }
+    } catch (error) {
+      console.error('Error fetching mint count:', error);
+    }
+  };
+
   // Check page access configuration and load user data
   useEffect(() => {
     const checkPageAccessAndLoadData = async () => {
@@ -252,6 +267,9 @@ export default function ProfilePage() {
             setUiNFTs([]);
             setUserProfileNFT(null);
           }
+          
+          // Fetch current mint count for preview
+          fetchMintCount();
         } catch (error) {
           console.error('❌ Error loading NFTs:', error);
           setUiNFTs([]);
@@ -578,7 +596,12 @@ export default function ProfilePage() {
                                 )}
                               </div>
                               <div className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">#3</span>
+                                <span className="text-white text-sm font-bold">
+                                  {userProfileNFT ? 
+                                    `#${userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}` : 
+                                    (mintNumber ? `#${mintNumber}` : '#?')
+                                  }
+                                </span>
                               </div>
                             </div>
                             
@@ -920,6 +943,17 @@ export default function ProfilePage() {
                                   });
                                 } catch (error) {
                                   console.error('Failed to register username:', error);
+                                }
+
+                                // Increment mint count
+                                try {
+                                  await fetch('/api/profile-nft/mint-count', {
+                                    method: 'POST'
+                                  });
+                                  // Update local mint count
+                                  setMintNumber(prev => prev ? prev + 1 : 1);
+                                } catch (error) {
+                                  console.error('Failed to update mint count:', error);
                                 }
 
                                 alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nMint Address: ${result.mintAddress}\nTransaction: ${result.signature}\n\nView on Explorer: https://explorer.analos.io/tx/${result.signature}`);
