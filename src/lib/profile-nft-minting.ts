@@ -25,6 +25,7 @@ import {
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { uploadJSONToIPFS } from './backend-api';
 import { metadataService } from './metadata-service';
+import { METADATA_PROGRAM_CONFIG } from './metadata-service';
 
 export interface ProfileNFTMintParams {
   wallet: string;
@@ -288,18 +289,113 @@ export class ProfileNFTMintingService {
       // 13. Create Metaplex metadata account
       console.log('📝 Creating Metaplex metadata...');
       try {
-        await metadataService.createNFTMetadata(
+        // Dynamically import Metaplex helpers to avoid build-time dependency mismatch
+        const mpl: any = await import('@metaplex-foundation/mpl-token-metadata').catch(() => null);
+
+        if (!mpl || (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction)) {
+          console.warn('⚠️ Metaplex helpers unavailable, skipping on-chain metadata creation');
+          throw new Error('MPL not available');
+        }
+
+        // 13a. Upload JSON (URI)
+        const metadataCreation = await metadataService.createNFTMetadata(
           mintKeypair.publicKey,
           'Analos Profile',
           'PROFILE',
-          1, // mint number (we could track this per-user)
+          1,
           profileNFTMetadata.attributes,
           profileNFTMetadata.image
         );
-        console.log('✅ Metaplex metadata created');
+
+        const metadataUriToUse = metadataCreation.metadataURI || metadataUri;
+
+        // 13b. Build on-chain metadata + master edition instructions (MPL-compatible)
+        const metadataProgramId = new PublicKey(METADATA_PROGRAM_CONFIG.PROGRAM_ID);
+
+        const [metadataPda] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from('metadata'),
+            metadataProgramId.toBuffer(),
+            mintKeypair.publicKey.toBuffer(),
+          ],
+          metadataProgramId
+        );
+
+        const [masterEditionPda] = PublicKey.findProgramAddressSync(
+          [
+            Buffer.from('metadata'),
+            metadataProgramId.toBuffer(),
+            mintKeypair.publicKey.toBuffer(),
+            Buffer.from('edition'),
+          ],
+          metadataProgramId
+        );
+
+        const metadataIx = mpl.createCreateMetadataAccountV3Instruction(
+          {
+            metadata: metadataPda,
+            mint: mintKeypair.publicKey,
+            mintAuthority: userPublicKey,
+            payer: userPublicKey,
+            updateAuthority: userPublicKey,
+          },
+          {
+            createMetadataAccountArgsV3: {
+              data: {
+                name: 'Analos Profile',
+                symbol: 'PROFILE',
+                uri: metadataUriToUse || metadataUri,
+                sellerFeeBasisPoints: 0,
+                creators: null,
+                collection: null,
+                uses: null,
+              },
+              isMutable: true,
+              collectionDetails: null,
+            },
+          },
+          metadataProgramId
+        );
+
+        const masterEditionIx = mpl.createCreateMasterEditionV3Instruction(
+          {
+            edition: masterEditionPda,
+            mint: mintKeypair.publicKey,
+            updateAuthority: userPublicKey,
+            mintAuthority: userPublicKey,
+            payer: userPublicKey,
+            metadata: metadataPda,
+          },
+          { createMasterEditionArgs: { maxSupply: 0 } },
+          metadataProgramId
+        );
+
+        // 13c. Send metadata transaction
+        const metaTx = new Transaction();
+        metaTx.add(
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5_000 }),
+          metadataIx,
+          masterEditionIx
+        );
+
+        const { blockhash: metaBh, lastValidBlockHeight: metaLvb } = await this.connection.getLatestBlockhash('confirmed');
+        metaTx.recentBlockhash = metaBh;
+        metaTx.feePayer = userPublicKey;
+        metaTx.lastValidBlockHeight = metaLvb;
+
+        const signedMetaTx = await signTransaction(metaTx);
+        const metaSig = await this.connection.sendRawTransaction(signedMetaTx.serialize(), { skipPreflight: false });
+
+        try {
+          await this.connection.confirmTransaction({ signature: metaSig, blockhash: metaBh, lastValidBlockHeight: metaLvb }, 'confirmed');
+          console.log('✅ Metadata + Master Edition created:', metaSig);
+        } catch (e) {
+          console.warn('⚠️ Metadata confirmation timeout:', e);
+        }
       } catch (metadataError) {
-        console.warn('⚠️ Failed to create Metaplex metadata:', metadataError);
-        // Continue anyway - the NFT is still minted
+        console.warn('⚠️ Failed to create on-chain metadata (non-fatal):', metadataError);
+        // Continue anyway - the NFT is still minted; UI may rely on later backfill
       }
 
       return {
