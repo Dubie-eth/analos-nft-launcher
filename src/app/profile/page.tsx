@@ -336,8 +336,7 @@ export default function ProfilePage() {
     { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
     { id: 'rewards', label: `Rewards (${rewards.length})`, icon: '💰' },
-    { id: 'activity', label: 'Activity', icon: '📊' },
-    { id: 'edit', label: 'Edit Profile', icon: '✏️' }
+    { id: 'activity', label: 'Activity', icon: '📊' }
   ] : [
     { id: 'overview', label: 'Community Overview', icon: '⭐' },
     { id: 'nfts', label: 'Public NFTs', icon: '🎨' },
@@ -480,42 +479,83 @@ export default function ProfilePage() {
         {/* Tab Content */}
         <div className="space-y-8">
           {activeTab === 'profile-nft' && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white mb-4">🎭 Your Profile NFT</h2>
-                <p className="text-gray-300 text-lg">
-                  Create your unique profile NFT that represents you in the Analos ecosystem
-                </p>
-              </div>
+            <div className="space-y-8">
+              {/* Profile Card Preview Section */}
+              <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-purple-500/30">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-bold text-white mb-2">
+                    🎭 Create Your Profile NFT
+                  </h2>
+                  <p className="text-gray-300">
+                    Set up your blockchain profile and mint your unique NFT
+                  </p>
+                </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Profile NFT Minting Card */}
-                <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl p-6 border border-purple-500/30">
-                  <div className="text-center mb-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-3xl">🎭</span>
+                <div className="grid lg:grid-cols-2 gap-8">
+                  {/* Profile Card Preview */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-white">Your Profile Card Preview</h3>
+                      <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
+                        Standard Edition
+                      </button>
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Mint Your Profile NFT</h3>
-                    <p className="text-gray-300">
-                      Create a unique NFT that represents your identity on Analos
-                    </p>
+                    
+                    <div className="bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-pink-900/30 rounded-xl p-4 border border-purple-400/50">
+                      <p className="text-sm text-purple-300 mb-4">
+                        This is a preview of your profile card. Upload your own profile picture and banner image to customize your NFT! 🖼️✨
+                      </p>
+                      
+                      {/* Profile Card Preview */}
+                      <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-xl p-6 border border-purple-500/30">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden">
+                            {avatarUrl ? (
+                              <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-white">{displayName || 'Your Display Name'}</h4>
+                            <p className="text-purple-300">@{username || 'yourusername'}</p>
+                          </div>
+                        </div>
+                        
+                        {bio && (
+                          <p className="text-gray-300 text-sm mb-4">{bio}</p>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {twitterHandle && (
+                            <span className="px-2 py-1 bg-blue-600/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                              🐦 Twitter
+                            </span>
+                          )}
+                          {website && (
+                            <span className="px-2 py-1 bg-green-600/20 border border-green-500/30 rounded text-xs text-green-300">
+                              🌐 Website
+                            </span>
+                          )}
+                          {github && (
+                            <span className="px-2 py-1 bg-gray-600/20 border border-gray-500/30 rounded text-xs text-gray-300">
+                              💻 GitHub
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="bg-black/30 rounded-lg p-4">
-                      <h4 className="text-white font-semibold mb-2">✨ Features</h4>
-                      <ul className="text-sm text-gray-300 space-y-1">
-                        <li>• Unique profile representation</li>
-                        <li>• Custom traits and attributes</li>
-                        <li>• On-chain metadata storage</li>
-                        <li>• Tradeable on marketplace</li>
-                        <li>• Community recognition</li>
-                      </ul>
-                    </div>
-
-                    {/* Basic Information */}
-                    <div className="bg-black/30 rounded-lg p-4 mb-4">
-                      <h4 className="text-white font-semibold mb-3">📝 Basic Information</h4>
+                  {/* Profile Configuration */}
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-white">Profile Configuration</h3>
+                    
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                      <div className="space-y-4">
+                        {/* Basic Information */}
+                        <div className="bg-black/30 rounded-lg p-4">
+                          <h4 className="text-white font-semibold mb-3">📝 Basic Information</h4>
                       
                       {/* Username */}
                       <div className="mb-3">
@@ -566,6 +606,8 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
                           placeholder="Enter your display name"
                           className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                         />
@@ -577,12 +619,14 @@ export default function ProfilePage() {
                           Bio
                         </label>
                         <textarea
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
                           placeholder="Tell us about yourself..."
                           rows={3}
                           maxLength={500}
                           className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
                         />
-                        <p className="text-xs text-gray-400 mt-1">0/500 characters</p>
+                        <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
                       </div>
                     </div>
 
@@ -598,8 +642,14 @@ export default function ProfilePage() {
                         <input
                           type="file"
                           accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'avatar')}
                           className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                         />
+                        {avatarUrl && (
+                          <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500 mx-auto">
+                            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                          </div>
+                        )}
                       </div>
 
                       {/* Banner Image */}
@@ -610,8 +660,14 @@ export default function ProfilePage() {
                         <input
                           type="file"
                           accept="image/*"
+                          onChange={(e) => handleImageUpload(e, 'banner')}
                           className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                         />
+                        {bannerUrl && (
+                          <div className="mt-2 w-24 h-12 rounded overflow-hidden border-2 border-blue-500 mx-auto">
+                            <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -627,6 +683,8 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="text"
+                            value={twitterHandle}
+                            onChange={(e) => setTwitterHandle(e.target.value)}
                             placeholder="@username"
                             className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                           />
@@ -639,6 +697,8 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="url"
+                            value={website}
+                            onChange={(e) => setWebsite(e.target.value)}
                             placeholder="https://yourwebsite.com"
                             className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                           />
@@ -651,6 +711,8 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="text"
+                            value={discord}
+                            onChange={(e) => setDiscord(e.target.value)}
                             placeholder="username#1234"
                             className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                           />
@@ -663,10 +725,29 @@ export default function ProfilePage() {
                           </label>
                           <input
                             type="text"
+                            value={github}
+                            onChange={(e) => setGithub(e.target.value)}
                             placeholder="username"
                             className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                           />
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Privacy Option */}
+                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                      <h4 className="text-white font-semibold mb-3">🔒 Privacy Settings</h4>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="isAnonymous"
+                          checked={isAnonymous}
+                          onChange={(e) => setIsAnonymous(e.target.checked)}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="isAnonymous" className="text-sm text-gray-300">
+                          Keep profile anonymous (hide social links from public view)
+                        </label>
                       </div>
                     </div>
 
@@ -812,12 +893,12 @@ export default function ProfilePage() {
                       disabled={!username.trim() || !profilePricing || usernameStatus.available !== true}
                       className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
                     >
-                      {!username.trim() ? '🎭 Enter Username First' : 
-                       usernameStatus.available === false ? '❌ Username Taken' :
-                       usernameStatus.checking ? '⏳ Checking...' :
-                       usernameStatus.available !== true ? '⏳ Check Availability' :
-                       !profilePricing ? '🎭 Check Pricing First' : 
-                       `🎭 Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
+                    {!username.trim() ? '⚡ Enter Username First' :
+                    usernameStatus.available === false ? '❌ Username Taken' :
+                    usernameStatus.checking ? '⏳ Checking...' :
+                    usernameStatus.available !== true ? '⏳ Check Availability' :
+                    !profilePricing ? '⚡ Check Pricing First' :
+                    `⚡ Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
                     </button>
                   </div>
                 </div>
@@ -1121,52 +1202,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {activeTab === 'edit' && (
-            <div className="space-y-4">
-              {/* Editor Toggle */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Profile Editor
-                </h3>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Simple</span>
-                  <button
-                    onClick={() => setUseSimpleEditor(!useSimpleEditor)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      useSimpleEditor ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        useSimpleEditor ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Advanced</span>
-                </div>
-              </div>
-
-              {/* Editor Content */}
-              {useSimpleEditor ? (
-                <SimpleProfileEditor
-                  onProfileSaved={(profile) => {
-                    console.log('Profile saved:', profile);
-                    // Refresh the page or update state
-                  }}
-                  onNFTCreated={(nft) => {
-                    console.log('NFT created:', nft);
-                    // Handle NFT creation success
-                  }}
-                />
-              ) : (
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-                  <div className="text-6xl mb-4">🚧</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Advanced Editor Temporarily Disabled</h3>
-                  <p className="text-gray-300">The advanced profile editor is temporarily disabled to fix build issues. Please use the simple editor above.</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

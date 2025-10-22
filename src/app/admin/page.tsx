@@ -85,7 +85,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'settings'>('matrix-collection');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'admin-analytics' | 'settings'>('matrix-collection');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
