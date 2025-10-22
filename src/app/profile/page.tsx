@@ -68,6 +68,32 @@ export default function ProfilePage() {
   const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
   const [isPublicAccess, setIsPublicAccess] = useState(false);
   const [useSimpleEditor, setUseSimpleEditor] = useState(true);
+  const [profilePricing, setProfilePricing] = useState<{
+    tier: string;
+    price: number;
+    currency: string;
+  } | null>(null);
+  const [username, setUsername] = useState('');
+
+  // Fetch pricing for Profile NFT
+  const fetchProfilePricing = async (username: string) => {
+    if (!username.trim()) return;
+    
+    try {
+      const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setProfilePricing({
+          tier: data.tier,
+          price: data.price,
+          currency: data.currency
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching pricing:', error);
+    }
+  };
 
   // Check page access configuration
   useEffect(() => {
@@ -390,31 +416,107 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="bg-black/30 rounded-lg p-4">
-                      <h4 className="text-white font-semibold mb-2">💰 Cost</h4>
-                      <div className="text-sm text-gray-300">
-                        <div className="flex justify-between">
-                          <span>Minting Fee:</span>
-                          <span className="text-green-400">100 LOS</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Platform Fee:</span>
-                          <span className="text-gray-400">10 LOS</span>
-                        </div>
-                        <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
-                          <span>Total:</span>
-                          <span className="text-green-400">110 LOS</span>
+                      <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
+                      <div className="text-sm text-gray-300 mb-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <input
+                            type="text"
+                            placeholder="Enter your username"
+                            value={username}
+                            onChange={(e) => {
+                              setUsername(e.target.value);
+                              fetchProfilePricing(e.target.value);
+                            }}
+                            className="flex-1 px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                          />
+                          <button
+                            onClick={() => fetchProfilePricing(username)}
+                            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+                          >
+                            Check Price
+                          </button>
                         </div>
                       </div>
+                      
+                      {profilePricing ? (
+                        <div className="text-sm text-gray-300">
+                          <div className="flex justify-between">
+                            <span>Username:</span>
+                            <span className="text-blue-400">{username}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Tier:</span>
+                            <span className="text-yellow-400">{profilePricing.tier}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
+                            <span>Total Cost:</span>
+                            <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-400">
+                          <p>Enter your username to see pricing</p>
+                          <div className="mt-2 text-xs">
+                            <p>• 3-digit names: 420 LOS</p>
+                            <p>• 4-digit names: 42 LOS</p>
+                            <p>• 5+ digit names: 4.20 LOS</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <button
-                      onClick={() => {
-                        // TODO: Implement profile NFT minting
-                        alert('Profile NFT minting coming soon! This will create your unique profile NFT.');
+                      onClick={async () => {
+                        if (!username.trim()) {
+                          alert('Please enter a username first');
+                          return;
+                        }
+                        
+                        if (!profilePricing) {
+                          alert('Please check pricing first');
+                          return;
+                        }
+
+                        try {
+                          const response = await fetch('/api/profile-nft/mint', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              wallet: publicKey?.toString(),
+                              username: username,
+                              userAgent: navigator.userAgent
+                            }),
+                          });
+
+                          const data = await response.json();
+                          
+                          if (data.success) {
+                            alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nTransaction: ${data.signature}`);
+                            
+                            // Reset form
+                            setUsername('');
+                            setProfilePricing(null);
+                            
+                            // Refresh NFTs
+                            if (publicKey) {
+                              fetchUserNFTs(publicKey.toString());
+                            }
+                          } else {
+                            alert(`❌ Error: ${data.error}`);
+                          }
+                        } catch (error) {
+                          console.error('Minting error:', error);
+                          alert('❌ Failed to mint Profile NFT. Please try again.');
+                        }
                       }}
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      disabled={!username.trim() || !profilePricing}
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
                     >
-                      🎭 Mint Profile NFT
+                      {!username.trim() ? '🎭 Enter Username First' : 
+                       !profilePricing ? '🎭 Check Pricing First' : 
+                       `🎭 Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
                     </button>
                   </div>
                 </div>

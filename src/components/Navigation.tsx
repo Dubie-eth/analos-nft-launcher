@@ -108,6 +108,7 @@ export default function Navigation() {
   // Admin-only navigation items
   const adminNavItems = isAdmin ? [
     { href: '/admin', label: 'Admin Dashboard', icon: '🎛️', requiresWallet: true },
+    { href: '/admin/pricing', label: 'Pricing Management', icon: '💰', requiresWallet: true },
   ] : [];
 
   // Helper function to check if user has access to a page
