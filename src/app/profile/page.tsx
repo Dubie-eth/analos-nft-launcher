@@ -50,7 +50,7 @@ interface RewardsSummary {
 }
 
 export default function ProfilePage() {
-  const { publicKey, connected, disconnect } = useWallet();
+  const { publicKey, connected, disconnect, signTransaction, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const [solBalance, setSolBalance] = useState(0);
   const [uiNFTs, setUiNFTs] = useState<UserNFT[]>([]);
@@ -477,52 +477,60 @@ export default function ProfilePage() {
                           return;
                         }
 
+                        if (!publicKey || !signTransaction || !sendTransaction) {
+                          alert('Please connect your wallet first');
+                          return;
+                        }
+
                         try {
-                          const response = await fetch('/api/profile-nft/mint', {
-                            method: 'POST',
-                            headers: {
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                              wallet: publicKey?.toString(),
-                              username: username,
-                              userAgent: navigator.userAgent
-                            }),
+                          // Dynamically import the Profile NFT minting service
+                          const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
+
+                          alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\nCost: ${profilePricing.price} ${profilePricing.currency}`);
+
+                          // Call the minting service with wallet functions
+                          const result = await profileNFTMintingService.mintProfileNFT({
+                            wallet: publicKey.toString(),
+                            username: username,
+                            price: profilePricing.price,
+                            tier: profilePricing.tier,
+                            signTransaction: signTransaction,
+                            sendTransaction: sendTransaction
                           });
 
-                          const data = await response.json();
-                          
-                          if (data.success) {
-                            alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nTransaction: ${data.signature}`);
+                          if (result.success) {
+                            alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nMint Address: ${result.mintAddress}\nTransaction: ${result.signature}\n\nView on Explorer: https://explorer.analos.io/tx/${result.signature}`);
                             
                             // Reset form
                             setUsername('');
                             setProfilePricing(null);
                             
-                            // Refresh NFTs
-                            try {
-                              const nftsResponse = await fetch(`/api/user-nfts/${publicKey?.toString()}`);
-                              const nftsData = await nftsResponse.json();
-                              
-                              if (nftsData.nfts && nftsData.nfts.length > 0) {
-                                setUiNFTs(nftsData.nfts.map((nft: any) => ({
-                                  mint: nft.mint,
-                                  collection: nft.collectionName || 'Unknown Collection',
-                                  name: nft.name || 'Unnamed NFT',
-                                  image: nft.uri || '/api/placeholder/400/400',
-                                  collectionAddress: nft.collectionAddress,
-                                  description: nft.description
-                                })));
+                            // Refresh NFTs after a short delay
+                            setTimeout(async () => {
+                              try {
+                                const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
+                                const nftsData = await nftsResponse.json();
+                                
+                                if (nftsData.nfts && nftsData.nfts.length > 0) {
+                                  setUiNFTs(nftsData.nfts.map((nft: any) => ({
+                                    mint: nft.mint,
+                                    collection: nft.collectionName || 'Unknown Collection',
+                                    name: nft.name || 'Unnamed NFT',
+                                    image: nft.uri || '/api/placeholder/400/400',
+                                    collectionAddress: nft.collectionAddress,
+                                    description: nft.description
+                                  })));
+                                }
+                              } catch (error) {
+                                console.error('Error refreshing NFTs:', error);
                               }
-                            } catch (error) {
-                              console.error('Error refreshing NFTs:', error);
-                            }
+                            }, 3000);
                           } else {
-                            alert(`❌ Error: ${data.error}`);
+                            alert(`❌ Error: ${result.message}\n\n${result.error || ''}`);
                           }
-                        } catch (error) {
+                        } catch (error: any) {
                           console.error('Minting error:', error);
-                          alert('❌ Failed to mint Profile NFT. Please try again.');
+                          alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
                         }
                       }}
                       disabled={!username.trim() || !profilePricing}

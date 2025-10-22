@@ -1,17 +1,18 @@
 /**
  * PROFILE NFT MINTING API
  * Handles minting of Profile NFTs with dynamic pricing
+ * Returns serialized transaction for client-side signing
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
-import { uploadJSONToIPFS } from '@/lib/backend-api';
+import { profileNFTMintingService } from '@/lib/profile-nft-minting';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { wallet, username, userAgent } = body;
+    const { wallet, username, serializedTransaction } = body;
 
     if (!wallet || !username) {
       return NextResponse.json({
@@ -28,8 +29,19 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Validate username format (alphanumeric + underscores only)
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Username can only contain letters, numbers, and underscores'
+      }, { status: 400 });
+    }
+
     // Get dynamic pricing
-    const pricingResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/pricing?username=${encodeURIComponent(username)}`);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                   (request.headers.get('host') ? `https://${request.headers.get('host')}` : 'http://localhost:3000');
+    
+    const pricingResponse = await fetch(`${baseUrl}/api/pricing?username=${encodeURIComponent(username)}`);
     const pricingData = await pricingResponse.json();
     
     if (!pricingData.success) {
@@ -42,103 +54,20 @@ export async function POST(request: NextRequest) {
     const price = pricingData.price;
     const tier = pricingData.tier;
 
-    // Create Profile NFT metadata
-    const profileNFTMetadata = {
-      name: `@${username} Profile NFT`,
-      symbol: 'PROFILE',
-      description: `Profile NFT for @${username} on Analos - ${tier} tier`,
-      image: `https://api.dicebear.com/7.x/identicon/svg?seed=${username}&backgroundColor=000000&textColor=ffffff`,
-      attributes: [
-        {
-          trait_type: 'Username',
-          value: username
-        },
-        {
-          trait_type: 'Tier',
-          value: tier
-        },
-        {
-          trait_type: 'Length',
-          value: username.length.toString()
-        },
-        {
-          trait_type: 'Platform',
-          value: 'Analos'
-        },
-        {
-          trait_type: 'Type',
-          value: 'Profile NFT'
-        }
-      ],
-      properties: {
-        files: [] as Array<{uri: string; type: string}>,
-        category: 'image',
-        creators: [
-          {
-            address: wallet,
-            share: 100
-          }
-        ]
-      }
-    };
+    console.log('🎭 Profile NFT mint request:', { wallet, username, price, tier });
 
-    // Upload metadata to IPFS
-    console.log('📤 Uploading Profile NFT metadata to IPFS...');
-    const ipfsResult = await uploadJSONToIPFS(
-      profileNFTMetadata,
-      `profile-nft-${username}`
-    );
-    
-    if (!ipfsResult.success || !ipfsResult.url) {
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to upload metadata to IPFS'
-      }, { status: 500 });
-    }
-
-    const metadataUri = ipfsResult.url;
-    console.log('✅ Metadata uploaded to IPFS:', metadataUri);
-
-    // Create mint transaction
-    const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
-    const walletPubkey = new PublicKey(wallet);
-    
-    // Create a new mint account
-    const mintKeypair = {
-      publicKey: new PublicKey('11111111111111111111111111111111'), // Placeholder - in production, generate new keypair
-      secretKey: new Uint8Array(64) // Placeholder - in production, use actual secret key
-    };
-
-    const transaction = new Transaction();
-
-    // Add instructions for minting (simplified for demo)
-    // In production, this would include:
-    // 1. Create mint account
-    // 2. Initialize mint
-    // 3. Create associated token account
-    // 4. Mint tokens
-    // 5. Create metadata account
-
-    // For now, return a mock transaction signature
-    const mockSignature = `profile_nft_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+    // Return minting parameters for client-side execution
+    // The actual minting will happen client-side with wallet signing
     return NextResponse.json({
       success: true,
-      signature: mockSignature,
-      explorerUrl: `https://explorer.analos.io/tx/${mockSignature}`,
-      nft: {
-        mint: mintKeypair.publicKey.toString(),
-        name: profileNFTMetadata.name,
-        symbol: profileNFTMetadata.symbol,
-        description: profileNFTMetadata.description,
-        image: profileNFTMetadata.image,
-        attributes: profileNFTMetadata.attributes,
-        metadataUri: metadataUri,
-        tier: tier,
-        price: price,
-        currency: 'LOS'
+      mintParams: {
+        wallet,
+        username,
+        price,
+        tier
       },
-      message: `Profile NFT minted successfully for @${username} (${tier} tier) - ${price} LOS`
+      message: 'Ready to mint Profile NFT',
+      instructions: 'Use the returned parameters to mint the NFT client-side with wallet signing'
     });
 
   } catch (error) {
