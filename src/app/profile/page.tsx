@@ -83,6 +83,9 @@ export default function ProfilePage() {
   const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
   const [mintNumber, setMintNumber] = useState<number | null>(null);
   const [currentCardBackground, setCurrentCardBackground] = useState(0);
+  const [showReveal, setShowReveal] = useState(false);
+  const [revealedNFT, setRevealedNFT] = useState<UserNFT | null>(null);
+  const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
 
   // Card background examples for users to preview
   const cardBackgrounds = [
@@ -230,6 +233,22 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error fetching mint count:', error);
     }
+  };
+
+  // Trigger NFT reveal animation
+  const triggerReveal = (nft: UserNFT) => {
+    setRevealedNFT(nft);
+    setShowReveal(true);
+    setRevealAnimation('cover');
+    
+    // Start the reveal sequence
+    setTimeout(() => {
+      setRevealAnimation('dripping');
+    }, 1000);
+    
+    setTimeout(() => {
+      setRevealAnimation('revealed');
+    }, 3000);
   };
 
   // Check page access configuration and load user data
@@ -1055,7 +1074,30 @@ export default function ProfilePage() {
                                   console.error('Failed to update mint count:', error);
                                 }
 
-                                alert(`✅ Profile NFT minted successfully!\n\n@${username} (${profilePricing.tier} tier)\nCost: ${profilePricing.price} ${profilePricing.currency}\n\nMint Address: ${result.mintAddress}\nTransaction: ${result.signature}\n\nView on Explorer: https://explorer.analos.io/tx/${result.signature}`);
+                                // Create the revealed NFT object
+                                const newNFT = {
+                                  mint: result.mintAddress,
+                                  collection: 'Analos Profile Cards',
+                                  name: `@${username}`,
+                                  image: avatarUrl || '',
+                                  description: bio || `Profile NFT for @${username}`,
+                                  attributes: [
+                                    { trait_type: 'Username', value: username },
+                                    { trait_type: 'Display Name', value: displayName },
+                                    { trait_type: 'Edition', value: mintNumber?.toString() || '1' },
+                                    { trait_type: 'Tier', value: profilePricing.tier },
+                                    { trait_type: 'Bio', value: bio || '' },
+                                    { trait_type: 'Twitter', value: twitterHandle || '' },
+                                    { trait_type: 'Website', value: website || '' },
+                                    { trait_type: 'Discord', value: discord || '' },
+                                    { trait_type: 'GitHub', value: github || '' },
+                                    { trait_type: 'Telegram', value: telegram || '' },
+                                    { trait_type: 'Anonymous', value: isAnonymous ? 'true' : 'false' }
+                                  ]
+                                };
+
+                                // Trigger the reveal animation
+                                triggerReveal(newNFT);
                                 
                                 // Reset form
                                 setUsername('');
@@ -1151,6 +1193,213 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+              </div>
+            </div>
+          )}
+
+          {/* NFT Reveal Animation */}
+          {showReveal && revealedNFT && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="relative max-w-md w-full">
+                {/* Reveal Card Container */}
+                <div className="relative">
+                  {/* Cover Card */}
+                  {revealAnimation === 'cover' && (
+                    <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-2xl p-6 shadow-2xl border-2 border-gray-600 transform scale-110 transition-all duration-500">
+                      <div className="text-center">
+                        <div className="w-24 h-24 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center text-3xl font-bold text-gray-400 mx-auto mb-4">
+                          🎭
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-300 mb-2">MYSTERY CARD</h3>
+                        <p className="text-gray-400 text-sm">Preparing your reveal...</p>
+                        <div className="mt-4 flex justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dripping Animation */}
+                  {revealAnimation === 'dripping' && (
+                    <div className="relative">
+                      {/* Matrix Drips */}
+                      <div className="absolute inset-0 z-20">
+                        <div className="absolute top-0 left-1/4 w-1 h-20 bg-green-400 animate-pulse"></div>
+                        <div className="absolute top-0 left-1/2 w-1 h-16 bg-green-400 animate-pulse delay-200"></div>
+                        <div className="absolute top-0 left-3/4 w-1 h-24 bg-green-400 animate-pulse delay-500"></div>
+                        <div className="absolute top-0 right-1/4 w-1 h-18 bg-green-400 animate-pulse delay-300"></div>
+                        <div className="absolute top-0 right-1/3 w-1 h-22 bg-green-400 animate-pulse delay-700"></div>
+                      </div>
+                      
+                      {/* Revealing Card */}
+                      <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50 transform scale-105 transition-all duration-1000">
+                        <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
+                        
+                        {/* Card Header */}
+                        <div className="text-center mb-4 relative z-10">
+                          <div className="flex items-center justify-center mb-2">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
+                              <span className="text-white text-sm font-bold">A</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-white">ANALOS</h3>
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2">
+                              <span className="text-white text-sm font-bold">♠</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-300">PROFILE CARDS</p>
+                        </div>
+                        
+                        {/* Profile Section */}
+                        <div className="text-center mb-4 relative z-10">
+                          <div className="relative inline-block mb-3">
+                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-green-400">
+                              {revealedNFT.image ? (
+                                <img src={revealedNFT.image} alt="Profile" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{revealedNFT.name ? revealedNFT.name.charAt(0).toUpperCase() : 'U'}</span>
+                              )}
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-800 rounded-full flex items-center justify-center border border-green-400">
+                              <span className="text-white text-xs font-bold">
+                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <h4 className="text-lg font-bold text-white mb-1">{revealedNFT.name || 'Your Name'}</h4>
+                          <p className="text-gray-300 text-sm mb-2">@{revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'username'}</p>
+                        </div>
+                        
+                        {/* Referral Code Section */}
+                        <div className="bg-green-900/50 border border-green-400/50 rounded-lg p-3 mb-4 relative z-10">
+                          <div className="text-center">
+                            <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
+                            <p className="text-xl font-bold text-green-300">
+                              {revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Card Footer */}
+                        <div className="text-center relative z-10">
+                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                        </div>
+                        
+                        {/* Background Pattern Overlay */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fully Revealed Card with Traits */}
+                  {revealAnimation === 'revealed' && (
+                    <div className="space-y-4">
+                      {/* Main Card */}
+                      <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50 transform scale-100 transition-all duration-1000">
+                        <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
+                        
+                        {/* Card Header */}
+                        <div className="text-center mb-4 relative z-10">
+                          <div className="flex items-center justify-center mb-2">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
+                              <span className="text-white text-sm font-bold">A</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-white">ANALOS</h3>
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2">
+                              <span className="text-white text-sm font-bold">♠</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-300">PROFILE CARDS</p>
+                        </div>
+                        
+                        {/* Profile Section */}
+                        <div className="text-center mb-4 relative z-10">
+                          <div className="relative inline-block mb-3">
+                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-green-400">
+                              {revealedNFT.image ? (
+                                <img src={revealedNFT.image} alt="Profile" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{revealedNFT.name ? revealedNFT.name.charAt(0).toUpperCase() : 'U'}</span>
+                              )}
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-800 rounded-full flex items-center justify-center border border-green-400">
+                              <span className="text-white text-xs font-bold">
+                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <h4 className="text-lg font-bold text-white mb-1">{revealedNFT.name || 'Your Name'}</h4>
+                          <p className="text-gray-300 text-sm mb-2">@{revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'username'}</p>
+                        </div>
+                        
+                        {/* Referral Code Section */}
+                        <div className="bg-green-900/50 border border-green-400/50 rounded-lg p-3 mb-4 relative z-10">
+                          <div className="text-center">
+                            <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
+                            <p className="text-xl font-bold text-green-300">
+                              {revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Card Footer */}
+                        <div className="text-center relative z-10">
+                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
+                        </div>
+                        
+                        {/* Background Pattern Overlay */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
+                        </div>
+                      </div>
+
+                      {/* Traits and Rarity Display */}
+                      <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30">
+                        <h4 className="text-lg font-bold text-white mb-3 text-center">🎉 Your Revealed Traits</h4>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="bg-black/30 rounded-lg p-3">
+                            <div className="text-center">
+                              <p className="text-xs text-gray-400 mb-1">RARITY</p>
+                              <p className="text-lg font-bold text-yellow-400">ULTRA-RARE</p>
+                            </div>
+                          </div>
+                          <div className="bg-black/30 rounded-lg p-3">
+                            <div className="text-center">
+                              <p className="text-xs text-gray-400 mb-1">VARIANT</p>
+                              <p className="text-lg font-bold text-green-400">MATRIX</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h5 className="text-white font-semibold text-sm">Special Traits:</h5>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="px-2 py-1 bg-green-600/30 text-green-300 rounded text-xs border border-green-500/30">Digital Rain</span>
+                            <span className="px-2 py-1 bg-blue-600/30 text-blue-300 rounded text-xs border border-blue-500/30">Neon Glow</span>
+                            <span className="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs border border-purple-500/30">Holographic</span>
+                            <span className="px-2 py-1 bg-yellow-600/30 text-yellow-300 rounded text-xs border border-yellow-500/30">Rare Edition</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Close Button */}
+                      <button
+                        onClick={() => {
+                          setShowReveal(false);
+                          setRevealAnimation('cover');
+                          setRevealedNFT(null);
+                        }}
+                        className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        ✨ Awesome! Close Reveal
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
