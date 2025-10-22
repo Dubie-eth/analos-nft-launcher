@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
-import { metadataService } from '@/lib/metadata-service';
+import { uploadJSONToIPFS } from '@/lib/backend-api';
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,14 +83,21 @@ export async function POST(request: NextRequest) {
     };
 
     // Upload metadata to IPFS
-    const metadataUri = await metadataService.uploadMetadata(profileNFTMetadata);
+    console.log('📤 Uploading Profile NFT metadata to IPFS...');
+    const ipfsResult = await uploadJSONToIPFS(
+      profileNFTMetadata,
+      `profile-nft-${username}`
+    );
     
-    if (!metadataUri) {
+    if (!ipfsResult.success || !ipfsResult.url) {
       return NextResponse.json({
         success: false,
         error: 'Failed to upload metadata to IPFS'
       }, { status: 500 });
     }
+
+    const metadataUri = ipfsResult.url;
+    console.log('✅ Metadata uploaded to IPFS:', metadataUri);
 
     // Create mint transaction
     const connection = new Connection(ANALOS_RPC_URL, 'confirmed');
