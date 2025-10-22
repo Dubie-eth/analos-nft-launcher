@@ -378,7 +378,8 @@ export class BlockchainService {
 
       console.log('🎨 Loading user NFTs for:', walletAddress);
 
-      // Get all token accounts owned by the user
+      // Try via backend proxy first; fall back to direct RPC if needed
+      let tokenAccounts: any[] | null = null;
       const result = await backendAPI.proxyRPCRequest('getTokenAccountsByOwner', [
         walletAddress,
         {
@@ -389,13 +390,24 @@ export class BlockchainService {
         },
       ]);
 
-      if (result.error || !result.result) {
-        console.warn('⚠️ No NFTs found or RPC call failed');
-        return [];
+      if (!result.error && result.result && Array.isArray(result.result.value)) {
+        tokenAccounts = result.result.value as any[];
+      } else {
+        console.warn('⚠️ RPC proxy failed or returned no data, falling back to direct connection');
+        try {
+          const direct = await this.connection.getParsedTokenAccountsByOwner(
+            new PublicKey(walletAddress),
+            { programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') }
+          );
+          tokenAccounts = direct.value as any[];
+        } catch (fallbackError) {
+          console.error('❌ Direct RPC fallback failed:', fallbackError);
+          return [];
+        }
       }
 
       // Filter for NFTs (tokens with amount = 1 and decimals = 0)
-      const nfts = result.result.value.filter((account: any) => {
+      const nfts = tokenAccounts.filter((account: any) => {
         const tokenData = account.account.data.parsed.info;
         return (
           tokenData.tokenAmount.decimals === 0 &&
