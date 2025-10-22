@@ -303,7 +303,7 @@ export default function ProfilePage() {
     };
 
     checkPageAccessAndLoadData();
-  }, [publicKey, connected, connection]);
+  }, [publicKey, connected]);
 
   // Show loading state while checking page access
   if (loading) {
