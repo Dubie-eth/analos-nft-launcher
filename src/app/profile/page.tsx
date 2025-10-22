@@ -8,6 +8,7 @@ import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
 import PublicProfileDisplay from '@/components/PublicProfileDisplay';
 import SimpleProfileEditor from '@/components/SimpleProfileEditor';
 import NFTCard from '@/components/NFTCard';
+import ProfileNFTDisplay from '@/components/ProfileNFTDisplay';
 import { getFreshExample } from '@/lib/wallet-examples';
 
 interface UserNFT {
@@ -17,6 +18,11 @@ interface UserNFT {
   image: string;
   price?: number;
   rarity?: string;
+  description?: string;
+  attributes?: Array<{
+    trait_type: string;
+    value: string;
+  }>;
 }
 
 interface UserCollection {
@@ -74,6 +80,7 @@ export default function ProfilePage() {
     currency: string;
   } | null>(null);
   const [username, setUsername] = useState('');
+  const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
 
   // Fetch pricing for Profile NFT
   const fetchProfilePricing = async (username: string) => {
@@ -147,17 +154,34 @@ export default function ProfilePage() {
           
           if (nftsData.nfts && nftsData.nfts.length > 0) {
             console.log(`✅ Loaded ${nftsData.nfts.length} NFTs from blockchain`);
-            setUiNFTs(nftsData.nfts.map((nft: any) => ({
+            
+            const mappedNFTs = nftsData.nfts.map((nft: any) => ({
               mint: nft.mint,
               collection: nft.collectionName || 'Unknown Collection',
               name: nft.name || 'Unnamed NFT',
               image: nft.uri || '/api/placeholder/400/400',
               collectionAddress: nft.collectionAddress,
-              description: nft.description
-            })));
+              description: nft.description,
+              attributes: nft.attributes || []
+            }));
+            
+            // Find Profile NFT (symbol is 'PROFILE')
+            const profileNFT = mappedNFTs.find((nft: any) => 
+              nft.name.includes('@') || 
+              nft.description?.includes('Profile NFT') ||
+              nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
+            );
+            
+            if (profileNFT) {
+              console.log('🎭 Found Profile NFT:', profileNFT.name);
+              setUserProfileNFT(profileNFT);
+            }
+            
+            setUiNFTs(mappedNFTs);
           } else {
             console.log('ℹ️ No NFTs found for this wallet');
             setUiNFTs([]);
+            setUserProfileNFT(null);
           }
         } catch (error) {
           console.error('❌ Error loading NFTs:', error);
@@ -357,6 +381,35 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Profile NFT Showcase - Only show if user has a Profile NFT */}
+        {connected && userProfileNFT && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-purple-500/30">
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  🎭 Your Profile NFT
+                </h2>
+                <p className="text-gray-300">
+                  Your unique identity on the Analos platform
+                </p>
+              </div>
+              
+              <div className="max-w-md mx-auto">
+                <ProfileNFTDisplay
+                  nft={userProfileNFT}
+                  onView={() => {
+                    window.open(`https://explorer.analos.io/address/${userProfileNFT.mint}`, '_blank');
+                  }}
+                  onTrade={() => {
+                    // TODO: Navigate to marketplace or listing page
+                    alert('🚧 Profile NFT trading coming soon!');
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
           <nav className="flex flex-wrap justify-center gap-2">
@@ -512,14 +565,28 @@ export default function ProfilePage() {
                                 const nftsData = await nftsResponse.json();
                                 
                                 if (nftsData.nfts && nftsData.nfts.length > 0) {
-                                  setUiNFTs(nftsData.nfts.map((nft: any) => ({
+                                  const mappedNFTs = nftsData.nfts.map((nft: any) => ({
                                     mint: nft.mint,
                                     collection: nft.collectionName || 'Unknown Collection',
                                     name: nft.name || 'Unnamed NFT',
                                     image: nft.uri || '/api/placeholder/400/400',
                                     collectionAddress: nft.collectionAddress,
-                                    description: nft.description
-                                  })));
+                                    description: nft.description,
+                                    attributes: nft.attributes || []
+                                  }));
+                                  
+                                  // Find Profile NFT
+                                  const profileNFT = mappedNFTs.find((nft: any) => 
+                                    nft.name.includes('@') || 
+                                    nft.description?.includes('Profile NFT') ||
+                                    nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
+                                  );
+                                  
+                                  if (profileNFT) {
+                                    setUserProfileNFT(profileNFT);
+                                  }
+                                  
+                                  setUiNFTs(mappedNFTs);
                                 }
                               } catch (error) {
                                 console.error('Error refreshing NFTs:', error);
