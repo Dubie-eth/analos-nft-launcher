@@ -672,7 +672,6 @@ export default function ProfilePage() {
 
                     <div className="bg-black/30 rounded-lg p-4">
                       <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
-                      <div className="text-sm text-gray-300 mb-3">
                       
                       {profilePricing ? (
                         <div className="text-sm text-gray-300">
