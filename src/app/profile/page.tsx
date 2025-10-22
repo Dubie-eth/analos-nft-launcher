@@ -69,7 +69,7 @@ export default function ProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile-nft' | 'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit'>('profile-nft');
+  const [activeTab, setActiveTab] = useState<'profile-nft' | 'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit' | 'update-profile'>('profile-nft');
   const [exampleData, setExampleData] = useState<any>(null);
   const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
   const [isPublicAccess, setIsPublicAccess] = useState(false);
@@ -390,6 +390,7 @@ export default function ProfilePage() {
 
   const tabs = connected ? [
     { id: 'profile-nft', label: 'Profile NFT', icon: '🎭' },
+    ...(userProfileNFT ? [{ id: 'update-profile', label: 'Update Profile', icon: '🔄' }] : []),
     { id: 'overview', label: 'Overview', icon: '⭐' },
     { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
@@ -1052,6 +1053,203 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'update-profile' && userProfileNFT && (
+            <div className="space-y-8">
+              {/* Update Profile Section */}
+              <div className="bg-gradient-to-r from-green-600/20 via-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-green-500/30">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-bold text-white mb-2">
+                    🔄 Update Your Profile NFT
+                  </h2>
+                  <p className="text-gray-300">
+                    Modify your Profile NFT information for a small platform fee
+                  </p>
+                </div>
+
+                <div className="grid lg:grid-cols-2 gap-8">
+                  {/* Current Profile Display */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-white">Current Profile</h3>
+                    
+                    <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl p-6 border border-purple-500/30">
+                      <div className="bg-white rounded-xl p-6 shadow-2xl">
+                        {/* Card Header */}
+                        <div className="text-center mb-6">
+                          <h3 className="text-2xl font-bold text-black mb-1">ANALOS PROFILE CARDS</h3>
+                          <p className="text-sm text-gray-600 mb-1">Master Open Edition Collection</p>
+                          <p className="text-xs text-gray-500">launchonlos.fun</p>
+                        </div>
+                        
+                        {/* Profile Section */}
+                        <div className="text-center mb-6">
+                          <div className="relative inline-block mb-4">
+                            <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-3xl font-bold text-white overflow-hidden mx-auto">
+                              {userProfileNFT.image ? (
+                                <img src={userProfileNFT.image} alt="Profile" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{userProfileNFT.name ? userProfileNFT.name.charAt(0).toUpperCase() : 'P'}</span>
+                              )}
+                            </div>
+                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-full flex items-center justify-center">
+                              <span className="text-white text-sm font-bold">
+                                {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '#1'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <h4 className="text-xl font-bold text-black mb-1">{userProfileNFT.name || 'Profile NFT'}</h4>
+                          <p className="text-gray-600 mb-2">{userProfileNFT.description || 'No description'}</p>
+                        </div>
+                        
+                        {/* Referral Code Section */}
+                        <div className="bg-gray-100 rounded-lg p-4 mb-4">
+                          <div className="text-center">
+                            <p className="text-sm font-semibold text-gray-700 mb-1">REFERRAL CODE</p>
+                            <p className="text-2xl font-bold text-orange-500">
+                              {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Card Footer */}
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">Open Edition • Minted on Analos • launchonlos.fun</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Update Form */}
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-white">Update Information</h3>
+                    
+                    <div className="bg-black/30 rounded-lg p-6">
+                      <div className="space-y-4">
+                        {/* Display Name */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Display Name</label>
+                          <input
+                            type="text"
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            placeholder="Your display name"
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Bio */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
+                          <textarea
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            placeholder="Tell us about yourself..."
+                            rows={3}
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Profile Picture */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Profile Picture URL</label>
+                          <input
+                            type="url"
+                            value={avatarUrl}
+                            onChange={(e) => setAvatarUrl(e.target.value)}
+                            placeholder="https://example.com/your-image.jpg"
+                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Social Links */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Twitter</label>
+                            <input
+                              type="text"
+                              value={twitterHandle}
+                              onChange={(e) => setTwitterHandle(e.target.value)}
+                              placeholder="@username"
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Website</label>
+                            <input
+                              type="url"
+                              value={website}
+                              onChange={(e) => setWebsite(e.target.value)}
+                              placeholder="https://yourwebsite.com"
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Platform Fee Info */}
+                        <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
+                          <h4 className="text-green-400 font-semibold mb-2">💰 Platform Fee</h4>
+                          <p className="text-sm text-gray-300 mb-2">Update fee: 1.0 LOS</p>
+                          <p className="text-xs text-gray-400">
+                            This fee covers the cost of updating your Profile NFT metadata on-chain.
+                          </p>
+                        </div>
+
+                        {/* Update Button */}
+                        <button
+                          onClick={async () => {
+                            if (!publicKey || !signTransaction || !sendTransaction) {
+                              alert('Please connect your wallet first');
+                              return;
+                            }
+
+                            try {
+                              // Call the profile update API
+                              const response = await fetch('/api/profile-nft/update', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  mintAddress: userProfileNFT.mint,
+                                  updates: {
+                                    displayName,
+                                    bio,
+                                    avatarUrl,
+                                    twitterHandle,
+                                    website,
+                                    discord,
+                                    github,
+                                    telegram,
+                                    isAnonymous
+                                  }
+                                })
+                              });
+
+                              const result = await response.json();
+
+                              if (result.success) {
+                                alert('✅ Profile updated successfully!\n\nYour Profile NFT has been updated with the new information.');
+                                
+                                // Refresh the profile data
+                                window.location.reload();
+                              } else {
+                                alert(`❌ Failed to update profile.\n\nError: ${result.error}`);
+                              }
+                            } catch (error: any) {
+                              console.error('Update error:', error);
+                              alert(`❌ Failed to update profile.\n\nError: ${error.message || 'Unknown error'}`);
+                            }
+                          }}
+                          className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
+                        >
+                          🔄 Update Profile NFT (1.0 LOS)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

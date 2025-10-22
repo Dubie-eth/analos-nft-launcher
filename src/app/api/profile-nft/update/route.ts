@@ -1,111 +1,117 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PublicKey } from '@solana/web3.js';
-import { AnalosNFTMintingService } from '@/lib/analos-nft-minting-service';
-
 /**
  * PROFILE NFT UPDATE API
- * Updates existing profile NFT metadata for a fee
+ * Allows Profile NFT holders to update their NFT metadata for a platform fee
  */
+
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { walletAddress, mintAddress, updates, updateFee } = await request.json();
+    const body = await request.json();
+    const { mintAddress, updates } = body;
 
-    if (!walletAddress || !mintAddress || !updates) {
-      return NextResponse.json(
-        { error: 'Missing required fields: walletAddress, mintAddress, updates' },
-        { status: 400 }
-      );
+    if (!mintAddress) {
+      return NextResponse.json({
+        success: false,
+        error: 'Mint address is required'
+      }, { status: 400 });
     }
 
-    // Validate update fee
-    if (!updateFee || updateFee <= 0) {
-      return NextResponse.json(
-        { error: 'Valid update fee required' },
-        { status: 400 }
-      );
+    if (!updates) {
+      return NextResponse.json({
+        success: false,
+        error: 'Update data is required'
+      }, { status: 400 });
     }
 
-    // Initialize services
-    const nftService = new AnalosNFTMintingService();
+    // TODO: Add ownership verification
+    // 1. Check if the user owns the Profile NFT
+    // 2. Verify the mint address exists
+    // 3. Process the platform fee payment (1.0 LOS)
 
-    // For now, we'll simulate the update process since we need the actual blockchain integration
-    // In a real implementation, this would:
-    // 1. Verify the user owns the NFT
-    // 2. Charge the update fee
-    // 3. Update the metadata on-chain
-    // 4. Generate new image if needed
+    // For now, simulate the update process
+    console.log('🔄 Profile NFT Update Request:', {
+      mintAddress,
+      updates
+    });
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // TODO: Implement actual metadata update
+    // 1. Update IPFS metadata with new information
+    // 2. Update on-chain metadata URI if needed
+    // 3. Process platform fee transaction
 
-    // Generate updated metadata
+    // Simulate successful update
     const updatedMetadata = {
-      name: `@${updates.displayName || 'User'} - Analos Profile Card`,
-      description: updates.bio || 'Analos Profile Card - Master Open Edition Collection',
-      image: 'https://api.analos.com/profile-nft/generate-image', // Would generate new image
+      name: updates.displayName || 'Profile NFT',
+      description: updates.bio || 'Updated Profile NFT',
+      image: updates.avatarUrl || '',
       attributes: [
-        {
-          trait_type: 'Display Name',
-          value: updates.displayName || 'Anonymous'
-        },
-        {
-          trait_type: 'Bio',
-          value: updates.bio || 'Profile card holder on Analos'
-        },
-        {
-          trait_type: 'Collection',
-          value: 'Analos Profile Cards'
-        },
-        {
-          trait_type: 'Type',
-          value: 'Master Open Edition'
-        },
-        {
-          trait_type: 'Updated',
-          value: new Date().toISOString()
-        }
-      ],
-      properties: {
-        files: [
-          {
-            uri: 'https://api.analos.com/profile-nft/generate-image',
-            type: 'image/svg+xml'
-          }
-        ],
-        category: 'image'
-      },
-      external_url: 'https://onlyanal.fun',
-      ...updates
+        { trait_type: 'Username', value: updates.displayName || 'user' },
+        { trait_type: 'Bio', value: updates.bio || 'No bio' },
+        { trait_type: 'Twitter', value: updates.twitterHandle || '' },
+        { trait_type: 'Website', value: updates.website || '' },
+        { trait_type: 'Discord', value: updates.discord || '' },
+        { trait_type: 'GitHub', value: updates.github || '' },
+        { trait_type: 'Telegram', value: updates.telegram || '' },
+        { trait_type: 'Anonymous', value: updates.isAnonymous ? 'true' : 'false' },
+        { trait_type: 'Updated', value: new Date().toISOString() }
+      ]
     };
-
-    // Simulate transaction signature
-    const mockSignature = Array.from({ length: 64 }, () => 
-      Math.floor(Math.random() * 16).toString(16)
-    ).join('');
-
-    const explorerUrl = `https://explorer.analos.io/tx/${mockSignature}`;
 
     return NextResponse.json({
       success: true,
-      message: 'Profile NFT metadata updated successfully!',
-      nft: {
-        mintAddress,
-        explorerUrl,
-        signature: mockSignature,
-        metadata: updatedMetadata,
-        updateFee: updateFee
-      },
-      updatedFields: Object.keys(updates).filter(key => updates[key] !== ''),
-      timestamp: new Date().toISOString()
+      message: 'Profile NFT updated successfully',
+      mintAddress,
+      updatedMetadata,
+      platformFee: '1.0 LOS',
+      transactionHash: 'simulated_transaction_hash'
     });
 
   } catch (error) {
-    console.error('Error updating profile NFT:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: `Failed to update profile NFT: ${errorMessage}` },
-      { status: 500 }
-    );
+    console.error('Error updating Profile NFT:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to update Profile NFT'
+    }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const mintAddress = searchParams.get('mintAddress');
+
+    if (!mintAddress) {
+      return NextResponse.json({
+        success: false,
+        error: 'Mint address is required'
+      }, { status: 400 });
+    }
+
+    // TODO: Fetch current metadata for the Profile NFT
+    // This would be used to pre-populate the update form
+
+    return NextResponse.json({
+      success: true,
+      mintAddress,
+      currentMetadata: {
+        displayName: 'Current Name',
+        bio: 'Current bio',
+        avatarUrl: '',
+        twitterHandle: '',
+        website: '',
+        discord: '',
+        github: '',
+        telegram: '',
+        isAnonymous: false
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching Profile NFT metadata:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch Profile NFT metadata'
+    }, { status: 500 });
   }
 }
