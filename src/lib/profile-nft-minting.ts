@@ -229,37 +229,16 @@ export class ProfileNFTMintingService {
       // 9. Partially sign with mint keypair
       transaction.partialSign(mintKeypair);
 
-      console.log('✍️ Signing transaction...');
-      // 10. Sign with user wallet
+      console.log('✍️ Requesting wallet signature...');
+      // 10. Sign with user wallet while preserving mint partial signature
       const signedTransaction = await signTransaction(transaction);
-      
-      // Debug transaction format before sending
-      console.log('🔍 Transaction details before sending:');
-      console.log('🔍 Transaction type:', signedTransaction.constructor.name);
-      console.log('🔍 Transaction version:', (signedTransaction as any).version || 'legacy');
-      console.log('🔍 Transaction message format:', (signedTransaction as any).message?.version || 'legacy');
-      
-      // Additional check: Ensure transaction is still in legacy format after signing
-      if ((signedTransaction as any).version !== undefined) {
-        console.warn('⚠️ WARNING: Transaction has version property after signing. This may cause issues on Analos network.');
-        console.warn('⚠️ Transaction version:', (signedTransaction as any).version);
-      }
-      
-      if ((signedTransaction as any).message) {
-        console.warn('⚠️ WARNING: Transaction has message property after signing. This may cause issues on Analos network.');
-        console.warn('⚠️ Message version:', (signedTransaction as any).message?.version);
-      }
 
-      console.log('📡 Sending transaction...');
-      // 11. Send transaction with legacy format enforcement
+      console.log('📡 Sending raw transaction...');
+      // 11. Send the exact signed bytes to avoid wallets re-building the message
       let signature: string;
       try {
-        // Ensure transaction is serialized in legacy format for Analos compatibility
-        const serializedTx = signedTransaction.serialize();
-        console.log('🔍 Transaction serialized length:', serializedTx.length);
-        console.log('🔍 Transaction first byte (should be 0x01 for legacy):', '0x' + serializedTx[0].toString(16));
-        
-        signature = await sendTransaction(signedTransaction, this.connection);
+        const raw = signedTransaction.serialize();
+        signature = await this.connection.sendRawTransaction(raw, { skipPreflight: false });
       } catch (sendError: any) {
         console.error('❌ Transaction send error:', sendError);
         throw new Error(`Failed to send transaction: ${sendError.message}`);
