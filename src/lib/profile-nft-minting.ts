@@ -290,7 +290,12 @@ export class ProfileNFTMintingService {
       console.log('📝 Creating Metaplex metadata...');
       try {
         // Dynamically import Metaplex helpers to avoid build-time dependency mismatch
-        const mpl: any = await import('@metaplex-foundation/mpl-token-metadata').catch(() => null);
+        let mpl: any = null;
+        try {
+          mpl = await import('@metaplex-foundation/mpl-token-metadata');
+        } catch (_e) {
+          mpl = null;
+        }
 
         if (!mpl || (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction)) {
           console.warn('⚠️ Metaplex helpers unavailable, skipping on-chain metadata creation');
