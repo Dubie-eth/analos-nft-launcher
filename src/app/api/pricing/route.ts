@@ -7,10 +7,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Default pricing structure (can be updated from admin panel)
+// Balanced pricing aligns with established revenue model:
+// - 30% to LOS Stakers (automatic distribution)
+// - 70% to Platform (40% Treasury, 20% Development, 10% Marketing)
+// At LOS = $0.0018 USD, covers all operational costs + sustainable profit margin
 const DEFAULT_PRICING = {
-  '3-digit': 420,    // 420 LOS for 3-digit usernames
-  '4-digit': 42,      // 42 LOS for 4-digit usernames  
-  '5-plus': 4.20     // 4.20 LOS for 5+ digit usernames
+  '3-digit': 15000,   // 15,000 LOS (~$27 USD) - Ultra Premium tier
+  '4-digit': 6000,    // 6,000 LOS (~$10.80 USD) - Premium tier
+  '5-plus': 2500      // 2,500 LOS (~$4.50 USD) - Standard tier
+};
+
+// Platform fee (6.9% on top of base price)
+const PLATFORM_FEE_PERCENTAGE = 0.069;
+
+// Revenue distribution (for transparency)
+const REVENUE_DISTRIBUTION = {
+  losStakers: 0.30,    // 30% to LOS stakers
+  treasury: 0.40,      // 40% to treasury
+  development: 0.20,   // 20% to development
+  marketing: 0.10      // 10% to marketing
 };
 
 // In-memory pricing (in production, this would be stored in database)
@@ -55,14 +70,57 @@ export async function GET(request: NextRequest) {
       price = currentPricing['5-plus'];
     }
 
+    // Calculate platform fee
+    const platformFee = Math.ceil(price * PLATFORM_FEE_PERCENTAGE);
+    const totalPrice = price + platformFee;
+
+    // Calculate revenue distribution (for transparency)
+    const revenueBreakdown = {
+      losStakers: Math.floor(price * REVENUE_DISTRIBUTION.losStakers),
+      treasury: Math.floor(price * REVENUE_DISTRIBUTION.treasury),
+      development: Math.floor(price * REVENUE_DISTRIBUTION.development),
+      marketing: Math.floor(price * REVENUE_DISTRIBUTION.marketing)
+    };
+
     return NextResponse.json({
       success: true,
       username: username,
       length: usernameLength,
       tier: tier,
-      price: price,
+      basePrice: price,
+      platformFee: platformFee,
+      totalPrice: totalPrice,
       currency: 'LOS',
-      message: `Pricing for ${username}: ${price} LOS (${tier} tier)`
+      breakdown: {
+        base: price,
+        fee: platformFee,
+        total: totalPrice,
+        feePercentage: `${(PLATFORM_FEE_PERCENTAGE * 100).toFixed(1)}%`
+      },
+      revenueDistribution: {
+        description: 'How your payment supports the ecosystem',
+        losStakers: {
+          amount: revenueBreakdown.losStakers,
+          percentage: '30%',
+          description: 'Distributed to LOS token stakers'
+        },
+        treasury: {
+          amount: revenueBreakdown.treasury,
+          percentage: '40%',
+          description: 'Platform sustainability & operations'
+        },
+        development: {
+          amount: revenueBreakdown.development,
+          percentage: '20%',
+          description: 'New features & improvements'
+        },
+        marketing: {
+          amount: revenueBreakdown.marketing,
+          percentage: '10%',
+          description: 'Community growth & adoption'
+        }
+      },
+      message: `Pricing for ${username}: ${totalPrice} LOS total (${price} base + ${platformFee} fee)`
     });
 
   } catch (error) {

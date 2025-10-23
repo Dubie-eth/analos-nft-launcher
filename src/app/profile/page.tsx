@@ -176,43 +176,43 @@ export default function ProfilePage() {
       matrixColor: 'rainbow'
     },
     {
-      name: 'MFPurrs Cosmic',
+      name: 'Analos Cosmic',
       gradient: 'from-purple-900 via-blue-900 to-indigo-900',
       accent: 'cosmic',
       pattern: 'matrix',
-      description: 'Ultra-Rare MFPurrs Cosmic with animated space matrix',
+      description: 'Ultra-Rare Analos Cosmic with animated space matrix',
       textColor: 'text-purple-400',
       borderColor: 'border-purple-400',
       rarity: 'Ultra-Rare',
       animated: true,
       matrixColor: 'cosmic',
-      backgroundImage: '/images/backgrounds/mfpurrs-cosmic.gif'
+      backgroundImage: '/images/backgrounds/analos-cosmic.gif'
     },
     {
-      name: 'MFPurrs Galaxy',
+      name: 'LOS Drip',
       gradient: 'from-indigo-900 via-purple-900 to-pink-900',
       accent: 'galaxy',
       pattern: 'matrix',
-      description: 'Ultra-Rare MFPurrs Galaxy with animated nebula matrix',
+      description: 'Ultra-Rare LOS Drip with animated nebula matrix and liquid effects',
       textColor: 'text-indigo-400',
       borderColor: 'border-indigo-400',
       rarity: 'Ultra-Rare',
       animated: true,
       matrixColor: 'galaxy',
-      backgroundImage: '/images/backgrounds/mfpurrs-galaxy.gif'
+      backgroundImage: '/images/backgrounds/los-drip.gif'
     },
     {
-      name: 'MFPurrs Aurora',
+      name: 'Blockchain Aurora',
       gradient: 'from-green-900 via-blue-900 to-purple-900',
       accent: 'aurora',
       pattern: 'matrix',
-      description: 'Ultra-Rare MFPurrs Aurora with animated rainbow matrix',
+      description: 'Ultra-Rare Blockchain Aurora with animated rainbow matrix',
       textColor: 'text-green-400',
       borderColor: 'border-green-400',
       rarity: 'Ultra-Rare',
       animated: true,
       matrixColor: 'aurora',
-      backgroundImage: '/images/backgrounds/mfpurrs-aurora.gif'
+      backgroundImage: '/images/backgrounds/blockchain-aurora.gif'
     },
     {
       name: 'Void Black',
@@ -743,7 +743,7 @@ export default function ProfilePage() {
                         <div className="text-sm text-yellow-200 space-y-1">
                           <p>• <strong>Matrix Variants:</strong> Animated digital rain with cyberpunk effects</p>
                           <p>• <strong>Epic Cards:</strong> Advanced matrix patterns with glowing borders</p>
-                          <p>• <strong>Ultra-Rare:</strong> MFPurrs animated GIF backgrounds</p>
+                          <p>• <strong>Ultra-Rare:</strong> Analos Cosmic, LOS Drip, and Blockchain Aurora with animated GIF backgrounds</p>
                           <p>• <strong>Legendary:</strong> Exclusive holographic and void effects</p>
                         </div>
                       </div>

@@ -26,6 +26,7 @@ import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { uploadJSONToIPFS } from './backend-api';
 import { metadataService } from './metadata-service';
 import { METADATA_PROGRAM_CONFIG } from './metadata-service';
+import { AnimatedNFTService, MatrixAnimationConfig } from './animated-nft-service';
 
 export interface ProfileNFTMintParams {
   wallet: string;
