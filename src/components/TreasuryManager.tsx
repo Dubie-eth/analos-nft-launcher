@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction as SolanaTransaction, Keypair } from '@solana/web3.js';
+import { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction as AnalosTransaction, Keypair } from '@solana/web3.js';
 import { ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 import TreasuryWalletAccess from './TreasuryWalletAccess';
 import { 
@@ -132,7 +132,7 @@ const TreasuryManager: React.FC = () => {
       setDistributing(true);
 
       // Create distribution transaction
-      const transaction = new SolanaTransaction();
+      const transaction = new AnalosTransaction();
       const totalAmount = distributionAmount * LAMPORTS_PER_SOL;
 
       // 30% to LOS stakers
