@@ -86,8 +86,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if wallet is already whitelisted
-    const { data: existingEntry } = await supabase
-      .from('whitelist_registry')
+    const { data: existingEntry } = await (supabase
+      .from('whitelist_registry') as any)
       .select('*')
       .eq('wallet_address', walletAddress)
       .single();
