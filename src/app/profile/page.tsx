@@ -673,7 +673,19 @@ export default function ProfilePage() {
                   nft={{
                     ...userProfileNFT,
                     description: userProfileNFT.description || 'Profile NFT',
-                    attributes: userProfileNFT.attributes || []
+                    attributes: {
+                      background: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Background')?.value || 'Matrix Drip',
+                      rarity: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Rarity')?.value || 'Common',
+                      tier: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Tier')?.value || 'Basic',
+                      core: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Core')?.value || 'Standard',
+                      dripGrade: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Drip Grade')?.value || 'C',
+                      dripScore: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Drip Score')?.value || '50',
+                      earring: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Earring')?.value || 'None',
+                      eyeColor: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Eye Color')?.value || 'Default',
+                      eyes: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Eyes')?.value || 'Standard',
+                      faceDecoration: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Face Decoration')?.value || 'None',
+                      glasses: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Glasses')?.value || 'None'
+                    }
                   }}
                   onView={() => {
                     window.open(`https://explorer.analos.io/address/${userProfileNFT.mint}`, '_blank');
