@@ -117,8 +117,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Add wallet to whitelist
-    const { data, error } = await supabase
-      .from('whitelist_registry')
+    const { data, error } = await (supabase
+      .from('whitelist_registry') as any)
       .insert({
         wallet_address: walletAddress,
         position: position,
