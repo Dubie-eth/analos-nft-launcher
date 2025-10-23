@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   
   // Optimize for production
   compress: true,
@@ -35,14 +34,6 @@ const nextConfig = {
       };
     }
     return config;
-  },
-
-  // Output configuration for Railway
-  output: 'standalone',
-  
-  // Disable telemetry
-  telemetry: {
-    enabled: false
   },
 
   // Logging for debugging Railway issues
