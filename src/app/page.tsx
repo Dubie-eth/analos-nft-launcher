@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { ANALOS_PROGRAMS, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
+import LOLWhitelistPromo from '@/components/LOLWhitelistPromo';
 
 // Force dynamic rendering to avoid static generation issues
 export const dynamic = 'force-dynamic';
@@ -130,6 +131,13 @@ const HomePage: React.FC = () => {
               </Link>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* LOL Token Holder Benefits */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <LOLWhitelistPromo />
         </div>
       </section>
 
