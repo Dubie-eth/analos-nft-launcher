@@ -25,9 +25,9 @@ export async function PUT(
     if (allowDataExport !== undefined) updateFields.allowDataExport = allowDataExport;
     if (allowAnalytics !== undefined) updateFields.allowAnalytics = allowAnalytics;
 
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(updateFields as any)
+    const { data, error } = await (supabase
+      .from('user_profiles') as any)
+      .update(updateFields)
       .eq('id', resolvedParams.id)
       .select()
       .single();
