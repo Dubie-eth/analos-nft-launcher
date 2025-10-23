@@ -406,11 +406,32 @@ export default function ExplorerPage() {
                         </div>
                         
                         <div className="space-y-1 text-sm text-gray-300">
-                          <div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                             <span className="font-medium">Signature:</span>
-                            <code className="ml-2 font-mono text-xs bg-gray-800/50 px-2 py-1 rounded">
-                              {tx.signature}
-                            </code>
+                            <div className="flex items-center gap-2">
+                              <code className="font-mono text-xs bg-gray-800/50 px-2 py-1 rounded break-all sm:break-normal">
+                                {tx.signature.length > 20 ? `${tx.signature.slice(0, 8)}...${tx.signature.slice(-8)}` : tx.signature}
+                              </code>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(tx.signature);
+                                  // You could add a toast notification here
+                                }}
+                                className="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 bg-blue-900/20 rounded hover:bg-blue-900/40 transition-colors"
+                                title="Copy full signature"
+                              >
+                                📋 Copy
+                              </button>
+                              <a
+                                href={`https://explorer.analos.io/tx/${tx.signature}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-green-400 hover:text-green-300 text-xs px-2 py-1 bg-green-900/20 rounded hover:bg-green-900/40 transition-colors"
+                                title="View on Analos Explorer"
+                              >
+                                🔗 View
+                              </a>
+                            </div>
                           </div>
                           
                           {tx.collection && (

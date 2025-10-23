@@ -25,10 +25,16 @@ export async function GET(
 
     console.log('🔍 Fetching NFTs for wallet:', wallet);
 
-    // Fetch user NFTs from blockchain
-    const nfts = await blockchainService.getUserNFTs(wallet);
-    
-    console.log(`✅ Found ${nfts.length} NFTs for wallet`);
+    // Fetch user NFTs from blockchain with error handling
+    let nfts: any[] = [];
+    try {
+      nfts = await blockchainService.getUserNFTs(wallet);
+      console.log(`✅ Found ${nfts.length} NFTs for wallet`);
+    } catch (nftError) {
+      console.error('❌ Error fetching NFTs from blockchain:', nftError);
+      // Return empty array instead of failing
+      nfts = [];
+    }
 
     // Transform NFTs to include display information
     const transformedNFTs = nfts.map((nft: any) => ({
