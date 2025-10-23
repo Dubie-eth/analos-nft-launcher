@@ -708,12 +708,8 @@ export default function ProfilePage() {
                     verified: true,
                     chain: 'Analos'
                   }}
-                  onView={() => {
+                  onViewDetails={(nftId) => {
                     window.open(`https://explorer.analos.io/address/${userProfileNFT.mint}`, '_blank');
-                  }}
-                  onTrade={() => {
-                    // TODO: Navigate to marketplace or listing page
-                    alert('🚧 Profile NFT trading coming soon!');
                   }}
                 />
               </div>
