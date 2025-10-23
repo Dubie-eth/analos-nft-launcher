@@ -28,8 +28,8 @@ export async function GET(
     const supabase = getSupabase();
 
     // Get user profile by wallet address
-    const { data: profile, error } = await supabase
-      .from('user_profiles')
+    const { data: profile, error } = await (supabase
+      .from('user_profiles') as any)
       .select('*')
       .eq('wallet_address', wallet)
       .single();
@@ -53,7 +53,7 @@ export async function GET(
       );
     }
 
-    console.log('✅ Found user profile:', profile.username);
+    console.log('✅ Found user profile:', profile?.username || 'Unknown');
 
     return NextResponse.json({
       wallet,
