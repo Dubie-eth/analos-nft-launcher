@@ -13,7 +13,7 @@ export async function PUT(
     const resolvedParams = await params;
 
     // Build update object with only defined fields
-    const updateFields: Record<string, any> = {
+    const updateFields: any = {
       updatedAt: new Date().toISOString()
     };
     
