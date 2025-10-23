@@ -268,6 +268,128 @@ code, .text-xs, .text-sm {
   white-space: normal !important;
 }
 
+/* Matrix Animation Effects */
+@keyframes matrix-rain {
+  0% { transform: translateY(-100vh); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes matrix-glow {
+  0%, 100% { text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor; }
+  50% { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor; }
+}
+
+@keyframes matrix-drip {
+  0% { transform: translateY(-20px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(20px); opacity: 0; }
+}
+
+.matrix-background {
+  position: relative;
+  overflow: hidden;
+}
+
+.matrix-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 98%, currentColor 100%);
+  background-size: 20px 100%;
+  animation: matrix-rain 3s linear infinite;
+  opacity: 0.3;
+  z-index: 1;
+}
+
+.matrix-char {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  animation: matrix-rain 4s linear infinite;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.matrix-glow {
+  animation: matrix-glow 2s ease-in-out infinite alternate;
+}
+
+.matrix-drip {
+  position: absolute;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, currentColor);
+  animation: matrix-drip 2s ease-in-out infinite;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+/* Matrix color variants */
+.matrix-green .matrix-char,
+.matrix-green .matrix-drip {
+  color: #00ff41;
+}
+
+.matrix-blue .matrix-char,
+.matrix-blue .matrix-drip {
+  color: #0080ff;
+}
+
+.matrix-purple .matrix-char,
+.matrix-purple .matrix-drip {
+  color: #8000ff;
+}
+
+.matrix-red .matrix-char,
+.matrix-red .matrix-drip {
+  color: #ff0040;
+}
+
+.matrix-yellow .matrix-char,
+.matrix-yellow .matrix-drip {
+  color: #ffff00;
+}
+
+.matrix-cyan .matrix-char,
+.matrix-cyan .matrix-drip {
+  color: #00ffff;
+}
+
+.matrix-white .matrix-char,
+.matrix-white .matrix-drip {
+  color: #ffffff;
+}
+
+.matrix-rainbow .matrix-char,
+.matrix-rainbow .matrix-drip {
+  background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #8000ff, #ff0080);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.matrix-cosmic .matrix-char,
+.matrix-cosmic .matrix-drip {
+  color: #ff00ff;
+  text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+}
+
+.matrix-galaxy .matrix-char,
+.matrix-galaxy .matrix-drip {
+  color: #8000ff;
+  text-shadow: 0 0 10px #8000ff, 0 0 20px #8000ff;
+}
+
+.matrix-aurora .matrix-char,
+.matrix-aurora .matrix-drip {
+  color: #00ff80;
+  text-shadow: 0 0 10px #00ff80, 0 0 20px #00ff80;
+}
+
 /* Theme Background */
 .theme-bg {
   background: 

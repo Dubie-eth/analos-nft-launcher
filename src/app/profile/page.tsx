@@ -92,107 +92,139 @@ export default function ProfilePage() {
   // Baseball card background examples for users to preview
   const cardBackgrounds = [
     {
-      name: 'Classic',
-      gradient: 'from-yellow-100 via-yellow-50 to-yellow-200',
-      accent: 'yellow',
-      pattern: 'classic',
-      description: 'Classic 1950s Topps style with vintage borders',
-      textColor: 'text-black',
-      borderColor: 'border-yellow-800',
-      rarity: 'Common'
-    },
-    {
-      name: 'Rookie',
-      gradient: 'from-blue-100 via-blue-50 to-blue-200',
-      accent: 'blue',
-      pattern: 'rookie',
-      description: 'Rookie card style with blue borders and stars',
-      textColor: 'text-black',
-      borderColor: 'border-blue-800',
-      rarity: 'Common'
-    },
-    {
-      name: 'All-Star',
-      gradient: 'from-red-100 via-red-50 to-red-200',
-      accent: 'red',
-      pattern: 'allstar',
-      description: 'All-Star edition with red borders and gold accents',
-      textColor: 'text-black',
-      borderColor: 'border-red-800',
-      rarity: 'Rare'
-    },
-    {
-      name: 'Hall of Fame',
-      gradient: 'from-purple-100 via-purple-50 to-purple-200',
-      accent: 'purple',
-      pattern: 'hof',
-      description: 'Hall of Fame variant with purple borders and silver',
-      textColor: 'text-black',
-      borderColor: 'border-purple-800',
-      rarity: 'Epic'
-    },
-    {
-      name: 'World Series',
-      gradient: 'from-green-100 via-green-50 to-green-200',
+      name: 'Matrix Green',
+      gradient: 'from-green-900 to-black',
       accent: 'green',
-      pattern: 'worldseries',
-      description: 'World Series champion with green borders and gold',
-      textColor: 'text-black',
-      borderColor: 'border-green-800',
-      rarity: 'Legendary'
+      pattern: 'matrix',
+      description: 'Classic matrix green with animated digital rain',
+      textColor: 'text-green-400',
+      borderColor: 'border-green-400',
+      rarity: 'Common',
+      animated: true,
+      matrixColor: 'green'
+    },
+    {
+      name: 'Cyber Blue',
+      gradient: 'from-blue-900 to-black',
+      accent: 'blue',
+      pattern: 'matrix',
+      description: 'Cyberpunk blue matrix with neon drips',
+      textColor: 'text-blue-400',
+      borderColor: 'border-blue-400',
+      rarity: 'Common',
+      animated: true,
+      matrixColor: 'blue'
+    },
+    {
+      name: 'Neon Purple',
+      gradient: 'from-purple-900 to-black',
+      accent: 'purple',
+      pattern: 'matrix',
+      description: 'Electric purple matrix with glowing effects',
+      textColor: 'text-purple-400',
+      borderColor: 'border-purple-400',
+      rarity: 'Rare',
+      animated: true,
+      matrixColor: 'purple'
+    },
+    {
+      name: 'Crimson Red',
+      gradient: 'from-red-900 to-black',
+      accent: 'red',
+      pattern: 'matrix',
+      description: 'Intense red matrix with fire-like drips',
+      textColor: 'text-red-400',
+      borderColor: 'border-red-400',
+      rarity: 'Rare',
+      animated: true,
+      matrixColor: 'red'
+    },
+    {
+      name: 'Electric Yellow',
+      gradient: 'from-yellow-900 to-black',
+      accent: 'yellow',
+      pattern: 'matrix',
+      description: 'High-voltage yellow matrix with lightning',
+      textColor: 'text-yellow-400',
+      borderColor: 'border-yellow-400',
+      rarity: 'Epic',
+      animated: true,
+      matrixColor: 'yellow'
+    },
+    {
+      name: 'Ice Cyan',
+      gradient: 'from-cyan-900 to-black',
+      accent: 'cyan',
+      pattern: 'matrix',
+      description: 'Frozen cyan matrix with ice crystal effects',
+      textColor: 'text-cyan-400',
+      borderColor: 'border-cyan-400',
+      rarity: 'Epic',
+      animated: true,
+      matrixColor: 'cyan'
+    },
+    {
+      name: 'Holographic',
+      gradient: 'from-pink-900 via-purple-900 to-blue-900',
+      accent: 'rainbow',
+      pattern: 'matrix',
+      description: 'Holographic matrix with rainbow effects',
+      textColor: 'text-pink-400',
+      borderColor: 'border-pink-400',
+      rarity: 'Legendary',
+      animated: true,
+      matrixColor: 'rainbow'
     },
     {
       name: 'MFPurrs Cosmic',
-      gradient: 'from-pink-100 via-purple-50 to-indigo-200',
-      accent: 'pink',
-      pattern: 'mfpurrs',
-      description: 'Ultra-Rare MFPurrs Cosmic variant with space backgrounds',
-      textColor: 'text-black',
-      borderColor: 'border-pink-800',
+      gradient: 'from-purple-900 via-blue-900 to-indigo-900',
+      accent: 'cosmic',
+      pattern: 'matrix',
+      description: 'Ultra-Rare MFPurrs Cosmic with animated space matrix',
+      textColor: 'text-purple-400',
+      borderColor: 'border-purple-400',
       rarity: 'Ultra-Rare',
-      backgroundImage: '/images/backgrounds/mfpurrs-1.png'
+      animated: true,
+      matrixColor: 'cosmic',
+      backgroundImage: '/images/backgrounds/mfpurrs-cosmic.gif'
     },
     {
       name: 'MFPurrs Galaxy',
-      gradient: 'from-purple-100 via-indigo-50 to-pink-200',
-      accent: 'purple',
-      pattern: 'mfpurrs',
-      description: 'Ultra-Rare MFPurrs Galaxy variant with nebula effects',
-      textColor: 'text-black',
-      borderColor: 'border-purple-800',
+      gradient: 'from-indigo-900 via-purple-900 to-pink-900',
+      accent: 'galaxy',
+      pattern: 'matrix',
+      description: 'Ultra-Rare MFPurrs Galaxy with animated nebula matrix',
+      textColor: 'text-indigo-400',
+      borderColor: 'border-indigo-400',
       rarity: 'Ultra-Rare',
-      backgroundImage: '/images/backgrounds/mfpurrs-2.png'
+      animated: true,
+      matrixColor: 'galaxy',
+      backgroundImage: '/images/backgrounds/mfpurrs-galaxy.gif'
     },
     {
       name: 'MFPurrs Aurora',
-      gradient: 'from-indigo-100 via-pink-50 to-purple-200',
-      accent: 'indigo',
-      pattern: 'mfpurrs',
-      description: 'Ultra-Rare MFPurrs Aurora variant with rainbow lights',
-      textColor: 'text-black',
-      borderColor: 'border-indigo-800',
+      gradient: 'from-green-900 via-blue-900 to-purple-900',
+      accent: 'aurora',
+      pattern: 'matrix',
+      description: 'Ultra-Rare MFPurrs Aurora with animated rainbow matrix',
+      textColor: 'text-green-400',
+      borderColor: 'border-green-400',
       rarity: 'Ultra-Rare',
-      backgroundImage: '/images/backgrounds/mfpurrs-3.png'
+      animated: true,
+      matrixColor: 'aurora',
+      backgroundImage: '/images/backgrounds/mfpurrs-aurora.gif'
     },
     {
-      name: 'Cosmic',
-      gradient: 'from-indigo-100 via-purple-50 to-pink-200',
-      accent: 'indigo',
-      pattern: 'cosmic',
-      description: 'Legendary Cosmic variant with starfield effects',
-      textColor: 'text-black',
-      borderColor: 'border-indigo-800',
-      rarity: 'Legendary'
-    },
-    {
-      name: 'Diamond',
-      gradient: 'from-gray-100 via-white to-gray-200',
-      accent: 'gray',
-      pattern: 'diamond',
-      description: 'Ultra-Rare Diamond variant with holographic effects',
-      textColor: 'text-black',
-      borderColor: 'border-gray-800',
-      rarity: 'Ultra-Rare'
+      name: 'Void Black',
+      gradient: 'from-black to-gray-900',
+      accent: 'void',
+      pattern: 'matrix',
+      description: 'Void black matrix with white digital rain',
+      textColor: 'text-white',
+      borderColor: 'border-white',
+      rarity: 'Legendary',
+      animated: true,
+      matrixColor: 'white'
     }
   ];
   const [usernameStatus, setUsernameStatus] = useState<{
@@ -709,10 +741,10 @@ export default function ProfilePage() {
                       <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-4 border border-yellow-500/30 mb-4">
                         <h4 className="text-yellow-300 font-semibold mb-2">🎲 Blind Mint Information</h4>
                         <div className="text-sm text-yellow-200 space-y-1">
-                          <p>• <strong>Standard Edition:</strong> Common profile cards with basic traits</p>
-                          <p>• <strong>Rare Variants:</strong> Matrix-themed backgrounds and special effects</p>
-                          <p>• <strong>Ultra-Rare:</strong> MFPurrs backgrounds with unique animations</p>
-                          <p>• <strong>Legendary:</strong> Exclusive traits and special community access</p>
+                          <p>• <strong>Matrix Variants:</strong> Animated digital rain with cyberpunk effects</p>
+                          <p>• <strong>Epic Cards:</strong> Advanced matrix patterns with glowing borders</p>
+                          <p>• <strong>Ultra-Rare:</strong> MFPurrs animated GIF backgrounds</p>
+                          <p>• <strong>Legendary:</strong> Exclusive holographic and void effects</p>
                         </div>
                       </div>
                       
@@ -739,7 +771,7 @@ export default function ProfilePage() {
                         
                         {/* Baseball Card Design */}
                         <div className="relative max-w-sm mx-auto">
-                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-lg p-3 sm:p-4 shadow-2xl border-4 ${cardBackgrounds[currentCardBackground].borderColor} transform hover:scale-105 transition-all duration-300 relative overflow-hidden`}>
+                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-lg p-3 sm:p-4 shadow-2xl border-4 ${cardBackgrounds[currentCardBackground].borderColor} transform hover:scale-105 transition-all duration-300 relative overflow-hidden ${cardBackgrounds[currentCardBackground].animated ? `matrix-background matrix-${cardBackgrounds[currentCardBackground].matrixColor}` : ''}`}>
                             {/* Custom Background Image */}
                             {cardBackgrounds[currentCardBackground].backgroundImage && (
                               <div className="absolute inset-0 opacity-20">
@@ -821,33 +853,35 @@ export default function ProfilePage() {
                               <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-60`}>launchonlos.fun • Analos</p>
                             </div>
                             
-                            {/* Background Pattern Overlay */}
-                            <div className="absolute inset-0 opacity-5 z-0">
-                              {cardBackgrounds[currentCardBackground].pattern === 'classic' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'rookie' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'allstar' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'hof' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'worldseries' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-green-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'mfpurrs' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'cosmic' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-transparent"></div>
-                              )}
-                              {cardBackgrounds[currentCardBackground].pattern === 'diamond' && (
-                                <div className="absolute inset-0 bg-gradient-to-br from-gray-600/20 to-transparent"></div>
-                              )}
-                            </div>
+                            {/* Matrix Animation Overlay */}
+                            {cardBackgrounds[currentCardBackground].animated && (
+                              <div className="absolute inset-0 z-0">
+                                {Array.from({ length: 20 }).map((_, i) => (
+                                  <div
+                                    key={i}
+                                    className="matrix-char"
+                                    style={{
+                                      left: `${Math.random() * 100}%`,
+                                      animationDelay: `${Math.random() * 4}s`,
+                                      animationDuration: `${3 + Math.random() * 2}s`
+                                    }}
+                                  >
+                                    {String.fromCharCode(0x30A0 + Math.random() * 96)}
+                                  </div>
+                                ))}
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                  <div
+                                    key={`drip-${i}`}
+                                    className="matrix-drip"
+                                    style={{
+                                      left: `${Math.random() * 100}%`,
+                                      animationDelay: `${Math.random() * 2}s`,
+                                      height: `${20 + Math.random() * 30}px`
+                                    }}
+                                  ></div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           
                           {/* Background Description */}
