@@ -671,8 +671,27 @@ export default function ProfilePage() {
               <div className="max-w-md mx-auto">
                 <ProfileNFTDisplay
                   nft={{
-                    ...userProfileNFT,
+                    id: userProfileNFT.mint,
+                    name: userProfileNFT.name,
+                    image: userProfileNFT.image,
                     description: userProfileNFT.description || 'Profile NFT',
+                    owner: publicKey?.toString() || 'Unknown',
+                    mintNumber: parseInt(userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '0'),
+                    floorPrice: userProfileNFT.price || 0,
+                    volume: 0,
+                    marketCap: 0,
+                    topOffer: 0,
+                    floorChange1d: 0,
+                    volumeChange1d: 0,
+                    sales1d: 0,
+                    listed: 0,
+                    listedPercentage: 0,
+                    owners: 1,
+                    ownersPercentage: 100,
+                    lastSale: {
+                      price: userProfileNFT.price || 0,
+                      time: new Date().toISOString()
+                    },
                     attributes: {
                       background: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Background')?.value || 'Matrix Drip',
                       rarity: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Rarity')?.value || 'Common',
@@ -685,7 +704,9 @@ export default function ProfilePage() {
                       eyes: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Eyes')?.value || 'Standard',
                       faceDecoration: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Face Decoration')?.value || 'None',
                       glasses: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Glasses')?.value || 'None'
-                    }
+                    },
+                    verified: true,
+                    chain: 'Analos'
                   }}
                   onView={() => {
                     window.open(`https://explorer.analos.io/address/${userProfileNFT.mint}`, '_blank');
