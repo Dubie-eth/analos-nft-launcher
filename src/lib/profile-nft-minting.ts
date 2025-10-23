@@ -137,13 +137,18 @@ export class ProfileNFTMintingService {
 
       // 3. Upload metadata to IPFS
       console.log('📤 Uploading metadata to IPFS...');
+      console.log('📄 Metadata to upload:', JSON.stringify(profileNFTMetadata, null, 2));
+      
       const ipfsResult = await uploadJSONToIPFS(
         profileNFTMetadata,
         `profile-nft-${username}`
       );
 
+      console.log('📤 IPFS upload result:', ipfsResult);
+
       if (!ipfsResult.success || !ipfsResult.url) {
-        throw new Error('Failed to upload metadata to IPFS');
+        console.error('❌ IPFS upload failed:', ipfsResult);
+        throw new Error(`Failed to upload metadata to IPFS: ${ipfsResult.error || 'Unknown error'}`);
       }
 
       const metadataUri = ipfsResult.url;

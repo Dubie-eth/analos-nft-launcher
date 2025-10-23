@@ -310,7 +310,7 @@ export default function ProfilePage() {
       if (data.success) {
         setProfilePricing({
           tier: data.tier,
-          price: data.price,
+          price: data.totalPrice || data.price, // Use totalPrice if available, fallback to price
           currency: data.currency
         });
       } else {
@@ -1135,14 +1135,17 @@ export default function ProfilePage() {
                                 <span>Total Cost:</span>
                                 <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
                               </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                (Includes 6.9% platform fee)
+                              </div>
                             </div>
                           ) : (
                             <div className="text-sm text-gray-400">
                               <p>Enter your username to see pricing</p>
                               <div className="mt-2 text-xs">
-                                <p>• 3-digit names: 420 LOS (minimum)</p>
-                                <p>• 4-digit names: 42 LOS</p>
-                                <p>• 5+ digit names: 4.20 LOS</p>
+                                <p>• 3-digit names: 16,035 LOS (Ultra Premium)</p>
+                                <p>• 4-digit names: 6,414 LOS (Premium)</p>
+                                <p>• 5+ digit names: 2,673 LOS (Standard)</p>
                                 <p className="text-red-400 mt-1">• Usernames under 3 characters are not allowed</p>
                               </div>
                             </div>

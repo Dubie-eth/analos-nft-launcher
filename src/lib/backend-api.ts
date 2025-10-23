@@ -208,7 +208,10 @@ export class BackendAPIClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, jsonContent }),
+        body: JSON.stringify({ 
+          content: JSON.stringify(jsonContent), 
+          filename: name + '.json' 
+        }),
       });
 
       if (!response.ok) {
