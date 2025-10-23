@@ -301,7 +301,10 @@ export default function ProfilePage() {
 
   // Fetch pricing for Profile NFT
   const fetchProfilePricing = async (username: string) => {
-    if (!username.trim()) return;
+    if (!username.trim() || username.length < 3) {
+      setProfilePricing(null);
+      return;
+    }
     
     try {
       const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
@@ -562,6 +565,7 @@ export default function ProfilePage() {
   const tabs = connected ? [
     { id: 'profile-nft', label: 'Profile NFT', icon: '🎭' },
     ...(userProfileNFT ? [{ id: 'update-profile', label: 'Update Profile', icon: '🔄' }] : []),
+    { id: 'profile-nfts', label: 'My Profile NFTs', icon: '🎯' },
     { id: 'overview', label: 'Overview', icon: '⭐' },
     { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
@@ -2061,6 +2065,79 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'profile-nfts' && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <h2 className="text-2xl font-bold text-white mb-6">My Profile NFTs</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Mock user's profile NFTs - replace with actual data */}
+                {[
+                  {
+                    id: 'user-profile-1',
+                    name: 'Analos Profile #001',
+                    image: '/api/placeholder/400/400?text=001',
+                    description: 'Your first Analos profile NFT',
+                    owner: publicKey?.toString() || 'Unknown',
+                    mintNumber: 1,
+                    floorPrice: 0.5,
+                    volume: 12.5,
+                    marketCap: 250.0,
+                    topOffer: 0.48,
+                    floorChange1d: 5.2,
+                    volumeChange1d: 15.8,
+                    sales1d: 8,
+                    listed: 15,
+                    listedPercentage: 1.5,
+                    owners: 45,
+                    ownersPercentage: 4.5,
+                    lastSale: {
+                      price: 0.52,
+                      time: '2h ago'
+                    },
+                    attributes: {
+                      background: 'Matrix Drip',
+                      rarity: 'Legendary',
+                      tier: 'Gold',
+                      core: 'Analos Core',
+                      dripGrade: 'A+',
+                      dripScore: '95',
+                      earring: 'Gold Hoop',
+                      eyeColor: 'Blue',
+                      eyes: 'Laser Eyes',
+                      faceDecoration: 'Tattoo',
+                      glasses: 'Sunglasses'
+                    },
+                    verified: true,
+                    chain: 'Analos',
+                    rank: 1
+                  }
+                ].map((nft) => (
+                  <ProfileNFTDisplay
+                    key={nft.id}
+                    nft={nft}
+                    showUSD={false}
+                    onViewDetails={(nftId) => {
+                      window.location.href = `/nft/${nftId}`;
+                    }}
+                    onFavorite={(nftId) => {
+                      console.log('Toggle favorite for NFT:', nftId);
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {connected && (
+                <div className="mt-8 text-center">
+                  <button
+                    onClick={() => window.location.href = '/marketplace'}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all"
+                  >
+                    Browse All Profile NFTs
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

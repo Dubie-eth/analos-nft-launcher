@@ -34,6 +34,7 @@ import MatrixCollectionAdmin from '@/components/MatrixCollectionAdmin';
 import AdminAnalyticsDashboard from '@/components/AdminAnalyticsDashboard';
 import BatchMintAdmin from '@/components/BatchMintAdmin';
 import AdminProfileManager from '@/components/AdminProfileManager';
+import TreasuryManager from '@/components/TreasuryManager';
 
 interface CollectionStats {
   name: string;
@@ -86,7 +87,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'admin-analytics' | 'profile-management' | 'settings'>('matrix-collection');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'admin-analytics' | 'profile-management' | 'treasury-management' | 'settings'>('matrix-collection');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -618,6 +619,7 @@ export default function AdminDashboard() {
               { id: 'feature-management', label: 'Feature Management', icon: '🗳️' },
               { id: 'batch-mint', label: 'Batch Mint', icon: '🧰' },
               { id: 'profile-management', label: 'Profile Management', icon: '👤' },
+    { id: 'treasury-management', label: 'Treasury Management', icon: '💰' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
@@ -676,6 +678,12 @@ export default function AdminDashboard() {
         {activeTab === 'profile-management' && (
           <div className="space-y-8">
             <AdminProfileManager />
+          </div>
+        )}
+
+        {activeTab === 'treasury-management' && (
+          <div className="space-y-8">
+            <TreasuryManager />
           </div>
         )}
 

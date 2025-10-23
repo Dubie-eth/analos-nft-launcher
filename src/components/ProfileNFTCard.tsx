@@ -1,21 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Star, 
-  Eye, 
-  Users, 
-  Coins, 
-  Clock, 
-  TrendingUp, 
-  TrendingDown, 
-  ExternalLink,
-  Heart,
-  Share2,
-  MoreHorizontal
-} from 'lucide-react';
+import { Star, Eye, Users, Coins, Clock, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react';
 
-interface ProfileNFTDisplayProps {
+interface ProfileNFTCardProps {
   nft: {
     id: string;
     name: string;
@@ -42,40 +30,25 @@ interface ProfileNFTDisplayProps {
       background: string;
       rarity: string;
       tier: string;
-      core: string;
-      dripGrade: string;
-      dripScore: string;
-      earring: string;
-      eyeColor: string;
-      eyes: string;
-      faceDecoration: string;
-      glasses: string;
     };
     verified: boolean;
     chain: string;
-    rank?: number;
   };
   showUSD?: boolean;
   onViewDetails?: (nftId: string) => void;
-  onFavorite?: (nftId: string) => void;
-  isFavorited?: boolean;
-  variant?: 'card' | 'list' | 'compact';
 }
 
-const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({ 
+const ProfileNFTCard: React.FC<ProfileNFTCardProps> = ({ 
   nft, 
   showUSD = false, 
-  onViewDetails,
-  onFavorite,
-  isFavorited = false,
-  variant = 'card'
+  onViewDetails 
 }) => {
+  const [isFavorited, setIsFavorited] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   const formatPrice = (price: number) => {
     if (showUSD) {
       return `$${(price * 0.0018).toFixed(2)}`;
-    }
     return `${price.toFixed(3)} LOS`;
   };
 
@@ -117,119 +90,6 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
     }
   };
 
-  if (variant === 'compact') {
-    return (
-      <div className="flex items-center space-x-3 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-3 hover:bg-white/10 transition-all">
-        <div className="relative w-12 h-12 rounded-lg overflow-hidden">
-          {!imageError ? (
-            <img
-              src={nft.image}
-              alt={nft.name}
-              className="w-full h-full object-cover"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
-              <span className="text-white text-lg font-bold">A</span>
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-white font-semibold truncate">{nft.name}</h3>
-          <p className="text-gray-400 text-sm">#{nft.mintNumber}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-white font-semibold">{formatPrice(nft.floorPrice)}</div>
-          <div className="text-gray-400 text-sm">{nft.attributes.rarity}</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === 'list') {
-    return (
-      <div className="flex items-center space-x-4 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 p-4 hover:bg-white/10 transition-all">
-        <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-          {!imageError ? (
-            <img
-              src={nft.image}
-              alt={nft.name}
-              className="w-full h-full object-cover"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center">
-              <span className="text-white text-xl font-bold">A</span>
-            </div>
-          )}
-          {nft.rank && (
-            <div className="absolute top-1 left-1 bg-black/50 backdrop-blur-sm rounded px-1 py-0.5">
-              <span className="text-white text-xs font-bold">#{nft.rank}</span>
-            </div>
-          )}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1">
-            <h3 className="text-white font-semibold truncate">{nft.name}</h3>
-            {nft.verified && (
-              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">✓</span>
-              </div>
-            )}
-          </div>
-          <p className="text-gray-400 text-sm mb-2">#{nft.mintNumber}</p>
-          <div className="flex items-center space-x-2">
-            <span className={`text-xs px-2 py-1 rounded border ${getRarityColor(nft.attributes.rarity)}`}>
-              {nft.attributes.rarity}
-            </span>
-            <span className={`text-xs px-2 py-1 rounded border ${getTierColor(nft.attributes.tier)}`}>
-              {nft.attributes.tier}
-            </span>
-          </div>
-        </div>
-        
-        <div className="text-right">
-          <div className="text-white font-semibold text-lg">{formatPrice(nft.floorPrice)}</div>
-          <div className="text-gray-400 text-sm">Floor Price</div>
-          {formatChange(nft.floorChange1d)}
-        </div>
-        
-        <div className="text-right">
-          <div className="text-white font-semibold">{formatPrice(nft.volume)}</div>
-          <div className="text-gray-400 text-sm">Volume</div>
-          {formatChange(nft.volumeChange1d)}
-        </div>
-        
-        <div className="text-right">
-          <div className="text-white font-semibold">{nft.owners}</div>
-          <div className="text-gray-400 text-sm">Owners</div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => onFavorite?.(nft.id)}
-            className={`p-2 rounded-lg transition-colors ${
-              isFavorited ? 'text-yellow-400 bg-yellow-500/20' : 'text-gray-400 hover:text-yellow-400'
-            }`}
-          >
-            <Heart className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onViewDetails?.(nft.id)}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-          <button className="p-2 text-gray-400 hover:text-white transition-colors">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Default card variant
   return (
     <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden hover:bg-white/10 transition-all duration-300 group">
       {/* Image Section */}
@@ -265,10 +125,10 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
 
         {/* Favorite Button */}
         <button
-          onClick={() => onFavorite?.(nft.id)}
+          onClick={() => setIsFavorited(!isFavorited)}
           className="absolute top-3 right-3 p-2 bg-black/20 backdrop-blur-sm rounded-full hover:bg-black/40 transition-colors"
         >
-          <Heart className={`w-4 h-4 ${isFavorited ? 'text-red-400 fill-red-400' : 'text-white'}`} />
+          <Star className={`w-4 h-4 ${isFavorited ? 'text-yellow-400 fill-yellow-400' : 'text-white'}`} />
         </button>
 
         {/* Verification Badge */}
@@ -278,15 +138,8 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
           </div>
         )}
 
-        {/* Rank Badge */}
-        {nft.rank && (
-          <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm rounded px-2 py-1">
-            <span className="text-white text-sm font-bold">#{nft.rank}</span>
-          </div>
-        )}
-
         {/* Chain Badge */}
-        <div className="absolute bottom-3 right-3 flex items-center space-x-2 bg-black/20 backdrop-blur-sm rounded-lg px-2 py-1">
+        <div className="absolute bottom-3 left-3 flex items-center space-x-2 bg-black/20 backdrop-blur-sm rounded-lg px-2 py-1">
           <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
             <span className="text-white text-xs font-bold">A</span>
           </div>
@@ -416,7 +269,7 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
             <span>View</span>
           </button>
           <button className="bg-white/10 text-white py-2 px-4 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center justify-center">
-            <Share2 className="w-4 h-4" />
+            <ExternalLink className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -424,4 +277,4 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
   );
 };
 
-export default ProfileNFTDisplay;
+export default ProfileNFTCard;

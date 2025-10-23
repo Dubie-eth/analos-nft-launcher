@@ -37,15 +37,23 @@ export class LOLTokenChecker {
         walletPublicKey
       );
 
-      // Get token account info
-      const tokenAccountInfo = await this.connection.getTokenAccountBalance(associatedTokenAddress);
+      // Check if token account exists first
+      const tokenAccountInfo = await this.connection.getAccountInfo(associatedTokenAddress);
       
-      if (!tokenAccountInfo.value) {
+      if (!tokenAccountInfo) {
+        // No token account exists, user has 0 balance
         return this.createTokenStatus(0);
       }
 
-      const balance = tokenAccountInfo.value.uiAmount || 0;
-      const balanceRaw = tokenAccountInfo.value.amount;
+      // Get token account balance
+      const tokenBalance = await this.connection.getTokenAccountBalance(associatedTokenAddress);
+      
+      if (!tokenBalance.value) {
+        return this.createTokenStatus(0);
+      }
+
+      const balance = tokenBalance.value.uiAmount || 0;
+      const balanceRaw = tokenBalance.value.amount;
       
       // Check whitelist status
       const whitelistStatus = await this.checkWhitelistStatus(walletAddress, balance);
