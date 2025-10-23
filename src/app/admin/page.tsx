@@ -33,6 +33,8 @@ import CleanWalletConnection from '@/components/CleanWalletConnection';
 import MatrixCollectionAdmin from '@/components/MatrixCollectionAdmin';
 import AdminAnalyticsDashboard from '@/components/AdminAnalyticsDashboard';
 import BatchMintAdmin from '@/components/BatchMintAdmin';
+import AdminProfileManager from '@/components/AdminProfileManager';
+import WalletBlockManager from '@/components/WalletBlockManager';
 
 interface CollectionStats {
   name: string;
@@ -616,6 +618,8 @@ export default function AdminDashboard() {
               { id: 'admin-analytics', label: 'Analytics', icon: '📈' },
               { id: 'feature-management', label: 'Feature Management', icon: '🗳️' },
               { id: 'batch-mint', label: 'Batch Mint', icon: '🧰' },
+              { id: 'profile-management', label: 'Profile Management', icon: '👤' },
+              { id: 'wallet-blocking', label: 'Wallet Blocking', icon: '🚫' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
@@ -624,7 +628,6 @@ export default function AdminDashboard() {
               { id: 'platform-fees', label: 'Platform Fees', icon: '💰' },
               { id: 'database-manager', label: 'Database Manager', icon: '🗄️' },
               { id: 'social-verification', label: 'Social Verification', icon: '🔐' },
-              { id: 'feature-management', label: 'Feature Management', icon: '🎛️' },
               { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
               { id: 'deployed-programs', label: 'Deployed Programs', icon: '✅' },
               { id: 'overview', label: 'Overview', icon: '📊' },
@@ -669,6 +672,18 @@ export default function AdminDashboard() {
         {activeTab === 'feature-management' && (
           <div className="space-y-8">
             <FeatureManagementPanel />
+          </div>
+        )}
+
+        {activeTab === 'profile-management' && (
+          <div className="space-y-8">
+            <AdminProfileManager />
+          </div>
+        )}
+
+        {activeTab === 'wallet-blocking' && (
+          <div className="space-y-8">
+            <WalletBlockManager />
           </div>
         )}
 

@@ -258,7 +258,7 @@ export default function Navigation() {
 
               {/* Dropdown menu for connected users */}
               {connected && navItems.slice(6).length > 0 && (
-                <div className="absolute right-0 mt-3 w-64 bg-gray-900 border-2 border-blue-500/50 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95">
+                <div className="absolute right-0 mt-3 w-64 bg-gray-900 border-2 border-blue-500/50 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 transform group-hover:scale-100 scale-95 max-h-96 overflow-y-auto">
                   {navItems.slice(6).map((item) => (
                   <Link
                     key={item.href}

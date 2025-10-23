@@ -1184,14 +1184,14 @@ export default function ProfilePage() {
                               // Dynamically import the Profile NFT minting service
                               const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
 
-                              alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\nCost: ${profilePricing.price} ${profilePricing.currency}`);
+                              alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\nCost: ${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'}`);
 
                               // Call the minting service with wallet functions
                               const result = await profileNFTMintingService.mintProfileNFT({
                                 wallet: publicKey.toString(),
                                 username: username,
-                                price: profilePricing.price,
-                                tier: profilePricing.tier,
+                                price: profilePricing?.price || 0,
+                                tier: profilePricing?.tier || 'basic',
                                 signTransaction: signTransaction,
                                 sendTransaction: sendTransaction
                               });
@@ -1236,7 +1236,7 @@ export default function ProfilePage() {
                                     { trait_type: 'Username', value: username },
                                     { trait_type: 'Display Name', value: displayName },
                                     { trait_type: 'Edition', value: mintNumber?.toString() || '1' },
-                                    { trait_type: 'Tier', value: profilePricing.tier },
+                                    { trait_type: 'Tier', value: profilePricing?.tier || 'basic' },
                                     { trait_type: 'Bio', value: bio || '' },
                                     { trait_type: 'Twitter', value: twitterHandle || '' },
                                     { trait_type: 'Website', value: website || '' },
@@ -1309,7 +1309,7 @@ export default function ProfilePage() {
                           usernameStatus.checking ? '⏳ Checking...' :
                           usernameStatus.available !== true ? '⏳ Check Availability' :
                           !profilePricing ? '⚡ Check Pricing First' :
-                          `⚡ Mint Profile NFT (${profilePricing.price} ${profilePricing.currency})`}
+                          `⚡ Mint Profile NFT (${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'})`}
                         </button>
                       </div>
                     </div>
