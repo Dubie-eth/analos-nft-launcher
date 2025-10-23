@@ -49,6 +49,7 @@ const ProfileNFTCard: React.FC<ProfileNFTCardProps> = ({
   const formatPrice = (price: number) => {
     if (showUSD) {
       return `$${(price * 0.0018).toFixed(2)}`;
+    }
     return `${price.toFixed(3)} LOS`;
   };
 
