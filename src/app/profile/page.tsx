@@ -69,7 +69,7 @@ export default function ProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile-nft' | 'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit' | 'update-profile'>('profile-nft');
+  const [activeTab, setActiveTab] = useState<'profile-nft' | 'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit' | 'update-profile' | 'profile-nfts'>('profile-nft');
   const [exampleData, setExampleData] = useState<any>(null);
   const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
   const [isPublicAccess, setIsPublicAccess] = useState(false);
