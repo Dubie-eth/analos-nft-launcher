@@ -135,7 +135,8 @@ async function getRecentTransactions(): Promise<NextResponse> {
 
           let treasuryIndex = -1;
           for (let i = 0; i < accountKeys.length; i++) {
-            if (accountKeys[i].equals(ANALOS_PLATFORM_WALLET)) {
+            const key = accountKeys.get(i);
+            if (key && key.equals(ANALOS_PLATFORM_WALLET)) {
               treasuryIndex = i;
               break;
             }
@@ -154,7 +155,8 @@ async function getRecentTransactions(): Promise<NextResponse> {
                 }
               }
 
-              const sender = senderIndex >= 0 ? accountKeys[senderIndex].toString() : 'Unknown';
+              const senderKey = senderIndex >= 0 ? accountKeys.get(senderIndex) : null;
+              const sender = senderKey ? senderKey.toString() : 'Unknown';
               const amount = balanceChange / LAMPORTS_PER_SOL;
 
               transactions.push({
