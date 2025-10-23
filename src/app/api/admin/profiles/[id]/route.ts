@@ -9,11 +9,12 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await req.json();
     const { username, bio, email, socials, privacyLevel, allowDataExport, allowAnalytics } = body;
+    const resolvedParams = await params;
 
     const { data, error } = await supabase
       .from('user_profiles')
@@ -27,7 +28,7 @@ export async function PUT(
         allowAnalytics,
         updatedAt: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .select()
       .single();
 
@@ -53,14 +54,15 @@ export async function PUT(
 }
 
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const { error } = await supabase
       .from('user_profiles')
       .delete()
-      .eq('id', params.id);
+      .eq('id', resolvedParams.id);
 
     if (error) {
       console.error('Error deleting profile:', error);
