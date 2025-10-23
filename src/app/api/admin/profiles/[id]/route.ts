@@ -12,18 +12,22 @@ export async function PUT(
     const { username, bio, email, socials, privacyLevel, allowDataExport, allowAnalytics } = body;
     const resolvedParams = await params;
 
+    // Build update object with only defined fields
+    const updateFields: Record<string, any> = {
+      updatedAt: new Date().toISOString()
+    };
+    
+    if (username !== undefined) updateFields.username = username;
+    if (bio !== undefined) updateFields.bio = bio;
+    if (email !== undefined) updateFields.email = email;
+    if (socials !== undefined) updateFields.socials = socials;
+    if (privacyLevel !== undefined) updateFields.privacyLevel = privacyLevel;
+    if (allowDataExport !== undefined) updateFields.allowDataExport = allowDataExport;
+    if (allowAnalytics !== undefined) updateFields.allowAnalytics = allowAnalytics;
+
     const { data, error } = await supabase
       .from('user_profiles')
-      .update({
-        ...(username !== undefined && { username }),
-        ...(bio !== undefined && { bio }),
-        ...(email !== undefined && { email }),
-        ...(socials !== undefined && { socials }),
-        ...(privacyLevel !== undefined && { privacyLevel }),
-        ...(allowDataExport !== undefined && { allowDataExport }),
-        ...(allowAnalytics !== undefined && { allowAnalytics }),
-        updatedAt: new Date().toISOString()
-      })
+      .update(updateFields)
       .eq('id', resolvedParams.id)
       .select()
       .single();
