@@ -18,7 +18,6 @@ import {
   Info,
   ChevronDown,
   Grid3X3,
-  Grid4X4,
   List,
   RefreshCw,
   ShoppingCart,
@@ -514,7 +513,7 @@ const CollectionPage: React.FC = () => {
                       viewMode === 'grid4' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    <Grid4X4 className="w-4 h-4" />
+                    <Grid3X3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
