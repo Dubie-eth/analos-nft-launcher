@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       url: result.url,
-      hash: result.hash
+      cid: result.cid
     });
 
   } catch (error) {
