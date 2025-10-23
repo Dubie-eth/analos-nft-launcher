@@ -172,7 +172,10 @@ export class WhitelistMintingService {
           tier: 'none',
           benefits: [],
           freeMintsAvailable: 0,
-          discountPercentage: 0
+          discountPercentage: 0,
+          isPublicLaunch: true,
+          whitelistPosition: null,
+          whitelistSlotsRemaining: 0
         },
         canMint: false
       };
