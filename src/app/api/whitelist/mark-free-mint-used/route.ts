@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Mark free mint as used
-    const { data, error } = await supabase
-      .from('free_mint_usage')
+    const { data, error } = await (supabase
+      .from('free_mint_usage') as any)
       .insert({
         wallet_address: walletAddress,
         used_at: usedAt || new Date().toISOString(),
