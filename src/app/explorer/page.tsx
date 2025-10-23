@@ -18,6 +18,7 @@ interface Transaction {
   username?: string;
   displayName?: string;
   mintNumber?: number;
+  nftImage?: string;
 }
 
 interface CollectionActivity {
