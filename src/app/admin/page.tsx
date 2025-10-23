@@ -87,7 +87,11 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
+<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'admin-analytics' | 'profile-management' | 'treasury-management' | 'settings'>('matrix-collection');
+=======
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'settings'>('matrix-collection');
+>>>>>>> ed4e840417944dd56605eaca48eba7aa7284d240
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -616,10 +620,14 @@ export default function AdminDashboard() {
             {[
               { id: 'matrix-collection', label: 'Matrix Collection', icon: '🎴' },
               { id: 'admin-analytics', label: 'Analytics', icon: '📈' },
+<<<<<<< HEAD
               { id: 'feature-management', label: 'Feature Management', icon: '🗳️' },
               { id: 'batch-mint', label: 'Batch Mint', icon: '🧰' },
               { id: 'profile-management', label: 'Profile Management', icon: '👤' },
     { id: 'treasury-management', label: 'Treasury Management', icon: '💰' },
+=======
+              { id: 'batch-mint', label: 'Batch Mint', icon: '🧰' },
+>>>>>>> ed4e840417944dd56605eaca48eba7aa7284d240
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
@@ -669,6 +677,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
+<<<<<<< HEAD
         {activeTab === 'feature-management' && (
           <div className="space-y-8">
             <FeatureManagementPanel />
@@ -688,6 +697,8 @@ export default function AdminDashboard() {
         )}
 
 
+=======
+>>>>>>> ed4e840417944dd56605eaca48eba7aa7284d240
         {activeTab === 'batch-mint' && (
           <div className="space-y-8">
             <BatchMintAdmin />
