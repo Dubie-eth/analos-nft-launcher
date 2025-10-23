@@ -204,7 +204,8 @@ export async function GET(request: NextRequest) {
               status: 'success',
               username: nft.username,
               displayName: nft.display_name,
-              mintNumber: nft.mint_number
+              mintNumber: nft.mint_number,
+              nftImage: nft.image_url || nft.metadata?.image || '/api/placeholder/64/64'
             }));
           }
         } catch (dbError) {
@@ -248,7 +249,8 @@ export async function GET(request: NextRequest) {
               status: 'success',
               username: nft.username,
               displayName: nft.display_name,
-              mintNumber: nft.mint_number
+              mintNumber: nft.mint_number,
+              nftImage: nft.image_url || nft.metadata?.image || '/api/placeholder/64/64'
             }));
 
             return NextResponse.json({

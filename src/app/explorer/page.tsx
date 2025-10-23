@@ -395,6 +395,22 @@ export default function ExplorerPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
                       <div className="text-3xl">{getTransactionIcon(tx.type)}</div>
+                      
+                      {/* NFT Image Display */}
+                      {tx.nftImage && (
+                        <div className="flex-shrink-0">
+                          <img 
+                            src={tx.nftImage} 
+                            alt={`${tx.collection || 'NFT'} #${tx.mintNumber || ''}`}
+                            className="w-16 h-16 rounded-lg object-cover border border-white/20"
+                            onError={(e) => {
+                              // Fallback to placeholder if image fails to load
+                              e.currentTarget.src = '/api/placeholder/64/64';
+                            }}
+                          />
+                        </div>
+                      )}
+                      
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h3 className="text-lg font-semibold text-white capitalize">
