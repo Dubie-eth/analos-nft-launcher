@@ -370,4 +370,5 @@ class AnimatedNFTService {
   }
 }
 
-export { AnimatedNFTService, MatrixAnimationConfig, AnimatedNFTMetadata };
+export { AnimatedNFTService };
+export type { MatrixAnimationConfig, AnimatedNFTMetadata };
