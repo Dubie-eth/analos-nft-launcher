@@ -27,7 +27,7 @@ export async function PUT(
 
     const { data, error } = await supabase
       .from('user_profiles')
-      .update(updateFields)
+      .update(updateFields as any)
       .eq('id', resolvedParams.id)
       .select()
       .single();
