@@ -34,6 +34,14 @@ interface ProfileNFT {
     background: string;
     rarity: string;
     tier: string;
+    core: string;
+    dripGrade: string;
+    dripScore: string;
+    earring: string;
+    eyeColor: string;
+    eyes: string;
+    faceDecoration: string;
+    glasses: string;
   };
   verified: boolean;
   chain: string;
