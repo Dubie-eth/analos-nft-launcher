@@ -3,19 +3,17 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     return NextResponse.json({ 
-      status: 'healthy',
+      status: 'ok',
+      message: 'Simple test endpoint working',
       timestamp: new Date().toISOString(),
-      service: 'analos-nft-platform',
       nodeVersion: process.version,
-      platform: process.platform,
-      uptime: process.uptime()
+      platform: process.platform
     });
   } catch (error) {
     return NextResponse.json({ 
-      status: 'unhealthy',
+      status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 }
-
