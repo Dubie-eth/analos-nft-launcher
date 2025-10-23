@@ -36,6 +36,11 @@ export async function GET(
       nfts = [];
     }
 
+    // If no NFTs found and blockchain service failed, return mock data
+    if (nfts.length === 0) {
+      console.log('⚠️ No NFTs found, returning empty response');
+    }
+
     // Transform NFTs to include display information
     const transformedNFTs = nfts.map((nft: any) => ({
       mint: nft.mint,

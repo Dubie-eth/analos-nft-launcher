@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabase } from '@/lib/supabase/client';
+import { getSupabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function GET(
   request: NextRequest,
@@ -24,6 +24,17 @@ export async function GET(
     }
 
     console.log('🔍 Fetching user profile for wallet:', wallet);
+
+    // Check if Supabase is properly configured
+    if (!isSupabaseConfigured) {
+      console.log('⚠️ Supabase not configured, returning mock data');
+      return NextResponse.json({
+        wallet,
+        exists: false,
+        message: 'Database not configured - using mock data',
+        mock: true
+      });
+    }
 
     const supabase = getSupabase();
 
