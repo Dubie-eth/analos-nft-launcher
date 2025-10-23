@@ -34,7 +34,6 @@ import MatrixCollectionAdmin from '@/components/MatrixCollectionAdmin';
 import AdminAnalyticsDashboard from '@/components/AdminAnalyticsDashboard';
 import BatchMintAdmin from '@/components/BatchMintAdmin';
 import AdminProfileManager from '@/components/AdminProfileManager';
-import WalletBlockManager from '@/components/WalletBlockManager';
 
 interface CollectionStats {
   name: string;
@@ -619,7 +618,6 @@ export default function AdminDashboard() {
               { id: 'feature-management', label: 'Feature Management', icon: '🗳️' },
               { id: 'batch-mint', label: 'Batch Mint', icon: '🧰' },
               { id: 'profile-management', label: 'Profile Management', icon: '👤' },
-              { id: 'wallet-blocking', label: 'Wallet Blocking', icon: '🚫' },
               { id: 'program-init', label: 'Program Init', icon: '🚀' },
               { id: 'mega-launchpad', label: 'Mega Launchpad', icon: '🎨' },
               { id: 'user-access', label: 'User Access', icon: '👥' },
@@ -681,11 +679,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'wallet-blocking' && (
-          <div className="space-y-8">
-            <WalletBlockManager />
-          </div>
-        )}
 
         {activeTab === 'batch-mint' && (
           <div className="space-y-8">
