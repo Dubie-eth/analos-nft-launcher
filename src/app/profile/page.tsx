@@ -70,7 +70,7 @@ export default function ProfilePage() {
   });
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile-nft' | 'overview' | 'nfts' | 'collections' | 'rewards' | 'activity' | 'edit' | 'update-profile' | 'profile-nfts'>('profile-nft');
+  const [activeTab, setActiveTab] = useState<'my-nfts' | 'overview' | 'collections' | 'rewards' | 'activity' | 'update-profile'>('my-nfts');
   const [exampleData, setExampleData] = useState<any>(null);
   const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
   const [isPublicAccess, setIsPublicAccess] = useState(false);
@@ -630,17 +630,14 @@ export default function ProfilePage() {
   };
 
   const tabs = connected ? [
-    { id: 'profile-nft', label: 'Profile NFT', icon: '🎭' },
-    ...(userProfileNFT ? [{ id: 'update-profile', label: 'Update Profile', icon: '🔄' }] : []),
-    { id: 'profile-nfts', label: 'My Profile NFTs', icon: '🎯' },
-    { id: 'overview', label: 'Overview', icon: '⭐' },
-    { id: 'nfts', label: `NFTs (${uiNFTs.length})`, icon: '🎨' },
+    { id: 'my-nfts', label: `My NFTs (${uiNFTs.length})`, icon: '🎨' },
     { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
+    ...(userProfileNFT ? [{ id: 'update-profile', label: 'Update Profile', icon: '🔄' }] : []),
     { id: 'rewards', label: `Rewards (${rewards.length})`, icon: '💰' },
     { id: 'activity', label: 'Activity', icon: '📊' }
   ] : [
     { id: 'overview', label: 'Community Overview', icon: '⭐' },
-    { id: 'nfts', label: 'Public NFTs', icon: '🎨' },
+    { id: 'my-nfts', label: 'Public NFTs', icon: '🎨' },
     { id: 'collections', label: 'Public Collections', icon: '📦' },
     { id: 'activity', label: 'Public Activity', icon: '📊' }
   ];
@@ -809,7 +806,7 @@ export default function ProfilePage() {
 
         {/* Tab Content */}
         <div className="space-y-6 sm:space-y-8">
-          {activeTab === 'profile-nft' && (
+          {activeTab === 'my-nfts' && !userProfileNFT && (
             <div className="space-y-6 sm:space-y-8">
               {/* Profile Card Preview Section */}
               <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-purple-500/30">
@@ -2264,7 +2261,7 @@ export default function ProfilePage() {
             />
           )}
 
-          {activeTab === 'nfts' && (
+          {activeTab === 'my-nfts' && userProfileNFT && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-white">My NFTs</h2>
@@ -2466,86 +2463,6 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {activeTab === 'profile-nfts' && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">My Profile NFTs</h2>
-              
-              {!connected ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-400">Connect your wallet to view your Profile NFTs</p>
-                </div>
-              ) : uiNFTs.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-400">No Profile NFTs found. Mint your first one in the "Profile NFT" tab!</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Display actual Profile NFTs from user's wallet */}
-                  {uiNFTs
-                    .filter((nft) => 
-                      nft.name?.includes('Profile') ||
-                      nft.description?.includes('Profile NFT') ||
-                      nft.collection?.includes('Profile') ||
-                      nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
-                    )
-                    .map((nft) => (
-                  <ProfileNFTDisplay
-                    key={nft.mint}
-                    nft={{
-                      id: nft.mint,
-                      name: nft.name || `Profile NFT`,
-                      image: nft.image || '/api/placeholder/400/400',
-                      description: nft.description || 'Analos Profile NFT',
-                      owner: publicKey?.toString() || 'Unknown',
-                      mintNumber: 1,
-                      floorPrice: 0.5,
-                      volume: 0,
-                      marketCap: 0,
-                      topOffer: 0,
-                      floorChange1d: 0,
-                      volumeChange1d: 0,
-                      sales1d: 0,
-                      listed: 0,
-                      listedPercentage: 0,
-                      owners: 1,
-                      ownersPercentage: 100,
-                      lastSale: {
-                        price: 0,
-                        time: 'N/A'
-                      },
-                      attributes: nft.attributes?.reduce((acc: any, attr: any) => {
-                        acc[attr.trait_type.toLowerCase().replace(' ', '')] = attr.value;
-                        return acc;
-                      }, {}) || {},
-                      verified: true,
-                      chain: 'Analos',
-                      rank: 1
-                    } as any}
-                    showUSD={false}
-                    onViewDetails={(nftId) => {
-                      window.location.href = `/nft/${nftId}`;
-                    }}
-                    onFavorite={(nftId) => {
-                      console.log('Toggle favorite for NFT:', nftId);
-                    }}
-                  />
-                ))}
-                </div>
-              )}
-              
-              {connected && (
-                <div className="mt-8 text-center">
-                  <button
-                    onClick={() => window.location.href = '/marketplace'}
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all"
-                  >
-                    Browse All Profile NFTs
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
