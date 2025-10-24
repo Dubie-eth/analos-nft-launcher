@@ -1437,7 +1437,7 @@ export default function ProfilePage() {
                             }
 
                             try {
-                              // Dynamically import the Profile NFT minting service
+                              // Dynamically import the minting services
                               const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
 
                               const costMessage = profilePricing?.isFree 
@@ -1481,17 +1481,42 @@ export default function ProfilePage() {
                                 }
                               }
 
-                              alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
+                              // NEW: Dual-Mint Support - Variables to track Los Bros mint
+                              let losBrosResult = null;
 
-                              // Call the minting service with wallet functions and discount info
-                              // CRITICAL FIX v2.1: Use finalPrice (after discount), not basePrice!
-                              // This ensures whitelist discounts are actually applied to the transaction
+                              // STEP 1: Mint Los Bros NFT if selected
+                              if (mintWithLosBros) {
+                                alert(`🎨 Step 1/2: Minting Los Bros NFT...\n\nGenerating random traits and rarity!\n\nThis will require wallet approval.`);
+                                
+                                const { losBrosMintingService } = await import('@/lib/los-bros-minting');
+                                
+                                losBrosResult = await losBrosMintingService.mintLosBros({
+                                  wallet: publicKey.toString(),
+                                  signTransaction,
+                                  sendTransaction
+                                });
+                                
+                                if (!losBrosResult.success) {
+                                  alert(`❌ Los Bros mint failed: ${losBrosResult.error}\n\nPlease try again.`);
+                                  return;
+                                }
+                                
+                                alert(`✅ Los Bros NFT minted!\n\n🏆 Rarity: ${losBrosResult.rarityTier}\n📊 Score: ${losBrosResult.rarityScore}\n🎨 Mint: ${losBrosResult.mintAddress?.slice(0, 8)}...\n\n🎭 Step 2/2: Minting Profile NFT...`);
+                              } else {
+                                alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
+                              }
+
+                              // STEP 2: Mint Profile NFT (with or without Los Bros data)
                               console.log('🔧 WHITELIST FIX v2.1: Using finalPrice for transaction');
                               console.log('📊 Base Price:', profilePricing?.price);
                               console.log('💰 Final Price (after discount):', profilePricing?.finalPrice);
                               console.log('🎁 Is Free:', profilePricing?.isFree);
                               console.log('📉 Discount:', profilePricing?.discount, '%');
-                              console.log('⚡ Priority Fee: Dynamic (High for free mints, Medium for paid)');
+                              console.log('🎨 Los Bros Mint:', mintWithLosBros);
+                              if (losBrosResult) {
+                                console.log('🎨 Los Bros Token ID:', losBrosResult.mintAddress);
+                                console.log('🏆 Los Bros Rarity:', losBrosResult.rarityTier);
+                              }
                               
                               const result = await profileNFTMintingService.mintProfileNFT({
                                 wallet: publicKey.toString(),
@@ -1534,8 +1559,14 @@ export default function ProfilePage() {
                                       price: profilePricing?.finalPrice || profilePricing?.price || 0,
                                       isFree: profilePricing?.isFree || false,
                                       signature: result.signature,
-                                      imageUrl: result.metadataUri, // Use metadata URI as image reference
-                                      metadataUri: result.metadataUri
+                                      imageUrl: result.metadataUri,
+                                      metadataUri: result.metadataUri,
+                                      // NEW: Los Bros data
+                                      losBrosTokenId: losBrosResult?.mintAddress || null,
+                                      losBrosRarity: losBrosResult?.rarityTier || null,
+                                      // NEW: Social links
+                                      discordHandle: discordHandle || null,
+                                      telegramHandle: telegramHandle || null
                                     })
                                   });
                                   
