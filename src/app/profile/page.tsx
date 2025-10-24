@@ -91,6 +91,10 @@ export default function ProfilePage() {
   const [currentCardBackground, setCurrentCardBackground] = useState(0);
   const [showReveal, setShowReveal] = useState(false);
   const [revealedNFT, setRevealedNFT] = useState<UserNFT | null>(null);
+  
+  // Los Bros integration state
+  const [selectedLosBros, setSelectedLosBros] = useState<any | null>(null);
+  const [useLosBros, setUseLosBros] = useState(false);
   const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
   const [lastTxSignature, setLastTxSignature] = useState<string | null>(null);
   const [lastMintAddress, setLastMintAddress] = useState<string | null>(null);
