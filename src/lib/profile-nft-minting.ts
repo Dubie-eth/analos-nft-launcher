@@ -78,7 +78,7 @@ export class ProfileNFTMintingService {
     (this.connection as any)._rpcWebSocket = null;
     (this.connection as any)._rpcWebSocketConnected = false;
     
-    console.log('🎭 Profile NFT Minting Service initialized');
+    console.log('🎭 Profile NFT Minting Service initialized [v2.0]');
     console.log('🔗 RPC URL:', rpcUrl);
   }
 
