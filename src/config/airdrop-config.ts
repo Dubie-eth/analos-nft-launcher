@@ -31,8 +31,8 @@ export interface NFTCollectionMetadata {
  * $LOL Token Configuration (Platform Token)
  */
 export const LOL_TOKEN = {
-  // Token mint address (placeholder - replace with actual LOL token mint)
-  MINT_ADDRESS: new PublicKey('11111111111111111111111111111111'), // PLACEHOLDER
+  // Token mint address - Official $LOL token on Analos
+  MINT_ADDRESS: new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6'),
   
   // Token decimals
   DECIMALS: 9,

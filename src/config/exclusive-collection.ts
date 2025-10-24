@@ -27,7 +27,7 @@ export const EXCLUSIVE_COLLECTION_CONFIG = {
   delayedReveal: true,
   
   // LOL Token Configuration
-  lolTokenMint: process.env.LOL_TOKEN_MINT || "",
+  lolTokenMint: process.env.LOL_TOKEN_MINT || "ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6",
   minLolBalance: 1000000, // 1M LOL tokens required
   whitelistSpots: 100,
   

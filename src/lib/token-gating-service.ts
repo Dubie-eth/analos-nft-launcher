@@ -8,7 +8,7 @@ import { getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 
 // $LOL Token Configuration
-const LOL_TOKEN_MINT = new PublicKey('LoLnftVCz24Z1Hw9Vo1rYLx3xLtRfPYj8JDzaYvVPr7'); // Replace with actual $LOL token mint
+const LOL_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6'); // Official $LOL token mint
 const WHITELIST_THRESHOLD = 1_000_000; // 1 million $LOL tokens for free mint
 const DISCOUNT_THRESHOLD = 100_000; // 100k $LOL tokens for 50% discount
 
