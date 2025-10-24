@@ -154,11 +154,12 @@ export function calculateRarityScore(traits: LosBrosTrait[]): number {
   let traitCount = 0;
   
   for (const trait of traits) {
-    const category = trait.trait_type.toLowerCase();
+    const category = trait.trait_type.toLowerCase() as keyof typeof LOS_BROS_COLLECTION.traitRarityWeights;
     const value = trait.value;
     
-    if (LOS_BROS_COLLECTION.traitRarityWeights[category]) {
-      const weight = LOS_BROS_COLLECTION.traitRarityWeights[category][value];
+    const categoryWeights = LOS_BROS_COLLECTION.traitRarityWeights[category];
+    if (categoryWeights) {
+      const weight = (categoryWeights as any)[value];
       if (weight) {
         // Lower weight = higher rarity = higher score
         const rarityScore = 100 / weight;
