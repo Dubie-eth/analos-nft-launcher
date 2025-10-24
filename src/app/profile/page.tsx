@@ -1326,7 +1326,14 @@ export default function ProfilePage() {
                               alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
 
                               // Call the minting service with wallet functions and discount info
-                              // CRITICAL: Use finalPrice (after discount), not basePrice!
+                              // CRITICAL FIX v2.1: Use finalPrice (after discount), not basePrice!
+                              // This ensures whitelist discounts are actually applied to the transaction
+                              console.log('🔧 WHITELIST FIX v2.1: Using finalPrice for transaction');
+                              console.log('📊 Base Price:', profilePricing?.price);
+                              console.log('💰 Final Price (after discount):', profilePricing?.finalPrice);
+                              console.log('🎁 Is Free:', profilePricing?.isFree);
+                              console.log('📉 Discount:', profilePricing?.discount, '%');
+                              
                               const result = await profileNFTMintingService.mintProfileNFT({
                                 wallet: publicKey.toString(),
                                 username: username,
