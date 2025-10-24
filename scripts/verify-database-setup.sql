@@ -54,59 +54,59 @@ WHERE tablename = 'los_bros_nfts';
 
 SELECT '🔍 VERIFYING MARKETPLACE SCHEMA...' AS status;
 
--- Check marketplace_listings table
+-- Check nft_listings table
 SELECT 
-  '✅ marketplace_listings' AS check_name,
+  '✅ nft_listings' AS check_name,
   CASE 
     WHEN COUNT(*) > 0 THEN '✅ PASS - Table exists with ' || COUNT(*)::text || ' columns'
     ELSE '❌ FAIL - Table missing'
   END AS result
 FROM information_schema.columns
-WHERE table_name = 'marketplace_listings';
+WHERE table_name = 'nft_listings';
 
--- Check marketplace_offers table
+-- Check nft_offers table
 SELECT 
-  '✅ marketplace_offers' AS check_name,
+  '✅ nft_offers' AS check_name,
   CASE 
     WHEN COUNT(*) > 0 THEN '✅ PASS - Table exists with ' || COUNT(*)::text || ' columns'
     ELSE '❌ FAIL - Table missing'
   END AS result
 FROM information_schema.columns
-WHERE table_name = 'marketplace_offers';
+WHERE table_name = 'nft_offers';
 
--- Check marketplace_sales table
+-- Check nft_sales table
 SELECT 
-  '✅ marketplace_sales' AS check_name,
+  '✅ nft_sales' AS check_name,
   CASE 
     WHEN COUNT(*) > 0 THEN '✅ PASS - Table exists with ' || COUNT(*)::text || ' columns'
     ELSE '❌ FAIL - Table missing'
   END AS result
 FROM information_schema.columns
-WHERE table_name = 'marketplace_sales';
+WHERE table_name = 'nft_sales';
 
--- Check marketplace_platform_fees table
+-- Check platform_fees table
 SELECT 
-  '✅ marketplace_platform_fees' AS check_name,
+  '✅ platform_fees' AS check_name,
   CASE 
     WHEN COUNT(*) > 0 THEN '✅ PASS - Table exists with ' || COUNT(*)::text || ' columns'
     ELSE '❌ FAIL - Table missing'
   END AS result
 FROM information_schema.columns
-WHERE table_name = 'marketplace_platform_fees';
+WHERE table_name = 'platform_fees';
 
 -- Check marketplace RLS policies
 SELECT 
   '✅ Marketplace RLS policies' AS check_name,
   COUNT(*)::text || ' policies configured' AS result
 FROM pg_policies
-WHERE tablename IN ('marketplace_listings', 'marketplace_offers', 'marketplace_sales', 'marketplace_platform_fees');
+WHERE tablename IN ('nft_listings', 'nft_offers', 'nft_sales', 'platform_fees');
 
 -- Check marketplace indexes
 SELECT 
   '✅ Marketplace indexes' AS check_name,
   COUNT(*)::text || ' indexes created' AS result
 FROM pg_indexes
-WHERE tablename IN ('marketplace_listings', 'marketplace_offers', 'marketplace_sales');
+WHERE tablename IN ('nft_listings', 'nft_offers', 'nft_sales');
 
 -- ================================================================
 -- PART 3: DETAILED TABLE INFO
@@ -132,31 +132,31 @@ SELECT
   COALESCE(COUNT(CASE WHEN rarity_tier = 'COMMON' THEN 1 END)::text, '0') || ' COMMON' AS common
 FROM los_bros_nfts;
 
--- Marketplace listings count
+-- NFT listings count
 SELECT 
-  '🏪 marketplace_listings' AS table_name,
+  '🏪 nft_listings' AS table_name,
   COALESCE(COUNT(*)::text, '0') || ' total' AS total,
   COALESCE(COUNT(CASE WHEN status = 'active' THEN 1 END)::text, '0') || ' active' AS active,
   COALESCE(COUNT(CASE WHEN status = 'sold' THEN 1 END)::text, '0') || ' sold' AS sold,
   COALESCE(COUNT(CASE WHEN status = 'cancelled' THEN 1 END)::text, '0') || ' cancelled' AS cancelled
-FROM marketplace_listings;
+FROM nft_listings;
 
--- Marketplace offers count
+-- NFT offers count
 SELECT 
-  '💰 marketplace_offers' AS table_name,
+  '💰 nft_offers' AS table_name,
   COALESCE(COUNT(*)::text, '0') || ' total' AS total,
   COALESCE(COUNT(CASE WHEN status = 'pending' THEN 1 END)::text, '0') || ' pending' AS pending,
   COALESCE(COUNT(CASE WHEN status = 'accepted' THEN 1 END)::text, '0') || ' accepted' AS accepted,
   COALESCE(COUNT(CASE WHEN status = 'rejected' THEN 1 END)::text, '0') || ' rejected' AS rejected
-FROM marketplace_offers;
+FROM nft_offers;
 
--- Marketplace sales count
+-- NFT sales count
 SELECT 
-  '💸 marketplace_sales' AS table_name,
+  '💸 nft_sales' AS table_name,
   COALESCE(COUNT(*)::text, '0') || ' sales' AS count,
   COALESCE(ROUND(SUM(sale_price), 2)::text, '0') || ' LOS total volume' AS total_volume,
   COALESCE(ROUND(SUM(platform_fee), 2)::text, '0') || ' LOS platform fees (6.9%)' AS platform_fees
-FROM marketplace_sales;
+FROM nft_sales;
 
 -- ================================================================
 -- FINAL STATUS
@@ -174,13 +174,13 @@ FROM (
   UNION ALL
   SELECT 'los_bros_nfts' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'los_bros_nfts')
   UNION ALL
-  SELECT 'marketplace_listings' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'marketplace_listings')
+  SELECT 'nft_listings' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'nft_listings')
   UNION ALL
-  SELECT 'marketplace_offers' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'marketplace_offers')
+  SELECT 'nft_offers' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'nft_offers')
   UNION ALL
-  SELECT 'marketplace_sales' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'marketplace_sales')
+  SELECT 'nft_sales' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'nft_sales')
   UNION ALL
-  SELECT 'marketplace_platform_fees' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'marketplace_platform_fees')
+  SELECT 'platform_fees' WHERE NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'platform_fees')
 ) t
 WHERE table_name IS NOT NULL;
 
