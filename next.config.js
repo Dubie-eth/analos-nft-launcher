@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  // Optimize for Railway deployment
+  output: 'standalone',
+  
   // Optimize for production
   compress: true,
   poweredByHeader: false,
