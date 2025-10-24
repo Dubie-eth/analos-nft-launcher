@@ -1498,6 +1498,34 @@ export default function ProfilePage() {
                                   return;
                                 }
                                 
+                                // Record Los Bros mint in database
+                                try {
+                                  const losBrosRecordResponse = await fetch('/api/los-bros/record-mint', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      mintAddress: losBrosResult.mintAddress,
+                                      walletAddress: publicKey.toString(),
+                                      tokenId: losBrosResult.tokenId,
+                                      rarityTier: losBrosResult.rarityTier,
+                                      rarityScore: losBrosResult.rarityScore,
+                                      traits: losBrosResult.traits || [],
+                                      signature: losBrosResult.signature,
+                                      imageUrl: losBrosResult.imageUrl,
+                                      metadataUri: losBrosResult.metadataUri
+                                    })
+                                  });
+                                  
+                                  if (losBrosRecordResponse.ok) {
+                                    const losBrosRecordData = await losBrosRecordResponse.json();
+                                    console.log('✅ Los Bros NFT mint recorded in database:', losBrosRecordData);
+                                  } else {
+                                    console.warn('⚠️ Failed to record Los Bros mint in database (non-fatal)');
+                                  }
+                                } catch (error) {
+                                  console.error('Failed to record Los Bros mint:', error);
+                                }
+                                
                                 alert(`✅ Los Bros NFT minted!\n\n🏆 Rarity: ${losBrosResult.rarityTier}\n📊 Score: ${losBrosResult.rarityScore}\n🎨 Mint: ${losBrosResult.mintAddress?.slice(0, 8)}...\n\n🎭 Step 2/2: Minting Profile NFT...`);
                               } else {
                                 alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
