@@ -36,6 +36,7 @@ export class TokenGatingService {
       const userPublicKey = new PublicKey(walletAddress);
 
       console.log('🔍 Checking $LOL token balance for:', walletAddress);
+      console.log('🪙 $LOL Token Mint:', LOL_TOKEN_MINT.toString());
 
       // Get user's $LOL token account
       const tokenAccount = await getAssociatedTokenAddress(
@@ -45,7 +46,8 @@ export class TokenGatingService {
         TOKEN_PROGRAM_ID
       );
 
-      console.log('📊 Token account:', tokenAccount.toString());
+      console.log('📊 Associated Token Account:', tokenAccount.toString());
+      console.log('🔗 Checking account on RPC:', this.connection.rpcEndpoint);
 
       // Get token balance
       const accountInfo = await getAccount(
@@ -56,32 +58,42 @@ export class TokenGatingService {
       );
 
       const balance = Number(accountInfo.amount);
-      console.log('💰 $LOL Balance:', balance.toLocaleString());
+      const decimals = accountInfo.mint.equals(LOL_TOKEN_MINT) ? 9 : 0; // $LOL has 9 decimals
+      const actualBalance = balance / Math.pow(10, decimals);
+      
+      console.log('💰 $LOL Balance (raw):', balance.toLocaleString(), 'units');
+      console.log('💰 $LOL Balance (actual):', actualBalance.toLocaleString(), '$LOL');
+      console.log('🎯 Whitelist Threshold:', WHITELIST_THRESHOLD.toLocaleString(), '$LOL');
+      console.log('🎯 Discount Threshold:', DISCOUNT_THRESHOLD.toLocaleString(), '$LOL');
 
-      // Check eligibility based on balance
-      if (balance >= WHITELIST_THRESHOLD) {
+      // Check eligibility based on ACTUAL balance (accounting for decimals)
+      // $LOL has 9 decimals, so raw balance needs to be converted
+      if (actualBalance >= WHITELIST_THRESHOLD) {
+        console.log('✅ WHITELIST APPROVED: Balance', actualBalance.toLocaleString(), '>= Threshold', WHITELIST_THRESHOLD.toLocaleString());
         return {
           eligible: true,
-          tokenBalance: balance,
+          tokenBalance: actualBalance,
           discount: 100, // 100% discount = FREE
-          reason: `🎉 You hold ${balance.toLocaleString()} $LOL tokens! Free mint unlocked!`,
+          reason: `🎉 You hold ${actualBalance.toLocaleString()} $LOL tokens! Free mint unlocked!`,
           tier: 'free'
         };
-      } else if (balance >= DISCOUNT_THRESHOLD) {
+      } else if (actualBalance >= DISCOUNT_THRESHOLD) {
+        console.log('✅ DISCOUNT APPROVED: Balance', actualBalance.toLocaleString(), '>= Threshold', DISCOUNT_THRESHOLD.toLocaleString());
         return {
           eligible: true,
-          tokenBalance: balance,
+          tokenBalance: actualBalance,
           discount: 50, // 50% discount
-          reason: `✨ You hold ${balance.toLocaleString()} $LOL tokens! 50% discount applied!`,
+          reason: `✨ You hold ${actualBalance.toLocaleString()} $LOL tokens! 50% discount applied!`,
           tier: 'discounted'
         };
       } else {
+        console.log('❌ NO DISCOUNT: Balance', actualBalance.toLocaleString(), '< Threshold', DISCOUNT_THRESHOLD.toLocaleString());
         return {
           eligible: false,
-          tokenBalance: balance,
+          tokenBalance: actualBalance,
           discount: 0,
-          reason: balance > 0 
-            ? `You hold ${balance.toLocaleString()} $LOL tokens. Need ${DISCOUNT_THRESHOLD.toLocaleString()} for discount or ${WHITELIST_THRESHOLD.toLocaleString()} for free mint.`
+          reason: actualBalance > 0 
+            ? `You hold ${actualBalance.toLocaleString()} $LOL tokens. Need ${DISCOUNT_THRESHOLD.toLocaleString()} for discount or ${WHITELIST_THRESHOLD.toLocaleString()} for free mint.`
             : 'Hold $LOL tokens to unlock discounts!',
           tier: 'full-price'
         };

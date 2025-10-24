@@ -307,34 +307,45 @@ export class ProfileNFTMintingService {
       console.log('📋 Transaction fee payer:', transaction.feePayer?.toString());
       console.log('📋 Transaction version property:', (transaction as any).version || 'none (legacy)');
 
-      // 9. Send via wallet adapter with the mint keypair as an extra signer
-      // This avoids losing the partial signature on some mobile wallets
-      console.log('✍️ Requesting wallet to sign and send (with mint signer)...');
+      // 9. Sign and send transaction with mobile wallet compatibility
+      console.log('✍️ Signing transaction with mint keypair first (mobile-compatible flow)...');
+      
+      // MOBILE WALLET FIX: Always sign with mint keypair BEFORE wallet signs
+      // Mobile wallets often drop additional signers, so we pre-sign
+      transaction.partialSign(mintKeypair);
+      console.log('✅ Mint keypair signed');
+      
+      // Now request wallet to sign and send
+      console.log('✍️ Requesting wallet to sign and send transaction...');
       let signature: string;
       try {
+        // Try sendTransaction first (most wallets support this)
         signature = await (sendTransaction as any)(transaction, this.connection, {
-          signers: [mintKeypair],
           skipPreflight: false,
         });
+        console.log('✅ Transaction sent via sendTransaction');
       } catch (sendViaWalletError: any) {
-        console.error('❌ sendTransaction failed, attempting fallback flow:', sendViaWalletError);
+        console.log('⚠️ sendTransaction failed, trying signTransaction + sendRawTransaction...');
+        console.error('Error:', sendViaWalletError.message);
+        
         try {
-          // Fallback path for mobile wallets that drop non-wallet signatures:
-          // 1) Ask wallet to sign first
-          // 2) Re-apply the mint keypair signature
-          // 3) Send raw transaction
-          const walletSignedTx = await signTransaction(transaction);
-          walletSignedTx.partialSign(mintKeypair);
-          signature = await this.connection.sendRawTransaction(walletSignedTx.serialize(), { skipPreflight: false });
+          // Fallback: Use signTransaction + sendRawTransaction
+          // This works better for some mobile wallets
+          const signedTx = await signTransaction(transaction);
+          console.log('✅ Wallet signed transaction');
+          
+          // Send the fully signed transaction
+          signature = await this.connection.sendRawTransaction(
+            signedTx.serialize(), 
+            { 
+              skipPreflight: false,
+              maxRetries: 3
+            }
+          );
+          console.log('✅ Transaction sent via sendRawTransaction');
         } catch (fallbackError: any) {
-          // Final attempt: try the inverse order just in case
-          try {
-            transaction.partialSign(mintKeypair);
-            const secondAttemptSigned = await signTransaction(transaction);
-            signature = await this.connection.sendRawTransaction(secondAttemptSigned.serialize(), { skipPreflight: false });
-          } catch (_secondErr) {
-            throw new Error(`Failed to send transaction: ${fallbackError.message || sendViaWalletError.message}`);
-          }
+          console.error('❌ Both methods failed:', fallbackError.message);
+          throw new Error(`Failed to send transaction: ${fallbackError.message}. Please try again or use a different wallet.`);
         }
       }
 
