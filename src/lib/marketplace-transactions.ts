@@ -5,7 +5,7 @@
 
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getAssociatedTokenAddress, createTransferInstruction, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
-import { ANALOS_RPC_URL } from '@/config/analos-programs';
+import { ANALOS_RPC_URL, ANALOS_PLATFORM_WALLET } from '@/config/analos-programs';
 
 export interface BuyNFTParams {
   nftMint: string;
@@ -26,12 +26,12 @@ export interface BuyNFTResult {
 class MarketplaceTransactionService {
   private connection: Connection;
   private readonly PLATFORM_FEE = 0.069; // 6.9%
-  private readonly PLATFORM_WALLET = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW'; // Replace with your platform wallet
+  private readonly PLATFORM_WALLET = ANALOS_PLATFORM_WALLET; // Analos platform wallet
 
   constructor() {
     this.connection = new Connection(ANALOS_RPC_URL, {
       commitment: 'confirmed',
-      wsEndpoint: undefined, // Disable WebSockets
+      wsEndpoint: undefined, // Disable WebSockets for Analos RPC stability
     });
   }
 
@@ -40,7 +40,9 @@ class MarketplaceTransactionService {
    */
   async buyNFT(params: BuyNFTParams): Promise<BuyNFTResult> {
     try {
-      console.log('🛒 Starting NFT purchase...');
+      console.log('🛒 Starting NFT purchase on Analos...');
+      console.log('  Network: Analos Mainnet');
+      console.log('  RPC:', ANALOS_RPC_URL);
       console.log('  NFT Mint:', params.nftMint);
       console.log('  Seller:', params.sellerWallet);
       console.log('  Buyer:', params.buyerWallet);
@@ -60,8 +62,9 @@ class MarketplaceTransactionService {
       console.log('  Platform Fee (6.9%):', platformFee, params.currency);
       console.log('  Seller Receives:', sellerAmount, params.currency);
 
-      // Get latest blockhash
+      // Get latest blockhash from Analos RPC
       const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash('confirmed');
+      console.log('📊 Analos blockhash:', blockhash);
 
       // Create transaction
       const transaction = new Transaction({
@@ -70,8 +73,8 @@ class MarketplaceTransactionService {
         lastValidBlockHeight,
       });
 
-      // TODO: Determine if payment is in SOL or LOS token
-      // For now, assuming LOS token payment (you'll need to update this based on your token setup)
+      // Analos network supports both SOL and LOS token payments
+      // LOS is the native token of Analos with Token-2022 extensions
       
       if (params.currency === 'SOL') {
         // SOL payment (simple transfer)
@@ -95,29 +98,29 @@ class MarketplaceTransactionService {
         );
 
       } else {
-        // LOS token payment (SPL token transfer)
-        console.log('🪙 LOS token payment - implementing token transfer...');
+        // LOS token payment (Token-2022 transfer on Analos)
+        console.log('🪙 LOS token payment on Analos - implementing Token-2022 transfer...');
         
-        // TODO: Replace with actual LOS token mint address
-        const LOS_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6');
+        // $LOL token mint on Analos (Token-2022 with extensions)
+        const LOL_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6');
         
-        // Get token accounts
+        // Get token accounts (Token-2022 on Analos)
         const buyerTokenAccount = await getAssociatedTokenAddress(
-          LOS_TOKEN_MINT,
+          LOL_TOKEN_MINT,
           buyerPublicKey,
           false,
           TOKEN_2022_PROGRAM_ID
         );
 
         const sellerTokenAccount = await getAssociatedTokenAddress(
-          LOS_TOKEN_MINT,
+          LOL_TOKEN_MINT,
           sellerPublicKey,
           false,
           TOKEN_2022_PROGRAM_ID
         );
 
         const platformTokenAccount = await getAssociatedTokenAddress(
-          LOS_TOKEN_MINT,
+          LOL_TOKEN_MINT,
           platformPublicKey,
           false,
           TOKEN_2022_PROGRAM_ID
@@ -177,15 +180,15 @@ class MarketplaceTransactionService {
       console.log('  Buyer NFT Account:', buyerNFTAccount.toBase58());
 
       // Sign transaction with buyer wallet
-      console.log('✍️  Requesting wallet signature...');
+      console.log('✍️  Requesting wallet signature for Analos transaction...');
       const signed = await params.signTransaction(transaction);
 
-      // Send transaction
-      console.log('📤 Sending transaction...');
+      // Send transaction to Analos network
+      console.log('📤 Sending transaction to Analos...');
       const signature = await params.sendTransaction(signed, this.connection);
 
-      // Confirm transaction
-      console.log('⏳ Confirming transaction...');
+      // Confirm transaction on Analos
+      console.log('⏳ Confirming transaction on Analos network...');
       await this.confirmTransaction(signature);
 
       console.log('✅ Purchase completed!');
@@ -206,11 +209,13 @@ class MarketplaceTransactionService {
   }
 
   /**
-   * Confirm transaction using HTTP polling (no WebSockets)
+   * Confirm transaction using HTTP polling (Analos RPC optimized)
    */
   private async confirmTransaction(signature: string): Promise<void> {
     const maxRetries = 30;
     const retryDelay = 2000; // 2 seconds
+
+    console.log('🔍 Confirming transaction on Analos network...');
 
     for (let i = 0; i < maxRetries; i++) {
       try {
@@ -218,27 +223,28 @@ class MarketplaceTransactionService {
         
         if (status?.value?.confirmationStatus === 'confirmed' || 
             status?.value?.confirmationStatus === 'finalized') {
-          console.log(`✅ Transaction confirmed (${status.value.confirmationStatus})`);
+          console.log(`✅ Analos transaction confirmed (${status.value.confirmationStatus})`);
+          console.log(`🔗 Explorer: https://explorer.analos.io/tx/${signature}`);
           return;
         }
 
         if (status?.value?.err) {
-          throw new Error(`Transaction failed: ${JSON.stringify(status.value.err)}`);
+          throw new Error(`Analos transaction failed: ${JSON.stringify(status.value.err)}`);
         }
 
-        console.log(`⏳ Confirmation attempt ${i + 1}/${maxRetries}...`);
+        console.log(`⏳ Analos confirmation attempt ${i + 1}/${maxRetries}...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
 
       } catch (error: any) {
         if (i === maxRetries - 1) {
           throw error;
         }
-        console.log(`⚠️  Retry ${i + 1}/${maxRetries} failed, retrying...`);
+        console.log(`⚠️  Analos retry ${i + 1}/${maxRetries} failed, retrying...`);
         await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
 
-    throw new Error('Transaction confirmation timeout');
+    throw new Error('Analos transaction confirmation timeout');
   }
 }
 

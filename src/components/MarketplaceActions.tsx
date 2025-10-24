@@ -172,18 +172,22 @@ export default function MarketplaceActions({
     // TODO: Get seller wallet from listing data
     // For now, showing a detailed message
     const message = `
-🛒 Buy ${nftName}
+🛒 Buy ${nftName} on Analos
 
 💰 Price: ${currentPrice} LOS
 💵 Platform Fee (6.9%): ${(currentPrice * 0.069).toFixed(3)} LOS
 💸 Total: ${currentPrice} LOS
 
-⚠️  Note: Full Solana transaction integration requires:
+🌐 Network: Analos Mainnet
+🔗 RPC: https://rpc.analos.io
+🪙 Token: $LOL (Token-2022)
+
+⚠️  Note: Full Analos transaction integration requires:
 1. Seller wallet address from listing
-2. LOS token transfer approval
+2. LOS token transfer approval (Token-2022)
 3. NFT escrow or program authority
 
-The transaction infrastructure is ready in:
+The Analos transaction infrastructure is ready in:
 src/lib/marketplace-transactions.ts
 
 Proceed to record the sale?`;
@@ -216,7 +220,7 @@ Proceed to record the sale?`;
       const result = await response.json();
       
       if (result.success) {
-        alert(`✅ Sale recorded! In production, this would complete with blockchain payment.\n\n💡 Transaction service ready at:\nsrc/lib/marketplace-transactions.ts`);
+        alert(`✅ Sale recorded on Analos! In production, this would complete with blockchain payment.\n\n🌐 Network: Analos Mainnet\n🔗 RPC: https://rpc.analos.io\n💡 Transaction service ready at:\nsrc/lib/marketplace-transactions.ts`);
         onAction?.('buy');
       } else {
         alert(`❌ Failed to record sale: ${result.error}`);
