@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Connection, PublicKey } from '@solana/web3.js';
+import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -56,55 +57,91 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'mintNumber';
     const order = searchParams.get('order') || 'asc';
 
-    // TODO: Replace with actual blockchain data fetching
-    // For now, return mock data that simulates real profile NFTs
-    const mockProfileNFTs: ProfileNFTMetadata[] = Array.from({ length: limit }, (_, i) => {
-      const index = offset + i + 1;
-      return {
-        id: `profile-nft-${index}`,
-        name: `Analos Profile #${String(index).padStart(3, '0')}`,
-        image: `/api/placeholder/400/400?text=${index}`,
-        description: `Analos Profile NFT #${index} - A unique digital identity for the Analos ecosystem`,
-        owner: `AnalosUser...${String(index).padStart(4, '0')}`,
-        mintNumber: index,
-        floorPrice: 0.5 + (index * 0.1),
-        volume: 1.2 + (index * 0.05),
-        marketCap: 1000.0,
-        topOffer: 0.48 + (index * 0.1),
-        floorChange1d: (Math.random() - 0.5) * 20,
-        volumeChange1d: (Math.random() - 0.5) * 30,
-        sales1d: Math.floor(Math.random() * 10),
-        listed: Math.floor(Math.random() * 5),
-        listedPercentage: 0.5,
-        owners: Math.floor(Math.random() * 50) + 10,
-        ownersPercentage: 5.0,
-        lastSale: {
-          price: 0.5 + (index * 0.1),
-          time: `${Math.floor(Math.random() * 24)}h ago`
-        },
-        attributes: {
-          background: ['Matrix Drip', 'Galaxy', 'LOS Drip', 'Neon'][index % 4],
-          rarity: ['Legendary', 'Mythic', 'Rare', 'Uncommon'][index % 4],
-          tier: ['Diamond', 'Gold', 'Silver', 'Bronze'][index % 4],
-          core: ['Analos Core', 'Matrix Core', 'LOS Core'][index % 3],
-          dripGrade: ['A+', 'A', 'B+', 'B'][index % 4],
-          dripScore: String(Math.floor(Math.random() * 100)),
-          earring: ['Gold Hoop', 'Diamond Stud', 'Silver Chain'][index % 3],
-          eyeColor: ['Blue', 'Green', 'Purple', 'Red'][index % 4],
-          eyes: ['Laser Eyes', 'Normal', 'Glowing'][index % 3],
-          faceDecoration: ['Tattoo', 'Scar', 'None'][index % 3],
-          glasses: ['Sunglasses', 'Reading Glasses', 'None'][index % 3]
-        },
-        verified: true,
-        chain: 'Analos',
-        rank: index
-      };
-    });
+    // Fetch REAL Profile NFTs from database
+    let realProfileNFTs: ProfileNFTMetadata[] = [];
+    
+    if (!isSupabaseConfigured) {
+      console.log('⚠️ Supabase not configured - marketplace will be empty');
+      return NextResponse.json({
+        success: true,
+        data: {
+          nfts: [],
+          collection: {
+            name: 'Analos Profile NFTs',
+            description: 'Unique profile NFTs for the Analos ecosystem',
+            floorPrice: 0,
+            volume24h: 0,
+            sales24h: 0,
+            listed: 0,
+            supply: 0,
+            owners: 0
+          },
+          pagination: { limit, offset, total: 0, hasMore: false }
+        }
+      });
+    }
+
+    const supabase = getSupabaseAdmin();
+    
+    // Fetch Profile NFTs from database with pagination
+    const { data: profileNFTs, error, count } = await (supabase
+      .from('profile_nfts') as any)
+      .select('*', { count: 'exact' })
+      .order(sortBy, { ascending: order === 'asc' })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('❌ Error fetching Profile NFTs:', error);
+      throw error;
+    }
+
+    console.log(`✅ Fetched ${profileNFTs?.length || 0} Profile NFTs from database`);
+
+    // Transform database records to marketplace format
+    realProfileNFTs = (profileNFTs || []).map((nft: any) => ({
+      id: nft.id || nft.mint_address,
+      name: `@${nft.username}`,
+      image: `/api/profile-nft/generate-image?username=${encodeURIComponent(nft.username)}&tier=${nft.tier || 'basic'}&displayName=${encodeURIComponent(nft.display_name || nft.username)}&referralCode=${nft.username.toUpperCase().slice(0, 8)}&losBrosTokenId=${nft.los_bros_token_id || ''}&discordHandle=${encodeURIComponent(nft.discord_handle || '')}&telegramHandle=${encodeURIComponent(nft.telegram_handle || '')}`,
+      description: `Profile NFT for @${nft.username} - ${nft.tier || 'basic'} tier${nft.los_bros_rarity ? ` with ${nft.los_bros_rarity} Los Bros` : ''}`,
+      owner: nft.wallet_address,
+      mintNumber: nft.mint_number || 0,
+      floorPrice: 0, // Will be calculated from active listings
+      volume: 0, // Will be calculated from sales
+      marketCap: 0,
+      topOffer: 0, // Will be calculated from offers
+      floorChange1d: 0,
+      volumeChange1d: 0,
+      sales1d: 0,
+      listed: 0, // Will be set if NFT has active listing
+      listedPercentage: 0,
+      owners: 1,
+      ownersPercentage: 100,
+      lastSale: {
+        price: nft.mint_price || 0,
+        time: nft.created_at ? new Date(nft.created_at).toLocaleDateString() : 'N/A'
+      },
+      attributes: {
+        background: nft.tier || 'Standard',
+        rarity: nft.los_bros_rarity || 'Standard',
+        tier: nft.tier || 'basic',
+        core: 'Analos Core',
+        dripGrade: nft.los_bros_rarity ? 'A+' : 'A',
+        dripScore: nft.los_bros_rarity ? '95' : '75',
+        earring: 'None',
+        eyeColor: 'Matrix Green',
+        eyes: 'Matrix',
+        faceDecoration: nft.discord_handle ? 'Discord' : 'None',
+        glasses: nft.telegram_handle ? 'Connected' : 'None'
+      },
+      verified: true,
+      chain: 'Analos',
+      rank: nft.mint_number
+    }));
 
     // Apply search filter
-    let filteredNFTs = mockProfileNFTs;
+    let filteredNFTs = realProfileNFTs;
     if (search) {
-      filteredNFTs = mockProfileNFTs.filter(nft => 
+      filteredNFTs = realProfileNFTs.filter(nft => 
         nft.name.toLowerCase().includes(search.toLowerCase()) ||
         nft.description.toLowerCase().includes(search.toLowerCase()) ||
         nft.attributes.rarity.toLowerCase().includes(search.toLowerCase()) ||
@@ -142,12 +179,12 @@ export async function GET(request: NextRequest) {
       return aValue - bValue;
     });
 
-    // Get collection stats
-    const totalSupply = 1000; // This should come from the actual collection
+    // Get collection stats from real data
+    const totalSupply = count || 0; // Actual minted count from database
     const totalListed = filteredNFTs.reduce((sum, nft) => sum + nft.listed, 0);
-    const totalOwners = filteredNFTs.reduce((sum, nft) => sum + nft.owners, 0);
+    const totalOwners = filteredNFTs.length; // Each NFT has unique owner
     const totalVolume = filteredNFTs.reduce((sum, nft) => sum + nft.volume, 0);
-    const floorPrice = Math.min(...filteredNFTs.map(nft => nft.floorPrice));
+    const floorPrice = filteredNFTs.length > 0 ? Math.min(...filteredNFTs.map(nft => nft.floorPrice)) : 0;
     const marketCap = filteredNFTs.reduce((sum, nft) => sum + nft.marketCap, 0);
 
     const collectionStats = {
@@ -180,8 +217,8 @@ export async function GET(request: NextRequest) {
         pagination: {
           limit,
           offset,
-          total: 1000, // This should come from actual data
-          hasMore: offset + limit < 1000
+          total: count || 0, // Actual count from database
+          hasMore: offset + limit < (count || 0)
         }
       }
     });
