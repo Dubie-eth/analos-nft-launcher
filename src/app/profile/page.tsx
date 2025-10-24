@@ -2241,10 +2241,10 @@ export default function ProfilePage() {
                     )
                     .map((nft) => (
                   <ProfileNFTDisplay
-                    key={nft.mint || nft.id}
+                    key={nft.mint}
                     nft={{
                       ...nft,
-                      id: nft.mint || nft.id,
+                      id: nft.mint,
                       name: nft.name || `Profile NFT`,
                       image: nft.image || nft.uri || '/api/placeholder/400/400',
                       description: nft.description || 'Analos Profile NFT',
