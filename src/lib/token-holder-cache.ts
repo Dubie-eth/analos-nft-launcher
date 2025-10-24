@@ -34,7 +34,7 @@ class TokenHolderCache {
     // If cache is empty or stale, refresh it
     if (this.holders.size === 0 || Date.now() - this.lastUpdate > this.CACHE_DURATION) {
       if (!this.isUpdating) {
-        await this.refreshCache();
+        await this.refreshHolders();
       }
     }
     
