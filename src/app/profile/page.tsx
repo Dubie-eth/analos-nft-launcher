@@ -1393,16 +1393,21 @@ export default function ProfilePage() {
                                 // Mark free mint as used (if this was a free mint)
                                 if (profilePricing?.isFree) {
                                   try {
-                                    await fetch('/api/whitelist/mark-free-mint-used', {
+                                    const freeMintResponse = await fetch('/api/whitelist/mark-free-mint-used', {
                                       method: 'POST',
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({
-                                        wallet: publicKey.toString(),
-                                        mintAddress: result.mintAddress,
-                                        username: username
+                                        walletAddress: publicKey.toString(), // Changed from 'wallet' to 'walletAddress'
+                                        usedAt: new Date().toISOString()
                                       })
                                     });
-                                    console.log('✅ Free mint marked as used for wallet:', publicKey.toString());
+                                    
+                                    if (freeMintResponse.ok) {
+                                      console.log('✅ Free mint marked as used for wallet:', publicKey.toString());
+                                    } else {
+                                      const errorData = await freeMintResponse.json();
+                                      console.warn('⚠️ Failed to mark free mint:', errorData);
+                                    }
                                   } catch (error) {
                                     console.error('Failed to mark free mint as used:', error);
                                   }
