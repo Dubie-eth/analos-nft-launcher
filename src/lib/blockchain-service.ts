@@ -378,28 +378,70 @@ export class BlockchainService {
 
       console.log('🎨 Loading user NFTs for:', walletAddress);
 
-      // Try via backend proxy first; fall back to direct RPC if needed
-      let tokenAccounts: any[] | null = null;
-      const result = await backendAPI.proxyRPCRequest('getTokenAccountsByOwner', [
-        walletAddress,
-        {
-          programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', // SPL Token Program
-        },
-        {
-          encoding: 'jsonParsed',
-        },
-      ]);
+      // Query BOTH SPL Token AND Token-2022 programs
+      let tokenAccounts: any[] = [];
+      
+      // 1. Query SPL Token Program (standard NFTs)
+      console.log('🔍 Querying SPL Token Program...');
+      try {
+        const result = await backendAPI.proxyRPCRequest('getTokenAccountsByOwner', [
+          walletAddress,
+          {
+            programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', // SPL Token Program
+          },
+          {
+            encoding: 'jsonParsed',
+          },
+        ]);
 
-      if (!result.error && result.result && Array.isArray(result.result.value)) {
-        tokenAccounts = result.result.value as any[];
-      } else {
-        console.warn('⚠️ RPC proxy failed or returned no data, falling back to direct connection');
+        if (!result.error && result.result && Array.isArray(result.result.value)) {
+          tokenAccounts = result.result.value as any[];
+          console.log(`📊 Found ${tokenAccounts.length} SPL Token accounts`);
+        }
+      } catch (splError) {
+        console.warn('⚠️ SPL Token query failed:', splError);
+      }
+
+      // 2. Query Token-2022 Program (Profile NFTs use this!)
+      console.log('🔍 Querying Token-2022 Program...');
+      try {
+        const result2022 = await backendAPI.proxyRPCRequest('getTokenAccountsByOwner', [
+          walletAddress,
+          {
+            programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', // Token-2022 Program
+          },
+          {
+            encoding: 'jsonParsed',
+          },
+        ]);
+
+        if (!result2022.error && result2022.result && Array.isArray(result2022.result.value)) {
+          const token2022Accounts = result2022.result.value as any[];
+          console.log(`📊 Found ${token2022Accounts.length} Token-2022 accounts`);
+          tokenAccounts = [...tokenAccounts, ...token2022Accounts];
+        }
+      } catch (token2022Error) {
+        console.warn('⚠️ Token-2022 query failed:', token2022Error);
+      }
+
+      // Fallback to direct RPC if both proxies failed
+      if (tokenAccounts.length === 0) {
+        console.warn('⚠️ RPC proxy returned no data, falling back to direct connection');
         try {
-          const direct = await this.connection.getParsedTokenAccountsByOwner(
+          // Try SPL Token Program
+          const directSPL = await this.connection.getParsedTokenAccountsByOwner(
             new PublicKey(walletAddress),
             { programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') }
           );
-          tokenAccounts = direct.value as any[];
+          tokenAccounts = directSPL.value as any[];
+          
+          // Also try Token-2022
+          const directToken2022 = await this.connection.getParsedTokenAccountsByOwner(
+            new PublicKey(walletAddress),
+            { programId: new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb') }
+          );
+          tokenAccounts = [...tokenAccounts, ...directToken2022.value];
+          console.log(`📊 Direct RPC found ${tokenAccounts.length} total token accounts`);
         } catch (fallbackError) {
           console.error('❌ Direct RPC fallback failed:', fallbackError);
           return [];
@@ -479,7 +521,7 @@ export class BlockchainService {
             
             // Fallback: Try to match with collections
             let nftCollection = null;
-            for (const collection of collections) {
+          for (const collection of collections) {
               nftCollection = collection;
               break;
             }

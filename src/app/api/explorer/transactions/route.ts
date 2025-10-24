@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
 
       // Parse transactions to extract relevant data
       const transactions: any[] = [];
-
+      
       for (const sigInfo of signatures.slice(0, 10)) {
         try {
           const tx = await connection.getParsedTransaction(sigInfo.signature, { maxSupportedTransactionVersion: 0 } as any);
@@ -160,19 +160,19 @@ export async function GET(request: NextRequest) {
               const accountKeys = tx.transaction?.message?.accountKeys || [];
               const signerKey = accountKeys.find((k: any) => k?.signer)?.pubkey || accountKeys[0]?.pubkey;
               const user = signerKey ? (signerKey.toString ? signerKey.toString() : String(signerKey)) : '';
-              const fee = tx.meta.fee || 0;
-              transactions.push({
-                signature: sigInfo.signature,
+            const fee = tx.meta.fee || 0;
+            transactions.push({
+              signature: sigInfo.signature,
                 timestamp: new Date((sigInfo.blockTime || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
-                type: txType,
+              type: txType,
                 collection: null,
                 user,
                 amount: fee / 1e9,
-                token: 'LOS',
-                status: tx.meta.err ? 'failed' : 'success',
-                slot: sigInfo.slot,
+              token: 'LOS',
+              status: tx.meta.err ? 'failed' : 'success',
+              slot: sigInfo.slot,
                 blockTime: sigInfo.blockTime,
-              });
+            });
             }
           }
         } catch (txError) {
