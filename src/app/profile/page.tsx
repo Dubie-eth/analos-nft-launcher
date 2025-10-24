@@ -1324,6 +1324,13 @@ export default function ProfilePage() {
                                 : `Cost: ${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'}`;
 
                               // CRITICAL CHECKS BEFORE MINTING
+                              
+                              // 0. Check if user already has a Profile NFT
+                              if (userProfileNFT) {
+                                alert('❌ You already have a Profile NFT! You can only mint ONE Profile NFT per wallet.\n\nYou can update your existing Profile NFT in the "Update Profile" tab.');
+                                return;
+                              }
+                              
                               // 1. Check if wallet already used free mint
                               if (profilePricing?.isFree) {
                                 try {
@@ -1506,10 +1513,11 @@ export default function ProfilePage() {
                               alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
                             }
                           }}
-                          disabled={!username.trim() || username.length < 3 || !profilePricing || usernameStatus.available !== true}
+                          disabled={!username.trim() || username.length < 3 || !profilePricing || usernameStatus.available !== true || userProfileNFT !== null}
                           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm sm:text-base"
                         >
-                          {!username.trim() ? '⚡ Enter Username First' :
+                          {userProfileNFT ? '✅ Already Minted - Go to "Update Profile"' :
+                          !username.trim() ? '⚡ Enter Username First' :
                           username.length < 3 ? '❌ Username Too Short (Min 3 chars)' :
                           usernameStatus.available === false ? '❌ Username Taken' :
                           usernameStatus.checking ? '⏳ Checking...' :
