@@ -49,13 +49,25 @@ export class TokenGatingService {
       console.log('📊 Associated Token Account:', tokenAccount.toString());
       console.log('🔗 Checking account on RPC:', this.connection.rpcEndpoint);
 
-      // Get token balance
-      const accountInfo = await getAccount(
-        this.connection,
-        tokenAccount,
-        'confirmed',
-        TOKEN_PROGRAM_ID
-      );
+      // Get token balance with retry logic (RPC can be flaky)
+      let accountInfo;
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          accountInfo = await getAccount(
+            this.connection,
+            tokenAccount,
+            'confirmed',
+            TOKEN_PROGRAM_ID
+          );
+          break; // Success, exit retry loop
+        } catch (fetchError: any) {
+          retries--;
+          console.warn(`⚠️ Failed to fetch token account (${3 - retries}/3):`, fetchError.message);
+          if (retries === 0) throw fetchError; // Give up after 3 tries
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
 
       const balance = Number(accountInfo.amount);
       const decimals = accountInfo.mint.equals(LOL_TOKEN_MINT) ? 9 : 0; // $LOL has 9 decimals
@@ -100,14 +112,18 @@ export class TokenGatingService {
       }
 
     } catch (error: any) {
-      console.log('⚠️ No $LOL token account found or error checking balance:', error.message);
+      console.error('⚠️ Error checking $LOL token balance:');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error?.message);
+      console.error('Error code:', error?.code);
+      console.error('Full error:', error);
       
-      // User doesn't have $LOL tokens
+      // User doesn't have $LOL tokens OR RPC error
       return {
         eligible: false,
         tokenBalance: 0,
         discount: 0,
-        reason: 'Hold $LOL tokens to unlock discounts!',
+        reason: 'Unable to verify $LOL token balance. Please try again.',
         tier: 'full-price'
       };
     }
