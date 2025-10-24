@@ -496,8 +496,37 @@ export default function ProfilePage() {
             );
             
             if (profileNFT) {
-              console.log('🎭 Found Profile NFT:', profileNFT.name);
-              setUserProfileNFT(profileNFT);
+              console.log('🎭 Found Profile NFT from blockchain API:', profileNFT.name);
+              
+              // Enrich with database data if available
+              try {
+                const { profileNFTFetcher } = await import('@/lib/profile-nft-fetcher');
+                const enrichedProfile = await profileNFTFetcher.getUserProfileNFT(publicKey.toString());
+                
+                if (enrichedProfile) {
+                  console.log('✅ Enriched Profile NFT with database data');
+                  setUserProfileNFT(enrichedProfile);
+                } else {
+                  // Use blockchain data only
+                  setUserProfileNFT(profileNFT);
+                }
+              } catch (enrichError) {
+                console.warn('⚠️  Could not enrich with database, using blockchain data:', enrichError);
+                setUserProfileNFT(profileNFT);
+              }
+            } else {
+              // No Profile NFT found in blockchain API, try blockchain-first fetcher
+              try {
+                const { profileNFTFetcher } = await import('@/lib/profile-nft-fetcher');
+                const blockchainProfile = await profileNFTFetcher.getUserProfileNFT(publicKey.toString());
+                
+                if (blockchainProfile) {
+                  console.log('✅ Found Profile NFT via blockchain-first fetcher');
+                  setUserProfileNFT(blockchainProfile);
+                }
+              } catch (fetchError) {
+                console.error('❌ Blockchain-first fetch failed:', fetchError);
+              }
             }
             
                 setUiNFTs(mappedNFTs);
