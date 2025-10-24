@@ -13,6 +13,15 @@ const LOL_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomr
 const WHITELIST_THRESHOLD = 1_000_000; // 1 million $LOL tokens for free mint
 const DISCOUNT_THRESHOLD = 100_000; // 100k $LOL tokens for 50% discount
 
+// TEMPORARY: Hardcoded whitelist while RPC is unstable
+// Remove this once RPC is reliable
+const HARDCODED_WHITELIST = {
+  // Wallet address (lowercase) → $LOL balance
+  'fv1npnbwojat55endmquwrly6taacU2MZsWappYoHup9'.toLowerCase(): 1_140_000, // Your wallet with 1.14M $LOL
+  '86ok6fa5mkweaquzpr6w1wvkajku7zpdba7l2m3rmhpw'.toLowerCase(): 1_140_000, // Admin wallet
+  // Add more whitelisted wallets here as needed
+};
+
 export interface TokenGatingResult {
   eligible: boolean;
   tokenBalance: number;
@@ -33,6 +42,32 @@ export class TokenGatingService {
    * Check if user is eligible for free/discounted mint based on $LOL token holdings
    */
   async checkEligibility(walletAddress: string): Promise<TokenGatingResult> {
+    // PRIORITY CHECK: Hardcoded whitelist (while RPC is unstable)
+    const normalizedWallet = walletAddress.toLowerCase();
+    if (HARDCODED_WHITELIST[normalizedWallet]) {
+      const balance = HARDCODED_WHITELIST[normalizedWallet];
+      console.log('✅ Found in HARDCODED whitelist:', walletAddress);
+      console.log('💰 Hardcoded balance:', balance.toLocaleString(), '$LOL');
+      
+      if (balance >= WHITELIST_THRESHOLD) {
+        return {
+          eligible: true,
+          tokenBalance: balance,
+          discount: 100,
+          reason: `🎉 Whitelisted with ${balance.toLocaleString()} $LOL tokens! Free mint unlocked!`,
+          tier: 'free'
+        };
+      } else if (balance >= DISCOUNT_THRESHOLD) {
+        return {
+          eligible: true,
+          tokenBalance: balance,
+          discount: 50,
+          reason: `✨ Whitelisted with ${balance.toLocaleString()} $LOL tokens! 50% discount applied!`,
+          tier: 'discounted'
+        };
+      }
+    }
+    
     try {
       const userPublicKey = new PublicKey(walletAddress);
 
