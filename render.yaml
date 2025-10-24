@@ -1,0 +1,87 @@
+services:
+  # Main Web Service (Frontend + Backend)
+  - type: web
+    name: analos-nft-platform
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node .next/standalone/server.js
+    envVars:
+      # Node Environment
+      - key: NODE_ENV
+        value: production
+      
+      # Next.js Configuration
+      - key: HOSTNAME
+        value: 0.0.0.0
+      
+      # Supabase Configuration
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      
+      # Pinata IPFS Configuration (Server-side only)
+      - key: PINATA_API_KEY
+        sync: false
+      - key: PINATA_SECRET_KEY
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+      
+      # Analos RPC Configuration
+      - key: NEXT_PUBLIC_ANALOS_RPC_URL
+        value: https://rpc.analos.io
+      - key: NEXT_PUBLIC_ANALOS_WS_URL
+        value: wss://rpc.analos.io
+      
+      # Admin Wallets (Server-side only)
+      - key: ADMIN_WALLETS
+        sync: false
+      
+      # Platform Configuration
+      - key: NEXT_PUBLIC_PLATFORM_NAME
+        value: Analos NFT Launcher
+      - key: NEXT_PUBLIC_PLATFORM_DESCRIPTION
+        value: Launch your NFT collection on Analos
+      
+      # Database Encryption (Server-side only)
+      - key: DATABASE_ENCRYPTION_KEY
+        sync: false
+      
+      # Security Configuration
+      - key: NEXT_PUBLIC_SECURITY_EMAIL
+        value: security@analos.io
+      - key: NEXT_PUBLIC_WEBSITE_URL
+        value: https://analos.io
+      
+      # Social Links
+      - key: NEXT_PUBLIC_TWITTER_HANDLE
+        value: AnalosIO
+      - key: NEXT_PUBLIC_TELEGRAM_HANDLE
+        value: AnalosOfficial
+      
+      # Oracle Configuration (if used)
+      - key: PRICE_ORACLE_PROGRAM_ID
+        sync: false
+      - key: PRICE_ORACLE_AUTHORITY_SECRET_KEY
+        sync: false
+    
+    # Health Check
+    healthCheckPath: /api/health-simple
+    
+    # Auto-deploy from GitHub
+    autoDeploy: true
+    
+    # Build settings
+    buildFilter:
+      paths:
+        - src/**
+        - public/**
+        - package.json
+        - next.config.js
+        - tsconfig.json
+
