@@ -19,7 +19,11 @@ export async function POST(request: NextRequest) {
       isFree,
       signature,
       imageUrl,
-      metadataUri
+      metadataUri,
+      losBrosTokenId,
+      losBrosRarity,
+      discordHandle,
+      telegramHandle
     } = body;
 
     if (!mintAddress || !walletAddress || !username) {
@@ -79,6 +83,10 @@ export async function POST(request: NextRequest) {
         transaction_signature: signature,
         image_url: imageUrl,
         metadata_uri: metadataUri,
+        los_bros_token_id: losBrosTokenId || null,
+        los_bros_rarity: losBrosRarity || null,
+        discord_handle: discordHandle || null,
+        telegram_handle: telegramHandle || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
