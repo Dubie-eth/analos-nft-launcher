@@ -4,7 +4,7 @@
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, AccountLayout } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, AccountLayout } from '@solana/spl-token';
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 
 const LOL_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6');
@@ -67,9 +67,9 @@ class TokenHolderCache {
     console.log('📡 Fetching all $LOL token holders from blockchain...');
 
     try {
-      // Get all token accounts for the $LOL mint
+      // Get all token accounts for the $LOL mint (TOKEN-2022!)
       const accounts = await this.connection.getProgramAccounts(
-        TOKEN_PROGRAM_ID,
+        TOKEN_2022_PROGRAM_ID,  // $LOL uses Token-2022, not standard token!
         {
           filters: [
             {

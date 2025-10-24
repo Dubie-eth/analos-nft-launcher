@@ -4,7 +4,7 @@
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
 import { tokenHolderCache } from './token-holder-cache';
 
@@ -74,12 +74,12 @@ export class TokenGatingService {
       console.log('🔍 Checking $LOL token balance for:', walletAddress);
       console.log('🪙 $LOL Token Mint:', LOL_TOKEN_MINT.toString());
 
-      // Get user's $LOL token account
+      // Get user's $LOL token account (TOKEN-2022 program!)
       const tokenAccount = await getAssociatedTokenAddress(
         LOL_TOKEN_MINT,
         userPublicKey,
         false,
-        TOKEN_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID  // $LOL uses Token-2022, not standard token!
       );
 
       console.log('📊 Associated Token Account:', tokenAccount.toString());
@@ -94,7 +94,7 @@ export class TokenGatingService {
             this.connection,
             tokenAccount,
             'confirmed',
-            TOKEN_PROGRAM_ID
+            TOKEN_2022_PROGRAM_ID  // $LOL uses Token-2022!
           );
           break; // Success, exit retry loop
         } catch (fetchError: any) {
