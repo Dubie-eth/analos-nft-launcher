@@ -1326,10 +1326,11 @@ export default function ProfilePage() {
                               alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
 
                               // Call the minting service with wallet functions and discount info
+                              // CRITICAL: Use finalPrice (after discount), not basePrice!
                               const result = await profileNFTMintingService.mintProfileNFT({
                                 wallet: publicKey.toString(),
                                 username: username,
-                                price: profilePricing?.price || 0,
+                                price: profilePricing?.finalPrice ?? profilePricing?.price ?? 0,
                                 tier: profilePricing?.tier || 'basic',
                                 discount: profilePricing?.discount || 0,
                                 isFree: profilePricing?.isFree || false,
