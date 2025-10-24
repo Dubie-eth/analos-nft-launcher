@@ -1323,6 +1323,34 @@ export default function ProfilePage() {
                                 ? `Cost: ${profilePricing.finalPrice} ${profilePricing.currency} (${profilePricing.discount}% discount applied!)`
                                 : `Cost: ${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'}`;
 
+                              // CRITICAL CHECKS BEFORE MINTING
+                              // 1. Check if wallet already used free mint
+                              if (profilePricing?.isFree) {
+                                try {
+                                  const freeMintCheck = await fetch(`/api/whitelist/check-free-mint?wallet=${publicKey.toString()}`);
+                                  if (freeMintCheck.ok) {
+                                    const { hasUsedFreeMint } = await freeMintCheck.json();
+                                    if (hasUsedFreeMint) {
+                                      alert('❌ You have already used your FREE mint! Each wallet can only mint one Profile NFT for free.');
+                                      return;
+                                    }
+                                  }
+                                } catch (checkError) {
+                                  console.warn('⚠️ Could not verify free mint usage:', checkError);
+                                  // Continue anyway if database check fails (don't block user)
+                                }
+                              }
+
+                              // 2. Double-check username is still available
+                              const usernameRecheck = await fetch(`/api/profile-nft/check-username?username=${encodeURIComponent(username)}`);
+                              if (usernameRecheck.ok) {
+                                const recheckData = await usernameRecheck.json();
+                                if (!recheckData.available) {
+                                  alert(`❌ Username "@${username}" was just taken by someone else! Please choose a different username.`);
+                                  return;
+                                }
+                              }
+
                               alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
 
                               // Call the minting service with wallet functions and discount info
@@ -1360,6 +1388,24 @@ export default function ProfilePage() {
                                   });
                                 } catch (error) {
                                   console.error('Failed to register username:', error);
+                                }
+
+                                // Mark free mint as used (if this was a free mint)
+                                if (profilePricing?.isFree) {
+                                  try {
+                                    await fetch('/api/whitelist/mark-free-mint-used', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        wallet: publicKey.toString(),
+                                        mintAddress: result.mintAddress,
+                                        username: username
+                                      })
+                                    });
+                                    console.log('✅ Free mint marked as used for wallet:', publicKey.toString());
+                                  } catch (error) {
+                                    console.error('Failed to mark free mint as used:', error);
+                                  }
                                 }
 
                                 // Increment mint count
