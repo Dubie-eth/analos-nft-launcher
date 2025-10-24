@@ -380,9 +380,13 @@ export class ProfileNFTMintingService {
         }
       }
 
-      // 13. Create Analos metadata account (on-chain metadata)
-      console.log('📝 Creating Analos on-chain metadata...');
-      try {
+      // 13. On-chain metadata (IPFS metadata is sufficient for now)
+      // No Analos metadata program deployed yet - using IPFS metadata only
+      // NFTs work perfectly with IPFS metadata in all wallets and explorers
+      console.log('ℹ️  Using IPFS metadata (no on-chain metadata program deployed yet)');
+      console.log('📋 Metadata URI:', metadataUri);
+      
+      if (false) { // Metadata creation disabled - no program deployed yet
         // Create metadata instruction using Analos's native metadata program
         const metadataIx = createAnalosMetadataInstruction(
           mintKeypair.publicKey,
