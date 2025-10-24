@@ -27,6 +27,7 @@ import { uploadJSONToIPFS } from './backend-api';
 import { metadataService } from './metadata-service';
 import { METADATA_PROGRAM_CONFIG } from './metadata-service';
 import { AnimatedNFTService, MatrixAnimationConfig } from './animated-nft-service';
+import { createAnalosMetadataInstruction } from './analos-metadata-helper';
 
 // Profile NFT Collection Configuration
 export const PROFILE_NFT_COLLECTION = {
@@ -359,14 +360,55 @@ export class ProfileNFTMintingService {
         }
       }
 
-      // 13. Create Metaplex metadata account
-      // TEMPORARILY DISABLED - Metaplex v3 library has breaking API changes
-      // Metadata is still stored on IPFS and accessible
-      // Will be re-enabled once library is updated
-      console.log('📝 Metaplex metadata creation temporarily disabled');
-      console.warn('⚠️ Metadata is on IPFS but not on-chain. Future update will add on-chain metadata.');
-      
-      /* DISABLED FOR NOW - CAUSES BUILD ISSUES
+      // 13. Create Analos metadata account (on-chain metadata)
+      console.log('📝 Creating Analos on-chain metadata...');
+      try {
+        // Create metadata instruction using Analos's native metadata program
+        const metadataIx = createAnalosMetadataInstruction(
+          mintKeypair.publicKey,
+          userPublicKey, // Update authority
+          userPublicKey, // Payer
+          `@${username}`, // Name
+          PROFILE_NFT_COLLECTION.symbol, // Symbol
+          metadataUri // URI (already uploaded to IPFS)
+        );
+
+        // Create metadata transaction
+        const metaTx = new Transaction();
+        metaTx.add(
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5_000 }),
+          metadataIx
+        );
+
+        const { blockhash: metaBh, lastValidBlockHeight: metaLvb } = await this.connection.getLatestBlockhash('confirmed');
+        metaTx.recentBlockhash = metaBh;
+        metaTx.feePayer = userPublicKey;
+        metaTx.lastValidBlockHeight = metaLvb;
+
+        console.log('✍️ Requesting wallet to sign metadata transaction...');
+
+        let metaSig: string;
+        try {
+          metaSig = await (sendTransaction as any)(metaTx, this.connection, { skipPreflight: false });
+        } catch (_sendMetaErr) {
+          // Fallback for wallets that don't support sendTransaction properly
+          const signedMetaTx = await signTransaction(metaTx);
+          metaSig = await this.connection.sendRawTransaction(signedMetaTx.serialize(), { skipPreflight: false });
+        }
+
+        try {
+          await this.connection.confirmTransaction({ signature: metaSig, blockhash: metaBh, lastValidBlockHeight: metaLvb }, 'confirmed');
+          console.log('✅ Analos on-chain metadata created:', metaSig);
+        } catch (e) {
+          console.warn('⚠️ Metadata confirmation timeout:', e);
+        }
+      } catch (metadataError) {
+        console.warn('⚠️ Failed to create on-chain metadata (non-fatal):', metadataError);
+        // Continue anyway - the NFT is still minted and has IPFS metadata
+      }
+
+      /* OLD METAPLEX CODE - DISABLED
       try {
         // 13a. Upload JSON (URI)
         const metadataCreation = await metadataService.createNFTMetadata(
