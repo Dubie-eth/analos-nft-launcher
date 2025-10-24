@@ -157,17 +157,24 @@ export class LosBrosMintingService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: `los-bros-${tokenId}`,
+          filename: `los-bros-${tokenId}`,
           content: metadata,
         }),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ IPFS upload failed:', errorText);
         throw new Error(`IPFS upload failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      const metadataUri = `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`;
+      
+      if (!data.success) {
+        throw new Error(data.error || 'IPFS upload failed');
+      }
+      
+      const metadataUri = data.url || `https://gateway.pinata.cloud/ipfs/${data.cid}`;
       
       console.log('✅ Metadata uploaded to IPFS:', metadataUri);
       return metadataUri;
