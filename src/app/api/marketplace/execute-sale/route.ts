@@ -55,49 +55,16 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // Calculate fees using database function
-    const { data: feeCalc, error: feeError } = await supabase.rpc(
-      'calculate_marketplace_fees',
-      { sale_price: salePrice }
-    );
+    // Calculate fees manually (6.9% platform fee)
+    const platformFee = salePrice * 0.069; // 6.9%
+    const creatorRoyalty = 0; // Not implemented yet
+    const sellerReceives = salePrice - platformFee - creatorRoyalty;
 
-    if (feeError) {
-      console.error('❌ Error calculating fees:', feeError);
-      // Fallback to manual calculation
-      const platformFee = salePrice * 0.069; // 6.9%
-      const creatorRoyalty = 0; // Not implemented yet
-      const sellerReceives = salePrice - platformFee - creatorRoyalty;
-
-      console.log(`💰 Fee Calculation (fallback):`);
-      console.log(`  Sale Price: ${salePrice} ${currency}`);
-      console.log(`  Platform Fee (6.9%): ${platformFee} ${currency}`);
-      console.log(`  Seller Receives: ${sellerReceives} ${currency}`);
-
-      // Record sale with manual fees
-      return await recordSale(supabase, {
-        nftMint,
-        nftType,
-        nftName,
-        sellerWallet,
-        buyerWallet,
-        salePrice,
-        currency,
-        platformFee,
-        creatorRoyalty,
-        sellerReceives,
-        saleType,
-        listingId,
-        offerId,
-        transactionSignature
-      });
-    }
-
-    const fees = feeCalc[0];
     console.log(`💰 Fee Calculation:`);
     console.log(`  Sale Price: ${salePrice} ${currency}`);
-    console.log(`  Platform Fee (6.9%): ${fees.platform_fee} ${currency}`);
-    console.log(`  Creator Royalty: ${fees.creator_royalty} ${currency}`);
-    console.log(`  Seller Receives: ${fees.seller_receives} ${currency}`);
+    console.log(`  Platform Fee (6.9%): ${platformFee} ${currency}`);
+    console.log(`  Creator Royalty: ${creatorRoyalty} ${currency}`);
+    console.log(`  Seller Receives: ${sellerReceives} ${currency}`);
 
     // Record sale
     return await recordSale(supabase, {
@@ -108,9 +75,9 @@ export async function POST(request: NextRequest) {
       buyerWallet,
       salePrice,
       currency,
-      platformFee: fees.platform_fee,
-      creatorRoyalty: fees.creator_royalty,
-      sellerReceives: fees.seller_receives,
+      platformFee,
+      creatorRoyalty,
+      sellerReceives,
       saleType,
       listingId,
       offerId,
