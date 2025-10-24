@@ -12,6 +12,21 @@ ADD COLUMN IF NOT EXISTS los_bros_rarity VARCHAR(20),
 ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(255),
 ADD COLUMN IF NOT EXISTS telegram_handle VARCHAR(255);
 
+-- Add unique constraint on username (if not already exists)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'profile_nfts_username_unique'
+  ) THEN
+    ALTER TABLE profile_nfts 
+    ADD CONSTRAINT profile_nfts_username_unique UNIQUE (username);
+    RAISE NOTICE '✓ Added unique constraint on username';
+  ELSE
+    RAISE NOTICE '⊘ Unique constraint already exists on username';
+  END IF;
+END $$;
+
 -- Add index for Los Bros queries
 CREATE INDEX IF NOT EXISTS idx_profile_nfts_los_bros 
 ON profile_nfts(los_bros_token_id) 

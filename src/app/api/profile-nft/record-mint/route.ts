@@ -41,6 +41,22 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
+    // CRITICAL: Check if username already exists (double-check before insert)
+    const { data: existingUsername } = await (supabase
+      .from('profile_nfts') as any)
+      .select('username, wallet_address, mint_address')
+      .eq('username', username.toLowerCase().trim())
+      .single();
+
+    if (existingUsername) {
+      console.error(`❌ Username @${username} already exists! Owned by ${existingUsername.wallet_address}`);
+      return NextResponse.json({
+        success: false,
+        error: 'Username already taken',
+        details: `Username @${username} is already registered to ${existingUsername.wallet_address}`
+      }, { status: 409 });
+    }
+
     // Get current mint count to determine mint number
     const { count } = await (supabase
       .from('profile_nfts') as any)
