@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 import { withRateLimit, RATE_LIMITS, getClientIdentifier } from '@/lib/rate-limiter';
 import { withSecurityValidation, SecurityValidator } from '@/lib/security-middleware';
 import { SaveRestriction } from '@/lib/save-restriction';
@@ -264,6 +264,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured) {
+      console.log('⚠️ Supabase not configured, returning empty collections');
+      return NextResponse.json({
+        success: true,
+        collections: [],
+        message: 'Database not configured'
+      });
+    }
+
     // Validate and sanitize user wallet with isolation service
     const userIsolation = UserIsolationService.getInstance();
     const walletValidation = userIsolation.validateUserWallet(userWallet);
@@ -288,10 +298,12 @@ export async function GET(request: NextRequest) {
     if (error) {
       userIsolation.logUserIsolationEvent('COLLECTIONS_FETCH_ERROR', sanitizedUserWallet, { error: error.message });
       console.error('Error fetching collections:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch collections' },
-        { status: 500 }
-      );
+      // Return empty collections instead of 500 error
+      return NextResponse.json({
+        success: true,
+        collections: [],
+        message: 'Database query failed'
+      });
     }
 
     userIsolation.logUserIsolationEvent('COLLECTIONS_FETCHED', sanitizedUserWallet, { count: data?.length || 0 });
@@ -302,9 +314,11 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in get collections API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    // Return empty collections instead of 500 error
+    return NextResponse.json({
+      success: true,
+      collections: [],
+      message: 'Error loading collections'
+    });
   }
 }

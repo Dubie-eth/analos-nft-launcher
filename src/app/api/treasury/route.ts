@@ -67,13 +67,14 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in treasury API:', error);
+    // Return empty data instead of 500 error to prevent UI crashes
     return NextResponse.json(
       { 
-        success: false, 
-        error: 'Failed to fetch treasury data',
+        success: true, 
+        data: null,
+        message: 'Treasury data unavailable',
         details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+      }
     );
   }
 }

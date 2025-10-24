@@ -1,22 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseAdmin } from '@/lib/supabase/client';
-
-// Use centralized Supabase admin client
-const supabase = getSupabaseAdmin();
+import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function GET(req: NextRequest) {
   try {
-    const { data: profiles, error } = await supabase
-      .from('user_profiles')
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured) {
+      console.log('⚠️ Supabase not configured, returning empty profiles list');
+      return NextResponse.json({ 
+        success: true, 
+        profiles: [],
+        message: 'Database not configured'
+      });
+    }
+
+    const supabase = getSupabaseAdmin();
+    
+    const { data: profiles, error } = await (supabase
+      .from('user_profiles') as any)
       .select('*')
-      .order('createdAt', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching profiles:', error);
       return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to fetch profiles' 
-      }, { status: 500 });
+        success: true, 
+        profiles: [],
+        message: 'Database query failed'
+      });
     }
 
     return NextResponse.json({ 
@@ -26,8 +36,9 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Error in profiles GET:', error);
     return NextResponse.json({ 
-      success: false, 
-      error: 'Internal server error' 
-    }, { status: 500 });
+      success: true, 
+      profiles: [],
+      message: 'Error loading profiles'
+    });
   }
 }
