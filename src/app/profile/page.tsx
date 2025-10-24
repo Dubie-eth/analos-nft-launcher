@@ -2246,7 +2246,7 @@ export default function ProfilePage() {
                       ...nft,
                       id: nft.mint,
                       name: nft.name || `Profile NFT`,
-                      image: nft.image || nft.uri || '/api/placeholder/400/400',
+                      image: nft.image || '/api/placeholder/400/400',
                       description: nft.description || 'Analos Profile NFT',
                       owner: publicKey?.toString() || 'Unknown',
                       mintNumber: nft.mintNumber || 1,
