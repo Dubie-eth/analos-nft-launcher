@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
     const referralCode = searchParams.get('referralCode') || 'NONE';
     const twitterHandle = searchParams.get('twitterHandle') || '';
     const twitterVerified = searchParams.get('twitterVerified') === 'true';
+    const discordHandle = searchParams.get('discordHandle') || '';
+    const telegramHandle = searchParams.get('telegramHandle') || '';
+    const losBrosTokenId = searchParams.get('losBrosTokenId') || '';
     const avatarUrl = searchParams.get('avatarUrl') || '';
     const bannerUrl = searchParams.get('bannerUrl') || '';
     const bio = searchParams.get('bio') || '';

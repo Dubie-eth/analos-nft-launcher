@@ -23,9 +23,10 @@ interface LosBrosNFT {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { wallet: string } }
+  context: { params: Promise<{ wallet: string }> }
 ) {
   try {
+    const params = await context.params;
     const { wallet } = params;
 
     if (!wallet) {
