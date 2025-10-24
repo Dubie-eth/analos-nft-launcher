@@ -2243,13 +2243,12 @@ export default function ProfilePage() {
                   <ProfileNFTDisplay
                     key={nft.mint}
                     nft={{
-                      ...nft,
                       id: nft.mint,
                       name: nft.name || `Profile NFT`,
                       image: nft.image || '/api/placeholder/400/400',
                       description: nft.description || 'Analos Profile NFT',
                       owner: publicKey?.toString() || 'Unknown',
-                      mintNumber: nft.mintNumber || 1,
+                      mintNumber: 1,
                       floorPrice: 0.5,
                       volume: 0,
                       marketCap: 0,
@@ -2272,7 +2271,7 @@ export default function ProfilePage() {
                       verified: true,
                       chain: 'Analos',
                       rank: 1
-                    }}
+                    } as any}
                     showUSD={false}
                     onViewDetails={(nftId) => {
                       window.location.href = `/nft/${nftId}`;
