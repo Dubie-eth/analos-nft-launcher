@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Wallet, ArrowRight, User, Star, Users, BarChart3, Coins } from 'lucide-react';
 
@@ -9,7 +10,7 @@ import { CheckCircle, Wallet, ArrowRight, User, Star, Users, BarChart3, Coins } 
 export const dynamic = 'force-dynamic';
 
 const BetaSignupPage: React.FC = () => {
-  const { publicKey, connected, connect } = useWallet();
+  const { publicKey, connected } = useWallet();
   const router = useRouter();
   const [hasExistingProfile, setHasExistingProfile] = useState<boolean>(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -89,12 +90,9 @@ const BetaSignupPage: React.FC = () => {
               </p>
               
               {!connected ? (
-                <button
-                  onClick={connect}
+                <WalletMultiButton 
                   className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:from-purple-600 hover:to-blue-600 transition-all"
-                >
-                  Connect Wallet
-                </button>
+                />
               ) : (
                 <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-6">
                   <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
