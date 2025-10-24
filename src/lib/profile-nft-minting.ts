@@ -202,9 +202,18 @@ export class ProfileNFTMintingService {
       const transaction = new Transaction();
 
       // 7a. Add compute budget and priority fee to avoid 0-priority txs
-      // Moderate defaults suitable for congested networks but inexpensive
-      const computeUnitLimit = 300_000; // typical for simple mints
-      const priorityMicroLamports = 5_000; // ~1,000 lamports extra for 200k CUs
+      // Dynamic priority based on mint type and network conditions
+      const computeUnitLimit = 300_000; // typical for Profile NFT mints
+      
+      // Higher priority for free mints (whitelist) to ensure fast confirmation
+      // Lower priority for paid mints since users are already paying
+      const priorityMicroLamports = isFree 
+        ? 50_000  // ~10,000 lamports for 200k CUs - HIGH PRIORITY for free mints
+        : 15_000; // ~3,000 lamports for 200k CUs - MEDIUM PRIORITY for paid mints
+      
+      console.log('⚡ Priority Fee:', priorityMicroLamports, 'microLamports per CU');
+      console.log('⚡ Estimated Priority Cost:', Math.floor((computeUnitLimit * priorityMicroLamports) / 1_000_000), 'lamports');
+      
       transaction.add(
         ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnitLimit }),
         ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityMicroLamports })

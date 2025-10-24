@@ -1333,6 +1333,7 @@ export default function ProfilePage() {
                               console.log('💰 Final Price (after discount):', profilePricing?.finalPrice);
                               console.log('🎁 Is Free:', profilePricing?.isFree);
                               console.log('📉 Discount:', profilePricing?.discount, '%');
+                              console.log('⚡ Priority Fee: Dynamic (High for free mints, Medium for paid)');
                               
                               const result = await profileNFTMintingService.mintProfileNFT({
                                 wallet: publicKey.toString(),
