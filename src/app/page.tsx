@@ -20,6 +20,14 @@ const HomePage: React.FC = () => {
     totalTransactions: 0
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  
+  // Profile NFT specific stats
+  const [profileNFTStats, setProfileNFTStats] = useState({
+    minted: 0,
+    remaining: 2222,
+    whitelistEligible: 0,
+    loading: true
+  });
 
   // Load real platform stats
   useEffect(() => {
@@ -39,6 +47,38 @@ const HomePage: React.FC = () => {
       }
     };
     loadStats();
+  }, []);
+  
+  // Load Profile NFT stats
+  useEffect(() => {
+    const loadProfileNFTStats = async () => {
+      try {
+        // Get mint count
+        const mintResponse = await fetch('/api/profile-nft/mint-count');
+        if (mintResponse.ok) {
+          const mintData = await mintResponse.json();
+          // Get holder count
+          const holderResponse = await fetch('/api/whitelist/holder-count');
+          if (holderResponse.ok) {
+            const holderData = await holderResponse.json();
+            setProfileNFTStats({
+              minted: mintData.minted || 0,
+              remaining: mintData.remaining || 2222,
+              whitelistEligible: holderData.whitelistEligible || 0,
+              loading: false
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading Profile NFT stats:', error);
+        setProfileNFTStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+    loadProfileNFTStats();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(loadProfileNFTStats, 30000);
+    return () => clearInterval(interval);
   }, []);
   
   // Admin wallet addresses - only these wallets can access admin
@@ -210,6 +250,33 @@ const HomePage: React.FC = () => {
               Be part of <strong>history in the making</strong> - the first open edition collection on the Analos blockchain. 
               Create your unique profile card with personalized referral codes, mystery variants, and ultra-rare MF Purrs backgrounds.
             </p>
+            
+            {/* Live Profile NFT Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+              <div className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 backdrop-blur-sm rounded-lg p-6 border border-green-400/30 text-center">
+                <div className="text-4xl font-bold text-green-400 mb-2">
+                  {profileNFTStats.loading ? '...' : profileNFTStats.minted.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-300">Minted</div>
+                <div className="text-xs text-green-400 mt-1">✨ Live on Analos</div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-600/20 backdrop-blur-sm rounded-lg p-6 border border-blue-400/30 text-center">
+                <div className="text-4xl font-bold text-blue-400 mb-2">
+                  {profileNFTStats.loading ? '...' : profileNFTStats.remaining.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-300">Remaining</div>
+                <div className="text-xs text-blue-400 mt-1">🎯 Unlimited Supply</div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm rounded-lg p-6 border border-purple-400/30 text-center">
+                <div className="text-4xl font-bold text-purple-400 mb-2">
+                  {profileNFTStats.loading ? '...' : profileNFTStats.whitelistEligible.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-300">Eligible for FREE</div>
+                <div className="text-xs text-purple-400 mt-1">🪙 1M+ $LOL Holders</div>
+              </div>
+            </div>
           </div>
           
           <div className="grid lg:grid-cols-2 gap-12 items-center">
