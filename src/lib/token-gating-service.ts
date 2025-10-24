@@ -6,6 +6,7 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { ANALOS_RPC_URL } from '@/config/analos-programs';
+import { tokenHolderCache } from './token-holder-cache';
 
 // $LOL Token Configuration
 const LOL_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6'); // Official $LOL token mint
@@ -112,13 +113,51 @@ export class TokenGatingService {
       }
 
     } catch (error: any) {
-      console.error('⚠️ Error checking $LOL token balance:');
+      console.error('⚠️ Error checking $LOL token balance via RPC:');
       console.error('Error type:', error?.constructor?.name);
       console.error('Error message:', error?.message);
       console.error('Error code:', error?.code);
-      console.error('Full error:', error);
       
-      // User doesn't have $LOL tokens OR RPC error
+      // FALLBACK: Try token holder cache
+      console.log('🔄 Falling back to token holder cache...');
+      try {
+        const cachedBalance = await tokenHolderCache.getHolderBalance(walletAddress);
+        
+        if (cachedBalance !== null) {
+          console.log('✅ Found balance in cache:', cachedBalance.toLocaleString(), '$LOL');
+          
+          // Check eligibility based on cached balance
+          if (cachedBalance >= WHITELIST_THRESHOLD) {
+            return {
+              eligible: true,
+              tokenBalance: cachedBalance,
+              discount: 100,
+              reason: `🎉 You hold ${cachedBalance.toLocaleString()} $LOL tokens! Free mint unlocked!`,
+              tier: 'free'
+            };
+          } else if (cachedBalance >= DISCOUNT_THRESHOLD) {
+            return {
+              eligible: true,
+              tokenBalance: cachedBalance,
+              discount: 50,
+              reason: `✨ You hold ${cachedBalance.toLocaleString()} $LOL tokens! 50% discount applied!`,
+              tier: 'discounted'
+            };
+          } else {
+            return {
+              eligible: false,
+              tokenBalance: cachedBalance,
+              discount: 0,
+              reason: `You hold ${cachedBalance.toLocaleString()} $LOL tokens. Need ${DISCOUNT_THRESHOLD.toLocaleString()} for discount or ${WHITELIST_THRESHOLD.toLocaleString()} for free mint.`,
+              tier: 'full-price'
+            };
+          }
+        }
+      } catch (cacheError) {
+        console.error('❌ Cache lookup also failed:', cacheError);
+      }
+      
+      // Both methods failed
       return {
         eligible: false,
         tokenBalance: 0,
