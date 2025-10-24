@@ -1642,25 +1642,34 @@ export default function ProfilePage() {
                                   console.error('Failed to update mint count:', error);
                                 }
 
-                                // Create the revealed NFT object
+                                // Create the revealed NFT object with dynamic image
+                                const profileImageUrl = `/api/profile-nft/generate-image?username=${encodeURIComponent(username)}&tier=${profilePricing?.tier || 'basic'}&displayName=${encodeURIComponent(displayName || username)}&referralCode=${username.toUpperCase().slice(0, 8)}&losBrosTokenId=${losBrosResult?.mintAddress || ''}&discordHandle=${encodeURIComponent(discordHandle || '')}&telegramHandle=${encodeURIComponent(telegramHandle || '')}`;
+                                
                                 const newNFT = {
                                   mint: result.mintAddress,
                                   collection: 'Analos Profile Cards',
                                   name: `@${username}`,
-                                  image: avatarUrl || '',
-                                  description: bio || `Profile NFT for @${username}`,
+                                  image: profileImageUrl, // Use generated profile card
+                                  description: `Profile NFT for @${username} - ${profilePricing?.tier || 'basic'} tier${losBrosResult ? ` with ${losBrosResult.rarityTier} Los Bros` : ''}`,
                                   attributes: [
                                     { trait_type: 'Username', value: username },
-                                    { trait_type: 'Display Name', value: displayName },
+                                    { trait_type: 'Display Name', value: displayName || username },
                                     { trait_type: 'Edition', value: mintNumber?.toString() || '1' },
                                     { trait_type: 'Tier', value: profilePricing?.tier || 'basic' },
                                     { trait_type: 'Bio', value: bio || '' },
                                     { trait_type: 'Twitter', value: twitterHandle || '' },
                                     { trait_type: 'Website', value: website || '' },
-                                    { trait_type: 'Discord', value: discord || '' },
+                                    { trait_type: 'Discord', value: discordHandle || '' },
                                     { trait_type: 'GitHub', value: github || '' },
-                                    { trait_type: 'Telegram', value: telegram || '' },
-                                    { trait_type: 'Anonymous', value: isAnonymous ? 'true' : 'false' }
+                                    { trait_type: 'Telegram', value: telegramHandle || '' },
+                                    { trait_type: 'Anonymous', value: isAnonymous ? 'true' : 'false' },
+                                    // Los Bros data if available
+                                    ...(losBrosResult ? [
+                                      { trait_type: 'Los Bros', value: 'Yes' },
+                                      { trait_type: 'Los Bros Rarity', value: losBrosResult.rarityTier },
+                                      { trait_type: 'Los Bros Score', value: losBrosResult.rarityScore.toString() },
+                                      { trait_type: 'Los Bros Mint', value: losBrosResult.mintAddress }
+                                    ] : [])
                                   ]
                                 };
 
@@ -2001,25 +2010,38 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-2 gap-3 mb-4">
                           <div className="bg-black/30 rounded-lg p-3">
                             <div className="text-center">
-                              <p className="text-xs text-gray-400 mb-1">RARITY</p>
-                              <p className="text-lg font-bold text-yellow-400">ULTRA-RARE</p>
+                              <p className="text-xs text-gray-400 mb-1">USERNAME</p>
+                              <p className="text-lg font-bold text-green-400">
+                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'N/A'}
+                              </p>
                             </div>
                           </div>
                           <div className="bg-black/30 rounded-lg p-3">
                             <div className="text-center">
-                              <p className="text-xs text-gray-400 mb-1">VARIANT</p>
-                              <p className="text-lg font-bold text-green-400">MATRIX</p>
+                              <p className="text-xs text-gray-400 mb-1">TIER</p>
+                              <p className="text-lg font-bold text-blue-400">
+                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Tier')?.value?.toUpperCase() || 'BASIC'}
+                              </p>
                             </div>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <h5 className="text-white font-semibold text-sm">Special Traits:</h5>
+                          <h5 className="text-white font-semibold text-sm">Profile Traits:</h5>
                           <div className="flex flex-wrap gap-2">
-                            <span className="px-2 py-1 bg-green-600/30 text-green-300 rounded text-xs border border-green-500/30">Digital Rain</span>
-                            <span className="px-2 py-1 bg-blue-600/30 text-blue-300 rounded text-xs border border-blue-500/30">Neon Glow</span>
-                            <span className="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs border border-purple-500/30">Holographic</span>
-                            <span className="px-2 py-1 bg-yellow-600/30 text-yellow-300 rounded text-xs border border-yellow-500/30">Rare Edition</span>
+                            {revealedNFT.attributes?.filter(attr => 
+                              attr.value && 
+                              attr.value !== '' && 
+                              attr.value !== 'false' &&
+                              !['Username', 'Tier', 'Anonymous', 'Edition'].includes(attr.trait_type)
+                            ).slice(0, 6).map((attr, idx) => (
+                              <span 
+                                key={idx}
+                                className="px-2 py-1 bg-green-600/30 text-green-300 rounded text-xs border border-green-500/30"
+                              >
+                                {attr.trait_type}: {typeof attr.value === 'string' && attr.value.length > 20 ? attr.value.slice(0, 20) + '...' : attr.value}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </div>
