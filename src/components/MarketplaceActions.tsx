@@ -169,16 +169,58 @@ export default function MarketplaceActions({
       return;
     }
 
-    if (!confirm(`Buy ${nftName} for ${currentPrice} LOS?`)) {
+    // TODO: Get seller wallet from listing data
+    // For now, showing a detailed message
+    const message = `
+🛒 Buy ${nftName}
+
+💰 Price: ${currentPrice} LOS
+💵 Platform Fee (6.9%): ${(currentPrice * 0.069).toFixed(3)} LOS
+💸 Total: ${currentPrice} LOS
+
+⚠️  Note: Full Solana transaction integration requires:
+1. Seller wallet address from listing
+2. LOS token transfer approval
+3. NFT escrow or program authority
+
+The transaction infrastructure is ready in:
+src/lib/marketplace-transactions.ts
+
+Proceed to record the sale?`;
+
+    if (!confirm(message)) {
       return;
     }
 
     try {
       setIsLoading(true);
       
-      // TODO: Implement actual purchase with Solana transaction
-      alert('🚧 Purchase functionality coming soon! Will integrate with Solana wallet for payment.');
-      onAction?.('buy');
+      // Record the sale in database
+      // In production, this would happen AFTER the blockchain transaction
+      const response = await fetch('/api/marketplace/execute-sale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nftMint,
+          nftType,
+          nftName,
+          sellerWallet: 'SELLER_WALLET', // TODO: Get from listing
+          buyerWallet: publicKey.toString(),
+          salePrice: currentPrice,
+          currency: 'LOS',
+          saleType: 'direct',
+          transactionSignature: 'PENDING_BLOCKCHAIN_TX'
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`✅ Sale recorded! In production, this would complete with blockchain payment.\n\n💡 Transaction service ready at:\nsrc/lib/marketplace-transactions.ts`);
+        onAction?.('buy');
+      } else {
+        alert(`❌ Failed to record sale: ${result.error}`);
+      }
       
     } catch (error: any) {
       console.error('Buy error:', error);

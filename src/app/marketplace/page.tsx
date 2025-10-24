@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Search, Filter, Star, TrendingUp, TrendingDown, Eye, Users, Coins, Clock } from 'lucide-react';
-import ProfileNFTDisplay from '@/components/ProfileNFTDisplay';
+import MarketplaceNFTCard from '@/components/MarketplaceNFTCard';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -73,14 +73,14 @@ const MarketplacePage: React.FC = () => {
         console.error('Error loading profile NFTs:', result.error);
         // Fallback to empty array
         setProfileNFTs([]);
-      }
-    } catch (error) {
+        }
+      } catch (error) {
       console.error('Error loading profile NFTs:', error);
       setProfileNFTs([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const filteredNFTs = profileNFTs.filter(nft => 
     nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -117,7 +117,7 @@ const MarketplacePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* Header */}
+        {/* Header */}
       <div className="bg-white/5 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
@@ -130,27 +130,27 @@ const MarketplacePage: React.FC = () => {
                 <button className="px-4 py-2 text-gray-400 hover:text-white transition-colors">
                   Watchlist
                 </button>
-              </div>
-            </div>
-            
+          </div>
+        </div>
+
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
+              <input
+                type="text"
                   placeholder="Search collections"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none w-64"
-                />
-              </div>
+              />
+            </div>
               <button className="p-2 bg-white/10 border border-white/20 rounded-lg text-gray-400 hover:text-white transition-colors">
                 <Filter className="w-4 h-4" />
               </button>
             </div>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Filters */}
       <div className="bg-white/5 backdrop-blur-sm border-b border-white/10">
@@ -176,12 +176,12 @@ const MarketplacePage: React.FC = () => {
                   className="w-4 h-4 text-purple-600 bg-white/10 border-white/20 rounded"
                 />
                 <label htmlFor="usd" className="text-gray-300">USD</label>
-              </div>
-            </div>
-            
+                  </div>
+                </div>
+
             <div className="flex items-center space-x-2">
               {['10M', '1H', '6H', '1D', '7D', '30D'].map((time) => (
-                <button
+                  <button
                   key={time}
                   onClick={() => setTimeFilter(time)}
                   className={`px-3 py-1 rounded-lg text-sm transition-colors ${
@@ -191,18 +191,18 @@ const MarketplacePage: React.FC = () => {
                   }`}
                 >
                   {time}
-                </button>
+                  </button>
               ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
 
       {/* NFT Grid */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredNFTs.map((nft) => (
-            <ProfileNFTDisplay
+            <MarketplaceNFTCard
               key={nft.id}
               nft={nft}
               showUSD={showUSD}
@@ -214,10 +214,14 @@ const MarketplacePage: React.FC = () => {
                 // Handle favorite toggle
                 console.log('Toggle favorite for NFT:', nftId);
               }}
+              onMarketplaceAction={() => {
+                // Refresh marketplace data after any action
+                loadProfileNFTs();
+              }}
             />
           ))}
         </div>
-        
+
         {filteredNFTs.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
