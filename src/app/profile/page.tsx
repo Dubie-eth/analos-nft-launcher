@@ -95,6 +95,11 @@ export default function ProfilePage() {
   // Los Bros integration state
   const [selectedLosBros, setSelectedLosBros] = useState<any | null>(null);
   const [useLosBros, setUseLosBros] = useState(false);
+  const [mintWithLosBros, setMintWithLosBros] = useState(false);
+  
+  // Social links state
+  const [discordHandle, setDiscordHandle] = useState('');
+  const [telegramHandle, setTelegramHandle] = useState('');
   const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
   const [lastTxSignature, setLastTxSignature] = useState<string | null>(null);
   const [lastMintAddress, setLastMintAddress] = useState<string | null>(null);
@@ -1075,6 +1080,42 @@ export default function ProfilePage() {
                               className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
                             />
                             <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
+                          </div>
+                        </div>
+
+                        {/* Social Links - NEW! */}
+                        <div className="bg-black/30 rounded-lg p-4">
+                          <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
+                          <p className="text-xs text-gray-400 mb-3">Add your social handles to display on your profile card</p>
+                      
+                          {/* Discord */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              💬 Discord Handle
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="username#1234"
+                              value={discordHandle}
+                              onChange={(e) => setDiscordHandle(e.target.value)}
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Your Discord username with discriminator</p>
+                          </div>
+
+                          {/* Telegram */}
+                          <div className="mb-3">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              ✈️ Telegram Handle
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="@username"
+                              value={telegramHandle}
+                              onChange={(e) => setTelegramHandle(e.target.value)}
+                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Your Telegram username (with @)</p>
                           </div>
                         </div>
 
