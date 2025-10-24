@@ -39,23 +39,30 @@ export default function Navigation() {
           // Fetch user profile for banner image and access level
           const profileResponse = await fetch(`/api/user-profiles/${publicKey.toString()}`);
           if (profileResponse.ok) {
-            const profile = await profileResponse.json();
-            if (profile.banner_image_url) {
-              setUserBannerImage(profile.banner_image_url);
-            }
-            if (profile.access_level) {
-              setUserAccessLevel(profile.access_level);
+            const contentType = profileResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const profile = await profileResponse.json();
+              if (profile.banner_image_url) {
+                setUserBannerImage(profile.banner_image_url);
+              }
+              if (profile.access_level) {
+                setUserAccessLevel(profile.access_level);
+              }
             }
           }
 
           // Fetch current page configurations from database
           const pageConfigResponse = await fetch('/api/page-access');
           if (pageConfigResponse.ok) {
-            const configs = await pageConfigResponse.json();
-            setPageConfigs(configs);
+            const contentType = pageConfigResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const configs = await pageConfigResponse.json();
+              setPageConfigs(configs);
+            }
           }
         } catch (error) {
-          console.log('Could not fetch user data:', error);
+          console.log('Could not fetch user data (database may not be configured):', error);
+          // Continue anyway - admin page should still work
         }
       } else {
         setUserBannerImage(null);

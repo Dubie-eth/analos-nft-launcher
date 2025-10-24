@@ -226,34 +226,55 @@ export default function AdminDashboard() {
       console.log('🔍 Loading admin data from Analos blockchain...');
       
       // Fetch real platform analytics
-      const analyticsResponse = await fetch('/api/analytics/platform');
-      if (analyticsResponse.ok) {
-        const analyticsData = await analyticsResponse.json();
-        if (analyticsData.success && analyticsData.analytics) {
-          console.log('✅ Platform analytics loaded:', analyticsData.analytics);
+      try {
+        const analyticsResponse = await fetch('/api/analytics/platform');
+        if (analyticsResponse.ok) {
+          const contentType = analyticsResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const analyticsData = await analyticsResponse.json();
+            if (analyticsData.success && analyticsData.analytics) {
+              console.log('✅ Platform analytics loaded:', analyticsData.analytics);
+            }
+          }
         }
+      } catch (error) {
+        console.warn('⚠️ Could not load platform analytics:', error);
       }
 
       // Fetch real collection stats
-      const collectionsResponse = await fetch('/api/analytics/collections');
       let realCollections: CollectionStats[] = [];
-      if (collectionsResponse.ok) {
-        const collectionsData = await collectionsResponse.json();
-        if (collectionsData.success) {
-          realCollections = collectionsData.collections;
-          console.log(`✅ Loaded ${realCollections.length} real collections from blockchain`);
+      try {
+        const collectionsResponse = await fetch('/api/analytics/collections');
+        if (collectionsResponse.ok) {
+          const contentType = collectionsResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const collectionsData = await collectionsResponse.json();
+            if (collectionsData.success) {
+              realCollections = collectionsData.collections;
+              console.log(`✅ Loaded ${realCollections.length} real collections from blockchain`);
+            }
+          }
         }
+      } catch (error) {
+        console.warn('⚠️ Could not load collections:', error);
       }
 
       // Fetch real program status
-      const programsResponse = await fetch('/api/analytics/programs');
       let realPrograms: ProgramStatus[] = [];
-      if (programsResponse.ok) {
-        const programsData = await programsResponse.json();
-        if (programsData.success) {
-          realPrograms = programsData.programs;
-          console.log(`✅ Loaded ${realPrograms.length} real program statuses from blockchain`);
+      try {
+        const programsResponse = await fetch('/api/analytics/programs');
+        if (programsResponse.ok) {
+          const contentType = programsResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const programsData = await programsResponse.json();
+            if (programsData.success) {
+              realPrograms = programsData.programs;
+              console.log(`✅ Loaded ${realPrograms.length} real program statuses from blockchain`);
+            }
+          }
         }
+      } catch (error) {
+        console.warn('⚠️ Could not load program statuses:', error);
       }
 
       // Use real data if available, otherwise use fallback
