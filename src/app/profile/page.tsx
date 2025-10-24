@@ -1254,6 +1254,84 @@ export default function ProfilePage() {
                           </div>
                         </div>
 
+                        {/* Los Bros Mint Toggle - NEW! */}
+                        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-400/30">
+                          <h4 className="text-white font-semibold mb-3">🎨 Choose Your Profile Style</h4>
+                          
+                          <div className="grid md:grid-cols-2 gap-4">
+                            {/* Standard Option */}
+                            <button
+                              onClick={() => setMintWithLosBros(false)}
+                              className={`p-4 rounded-lg border-2 transition-all text-left ${
+                                !mintWithLosBros
+                                  ? 'border-green-400 bg-green-900/20 shadow-lg shadow-green-900/50'
+                                  : 'border-gray-600 bg-gray-800/40 hover:border-gray-400'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="text-3xl">🎭</div>
+                                <div className="flex-1">
+                                  <h5 className="text-lg font-bold text-white mb-1">
+                                    Standard Profile
+                                  </h5>
+                                  <p className="text-sm text-gray-300">
+                                    Matrix-style card with your username and socials
+                                  </p>
+                                  {!mintWithLosBros && (
+                                    <div className="mt-2 text-green-400 text-sm font-medium flex items-center gap-1">
+                                      <span>✓</span>
+                                      <span>Selected</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                            
+                            {/* Los Bros Option */}
+                            <button
+                              onClick={() => setMintWithLosBros(true)}
+                              className={`p-4 rounded-lg border-2 transition-all text-left ${
+                                mintWithLosBros
+                                  ? 'border-purple-400 bg-purple-900/20 shadow-lg shadow-purple-900/50'
+                                  : 'border-gray-600 bg-gray-800/40 hover:border-gray-400'
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="text-3xl">🎨</div>
+                                <div className="flex-1">
+                                  <h5 className="text-lg font-bold text-white mb-1">
+                                    With Los Bros PFP
+                                  </h5>
+                                  <p className="text-sm text-gray-300">
+                                    Mint Los Bros NFT + Profile together!
+                                  </p>
+                                  {mintWithLosBros && (
+                                    <div className="mt-2 text-purple-400 text-sm font-medium flex items-center gap-1">
+                                      <span>✓</span>
+                                      <span>Selected</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                          
+                          {/* Los Bros Info Banner */}
+                          {mintWithLosBros && (
+                            <div className="mt-4 p-4 bg-purple-900/30 rounded-lg border border-purple-400/30">
+                              <p className="text-purple-200 text-sm font-medium mb-2">
+                                ✨ You'll mint 2 NFTs together:
+                              </p>
+                              <ul className="text-sm text-purple-300 space-y-1 ml-4">
+                                <li>• Los Bros PFP with random traits (7 categories)</li>
+                                <li>• Profile NFT with Los Bros as your image</li>
+                                <li>• Rarity: Legendary/Epic/Rare/Common</li>
+                                <li>• Same price - {profilePricing?.isFree ? 'FREE for you!' : 'one mint cost'}</li>
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+
                         <div className="bg-black/30 rounded-lg p-4">
                           <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
                       
