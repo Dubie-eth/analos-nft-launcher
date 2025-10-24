@@ -2220,52 +2220,54 @@ export default function ProfilePage() {
           {activeTab === 'profile-nfts' && (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <h2 className="text-2xl font-bold text-white mb-6">My Profile NFTs</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Mock user's profile NFTs - replace with actual data */}
-                {[
-                  {
-                    id: 'user-profile-1',
-                    name: 'Analos Profile #001',
-                    image: '/api/placeholder/400/400?text=001',
-                    description: 'Your first Analos profile NFT',
-                    owner: publicKey?.toString() || 'Unknown',
-                    mintNumber: 1,
-                    floorPrice: 0.5,
-                    volume: 12.5,
-                    marketCap: 250.0,
-                    topOffer: 0.48,
-                    floorChange1d: 5.2,
-                    volumeChange1d: 15.8,
-                    sales1d: 8,
-                    listed: 15,
-                    listedPercentage: 1.5,
-                    owners: 45,
-                    ownersPercentage: 4.5,
-                    lastSale: {
-                      price: 0.52,
-                      time: '2h ago'
-                    },
-                    attributes: {
-                      background: 'Matrix Drip',
-                      rarity: 'Legendary',
-                      tier: 'Gold',
-                      core: 'Analos Core',
-                      dripGrade: 'A+',
-                      dripScore: '95',
-                      earring: 'Gold Hoop',
-                      eyeColor: 'Blue',
-                      eyes: 'Laser Eyes',
-                      faceDecoration: 'Tattoo',
-                      glasses: 'Sunglasses'
-                    },
-                    verified: true,
-                    chain: 'Analos',
-                    rank: 1
-                  }
-                ].map((nft) => (
+              
+              {!connected ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">Connect your wallet to view your Profile NFTs</p>
+                </div>
+              ) : uiNFTs.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">No Profile NFTs found. Mint your first one in the "Profile NFT" tab!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Display actual Profile NFTs from user's wallet */}
+                  {uiNFTs
+                    .filter((nft) => 
+                      nft.name?.includes('Profile') ||
+                      nft.description?.includes('Profile NFT') ||
+                      nft.collection?.includes('Profile') ||
+                      nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
+                    )
+                    .map((nft) => (
                   <ProfileNFTDisplay
-                    key={nft.id}
-                    nft={nft}
+                    key={nft.mint || nft.id}
+                    nft={{
+                      ...nft,
+                      id: nft.mint || nft.id,
+                      name: nft.name || `Profile NFT`,
+                      image: nft.image || nft.uri || '/api/placeholder/400/400',
+                      description: nft.description || 'Analos Profile NFT',
+                      mintNumber: nft.mintNumber || 1,
+                      floorPrice: 0.5,
+                      volume: 0,
+                      marketCap: 0,
+                      topOffer: 0,
+                      floorChange1d: 0,
+                      volumeChange1d: 0,
+                      sales1d: 0,
+                      listed: 0,
+                      listedPercentage: 0,
+                      owners: 1,
+                      ownersPercentage: 100,
+                      attributes: nft.attributes?.reduce((acc: any, attr: any) => {
+                        acc[attr.trait_type.toLowerCase().replace(' ', '')] = attr.value;
+                        return acc;
+                      }, {}) || {},
+                      verified: true,
+                      chain: 'Analos',
+                      rank: 1
+                    }}
                     showUSD={false}
                     onViewDetails={(nftId) => {
                       window.location.href = `/nft/${nftId}`;
@@ -2275,7 +2277,8 @@ export default function ProfilePage() {
                     }}
                   />
                 ))}
-              </div>
+                </div>
+              )}
               
               {connected && (
                 <div className="mt-8 text-center">

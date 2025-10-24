@@ -28,6 +28,14 @@ import { metadataService } from './metadata-service';
 import { METADATA_PROGRAM_CONFIG } from './metadata-service';
 import { AnimatedNFTService, MatrixAnimationConfig } from './animated-nft-service';
 
+// Profile NFT Collection Configuration
+export const PROFILE_NFT_COLLECTION = {
+  name: 'Analos Profile Cards',
+  symbol: 'APROFILE',
+  description: 'Official Analos Profile NFTs - Your unique identity on the Analos platform',
+  // Collection mint will be created separately - for now we'll use individual NFTs
+};
+
 export interface ProfileNFTMintParams {
   wallet: string;
   username: string;
@@ -354,24 +362,19 @@ export class ProfileNFTMintingService {
       // 13. Create Metaplex metadata account
       console.log('📝 Creating Metaplex metadata...');
       try {
-        // Dynamically import Metaplex helpers to avoid build-time dependency mismatch
-        let mpl: any = null;
-        try {
-          mpl = await import('@metaplex-foundation/mpl-token-metadata');
-        } catch (_e) {
-          mpl = null;
-        }
-
-        if (!mpl || (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction)) {
+        // Import Metaplex helpers properly
+        const mpl = await import('@metaplex-foundation/mpl-token-metadata');
+        
+        if (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction) {
           console.warn('⚠️ Metaplex helpers unavailable, skipping on-chain metadata creation');
-          throw new Error('MPL not available');
+          throw new Error('MPL functions not available');
         }
 
         // 13a. Upload JSON (URI)
         const metadataCreation = await metadataService.createNFTMetadata(
           mintKeypair.publicKey,
-          'Analos Profile',
-          'PROFILE',
+          `@${username}`,
+          PROFILE_NFT_COLLECTION.symbol,
           1,
           profileNFTMetadata.attributes,
           profileNFTMetadata.image
@@ -412,8 +415,8 @@ export class ProfileNFTMintingService {
           {
             createMetadataAccountArgsV3: {
               data: {
-                name: 'Analos Profile',
-                symbol: 'PROFILE',
+                name: `@${username}`,
+                symbol: PROFILE_NFT_COLLECTION.symbol,
                 uri: metadataUriToUse || metadataUri,
                 sellerFeeBasisPoints: 0,
                 creators: null,
