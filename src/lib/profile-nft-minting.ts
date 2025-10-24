@@ -33,6 +33,9 @@ export interface ProfileNFTMintParams {
   username: string;
   price: number;
   tier: string;
+  treasuryWallet?: string; // Optional: defaults to platform treasury
+  discount?: number; // Discount percentage (0-100)
+  isFree?: boolean; // If true, skip payment
   signTransaction: (tx: Transaction) => Promise<Transaction>;
   // Use a permissive type to be compatible with various wallet adapters
   sendTransaction: (
@@ -75,13 +78,29 @@ export class ProfileNFTMintingService {
    */
   async mintProfileNFT(params: ProfileNFTMintParams): Promise<ProfileNFTMintResult> {
     try {
-      const { wallet, username, price, tier, signTransaction, sendTransaction } = params;
+      const { 
+        wallet, 
+        username, 
+        price, 
+        tier, 
+        treasuryWallet = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW', // Default platform treasury
+        discount = 0,
+        isFree = false,
+        signTransaction, 
+        sendTransaction 
+      } = params;
 
       console.log('🎭 Starting Profile NFT mint...');
       console.log('👤 User:', wallet);
       console.log('📝 Username:', username);
-      console.log('💰 Price:', price, 'LOS');
+      console.log('💰 Base Price:', price, 'LOS');
+      console.log('🎁 Discount:', discount, '%');
+      console.log('🆓 Is Free:', isFree);
       console.log('🏆 Tier:', tier);
+
+      // Calculate final price after discount
+      const finalPrice = isFree ? 0 : Math.floor(price * (1 - discount / 100));
+      console.log('💵 Final Price:', finalPrice, 'LOS');
 
       // 1. Validate username uniqueness (optional - can be added later)
       // TODO: Check if username is already taken
@@ -173,7 +192,7 @@ export class ProfileNFTMintingService {
       // 7. Build transaction (use legacy format for Analos compatibility)
       const transaction = new Transaction();
 
-      // 6a. Add compute budget and priority fee to avoid 0-priority txs
+      // 7a. Add compute budget and priority fee to avoid 0-priority txs
       // Moderate defaults suitable for congested networks but inexpensive
       const computeUnitLimit = 300_000; // typical for simple mints
       const priorityMicroLamports = 5_000; // ~1,000 lamports extra for 200k CUs
@@ -182,7 +201,29 @@ export class ProfileNFTMintingService {
         ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityMicroLamports })
       );
 
-      // Add instruction to create mint account
+      // 7b. Add payment transfer to treasury (if not free)
+      if (!isFree && finalPrice > 0) {
+        console.log('💸 Adding payment transfer to treasury...');
+        console.log('💰 Amount:', finalPrice, 'LOS');
+        console.log('🏦 Treasury:', treasuryWallet);
+
+        const treasuryPublicKey = new PublicKey(treasuryWallet);
+        const lamportsToSend = finalPrice * LAMPORTS_PER_SOL;
+
+        transaction.add(
+          SystemProgram.transfer({
+            fromPubkey: userPublicKey,
+            toPubkey: treasuryPublicKey,
+            lamports: lamportsToSend,
+          })
+        );
+
+        console.log('✅ Payment transfer instruction added');
+      } else {
+        console.log('🎁 Free mint - skipping payment transfer');
+      }
+
+      // 7c. Add instruction to create mint account
       transaction.add(
         SystemProgram.createAccount({
           fromPubkey: userPublicKey,

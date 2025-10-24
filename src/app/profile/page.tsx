@@ -10,6 +10,7 @@ import SimpleProfileEditor from '@/components/SimpleProfileEditor';
 import NFTCard from '@/components/NFTCard';
 import ProfileNFTDisplay from '@/components/ProfileNFTDisplay';
 import { getFreshExample } from '@/lib/wallet-examples';
+import { tokenGatingService } from '@/lib/token-gating-service';
 
 interface UserNFT {
   mint: string;
@@ -78,6 +79,11 @@ export default function ProfilePage() {
     tier: string;
     price: number;
     currency: string;
+    discount?: number;
+    finalPrice?: number;
+    isFree?: boolean;
+    tokenBalance?: number;
+    discountReason?: string;
   } | null>(null);
   const [username, setUsername] = useState('');
   const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
@@ -299,30 +305,77 @@ export default function ProfilePage() {
     }
   };
 
-  // Fetch pricing for Profile NFT
+  // Fetch pricing for Profile NFT with token gating discount
   const fetchProfilePricing = async (username: string) => {
     if (!username.trim() || username.length < 3) {
       setProfilePricing(null);
       return;
     }
     
-    try {
-      const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setProfilePricing({
-          tier: data.tier,
-          price: data.totalPrice || data.price, // Use totalPrice if available, fallback to price
-          currency: data.currency
-        });
-      } else {
-        // Clear pricing if there's an error (like username too short)
+    if (!publicKey) {
+      // If wallet not connected, show base pricing only
+      try {
+        const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setProfilePricing({
+            tier: data.tier,
+            price: data.totalPrice || data.price,
+            currency: data.currency
+          });
+        } else {
+          setProfilePricing(null);
+        }
+      } catch (error) {
+        console.error('Error fetching pricing:', error);
         setProfilePricing(null);
       }
+      return;
+    }
+    
+    try {
+      console.log('💰 Checking pricing with token discounts...');
+      
+      // Get pricing with token gating discount applied
+      const pricingWithDiscount = await tokenGatingService.getPricingWithDiscount(
+        username,
+        publicKey.toString()
+      );
+
+      console.log('✅ Pricing with discount:', pricingWithDiscount);
+
+      setProfilePricing({
+        tier: pricingWithDiscount.tier,
+        price: pricingWithDiscount.basePrice,
+        finalPrice: pricingWithDiscount.finalPrice,
+        currency: pricingWithDiscount.currency,
+        discount: pricingWithDiscount.discount,
+        isFree: pricingWithDiscount.isFree,
+        tokenBalance: pricingWithDiscount.tokenBalance,
+        discountReason: pricingWithDiscount.discountReason
+      });
     } catch (error) {
-      console.error('Error fetching pricing:', error);
-      setProfilePricing(null);
+      console.error('Error fetching pricing with discounts:', error);
+      
+      // Fallback to API pricing without discounts
+      try {
+        const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setProfilePricing({
+            tier: data.tier,
+            price: data.totalPrice || data.price,
+            currency: data.currency
+          });
+        } else {
+          setProfilePricing(null);
+        }
+      } catch (fallbackError) {
+        console.error('Error with fallback pricing:', fallbackError);
+        setProfilePricing(null);
+      }
     }
   };
 
@@ -1169,13 +1222,54 @@ export default function ProfilePage() {
                                 <span>Tier:</span>
                                 <span className="text-yellow-400">{profilePricing.tier}</span>
                               </div>
-                              <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
-                                <span>Total Cost:</span>
-                                <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
-                              </div>
+                              
+                              {profilePricing.tokenBalance !== undefined && profilePricing.tokenBalance > 0 && (
+                                <div className="my-2 p-2 bg-blue-900/30 border border-blue-400/30 rounded">
+                                  <div className="flex items-center gap-2 text-blue-300 text-xs mb-1">
+                                    <span>🪙 $LOL Balance:</span>
+                                    <span className="font-semibold">{profilePricing.tokenBalance.toLocaleString()}</span>
+                                  </div>
+                                  {profilePricing.discountReason && (
+                                    <p className="text-xs text-blue-200">{profilePricing.discountReason}</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {profilePricing.discount && profilePricing.discount > 0 ? (
+                                <>
+                                  <div className="flex justify-between text-gray-400 line-through">
+                                    <span>Base Price:</span>
+                                    <span>{profilePricing.price} {profilePricing.currency}</span>
+                                  </div>
+                                  <div className="flex justify-between text-green-400">
+                                    <span>Discount ({profilePricing.discount}%):</span>
+                                    <span>-{Math.floor(profilePricing.price * profilePricing.discount / 100)} {profilePricing.currency}</span>
+                                  </div>
+                                  <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
+                                    <span>Final Price:</span>
+                                    <span className={profilePricing.isFree ? "text-green-400 text-lg" : "text-green-400"}>
+                                      {profilePricing.isFree ? "FREE! 🎉" : `${profilePricing.finalPrice} ${profilePricing.currency}`}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
+                                  <span>Total Cost:</span>
+                                  <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
+                                </div>
+                              )}
+                              
                               <div className="text-xs text-gray-400 mt-1">
                                 (Includes 6.9% platform fee)
                               </div>
+                              
+                              {(!profilePricing.tokenBalance || profilePricing.tokenBalance === 0) && (
+                                <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-400/30 rounded">
+                                  <p className="text-xs text-yellow-300">
+                                    💡 Hold 100k+ $LOL tokens for 50% off, or 1M+ for FREE mint!
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="text-sm text-gray-400">
@@ -1184,6 +1278,7 @@ export default function ProfilePage() {
                                 <p>• 3-digit names: 16,035 LOS (Ultra Premium)</p>
                                 <p>• 4-digit names: 6,414 LOS (Premium)</p>
                                 <p>• 5+ digit names: 2,673 LOS (Standard)</p>
+                                <p className="text-yellow-400 mt-2">💡 Hold $LOL tokens for discounts!</p>
                                 <p className="text-red-400 mt-1">• Usernames under 3 characters are not allowed</p>
                               </div>
                             </div>
@@ -1222,14 +1317,22 @@ export default function ProfilePage() {
                               // Dynamically import the Profile NFT minting service
                               const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
 
-                              alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\nCost: ${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'}`);
+                              const costMessage = profilePricing?.isFree 
+                                ? '🎉 FREE MINT (1M+ $LOL tokens held)!' 
+                                : profilePricing?.discount && profilePricing.discount > 0
+                                ? `Cost: ${profilePricing.finalPrice} ${profilePricing.currency} (${profilePricing.discount}% discount applied!)`
+                                : `Cost: ${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'}`;
 
-                              // Call the minting service with wallet functions
+                              alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
+
+                              // Call the minting service with wallet functions and discount info
                               const result = await profileNFTMintingService.mintProfileNFT({
                                 wallet: publicKey.toString(),
                                 username: username,
                                 price: profilePricing?.price || 0,
                                 tier: profilePricing?.tier || 'basic',
+                                discount: profilePricing?.discount || 0,
+                                isFree: profilePricing?.isFree || false,
                                 signTransaction: signTransaction,
                                 sendTransaction: sendTransaction
                               });
