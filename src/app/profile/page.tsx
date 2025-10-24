@@ -408,10 +408,13 @@ export default function ProfilePage() {
         // Load user NFTs from API
         try {
           const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
-          const nftsData = await nftsResponse.json();
-          
-          if (nftsData.nfts && nftsData.nfts.length > 0) {
-            console.log(`✅ Loaded ${nftsData.nfts.length} NFTs from blockchain`);
+          if (nftsResponse.ok) {
+            const contentType = nftsResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const nftsData = await nftsResponse.json();
+              
+              if (nftsData.nfts && nftsData.nfts.length > 0) {
+                console.log(`✅ Loaded ${nftsData.nfts.length} NFTs from blockchain`);
             
             const mappedNFTs = nftsData.nfts.map((nft: any) => ({
               mint: nft.mint,
@@ -435,11 +438,13 @@ export default function ProfilePage() {
               setUserProfileNFT(profileNFT);
             }
             
-            setUiNFTs(mappedNFTs);
-          } else {
-            console.log('ℹ️ No NFTs found for this wallet');
-            setUiNFTs([]);
-            setUserProfileNFT(null);
+                setUiNFTs(mappedNFTs);
+              } else {
+                console.log('ℹ️ No NFTs found for this wallet');
+                setUiNFTs([]);
+                setUserProfileNFT(null);
+              }
+            }
           }
           
           // Fetch current mint count for preview
@@ -1295,9 +1300,12 @@ export default function ProfilePage() {
                                 setTimeout(async () => {
                                   try {
                                     const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
-                                    const nftsData = await nftsResponse.json();
-                                    
-                                    if (nftsData.nfts && nftsData.nfts.length > 0) {
+                                    if (nftsResponse.ok) {
+                                      const contentType = nftsResponse.headers.get('content-type');
+                                      if (contentType && contentType.includes('application/json')) {
+                                        const nftsData = await nftsResponse.json();
+                                        
+                                        if (nftsData.nfts && nftsData.nfts.length > 0) {
                                       const mappedNFTs = nftsData.nfts.map((nft: any) => ({
                                         mint: nft.mint,
                                         collection: nft.collectionName || 'Unknown Collection',
@@ -1320,6 +1328,8 @@ export default function ProfilePage() {
                                       }
                                       
                                       setUiNFTs(mappedNFTs);
+                                        }
+                                      }
                                     }
                                   } catch (error) {
                                     console.error('Error refreshing NFTs:', error);
@@ -1908,9 +1918,15 @@ export default function ProfilePage() {
                     // Reload NFTs
                     if (publicKey) {
                       fetch(`/api/user-nfts/${publicKey.toString()}`)
-                        .then(res => res.json())
+                        .then(res => {
+                          const contentType = res.headers.get('content-type');
+                          if (res.ok && contentType && contentType.includes('application/json')) {
+                            return res.json();
+                          }
+                          return null;
+                        })
                         .then(data => {
-                          if (data.nfts && data.nfts.length > 0) {
+                          if (data && data.nfts && data.nfts.length > 0) {
                             setUiNFTs(data.nfts.map((nft: any) => ({
                               mint: nft.mint,
                               collection: nft.collectionName || 'Unknown Collection',
@@ -1920,7 +1936,8 @@ export default function ProfilePage() {
                               description: nft.description
                             })));
                           }
-                        });
+                        })
+                        .catch(error => console.error('Error refreshing NFTs:', error));
                     }
                   }}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors text-sm"
