@@ -661,16 +661,36 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-xl">
-                  {connected ? publicKey?.toString().slice(0, 2).toUpperCase() : '👤'}
+                  {connected ? (
+                    userProfileNFT?.name ? 
+                      userProfileNFT.name.charAt(1).toUpperCase() : // Skip @ symbol
+                      publicKey?.toString().slice(0, 2).toUpperCase()
+                  ) : '👤'}
                 </span>
               </div>
               <div>
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-                  {connected ? 'Your Profile' : 'Public Profile View'}
+                  {connected ? (
+                    userProfileNFT ? (
+                      <span className="flex items-center gap-2">
+                        {userProfileNFT.name}
+                        <span className="text-green-400 text-base">✓</span>
+                      </span>
+                    ) : (
+                      'Your Profile'
+                    )
+                  ) : (
+                    'Public Profile View'
+                  )}
                 </h2>
                 <div className="text-xs sm:text-sm text-gray-300 space-y-1">
                   {connected ? (
                     <>
+                      {userProfileNFT && (
+                        <div className="text-blue-400 font-semibold">
+                          {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Tier')?.value?.toUpperCase()} Tier Profile
+                        </div>
+                      )}
                       <div className="break-all">Wallet: {publicKey?.toString().slice(0, 6)}...{publicKey?.toString().slice(-6)}</div>
                       <div>LOS Balance: {solBalance.toFixed(4)} LOS</div>
                       <div>Member Since: {new Date().toLocaleDateString()}</div>
