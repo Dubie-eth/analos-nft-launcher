@@ -2248,6 +2248,7 @@ export default function ProfilePage() {
                       name: nft.name || `Profile NFT`,
                       image: nft.image || nft.uri || '/api/placeholder/400/400',
                       description: nft.description || 'Analos Profile NFT',
+                      owner: publicKey?.toString() || 'Unknown',
                       mintNumber: nft.mintNumber || 1,
                       floorPrice: 0.5,
                       volume: 0,
@@ -2260,6 +2261,10 @@ export default function ProfilePage() {
                       listedPercentage: 0,
                       owners: 1,
                       ownersPercentage: 100,
+                      lastSale: {
+                        price: 0,
+                        time: 'N/A'
+                      },
                       attributes: nft.attributes?.reduce((acc: any, attr: any) => {
                         acc[attr.trait_type.toLowerCase().replace(' ', '')] = attr.value;
                         return acc;
