@@ -15,10 +15,10 @@ const DISCOUNT_THRESHOLD = 100_000; // 100k $LOL tokens for 50% discount
 
 // TEMPORARY: Hardcoded whitelist while RPC is unstable
 // Remove this once RPC is reliable
-const HARDCODED_WHITELIST = {
+const HARDCODED_WHITELIST: { [key: string]: number } = {
   // Wallet address (lowercase) → $LOL balance
-  'fv1npnbwojat55endmquwrly6taacU2MZsWappYoHup9'.toLowerCase(): 1_140_000, // Your wallet with 1.14M $LOL
-  '86ok6fa5mkweaquzpr6w1wvkajku7zpdba7l2m3rmhpw'.toLowerCase(): 1_140_000, // Admin wallet
+  'fv1npnbwojat55endmquwrly6taac2mzswappyohup9': 1_140_000, // Your wallet with 1.14M $LOL
+  '86ok6fa5mkweaquzpr6w1wvkajku7zpdba7l2m3rmhpw': 1_140_000, // Admin wallet
   // Add more whitelisted wallets here as needed
 };
 
