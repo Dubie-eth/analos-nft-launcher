@@ -385,52 +385,7 @@ export class ProfileNFTMintingService {
       // NFTs work perfectly with IPFS metadata in all wallets and explorers
       console.log('ℹ️  Using IPFS metadata (no on-chain metadata program deployed yet)');
       console.log('📋 Metadata URI:', metadataUri);
-      
-      if (false) { // Metadata creation disabled - no program deployed yet
-        // Create metadata instruction using Analos's native metadata program
-        const metadataIx = createAnalosMetadataInstruction(
-          mintKeypair.publicKey,
-          userPublicKey, // Update authority
-          userPublicKey, // Payer
-          `@${username}`, // Name
-          PROFILE_NFT_COLLECTION.symbol, // Symbol
-          metadataUri // URI (already uploaded to IPFS)
-        );
-
-        // Create metadata transaction
-        const metaTx = new Transaction();
-        metaTx.add(
-          ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
-          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 5_000 }),
-          metadataIx
-        );
-
-        const { blockhash: metaBh, lastValidBlockHeight: metaLvb } = await this.connection.getLatestBlockhash('confirmed');
-        metaTx.recentBlockhash = metaBh;
-        metaTx.feePayer = userPublicKey;
-        metaTx.lastValidBlockHeight = metaLvb;
-
-        console.log('✍️ Requesting wallet to sign metadata transaction...');
-
-        let metaSig: string;
-        try {
-          metaSig = await (sendTransaction as any)(metaTx, this.connection, { skipPreflight: false });
-        } catch (_sendMetaErr) {
-          // Fallback for wallets that don't support sendTransaction properly
-          const signedMetaTx = await signTransaction(metaTx);
-          metaSig = await this.connection.sendRawTransaction(signedMetaTx.serialize(), { skipPreflight: false });
-        }
-
-        try {
-          await this.connection.confirmTransaction({ signature: metaSig, blockhash: metaBh, lastValidBlockHeight: metaLvb }, 'confirmed');
-          console.log('✅ Analos on-chain metadata created:', metaSig);
-        } catch (e) {
-          console.warn('⚠️ Metadata confirmation timeout:', e);
-        }
-      } catch (metadataError) {
-        console.warn('⚠️ Failed to create on-chain metadata (non-fatal):', metadataError);
-        // Continue anyway - the NFT is still minted and has IPFS metadata
-      }
+      // TODO: Implement Token-2022 metadata extensions (like $LOL token) in the future
 
       /* OLD METAPLEX CODE - DISABLED
       try {
