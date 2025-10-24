@@ -516,19 +516,21 @@ export class ProfileNFTMintingService {
   }
 
   /**
-   * Generate a profile image URL
-   * Using DiceBear API for now, can be replaced with custom generation
+   * Generate a profile card image URL
+   * Uses the profile card generator endpoint to create Matrix-style cards
    */
   private generateProfileImage(username: string, tier: string): string {
-    const tierColors: Record<string, string> = {
-      '3-digit': 'FFD700', // Gold
-      '4-digit': 'C0C0C0', // Silver
-      '5-plus': 'CD7F32'   // Bronze
-    };
-
-    const bgColor = tierColors[tier] || '000000';
+    // Build URL for profile card generator
+    const params = new URLSearchParams({
+      username: username,
+      displayName: username,
+      referralCode: username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8),
+      tier: tier,
+    });
     
-    return `https://api.dicebear.com/7.x/identicon/svg?seed=${username}&backgroundColor=${bgColor}`;
+    // Use the profile card generator endpoint
+    // This will generate the Matrix-style card like the one you designed
+    return `/api/profile-nft/generate-image?${params.toString()}`;
   }
 
   /**
