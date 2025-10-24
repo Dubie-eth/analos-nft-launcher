@@ -360,16 +360,14 @@ export class ProfileNFTMintingService {
       }
 
       // 13. Create Metaplex metadata account
-      console.log('📝 Creating Metaplex metadata...');
+      // TEMPORARILY DISABLED - Metaplex v3 library has breaking API changes
+      // Metadata is still stored on IPFS and accessible
+      // Will be re-enabled once library is updated
+      console.log('📝 Metaplex metadata creation temporarily disabled');
+      console.warn('⚠️ Metadata is on IPFS but not on-chain. Future update will add on-chain metadata.');
+      
+      /* DISABLED FOR NOW - CAUSES BUILD ISSUES
       try {
-        // Import Metaplex helpers properly
-        const mpl = await import('@metaplex-foundation/mpl-token-metadata');
-        
-        if (!mpl.createCreateMetadataAccountV3Instruction || !mpl.createCreateMasterEditionV3Instruction) {
-          console.warn('⚠️ Metaplex helpers unavailable, skipping on-chain metadata creation');
-          throw new Error('MPL functions not available');
-        }
-
         // 13a. Upload JSON (URI)
         const metadataCreation = await metadataService.createNFTMetadata(
           mintKeypair.publicKey,
@@ -476,6 +474,7 @@ export class ProfileNFTMintingService {
         console.warn('⚠️ Failed to create on-chain metadata (non-fatal):', metadataError);
         // Continue anyway - the NFT is still minted; UI may rely on later backfill
       }
+      */
 
       return {
         success: true,
