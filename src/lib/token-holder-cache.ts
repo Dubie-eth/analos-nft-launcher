@@ -28,6 +28,20 @@ class TokenHolderCache {
   }
 
   /**
+   * Get all token holders
+   */
+  public async getAllHolders(): Promise<TokenHolder[]> {
+    // If cache is empty or stale, refresh it
+    if (this.holders.size === 0 || Date.now() - this.lastUpdate > this.CACHE_DURATION) {
+      if (!this.isUpdating) {
+        await this.refreshCache();
+      }
+    }
+    
+    return Array.from(this.holders.values());
+  }
+
+  /**
    * Get token holder data (from cache or fetch fresh)
    */
   async getHolderBalance(walletAddress: string): Promise<number | null> {

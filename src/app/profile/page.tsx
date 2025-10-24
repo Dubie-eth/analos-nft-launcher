@@ -1397,6 +1397,36 @@ export default function ProfilePage() {
                                   console.error('Failed to register username:', error);
                                 }
 
+                                // Record mint in database for explorer/marketplace
+                                try {
+                                  const recordResponse = await fetch('/api/profile-nft/record-mint', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      mintAddress: result.mintAddress,
+                                      walletAddress: publicKey.toString(),
+                                      username: username,
+                                      displayName: username,
+                                      tier: profilePricing?.tier || 'basic',
+                                      price: profilePricing?.finalPrice || profilePricing?.price || 0,
+                                      isFree: profilePricing?.isFree || false,
+                                      signature: result.signature,
+                                      imageUrl: result.metadataUri, // Use metadata URI as image reference
+                                      metadataUri: result.metadataUri
+                                    })
+                                  });
+                                  
+                                  if (recordResponse.ok) {
+                                    const recordData = await recordResponse.json();
+                                    console.log('✅ Profile NFT mint recorded in database:', recordData);
+                                  } else {
+                                    console.warn('⚠️ Failed to record mint in database (non-fatal)');
+                                  }
+                                } catch (error) {
+                                  console.error('Failed to record mint:', error);
+                                  // Non-fatal - continue anyway
+                                }
+
                                 // Mark free mint as used (if this was a free mint)
                                 if (profilePricing?.isFree) {
                                   try {
