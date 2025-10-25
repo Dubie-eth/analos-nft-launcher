@@ -43,6 +43,11 @@ export default function RootLayout({
         <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
+        
+        {/* Tell Solana extensions this is NOT a Solana site */}
+        <meta name="solana:network" content="disabled" />
+        <meta name="solana-actions" content="disabled" />
+        <meta name="blockchain" content="analos" />
       </head>
       <body className={inter.className}>
         <ThemeProvider>

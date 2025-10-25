@@ -109,7 +109,7 @@ export default function CleanMarketplaceCard({
             className="w-full h-full border-0 pointer-events-none"
             style={{ imageRendering: 'pixelated' }}
             title={nft.name}
-            sandbox="allow-same-origin allow-scripts"
+            sandbox="allow-same-origin"
             loading="lazy"
           />
         ) : imageError ? (
