@@ -348,21 +348,22 @@ export default function LosBrosCollectionPage() {
                         Los Bros #{nft.los_bros_token_id || shortenAddress(nft.mint_address)}
                       </h3>
                       <p className="text-sm text-gray-400">
-                        Minted by @{nft.username || shortenAddress(nft.wallet_address)}
+                        Minted by{' '}
+                        <a 
+                          href={`/profile/${nft.wallet_address}`}
+                          className="text-purple-400 hover:text-purple-300 underline font-mono"
+                        >
+                          {shortenAddress(nft.wallet_address)}
+                        </a>
                       </p>
                     </div>
 
-                    {/* Token ID - Clickable */}
+                    {/* Token ID - Just display, not a link */}
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-400">Token ID:</span>
-                      <a 
-                        href={getExplorerUrl(nft.mint_address)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-cyan-400 hover:text-cyan-300 font-mono underline"
-                      >
+                      <span className="text-white font-mono">
                         {nft.los_bros_token_id || shortenAddress(nft.mint_address)}
-                      </a>
+                      </span>
                     </div>
 
                     {/* Rarity Score */}
@@ -383,12 +384,10 @@ export default function LosBrosCollectionPage() {
 
                     {/* View on Explorer Button */}
                     <a
-                      href={getExplorerUrl(nft.los_bros_token_id || nft.mint_address)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/explorer/mints?search=${nft.mint_address}`}
                       className="block w-full text-center bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/50 text-cyan-300 py-2 rounded-lg text-sm font-semibold transition-all"
                     >
-                      🔍 View on Explorer
+                      🔍 View in Mints Explorer
                     </a>
 
                     {/* Metadata Link */}
