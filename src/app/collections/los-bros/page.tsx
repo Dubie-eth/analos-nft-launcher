@@ -212,7 +212,7 @@ export default function LosBrosCollectionPage() {
       <CollectionStatsBanner
         collectionId="los-bros"
         name="LOS BROS"
-        description="2,222 unique pixel art PFPs with over 10,000 trait combinations. #VAPORWAVE on ANALOS."
+        description="2,222 unique pixel art PFPs with 19.6M+ possible trait combinations across 6 categories. #VAPORWAVE on ANALOS."
         bannerImage="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm"
         logoImage="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreibvzv6vs7x6nybnf6sabncen57t4zvdixgdaqo4swmijy2dm7lfkm"
         socials={{
