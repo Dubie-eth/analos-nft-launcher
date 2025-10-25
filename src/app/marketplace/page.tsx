@@ -104,14 +104,20 @@ const MarketplacePage: React.FC = () => {
     nft.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (!price || price === 0) {
+      return 'Not Listed';
+    }
     if (showUSD) {
       return `$${(price * 0.0018).toFixed(2)}`;
     }
     return `${price.toFixed(3)} LOS`;
   };
 
-  const formatChange = (change: number) => {
+  const formatChange = (change: number | null | undefined) => {
+    if (change === null || change === undefined) {
+      return <span className="text-gray-400">—</span>;
+    }
     const isPositive = change >= 0;
     return (
       <span className={`flex items-center ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
