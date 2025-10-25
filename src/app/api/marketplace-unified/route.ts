@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
           listedPercentage: 0, // TODO: Add listing percentage
           owners: 1, // TODO: Add unique owners count
           ownersPercentage: 0, // TODO: Add ownership percentage
-          lastSale: null, // TODO: Add last sale tracking
+          lastSale: null as any, // TODO: Add last sale tracking
           attributes: {
             background: nft.los_bros_traits?.find((t: any) => t.trait_type === 'Background')?.value || 'Unknown',
             rarity: nft.los_bros_rarity,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
           listedPercentage: 0, // TODO: Add listing percentage
           owners: 1, // TODO: Add unique owners count
           ownersPercentage: 0, // TODO: Add ownership percentage
-          lastSale: null, // TODO: Add last sale tracking
+          lastSale: null as any, // TODO: Add last sale tracking
           attributes: {
             background: 'Profile',
             rarity: 'Unique',
