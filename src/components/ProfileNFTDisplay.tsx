@@ -399,8 +399,8 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-gray-400 text-xs">Last Sale</span>
               <div className="text-right">
-                <div className="text-white text-sm font-semibold">{formatPrice(nft.lastSale.price)}</div>
-                <div className="text-gray-400 text-xs">{nft.lastSale.time}</div>
+                <div className="text-white text-sm font-semibold">{formatPrice(nft.lastSale?.price)}</div>
+                <div className="text-gray-400 text-xs">{nft.lastSale?.time || 'N/A'}</div>
               </div>
             </div>
           </div>
