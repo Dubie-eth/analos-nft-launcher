@@ -329,42 +329,101 @@ const LOLWhitelistPromo: React.FC = () => {
         </div>
       </div>
 
-      {/* User Status */}
-      {connected && lolStatus && (
-        <div className="mt-6 p-4 bg-black/30 rounded-lg border border-gray-600">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-lg ${
-                lolStatus.isWhitelisted ? 'bg-green-500/20' : 'bg-gray-500/20'
-              }`}>
-                <Crown className={`w-5 h-5 ${
-                  lolStatus.isWhitelisted ? 'text-green-400' : 'text-gray-400'
-                }`} />
-              </div>
-              <div>
-                <h4 className="text-white font-semibold">
-                  {lolStatus.isWhitelisted ? '🎖️ You are Whitelisted!' : '💎 LOL Token Status'}
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Balance: {lolStatus.balanceFormatted}
-                  {lolStatus.whitelistPosition && ` • Position #${lolStatus.whitelistPosition}`}
-                </p>
-              </div>
+      {/* User Status - Always show, update based on connection */}
+      <div className="mt-6 p-4 bg-black/30 rounded-lg border border-gray-600">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-lg ${
+              connected && lolStatus?.isWhitelisted ? 'bg-green-500/20' : 'bg-blue-500/20'
+            }`}>
+              <Crown className={`w-5 h-5 ${
+                connected && lolStatus?.isWhitelisted ? 'text-green-400' : 'text-blue-400'
+              }`} />
             </div>
+            <div>
+              <h4 className="text-white font-semibold">
+                {!connected 
+                  ? '💎 $LOL Token Status' 
+                  : lolStatus?.isWhitelisted 
+                    ? '🎖️ You are Eligible!' 
+                    : '💎 $LOL Token Status'
+                }
+              </h4>
+              <p className="text-gray-400 text-sm">
+                {!connected 
+                  ? 'Connect wallet to check your eligibility'
+                  : lolStatus 
+                    ? `Balance: ${lolStatus.balanceFormatted}${lolStatus.whitelistPosition ? ` • Position #${lolStatus.whitelistPosition}` : ''}`
+                    : 'Checking balance...'
+                }
+              </p>
+            </div>
+          </div>
+          
+          {/* Status Badge */}
+          {connected && lolStatus && (
             <div className={`px-3 py-1 rounded-full ${
               lolStatus.isWhitelisted 
                 ? 'bg-green-500/20 border border-green-500/50' 
-                : 'bg-gray-500/20 border border-gray-500/50'
+                : lolStatus.balance >= 100000
+                  ? 'bg-blue-500/20 border border-blue-500/50'
+                  : 'bg-gray-500/20 border border-gray-500/50'
             }`}>
               <span className={`text-sm font-semibold ${
-                lolStatus.isWhitelisted ? 'text-green-400' : 'text-gray-400'
+                lolStatus.isWhitelisted 
+                  ? 'text-green-400' 
+                  : lolStatus.balance >= 100000
+                    ? 'text-blue-400'
+                    : 'text-gray-400'
               }`}>
-                {lolStatus.isWhitelisted ? 'ELIGIBLE' : 'CHECK STATUS'}
+                {lolStatus.isWhitelisted 
+                  ? '✅ COMMUNITY' 
+                  : lolStatus.balance >= 100000
+                    ? '💎 EARLY'
+                    : '🌍 PUBLIC'
+                }
               </span>
             </div>
-          </div>
+          )}
+
+          {/* Connect Wallet CTA for non-connected users */}
+          {!connected && (
+            <button
+              onClick={() => {
+                // Trigger wallet connection - the wallet adapter modal will handle it
+                const walletButton = document.querySelector('.wallet-adapter-button');
+                if (walletButton) {
+                  (walletButton as HTMLElement).click();
+                }
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-all"
+            >
+              Connect Wallet
+            </button>
+          )}
         </div>
-      )}
+
+        {/* Detailed tier info when connected */}
+        {connected && lolStatus && (
+          <div className="mt-4 pt-4 border-t border-gray-600">
+            <div className="text-xs text-gray-400">
+              {lolStatus.isWhitelisted ? (
+                <span className="text-green-400">
+                  ✅ You qualify for COMMUNITY tier (1M+ $LOL) - FREE mints with platform fee only!
+                </span>
+              ) : lolStatus.balance >= 100000 ? (
+                <span className="text-blue-400">
+                  💎 You qualify for EARLY SUPPORTER tier (100k+ $LOL) - 50% OFF mints!
+                </span>
+              ) : (
+                <span className="text-gray-400">
+                  🌍 You qualify for PUBLIC SALE tier - Dynamic pricing starting at 4,200.69 $LOS
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Call to Action */}
       <div className="mt-6 text-center">
