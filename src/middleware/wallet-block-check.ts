@@ -40,7 +40,7 @@ export async function getBlockReason(walletAddress: string): Promise<string | nu
       return null;
     }
 
-    return data?.reason || null;
+    return (data?.reason as string | undefined) || null;
   } catch (error) {
     console.error('Error in get block reason:', error);
     return null;
