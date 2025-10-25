@@ -22,6 +22,7 @@ export async function GET(
 
     console.log('🔍 Fetching all NFTs for wallet:', wallet);
 
+    // Initialize Supabase at runtime (lazy initialization)
     const supabase = getSupabaseAdmin();
 
     // Fetch ALL NFTs from database (Profile NFTs + Los Bros)
@@ -86,12 +87,14 @@ export async function GET(
 
   } catch (error: any) {
     console.error('❌ Error in unified user NFTs API:', error);
+    console.error('❌ Error details:', error?.message, error?.stack);
     return NextResponse.json({
       success: true,
       nfts: [],
       profileNFTs: [],
       losBrosNFTs: [],
-      total: 0
+      total: 0,
+      error: error?.message || 'Unknown error'
     });
   }
 }
