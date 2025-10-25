@@ -13,6 +13,16 @@ export default function MintPage() {
   const [mintedNFT, setMintedNFT] = useState<any>(null);
   const [pricing, setPricing] = useState<any>(null);
   const [lolBalance, setLolBalance] = useState(0);
+  const [allocations, setAllocations] = useState<any[]>([]);
+  const [loadingAllocations, setLoadingAllocations] = useState(true);
+  const [previewTraits, setPreviewTraits] = useState<any>(null);
+
+  // Fetch allocations on mount
+  useEffect(() => {
+    fetchAllocations();
+    const interval = setInterval(fetchAllocations, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch SOL balance and pricing
   useEffect(() => {
@@ -47,6 +57,21 @@ export default function MintPage() {
     }
   };
 
+  const fetchAllocations = async () => {
+    try {
+      const response = await fetch('/api/los-bros/allocations');
+      const data = await response.json();
+      if (data.success) {
+        setAllocations(data.allocations || []);
+        console.log('📊 Allocations loaded:', data.allocations);
+      }
+    } catch (error) {
+      console.error('Error fetching allocations:', error);
+    } finally {
+      setLoadingAllocations(false);
+    }
+  };
+
   const fetchPricing = async () => {
     if (!publicKey) return;
     
@@ -77,6 +102,14 @@ export default function MintPage() {
         message: '🌍 Public Sale - Full Price',
       });
     }
+  };
+
+  const generateTraitPreview = () => {
+    // Generate random traits for preview
+    const { generateLosBrosTraits } = require('@/lib/los-bros-minting');
+    const traits = generateLosBrosTraits();
+    setPreviewTraits(traits);
+    console.log('🎲 Generated preview traits:', traits);
   };
 
   const handleMint = async () => {
@@ -251,6 +284,92 @@ export default function MintPage() {
                     <span className="text-gray-300">Balance:</span>
                     <span className="text-green-400 font-semibold">{solBalance.toFixed(4)} SOL</span>
                   </div>
+                </div>
+
+                {/* Live Allocation Tracker */}
+                {!loadingAllocations && allocations.length > 0 && (
+                  <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 rounded-lg p-5 border border-purple-400/30">
+                    <h3 className="text-sm font-bold text-white mb-3">📊 Live Mint Allocation</h3>
+                    <div className="space-y-2">
+                      {allocations.map((alloc: any) => (
+                        <div key={alloc.tier} className="space-y-1">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className={`font-semibold ${
+                              alloc.tier === 'TEAM' ? 'text-yellow-300' :
+                              alloc.tier === 'COMMUNITY' ? 'text-green-300' :
+                              alloc.tier === 'EARLY' ? 'text-blue-300' :
+                              'text-purple-300'
+                            }`}>
+                              {alloc.tier === 'TEAM' ? '🎖️' :
+                               alloc.tier === 'COMMUNITY' ? '🎁' :
+                               alloc.tier === 'EARLY' ? '💎' : '🌍'} {alloc.tier}
+                            </span>
+                            <span className="text-gray-300">
+                              {alloc.minted_count || alloc.live_minted_count || 0} / {alloc.total_allocated}
+                            </span>
+                          </div>
+                          <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all ${
+                                alloc.tier === 'TEAM' ? 'bg-yellow-400' :
+                                alloc.tier === 'COMMUNITY' ? 'bg-green-400' :
+                                alloc.tier === 'EARLY' ? 'bg-blue-400' :
+                                'bg-purple-400'
+                              }`}
+                              style={{ 
+                                width: `${((alloc.minted_count || alloc.live_minted_count || 0) / alloc.total_allocated * 100)}%` 
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Trait Preview/Randomizer */}
+                <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 rounded-lg p-5 border border-blue-400/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-sm font-bold text-white">🎲 Trait Preview</h3>
+                    <button
+                      onClick={generateTraitPreview}
+                      className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg transition-colors"
+                    >
+                      Randomize
+                    </button>
+                  </div>
+                  
+                  {previewTraits ? (
+                    <div className="space-y-2 text-xs">
+                      {previewTraits.attributes.map((trait: any, index: number) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span className="text-gray-400">{trait.trait_type}:</span>
+                          <span className="text-white font-semibold">{trait.value}</span>
+                        </div>
+                      ))}
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">Rarity:</span>
+                          <span className={`font-bold ${
+                            previewTraits.rarity === 'LEGENDARY' ? 'text-yellow-400' :
+                            previewTraits.rarity === 'EPIC' ? 'text-purple-400' :
+                            previewTraits.rarity === 'RARE' ? 'text-blue-400' :
+                            'text-gray-300'
+                          }`}>
+                            {previewTraits.rarity}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-gray-400">Score:</span>
+                          <span className="text-white">{previewTraits.rarityScore.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center py-4">
+                      Click "Randomize" to see a trait preview! 🎯
+                    </p>
+                  )}
                 </div>
 
                 {/* Pricing */}

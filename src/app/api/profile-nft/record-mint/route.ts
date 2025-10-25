@@ -23,7 +23,13 @@ export async function POST(request: NextRequest) {
       losBrosTokenId,
       losBrosRarity,
       discordHandle,
-      telegramHandle
+      telegramHandle,
+      // Los Bros tier tracking
+      losBrosTier,
+      losBrosDiscountPercent,
+      losBrosFinalPrice,
+      losBrosPlatformFee,
+      lolBalanceAtMint
     } = body;
 
     if (!mintAddress || !walletAddress || !username) {
@@ -87,6 +93,12 @@ export async function POST(request: NextRequest) {
         los_bros_rarity: losBrosRarity || null,
         discord_handle: discordHandle || null,
         telegram_handle: telegramHandle || null,
+        // Los Bros tier tracking
+        los_bros_tier: losBrosTier || null,
+        los_bros_discount_percent: losBrosDiscountPercent || 0,
+        los_bros_final_price: losBrosFinalPrice || 0,
+        los_bros_platform_fee: losBrosPlatformFee || 0,
+        lol_balance_at_mint: lolBalanceAtMint || 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -102,6 +114,32 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ Profile NFT mint recorded: #${mintNumber} - @${username} (${mintAddress})`);
+
+    // If Los Bros mint, update allocation count
+    if (losBrosTier && losBrosTokenId) {
+      try {
+        const { error: allocError } = await (supabase
+          .rpc('record_los_bros_mint', {
+            p_wallet_address: walletAddress,
+            p_mint_address: mintAddress,
+            p_tier: losBrosTier,
+            p_lol_balance: lolBalanceAtMint || 0,
+            p_final_price: losBrosFinalPrice || 0,
+            p_discount: losBrosDiscountPercent || 0,
+            p_platform_fee: losBrosPlatformFee || 0
+          }) as any);
+
+        if (allocError) {
+          console.error('⚠️ Error updating allocation count:', allocError);
+          // Don't fail the whole request - mint is already recorded
+        } else {
+          console.log(`✅ Los Bros allocation updated for ${losBrosTier} tier`);
+        }
+      } catch (allocUpdateError) {
+        console.error('⚠️ Exception updating allocation:', allocUpdateError);
+        // Don't fail - mint is recorded
+      }
+    }
 
     return NextResponse.json({
       success: true,
