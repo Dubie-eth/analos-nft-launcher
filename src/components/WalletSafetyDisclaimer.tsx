@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, Shield, Wallet, FileText, Lock, ExternalLink } from 'lucide-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function WalletSafetyDisclaimer() {
+  const { publicKey } = useWallet();
   const [isVisible, setIsVisible] = useState(false);
   const [hasAccepted, setHasAccepted] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
@@ -18,10 +20,27 @@ export default function WalletSafetyDisclaimer() {
     }
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem('analos-safety-disclaimer-accepted', 'true');
+  const handleAccept = async () => {
+    const timestamp = new Date().toISOString();
+    localStorage.setItem('analos-safety-disclaimer-accepted', timestamp);
     setHasAccepted(true);
     setIsVisible(false);
+
+    // Record acceptance in database (async, don't block UX)
+    try {
+      await fetch('/api/legal/record-acceptance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: publicKey?.toString() || 'not-connected',
+          disclaimerType: 'safety_disclaimer',
+          ipAddress: 'client-side', // Server will get real IP
+          userAgent: navigator.userAgent
+        })
+      });
+    } catch (error) {
+      console.error('Failed to record acceptance (non-blocking):', error);
+    }
   };
 
   const handleReopen = () => {

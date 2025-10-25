@@ -35,6 +35,7 @@ import AdminAnalyticsDashboard from '@/components/AdminAnalyticsDashboard';
 import BatchMintAdmin from '@/components/BatchMintAdmin';
 import AdminProfileManager from '@/components/AdminProfileManager';
 import TreasuryManager from '@/components/TreasuryManager';
+import LegalAcceptanceLog from '@/components/LegalAcceptanceLog';
 
 interface CollectionStats {
   name: string;
@@ -87,7 +88,7 @@ export default function AdminDashboard() {
   const [hasCanceledSetup, setHasCanceledSetup] = useState(false);
   
   // State management
-  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'admin-analytics' | 'profile-management' | 'treasury-management' | 'settings'>('matrix-collection');
+  const [activeTab, setActiveTab] = useState<'overview' | 'collections' | 'programs' | 'price-oracle' | 'price-automation' | 'keypair-rotation' | 'backend-test' | 'health-check' | 'program-init' | 'mega-launchpad' | 'user-access' | 'test-simulation' | 'deployed-programs' | 'airdrop-admin' | 'creator-airdrops' | 'platform-fees' | 'legal-log' | 'database-manager' | 'social-verification' | 'feature-management' | 'matrix-collection' | 'batch-mint' | 'admin-analytics' | 'profile-management' | 'treasury-management' | 'settings'>('matrix-collection');
   const [collections, setCollections] = useState<CollectionStats[]>([]);
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalCollections: 0,
@@ -647,6 +648,7 @@ export default function AdminDashboard() {
               { id: 'airdrop-admin', label: 'Airdrop Admin', icon: '🎁' },
               { id: 'creator-airdrops', label: 'Creator Airdrops', icon: '🎨' },
               { id: 'platform-fees', label: 'Platform Fees', icon: '💰' },
+              { id: 'legal-log', label: 'Legal Acceptances', icon: '⚖️' },
               { id: 'database-manager', label: 'Database Manager', icon: '🗄️' },
               { id: 'social-verification', label: 'Social Verification', icon: '🔐' },
               { id: 'test-simulation', label: 'Test & Simulation', icon: '🧪' },
@@ -1117,6 +1119,19 @@ export default function AdminDashboard() {
               </p>
             </div>
             <PlatformFeeAnalytics />
+          </div>
+        )}
+
+        {activeTab === 'legal-log' && (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">⚖️ Legal Acceptance Log</h2>
+              <p className="text-gray-300 max-w-3xl mx-auto">
+                Audit trail of user acknowledgments for disclaimers and terms.
+                Includes wallet address, IP, timestamp, and user agent for compliance.
+              </p>
+            </div>
+            <LegalAcceptanceLog />
           </div>
         )}
 
