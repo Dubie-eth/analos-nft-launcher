@@ -56,31 +56,48 @@ const MarketplacePage: React.FC = () => {
   const [sortBy, setSortBy] = useState('volume');
   const [showUSD, setShowUSD] = useState(false);
   const [showBadged, setShowBadged] = useState(false);
+  const [collectionFilter, setCollectionFilter] = useState('all'); // 'all', 'profile', 'losbros'
+  const [collections, setCollections] = useState<any[]>([]);
+  const [stats, setStats] = useState({ total: 0, profile: 0, losbros: 0 });
 
   useEffect(() => {
     loadProfileNFTs();
-  }, []);
+  }, [collectionFilter, searchTerm]);
 
   const loadProfileNFTs = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/profile-nfts?limit=50');
+      
+      // Build query params
+      const params = new URLSearchParams({
+        limit: '50',
+        type: collectionFilter,
+        search: searchTerm
+      });
+      
+      const response = await fetch(`/api/marketplace-unified?${params}`);
       const result = await response.json();
       
       if (result.success) {
-        setProfileNFTs(result.data.nfts);
+        setProfileNFTs(result.nfts);
+        setCollections(result.collections);
+        setStats(result.stats);
+        console.log(`✅ Loaded ${result.nfts.length} NFTs (${result.stats.profile} Profile + ${result.stats.losbros} Los Bros)`);
       } else {
-        console.error('Error loading profile NFTs:', result.error);
-        // Fallback to empty array
+        console.error('Error loading marketplace NFTs:', result.error);
         setProfileNFTs([]);
-        }
-      } catch (error) {
-      console.error('Error loading profile NFTs:', error);
-      setProfileNFTs([]);
-      } finally {
-        setLoading(false);
+        setCollections([]);
+        setStats({ total: 0, profile: 0, losbros: 0 });
       }
-    };
+    } catch (error) {
+      console.error('Error loading marketplace NFTs:', error);
+      setProfileNFTs([]);
+      setCollections([]);
+      setStats({ total: 0, profile: 0, losbros: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredNFTs = profileNFTs.filter(nft => 
     nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,7 +139,7 @@ const MarketplacePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <h1 className="text-2xl font-bold text-white">Analos Profile NFTs</h1>
+              <h1 className="text-2xl font-bold text-white">Analos Marketplace</h1>
               <div className="flex items-center space-x-4">
                 <button className="px-4 py-2 bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/30">
                   Top
@@ -179,20 +196,31 @@ const MarketplacePage: React.FC = () => {
                   </div>
                 </div>
 
-            <div className="flex items-center space-x-2">
-              {['10M', '1H', '6H', '1D', '7D', '30D'].map((time) => (
-                  <button
-                  key={time}
-                  onClick={() => setTimeFilter(time)}
-                  className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                    timeFilter === time
-                      ? 'bg-purple-500 text-white'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {time}
-                  </button>
-              ))}
+            <div className="flex items-center space-x-4">
+              <select
+                value={collectionFilter}
+                onChange={(e) => setCollectionFilter(e.target.value)}
+                className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm"
+              >
+                <option value="all">All Collections</option>
+                <option value="profile">Profile NFTs</option>
+                <option value="losbros">Los Bros</option>
+              </select>
+              <div className="flex items-center space-x-2">
+                {['10M', '1H', '6H', '1D', '7D', '30D'].map((time) => (
+                    <button
+                    key={time}
+                    onClick={() => setTimeFilter(time)}
+                    className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                      timeFilter === time
+                        ? 'bg-purple-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {time}
+                    </button>
+                ))}
+                    </div>
                   </div>
                 </div>
               </div>

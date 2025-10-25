@@ -86,9 +86,20 @@ export default function MarketplaceNFTCard({
         </div>
       )}
 
+      {/* Collection Type Badge */}
+      <div className="absolute top-4 left-4 z-10">
+        <div className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm ${
+          nft.type === 'losbros' 
+            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white' 
+            : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+        }`}>
+          {nft.type === 'losbros' ? '🎨 Los Bros' : '👤 Profile'}
+        </div>
+      </div>
+
       {/* Owner Badge */}
       {isOwner && (
-        <div className="absolute top-4 left-4 z-10">
+        <div className="absolute top-4 right-4 z-10">
           <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm">
             👤 Your NFT
           </div>
