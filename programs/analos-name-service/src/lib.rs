@@ -175,26 +175,30 @@ pub struct RegisterProfile<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateProfile<'info> {
+    #[account(mut)]
     pub user_wallet: Signer<'info>,
 
     #[account(
         mut,
         seeds = [b"profile", user_wallet.key().as_ref()],
         bump,
-        has_one = user_wallet @ ErrorCode::UnauthorizedOwner
+        has_one = wallet @ ErrorCode::UnauthorizedOwner,
+        constraint = profile_registry.wallet == user_wallet.key() @ ErrorCode::UnauthorizedOwner
     )]
     pub profile_registry: Account<'info, ProfileRegistry>,
 }
 
 #[derive(Accounts)]
 pub struct BurnProfile<'info> {
+    #[account(mut)]
     pub user_wallet: Signer<'info>,
 
     #[account(
         mut,
         seeds = [b"profile", user_wallet.key().as_ref()],
         bump,
-        has_one = user_wallet @ ErrorCode::UnauthorizedOwner
+        has_one = wallet @ ErrorCode::UnauthorizedOwner,
+        constraint = profile_registry.wallet == user_wallet.key() @ ErrorCode::UnauthorizedOwner
     )]
     pub profile_registry: Account<'info, ProfileRegistry>,
 
