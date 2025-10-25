@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     // Insert into profile_nfts table (Los Bros NFTs are stored here)
+    // @ts-ignore - Supabase generated types don't include Los Bros columns yet
     const { data, error } = await supabase
       .from('profile_nfts')
       .insert({
