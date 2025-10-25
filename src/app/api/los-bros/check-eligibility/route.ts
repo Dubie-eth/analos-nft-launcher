@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       tokenBalance: tokenCheck.tokenBalance,
       hasMinted,
       mintCount,
-      existingMints: existingMints || [],
+      existingMints: (existingMints || []) as any[],
       message: !isEligible ? (
         hasMinted ? '❌ You have already minted a Los Bro NFT' :
         !pricing.holdingPeriodMet ? `⏰ Must hold $LOL for 72 hours (currently ${pricing.holdingPeriodHours.toFixed(1)}h)` :
