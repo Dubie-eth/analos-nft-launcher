@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Search, Filter, Star, TrendingUp, TrendingDown, Eye, Users, Coins, Clock } from 'lucide-react';
-import MarketplaceNFTCard from '@/components/MarketplaceNFTCard';
+import CleanMarketplaceCard from '@/components/CleanMarketplaceCard';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -236,7 +236,7 @@ const MarketplacePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredNFTs.map((nft) => (
-            <MarketplaceNFTCard
+            <CleanMarketplaceCard
               key={nft.id}
               nft={nft}
               showUSD={showUSD}
@@ -244,12 +244,8 @@ const MarketplacePage: React.FC = () => {
                 // Navigate to NFT details page
                 window.location.href = `/nft/${nftId}`;
               }}
-              onFavorite={(nftId) => {
-                // Handle favorite toggle
-                console.log('Toggle favorite for NFT:', nftId);
-              }}
               onMarketplaceAction={() => {
-                // Refresh marketplace data after any action
+                // Refresh marketplace after any action
                 loadProfileNFTs();
               }}
             />
