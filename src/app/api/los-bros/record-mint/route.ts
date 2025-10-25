@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
       .insert({
         mint_address: mintAddress,
         wallet_address: walletAddress,
+        username: `losbros_${losBrosTokenId}`, // Generate placeholder username
+        display_name: `Los Bros #${losBrosTokenId}`,
+        bio: `Los Bros #${losBrosTokenId} - ${losBrosRarity || 'COMMON'} rarity`,
         los_bros_token_id: losBrosTokenId,
         los_bros_rarity: losBrosRarity || 'COMMON',
         los_bros_rarity_score: rarityScore || 0,
@@ -73,18 +76,23 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ Error recording Los Bros NFT mint:', error);
+      console.error('❌ Error details:', error);
+      
+      // Return success anyway - NFT was minted on-chain successfully
+      // Database recording is just for display purposes
       return NextResponse.json({
-        success: false,
-        error: 'Failed to record mint in database',
-        details: error.message
-      }, { status: 500 });
+        success: true,
+        message: 'Los Bros NFT minted on-chain (database recording failed)',
+        recorded: false,
+        dbError: error.message
+      });
     }
 
-    // Update allocation count using RPC function
+    // Update allocation count using RPC function (optional - don't fail if it doesn't work)
     if (losBrosTier) {
       try {
         // @ts-ignore - Supabase RPC function
-        const { error: allocError } = await supabase.rpc('record_los_bros_mint', {
+        const { error: allocError } = await (supabase as any).rpc('record_los_bros_mint', {
           p_wallet_address: walletAddress,
           p_mint_address: mintAddress,
           p_tier: losBrosTier,
@@ -95,12 +103,12 @@ export async function POST(request: NextRequest) {
         });
 
         if (allocError) {
-          console.error('⚠️ Error updating allocation count:', allocError);
+          console.warn('⚠️ Allocation update failed (non-critical):', allocError);
         } else {
           console.log(`✅ Los Bros allocation updated for ${losBrosTier} tier`);
         }
-      } catch (allocUpdateError) {
-        console.error('⚠️ Exception updating allocation:', allocUpdateError);
+      } catch (allocUpdateError: any) {
+        console.warn('⚠️ Allocation update exception (non-critical):', allocUpdateError?.message);
       }
     }
 
