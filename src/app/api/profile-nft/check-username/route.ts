@@ -50,13 +50,17 @@ export async function GET(request: NextRequest) {
     if (isSupabaseConfigured) {
       try {
         const supabase = getSupabaseAdmin();
-        const { data: profileNFT } = await (supabase
+        const { data: profileNFT, error: dbError } = await (supabase
           .from('profile_nfts') as any)
           .select('mint_address, wallet_address, username')
           .eq('username', normalizedUsername)
           .single();
 
-        if (profileNFT) {
+        // If there's an error but it's NOT a "no rows" error, skip database check
+        if (dbError && dbError.code !== 'PGRST116') {
+          console.warn('⚠️ Database check failed, treating as available:', dbError);
+          // Continue to fallback logic below
+        } else if (profileNFT) {
           console.log(`❌ Username @${username} is taken by:`, profileNFT.wallet_address);
           return NextResponse.json({
             success: true,
@@ -69,8 +73,9 @@ export async function GET(request: NextRequest) {
             message: `Username @${username} is already taken`
           });
         }
-      } catch (dbError) {
-        console.warn('⚠️ Database check failed, falling back to in-memory cache:', dbError);
+      } catch (dbError: any) {
+        console.warn('⚠️ Database check failed, treating username as available:', dbError?.message || dbError);
+        // Continue to fallback logic below
       }
     }
 
