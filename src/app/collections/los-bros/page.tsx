@@ -216,9 +216,9 @@ export default function LosBrosCollectionPage() {
         bannerImage="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm"
         logoImage="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreibvzv6vs7x6nybnf6sabncen57t4zvdixgdaqo4swmijy2dm7lfkm"
         socials={{
-          twitter: "https://twitter.com/analos",
-          discord: "https://discord.gg/analos",
-          website: "https://onlyanal.fun"
+          twitter: "https://x.com/launchonlos",
+          telegram: "https://t.me/launchonlos",
+          website: "https://launchonlos.fun"
         }}
       />
 

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const detectedUserAgent = request.headers.get('user-agent') || userAgent || 'unknown';
 
     // Record the acceptance
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('legal_acceptances')
       .insert({
         wallet_address: walletAddress,
