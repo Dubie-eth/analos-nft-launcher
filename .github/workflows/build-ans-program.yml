@@ -14,7 +14,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -24,7 +24,7 @@ jobs:
           override: true
 
       - name: Cache Solana Tools
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/solana
@@ -54,7 +54,7 @@ jobs:
           echo "build_date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Upload Program Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: analos-name-service-program
           path: |
