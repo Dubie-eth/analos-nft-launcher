@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { ANALOS_PROGRAMS, ANALOS_RPC_URL, ANALOS_EXPLORER_URLS } from '@/config/analos-programs';
+import PlatformActivityFeed from '@/components/PlatformActivityFeed';
+import NFTHoldersDisplay from '@/components/NFTHoldersDisplay';
 
 interface Transaction {
   signature: string;
@@ -48,7 +50,7 @@ export default function ExplorerPage() {
   const [collectionActivity, setCollectionActivity] = useState<CollectionActivity[]>([]);
   const [programActivity, setProgramActivity] = useState<ProgramActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'transactions' | 'collections' | 'programs'>('transactions');
+  const [selectedTab, setSelectedTab] = useState<'transactions' | 'collections' | 'programs' | 'activity' | 'holders'>('activity');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState<'all' | 'mint' | 'reveal' | 'collection_create' | 'oracle_update' | 'profile_mint'>('all');
 
@@ -327,23 +329,25 @@ export default function ExplorerPage() {
 
         {/* Navigation Tabs */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-8">
-          <div className="flex space-x-2">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
             {[
-              { id: 'transactions', label: 'Recent Transactions', icon: '📄' },
-              { id: 'collections', label: 'Collection Activity', icon: '📦' },
-              { id: 'programs', label: 'Program Activity', icon: '⚙️' }
+              { id: 'activity', label: 'Live Activity', icon: '📊' },
+              { id: 'holders', label: 'Top Holders', icon: '👥' },
+              { id: 'transactions', label: 'Transactions', icon: '📄' },
+              { id: 'collections', label: 'Collections', icon: '📦' },
+              { id: 'programs', label: 'Programs', icon: '⚙️' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setSelectedTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 ${
                   selectedTab === tab.id
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                     : 'text-gray-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 <span>{tab.icon}</span>
-                <span>{tab.label}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>
@@ -687,6 +691,27 @@ export default function ExplorerPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Activity Feed Tab */}
+        {selectedTab === 'activity' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PlatformActivityFeed limit={30} />
+            <div className="space-y-6">
+              <NFTHoldersDisplay collectionType="losbros" limit={10} />
+            </div>
+          </div>
+        )}
+
+        {/* Holders Tab */}
+        {selectedTab === 'holders' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white mb-6">NFT Holders</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <NFTHoldersDisplay collectionType="losbros" limit={20} />
+              <NFTHoldersDisplay collectionType="profile" limit={20} />
+            </div>
           </div>
         )}
       </div>
