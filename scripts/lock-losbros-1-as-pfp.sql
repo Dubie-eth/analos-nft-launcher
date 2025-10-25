@@ -9,17 +9,15 @@
 UPDATE profile_nfts
 SET 
   nft_metadata = jsonb_set(
-    COALESCE(nft_metadata, '{}'::jsonb),
-    '{is_official_pfp}',
-    'true'::jsonb
-  ),
-  nft_metadata = jsonb_set(
-    COALESCE(nft_metadata, '{}'::jsonb),
-    '{locked}',
-    'true'::jsonb
-  ),
-  nft_metadata = jsonb_set(
-    COALESCE(nft_metadata, '{}'::jsonb),
+    jsonb_set(
+      jsonb_set(
+        COALESCE(nft_metadata, '{}'::jsonb),
+        '{is_official_pfp}',
+        'true'::jsonb
+      ),
+      '{locked}',
+      'true'::jsonb
+    ),
     '{locked_reason}',
     '"Official Collection PFP"'::jsonb
   )
