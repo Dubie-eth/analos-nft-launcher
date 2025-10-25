@@ -190,33 +190,54 @@ const HomePage: React.FC = () => {
                       {/* Matrix-style background effect */}
                       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
                       
-                      {/* Featured Los Bro Display */}
+                      {/* Featured Los Bro Display - Pixel Art Style */}
                       <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
-                        {/* Profile Card Style */}
-                        <div className="bg-gradient-to-br from-purple-900/90 to-blue-900/90 rounded-xl p-6 border-2 border-green-400/50 shadow-2xl">
-                          <div className="text-6xl mb-4 filter drop-shadow-lg">🎨</div>
-                          <div className="text-3xl font-bold text-white mb-2 font-mono tracking-wider">
+                        {/* Pixel Art Profile Card */}
+                        <div className="bg-gradient-to-br from-cyan-600 via-purple-600 to-pink-600 rounded-xl p-6 border-4 border-cyan-400 shadow-2xl" style={{imageRendering: 'pixelated'}}>
+                          {/* Pixel Art Los Bro Character */}
+                          <div className="mb-4 relative">
+                            {/* Cap with LOL text */}
+                            <div className="text-center mb-2">
+                              <div className="inline-block bg-gradient-to-r from-cyan-400 to-white px-4 py-2 rounded-sm border-2 border-black">
+                                <span className="font-black text-black text-2xl tracking-wider" style={{fontFamily: 'monospace'}}>LOL</span>
+                              </div>
+                            </div>
+                            {/* Head with gradient */}
+                            <div className="w-32 h-32 mx-auto bg-gradient-to-br from-cyan-400 via-blue-500 to-pink-500 rounded-lg border-4 border-black relative">
+                              {/* Yellow square eyes */}
+                              <div className="absolute top-1/3 left-1/4 w-6 h-6 bg-yellow-400 border-2 border-black">
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-black"></div>
+                              </div>
+                              <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-yellow-400 border-2 border-black">
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-black"></div>
+                              </div>
+                              {/* Mouth */}
+                              <div className="absolute bottom-1/4 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-black"></div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-2xl font-bold text-white mb-2 font-mono tracking-widest" style={{textShadow: '2px 2px 0px rgba(0,0,0,0.5)'}}>
                             LOS BROS
                           </div>
-                          <div className="text-sm text-green-400 font-mono mb-2">#FEATURED</div>
-                          <div className="text-lg text-purple-200 mb-4">LEGENDARY TIER</div>
+                          <div className="text-sm text-cyan-300 font-mono mb-2 font-bold">#VAPORWAVE PFPs</div>
+                          <div className="text-xs text-pink-200 mb-4">PIXEL ART • ANALOS CHAIN</div>
                           
-                          {/* Stats */}
+                          {/* Stats with pixel style */}
                           <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="bg-black/50 rounded p-2 border border-purple-400/30">
-                              <div className="text-gray-400">Supply</div>
-                              <div className="text-white font-bold">2,222</div>
+                            <div className="bg-black/70 rounded-none p-2 border-2 border-cyan-400">
+                              <div className="text-cyan-300 font-mono">SUPPLY</div>
+                              <div className="text-white font-bold text-lg">2,222</div>
                             </div>
-                            <div className="bg-black/50 rounded p-2 border border-green-400/30">
-                              <div className="text-gray-400">Traits</div>
-                              <div className="text-green-400 font-bold">10K+</div>
+                            <div className="bg-black/70 rounded-none p-2 border-2 border-pink-400">
+                              <div className="text-pink-300 font-mono">TRAITS</div>
+                              <div className="text-white font-bold text-lg">10K+</div>
                             </div>
                           </div>
                         </div>
                         
-                        {/* Rarity Badge */}
-                        <div className="mt-4 bg-yellow-400/20 border border-yellow-400 rounded-full px-4 py-1 text-yellow-300 text-sm font-semibold animate-pulse">
-                          ⭐ Featured Collection
+                        {/* Pixel Badge */}
+                        <div className="mt-4 bg-gradient-to-r from-cyan-400 to-pink-400 border-2 border-black px-6 py-2 text-black text-sm font-black animate-pulse" style={{imageRendering: 'pixelated'}}>
+                          ⚡ FEATURED DROP
                         </div>
                       </div>
                       
@@ -383,114 +404,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured: Profile NFT Creation - History in the Making */}
-      <section className="py-20 bg-gradient-to-r from-purple-800/50 to-pink-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold mb-4">
-              🎯 FEATURED COLLECTION
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Create Your 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">
-                {' '}Profile NFT
-              </span>
-            </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
-              Be part of <strong>history in the making</strong> - the first open edition collection on the Analos blockchain. 
-              Create your unique profile card with personalized referral codes, mystery variants, and ultra-rare MF Purrs backgrounds.
-            </p>
-            
-            {/* Live Profile NFT Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
-              <div className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 backdrop-blur-sm rounded-lg p-6 border border-green-400/30 text-center">
-                <div className="text-4xl font-bold text-green-400 mb-2">
-                  {profileNFTStats.loading ? '...' : profileNFTStats.minted.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-300">Minted</div>
-                <div className="text-xs text-green-400 mt-1">✨ Live on Analos</div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-600/20 backdrop-blur-sm rounded-lg p-6 border border-blue-400/30 text-center">
-                <div className="text-4xl font-bold text-blue-400 mb-2">
-                  {profileNFTStats.loading ? '...' : profileNFTStats.remaining.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-300">Remaining</div>
-                <div className="text-xs text-blue-400 mt-1">🎯 Unlimited Supply</div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm rounded-lg p-6 border border-purple-400/30 text-center">
-                <div className="text-4xl font-bold text-purple-400 mb-2">
-                  {profileNFTStats.loading ? '...' : profileNFTStats.whitelistEligible.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-300">Eligible for FREE</div>
-                <div className="text-xs text-purple-400 mt-1">🪙 1M+ $LOL Holders</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left side - Features */}
-            <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="flex items-center mb-3">
-                  <div className="text-2xl mr-3">🎨</div>
-                  <h3 className="text-xl font-bold text-white">Personalized Profile Cards</h3>
-                </div>
-                <p className="text-gray-300">
-                  Create unique profile cards with your banner, avatar, bio, and social links. 
-                  Each card is minted with a sequential number and includes your personalized referral code.
-                </p>
-              </div>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="flex items-center mb-3">
-                  <div className="text-2xl mr-3">🎲</div>
-                  <h3 className="text-xl font-bold text-white">Mystery Variants</h3>
-                </div>
-                <p className="text-gray-300">
-                  Upon minting, the Rarity Oracle determines your variant: Standard (90%), Rare (9%), 
-                  Epic (0.9%), Legendary (0.09%), or ultra-rare Mystery (0.01%).
-                </p>
-              </div>
-              
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="flex items-center mb-3">
-                  <div className="text-2xl mr-3">🌟</div>
-                  <h3 className="text-xl font-bold text-white">MF Purrs Backgrounds</h3>
-                </div>
-                <p className="text-gray-300">
-                  Special 1% chance to receive ultra-rare MF Purrs background layers as a tribute 
-                  to the legendary collection. These cards feature the #mfpurr hashtag.
-                </p>
-              </div>
-            </div>
-            
-            {/* Right side - CTA */}
-            <div className="text-center">
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-                <div className="text-6xl mb-4">🚀</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Start Your Journey</h3>
-                <p className="text-gray-300 mb-6">
-                  Mint your profile NFT for just <span className="text-green-400 font-bold">4.2 LOS</span> and 
-                  become part of the first open edition collection on Analos.
-                </p>
-                <div className="space-y-3">
-                  <Link 
-                    href="/profile" 
-                    className="block w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
-                  >
-                    Create Profile NFT
-                  </Link>
-                  <p className="text-sm text-gray-400">
-                    Open Edition • No Supply Limit • History in the Making
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <section className="py-20">
