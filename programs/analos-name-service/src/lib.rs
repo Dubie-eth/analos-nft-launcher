@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-// This will be replaced with your actual program ID after deployment
+// This will be replaced with your actual program ID after deployment on Analos
 declare_id!("11111111111111111111111111111111");
 
 #[program]
