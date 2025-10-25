@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       .map((nft: any) => ({
         mint: nft.mint_address,
         name: `Los Bros #${nft.los_bros_token_id}`,
-        image: `/api/los-bros/generate-image?tokenId=${nft.los_bros_token_id}`,
+        image: `/api/los-bros/composite-image?tokenId=${nft.los_bros_token_id}`,
         type: 'losbros',
         tokenId: nft.los_bros_token_id,
         rarity: nft.los_bros_rarity,

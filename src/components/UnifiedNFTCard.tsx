@@ -55,14 +55,25 @@ export default function UnifiedNFTCard({
 
       {/* NFT Image */}
       <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-purple-900 to-blue-900">
-        <img
-          src={nft.image}
-          alt={nft.name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            e.currentTarget.src = '/api/placeholder/400/400';
-          }}
-        />
+        {isLosBros && nft.traits ? (
+          // Use iframe for trait-based composite images
+          <iframe
+            src={nft.image}
+            className="w-full h-full border-0"
+            style={{ imageRendering: 'pixelated' }}
+            title={nft.name}
+          />
+        ) : (
+          // Use regular img for Profile NFTs or fallback SVGs
+          <img
+            src={nft.image}
+            alt={nft.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = '/api/placeholder/400/400';
+            }}
+          />
+        )}
       </div>
 
       {/* NFT Info */}
