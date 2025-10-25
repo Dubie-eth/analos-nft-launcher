@@ -181,70 +181,18 @@ const HomePage: React.FC = () => {
             
             <div className="flex flex-col md:flex-row items-center gap-8">
               
-              {/* Left: Featured Los Bro PFP - Full Pixel Art */}
+              {/* Left: Featured Los Bro PFP - Actual Image */}
               <div className="md:w-1/2">
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-cyan-400 relative group" style={{imageRendering: 'pixelated'}}>
-                  {/* Vaporwave Horizontal Striped Background (matching actual PFP) */}
-                  <div className="absolute inset-0" style={{
-                    background: 'repeating-linear-gradient(0deg, #00BFFF 0px, #00BFFF 12px, #87CEEB 12px, #87CEEB 24px, #FF1493 24px, #FF1493 36px, #BA55D3 36px, #BA55D3 48px, #4B0082 48px, #4B0082 60px)'
-                  }}></div>
+                <div className="aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-cyan-400 relative group">
+                  {/* Actual Los Bros PFP Image */}
+                  <img 
+                    src="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreibvzv6vs7x6nybnf6sabncen57t4zvdixgdaqo4swmijy2dm7lfkm"
+                    alt="Los Bros Featured NFT"
+                    className="w-full h-full object-cover"
+                    style={{imageRendering: 'pixelated'}}
+                  />
                   
-                  {/* Pixel Art Los Bro Character */}
-                  <div className="relative z-10 h-full flex flex-col items-center justify-center p-8">
-                    
-                    {/* Baseball Cap with LOL */}
-                    <div className="mb-3">
-                      <div className="bg-white px-6 py-3 border-4 border-black inline-block" style={{imageRendering: 'pixelated'}}>
-                        <div className="text-4xl font-black text-black tracking-wider" style={{fontFamily: 'monospace'}}>
-                          LOL
-                        </div>
-                      </div>
-                      <div className="w-24 h-3 bg-cyan-400 border-4 border-black mx-auto -mt-1"></div>
-                    </div>
-                    
-                    {/* Head with vaporwave gradient */}
-                    <div className="w-48 h-48 bg-gradient-to-br from-cyan-400 via-blue-500 to-pink-500 border-4 border-black relative mb-4">
-                      {/* Yellow square eyes */}
-                      <div className="absolute top-16 left-10 w-10 h-10 bg-yellow-400 border-4 border-black">
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-black"></div>
-                      </div>
-                      <div className="absolute top-16 right-10 w-10 h-10 bg-yellow-400 border-4 border-black">
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-black"></div>
-                      </div>
-                      {/* Simple mouth line */}
-                      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-16 h-2 bg-black"></div>
-                    </div>
-                    
-                    {/* Pink/Purple Jacket */}
-                    <div className="w-56 h-20 bg-gradient-to-r from-pink-500 to-purple-500 border-4 border-black relative">
-                      {/* Checkered zipper down middle */}
-                      <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-6 flex flex-col">
-                        <div className="h-5 bg-white border border-black"></div>
-                        <div className="h-5 bg-blue-400 border border-black"></div>
-                        <div className="h-5 bg-white border border-black"></div>
-                        <div className="h-5 bg-blue-400 border border-black"></div>
-                      </div>
-                      {/* White/cyan shoulder stripes */}
-                      <div className="absolute top-0 left-4 w-8 h-full bg-white border-2 border-black"></div>
-                      <div className="absolute top-0 left-12 w-4 h-full bg-cyan-400"></div>
-                      <div className="absolute top-0 right-4 w-8 h-full bg-white border-2 border-black"></div>
-                      <div className="absolute top-0 right-12 w-4 h-full bg-cyan-400"></div>
-                    </div>
-                    
-                    {/* Los Bros Title */}
-                    <div className="mt-6 text-center">
-                      <div className="text-4xl font-black text-white mb-1" style={{
-                        textShadow: '3px 3px 0px rgba(138, 43, 226, 0.8), -1px -1px 0px rgba(0,0,0,0.5)',
-                        fontFamily: 'monospace',
-                        letterSpacing: '0.15em'
-                      }}>
-                        LOS BROS
-                      </div>
-                      <div className="text-sm text-cyan-300 font-bold">#VAPORWAVE • 2,222 SUPPLY</div>
-                    </div>
-                  </div>
-                  
-                  {/* Pixel Badge */}
+                  {/* Overlay Badge */}
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-cyan-400 via-pink-400 to-cyan-400 border-4 border-black px-8 py-3 animate-pulse">
                     <span className="text-black text-lg font-black tracking-wider" style={{fontFamily: 'monospace'}}>⚡ LIVE NOW ⚡</span>
                   </div>
@@ -268,14 +216,14 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Pricing Tiers */}
+                {/* Pricing Tiers - Updated Structure */}
                 <div className="bg-black/40 rounded-xl p-6 space-y-3">
                   <h3 className="text-xl font-bold text-white mb-4">💎 Whitelist Pricing</h3>
                   
                   <div className="flex justify-between items-center p-3 bg-yellow-900/30 border border-yellow-400/30 rounded-lg">
                     <div>
                       <div className="text-yellow-300 font-semibold">🎖️ Team</div>
-                      <div className="text-xs text-gray-400">50 mints</div>
+                      <div className="text-xs text-gray-400">50 mints • No requirements</div>
                     </div>
                     <div className="text-green-400 font-bold">FREE</div>
                   </div>
@@ -283,32 +231,51 @@ const HomePage: React.FC = () => {
                   <div className="flex justify-between items-center p-3 bg-green-900/30 border border-green-400/30 rounded-lg">
                     <div>
                       <div className="text-green-300 font-semibold">🎁 Community (1M+ $LOL)</div>
-                      <div className="text-xs text-gray-400">500 mints • {profileNFTStats.whitelistEligible} eligible</div>
+                      <div className="text-xs text-gray-400">500 mints • Hold 72h • {profileNFTStats.whitelistEligible} eligible</div>
                     </div>
-                    <div className="text-green-400 font-bold">290 LOS</div>
+                    <div>
+                      <div className="text-green-400 font-bold text-right">FREE*</div>
+                      <div className="text-xs text-gray-400">*Platform fee only</div>
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-center p-3 bg-blue-900/30 border border-blue-400/30 rounded-lg">
                     <div>
                       <div className="text-blue-300 font-semibold">💎 Early (100k+ $LOL)</div>
-                      <div className="text-xs text-gray-400">150 mints</div>
+                      <div className="text-xs text-gray-400">150 mints • Hold 72h • 50% OFF</div>
                     </div>
-                    <div className="text-blue-400 font-bold">2,100 LOS</div>
+                    <div className="text-blue-400 font-bold">50% OFF</div>
                   </div>
 
                   <div className="flex justify-between items-center p-3 bg-purple-900/30 border border-purple-400/30 rounded-lg">
                     <div>
                       <div className="text-purple-300 font-semibold">🌍 Public Sale</div>
-                      <div className="text-xs text-gray-400">1,522 mints</div>
+                      <div className="text-xs text-gray-400">1,522 mints • Dynamic pricing</div>
                     </div>
-                    <div className="text-white font-bold">4,200.69 LOS</div>
+                    <div>
+                      <div className="text-white font-bold text-right">4,200.69 LOS</div>
+                      <div className="text-xs text-yellow-300">+6.9% per mint</div>
+                    </div>
+                  </div>
+
+                  {/* Anti-Bot Notice */}
+                  <div className="mt-4 p-3 bg-cyan-900/20 border border-cyan-400/40 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="text-cyan-400 text-lg">🛡️</div>
+                      <div>
+                        <div className="text-cyan-300 font-semibold text-sm">Anti-Bot Protection</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Free & discounted tiers require 72-hour $LOL holding period to prevent bot farming
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link 
-                    href="/mint"
+                    href="/collections/los-bros"
                     className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-xl text-center"
                   >
                     🎨 Mint Los Bro NFT
