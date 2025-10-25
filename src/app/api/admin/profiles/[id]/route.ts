@@ -56,6 +56,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabase = getSupabaseAdmin();
   try {
     const resolvedParams = await params;
     const { error } = await supabase
