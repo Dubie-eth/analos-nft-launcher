@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
           id: nft.mint_address,
           mint: nft.mint_address,
           name: `Los Bros #${nft.los_bros_token_id}`,
-          image: `/api/los-bros/generate-image?tokenId=${nft.los_bros_token_id}`,
+          image: `/api/los-bros/composite-image?tokenId=${nft.los_bros_token_id}`,
           description: `Los Bros #${nft.los_bros_token_id} - ${nft.los_bros_rarity} rarity PFP`,
           collection: 'Los Bros',
           collectionType: 'losbros',
