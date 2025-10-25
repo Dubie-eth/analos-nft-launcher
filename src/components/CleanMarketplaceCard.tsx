@@ -39,13 +39,20 @@ export default function CleanMarketplaceCard({
 
   const loadListingInfo = async () => {
     try {
-      const response = await fetch(`/api/marketplace/nft-details/${nft.id}`);
+      // Use mint address instead of UUID for the API call
+      const mintAddress = nft.mintAddress || nft.mint_address || nft.id;
+      const response = await fetch(`/api/marketplace/nft-details/${mintAddress}`);
+      if (!response.ok) {
+        // Silently fail if API doesn't exist yet
+        return;
+      }
       const result = await response.json();
       if (result.success) {
         setListingInfo(result.data);
       }
     } catch (error) {
-      console.error('Error loading listing info:', error);
+      // Silently fail - marketplace listing features are optional
+      console.debug('Listing info not available:', error);
     }
   };
 
@@ -95,26 +102,33 @@ export default function CleanMarketplaceCard({
 
       {/* NFT Image */}
       <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-purple-900 to-blue-900 cursor-pointer" onClick={() => onViewDetails?.(nft.id)}>
-        {isLosBros ? (
-          // Use iframe for Los Bros composite images
+        {isLosBros && displayImage.includes('/api/los-bros/composite-image') ? (
+          // Use iframe for Los Bros composite HTML images
           <iframe
             src={displayImage}
-            className="w-full h-full border-0"
+            className="w-full h-full border-0 pointer-events-none"
             style={{ imageRendering: 'pixelated' }}
             title={nft.name}
-            sandbox="allow-same-origin"
+            sandbox="allow-same-origin allow-scripts"
+            loading="lazy"
           />
+        ) : imageError ? (
+          <div className="w-full h-full flex items-center justify-center text-white/50">
+            <div className="text-center p-4">
+              <div className="text-4xl mb-2">🖼️</div>
+              <div className="text-sm">Image unavailable</div>
+            </div>
+          </div>
         ) : (
-          // Use regular img for Profile NFTs
           <img
             src={displayImage}
             alt={nft.name}
             className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
             style={{ imageRendering: 'pixelated' }}
+            loading="lazy"
             onError={(e) => {
               if (!imageError) {
                 setImageError(true);
-                e.currentTarget.src = '/api/placeholder/400/400';
               }
             }}
           />

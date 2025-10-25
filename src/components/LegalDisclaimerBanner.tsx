@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import Link from 'next/link';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function LegalDisclaimerBanner() {
+  const { publicKey } = useWallet();
   const [showBanner, setShowBanner] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -17,10 +19,27 @@ export default function LegalDisclaimerBanner() {
     }
   }, []);
 
-  const handleDismiss = () => {
-    localStorage.setItem('legal-disclaimer-dismissed', 'true');
+  const handleDismiss = async () => {
+    const timestamp = new Date().toISOString();
+    localStorage.setItem('legal-disclaimer-dismissed', timestamp);
     setShowBanner(false);
     setIsDismissed(true);
+
+    // Record acknowledgment in database (async, don't block UX)
+    try {
+      await fetch('/api/legal/record-acceptance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletAddress: publicKey?.toString() || 'not-connected',
+          disclaimerType: 'legal_banner',
+          ipAddress: 'client-side', // Server will get real IP
+          userAgent: navigator.userAgent
+        })
+      });
+    } catch (error) {
+      console.error('Failed to record banner acknowledgment (non-blocking):', error);
+    }
   };
 
   if (!showBanner) {

@@ -114,24 +114,21 @@ function generateCompositeHTML(tokenId: string, traits: any[]): string {
       width: 100%; 
       height: 100%; 
       overflow: hidden;
-      background: #000;
+      background: transparent;
     }
     #container {
       width: 100%;
       height: 100%;
       position: relative;
       background: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     .layer {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 100%;
-      max-height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
@@ -141,7 +138,7 @@ function generateCompositeHTML(tokenId: string, traits: any[]): string {
 <body>
   <div id="container">
     ${layers.map((layer, index) => `
-      <img src="${layer}" class="layer" alt="Trait ${index}" />
+      <img src="${layer}" class="layer" alt="Layer ${index}" loading="eager" />
     `).join('')}
   </div>
 </body>
