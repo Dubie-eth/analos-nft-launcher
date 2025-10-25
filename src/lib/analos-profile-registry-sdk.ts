@@ -228,7 +228,7 @@ export class AnalosProfileRegistrySDK {
         return null;
       }
 
-      return ProfileRegistryData.deserialize(accountInfo.data);
+      return deserializeProfileRegistry(accountInfo.data);
     } catch (error) {
       console.error('Error fetching profile:', error);
       return null;
@@ -315,24 +315,22 @@ export class AnalosProfileRegistrySDK {
   }
 }
 
-// Helper class for deserialization
-class ProfileRegistryData {
-  version!: number;
-  wallet!: PublicKey;
-  username!: string;
-  profileNftMint!: PublicKey;
-  losBrosMint!: PublicKey | null;
-  tier!: number;
-  createdAt!: number;
-  updatedAt!: number;
-  isActive!: boolean;
-
-  static deserialize(data: Buffer): ProfileRegistryData {
-    // Simple deserialization (you'd use borsh in production)
-    const profile = new ProfileRegistryData();
-    // TODO: Implement proper borsh deserialization
-    return profile;
-  }
+// Helper function for deserialization
+function deserializeProfileRegistry(data: Buffer): ProfileRegistryData {
+  // Simple deserialization (you'd use borsh in production)
+  // TODO: Implement proper borsh deserialization
+  const profile: ProfileRegistryData = {
+    version: 1,
+    wallet: PublicKey.default,
+    username: '',
+    profileNftMint: PublicKey.default,
+    losBrosMint: null,
+    tier: 0,
+    createdAt: 0,
+    updatedAt: 0,
+    isActive: false,
+  };
+  return profile;
 }
 
 class UsernameRegistryData {
