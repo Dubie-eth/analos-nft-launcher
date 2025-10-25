@@ -68,6 +68,26 @@ const LOLWhitelistPromo: React.FC = () => {
     if (!publicKey) return;
 
     try {
+      // Check if user is a team wallet first
+      const { TEAM_WALLETS } = await import('@/config/los-bros-pricing');
+      const isTeamWallet = TEAM_WALLETS.includes(publicKey.toString());
+      
+      if (isTeamWallet) {
+        // Team wallet gets special status
+        setLolStatus({
+          balance: 0,
+          balanceFormatted: 'TEAM MEMBER',
+          isWhitelisted: true,
+          whitelistPosition: 0,
+          eligibleForDiscount: true,
+          discountPercent: 100,
+          finalPrice: 0
+        });
+        console.log('🎖️ Team wallet detected:', publicKey.toString());
+        return;
+      }
+
+      // Check regular LOL balance for non-team wallets
       const connection = new Connection('https://rpc.analos.io', 'confirmed');
       const checker = new LOLTokenChecker(connection);
       const status = await checker.checkLOLBalance(publicKey.toString());
@@ -363,24 +383,30 @@ const LOLWhitelistPromo: React.FC = () => {
           {/* Status Badge */}
           {connected && lolStatus && (
             <div className={`px-3 py-1 rounded-full ${
-              lolStatus.isWhitelisted 
-                ? 'bg-green-500/20 border border-green-500/50' 
-                : lolStatus.balance >= 100000
-                  ? 'bg-blue-500/20 border border-blue-500/50'
-                  : 'bg-gray-500/20 border border-gray-500/50'
+              lolStatus.balanceFormatted === 'TEAM MEMBER'
+                ? 'bg-yellow-500/20 border border-yellow-500/50'
+                : lolStatus.isWhitelisted 
+                  ? 'bg-green-500/20 border border-green-500/50' 
+                  : lolStatus.balance >= 100000
+                    ? 'bg-blue-500/20 border border-blue-500/50'
+                    : 'bg-gray-500/20 border border-gray-500/50'
             }`}>
               <span className={`text-sm font-semibold ${
-                lolStatus.isWhitelisted 
-                  ? 'text-green-400' 
-                  : lolStatus.balance >= 100000
-                    ? 'text-blue-400'
-                    : 'text-gray-400'
+                lolStatus.balanceFormatted === 'TEAM MEMBER'
+                  ? 'text-yellow-400'
+                  : lolStatus.isWhitelisted 
+                    ? 'text-green-400' 
+                    : lolStatus.balance >= 100000
+                      ? 'text-blue-400'
+                      : 'text-gray-400'
               }`}>
-                {lolStatus.isWhitelisted 
-                  ? '✅ COMMUNITY' 
-                  : lolStatus.balance >= 100000
-                    ? '💎 EARLY'
-                    : '🌍 PUBLIC'
+                {lolStatus.balanceFormatted === 'TEAM MEMBER'
+                  ? '🎖️ TEAM' 
+                  : lolStatus.isWhitelisted 
+                    ? '✅ COMMUNITY' 
+                    : lolStatus.balance >= 100000
+                      ? '💎 EARLY'
+                      : '🌍 PUBLIC'
                 }
               </span>
             </div>
@@ -406,8 +432,12 @@ const LOLWhitelistPromo: React.FC = () => {
         {/* Detailed tier info when connected */}
         {connected && lolStatus && (
           <div className="mt-4 pt-4 border-t border-gray-600">
-            <div className="text-xs text-gray-400">
-              {lolStatus.isWhitelisted ? (
+            <div className="text-xs">
+              {lolStatus.balanceFormatted === 'TEAM MEMBER' ? (
+                <span className="text-yellow-400">
+                  🎖️ You qualify for TEAM tier - 50 FREE mints (no platform fee)!
+                </span>
+              ) : lolStatus.isWhitelisted ? (
                 <span className="text-green-400">
                   ✅ You qualify for COMMUNITY tier (1M+ $LOL) - FREE mints with platform fee only!
                 </span>
