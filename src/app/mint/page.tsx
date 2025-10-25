@@ -11,12 +11,15 @@ export default function MintPage() {
   const [totalMinted, setTotalMinted] = useState(0);
   const [showReveal, setShowReveal] = useState(false);
   const [mintedNFT, setMintedNFT] = useState<any>(null);
+  const [pricing, setPricing] = useState<any>(null);
+  const [lolBalance, setLolBalance] = useState(0);
 
-  // Fetch SOL balance
+  // Fetch SOL balance and pricing
   useEffect(() => {
     if (connected && publicKey) {
       fetchBalance();
       fetchMintCount();
+      fetchPricing();
     }
   }, [connected, publicKey]);
 
@@ -41,6 +44,38 @@ export default function MintPage() {
       setTotalMinted(data.mintedCount || 0);
     } catch (error) {
       console.error('Error fetching mint count:', error);
+    }
+  };
+
+  const fetchPricing = async () => {
+    if (!publicKey) return;
+    
+    try {
+      // Check $LOL token balance
+      const { tokenGatingService } = await import('@/lib/token-gating-service');
+      const result = await tokenGatingService.checkEligibility(publicKey.toString());
+      
+      setLolBalance(result.tokenBalance || 0);
+      
+      // Calculate pricing
+      const { calculateLosBrosPricing } = await import('@/config/los-bros-pricing');
+      const pricingInfo = calculateLosBrosPricing(publicKey.toString(), result.tokenBalance || 0);
+      
+      setPricing(pricingInfo);
+      console.log('💰 Los Bros Pricing:', pricingInfo);
+    } catch (error) {
+      console.error('Error fetching pricing:', error);
+      // Default to public pricing
+      setPricing({
+        tier: 'PUBLIC',
+        basePrice: 4200.69,
+        discount: 0,
+        finalPrice: 4200.69,
+        platformFee: 290.05,
+        isFree: false,
+        tokenBalance: 0,
+        message: '🌍 Public Sale - Full Price',
+      });
     }
   };
 
@@ -219,24 +254,68 @@ export default function MintPage() {
                 </div>
 
                 {/* Pricing */}
-                <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-lg p-6 border border-purple-400/30">
-                  <div className="text-center mb-4">
-                    <div className="text-sm text-gray-300 mb-1">Mint Price</div>
-                    <div className="text-4xl font-bold text-white">0.069 SOL</div>
-                    <div className="text-xs text-gray-400 mt-1">+ small transaction fee</div>
-                  </div>
-                  
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between text-gray-300">
-                      <span>Base Price:</span>
-                      <span>0.069 SOL</span>
+                {pricing ? (
+                  <div className={`rounded-lg p-6 border ${
+                    pricing.tier === 'TEAM' ? 'bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border-yellow-400/30' :
+                    pricing.tier === 'COMMUNITY' ? 'bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-400/30' :
+                    pricing.tier === 'EARLY' ? 'bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-blue-400/30' :
+                    'bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-purple-400/30'
+                  }`}>
+                    <div className="text-center mb-4">
+                      <div className="text-xs text-gray-300 mb-1">Your Tier</div>
+                      <div className="text-2xl font-bold text-white mb-2">{pricing.tier}</div>
+                      <div className="text-sm text-gray-300 mb-3">{pricing.message}</div>
+                      
+                      {pricing.discount > 0 && (
+                        <div className="inline-block bg-green-900/50 border border-green-400/50 rounded-full px-4 py-1 text-green-300 text-sm font-semibold mb-2">
+                          {pricing.discount}% OFF! 🎉
+                        </div>
+                      )}
+                      
+                      <div className="text-4xl font-bold text-white mt-2">
+                        {pricing.isFree && pricing.platformFee === 0 ? (
+                          <span className="text-green-400">FREE! 🎁</span>
+                        ) : (
+                          `${pricing.finalPrice.toFixed(2)} LOS`
+                        )}
+                      </div>
+                      {pricing.platformFee > 0 && !pricing.isFree && (
+                        <div className="text-xs text-gray-400 mt-1">+ {pricing.platformFee.toFixed(2)} LOS platform fee</div>
+                      )}
                     </div>
-                    <div className="flex justify-between text-gray-300">
-                      <span>Platform Fee (6.9%):</span>
-                      <span>Included</span>
+                    
+                    <div className="space-y-2 text-xs">
+                      {pricing.discount > 0 && (
+                        <div className="flex justify-between text-gray-400 line-through">
+                          <span>Base Price:</span>
+                          <span>{pricing.basePrice.toFixed(2)} LOS</span>
+                        </div>
+                      )}
+                      {pricing.discount > 0 && pricing.discount < 100 && (
+                        <div className="flex justify-between text-green-400">
+                          <span>Your Price ({pricing.discount}% off):</span>
+                          <span>{pricing.finalPrice.toFixed(2)} LOS</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-gray-300">
+                        <span>Platform Fee (6.9%):</span>
+                        <span>{pricing.platformFee.toFixed(2)} LOS</span>
+                      </div>
+                      {lolBalance > 0 && (
+                        <div className="flex justify-between text-blue-300 mt-2 pt-2 border-t border-gray-600">
+                          <span>🪙 Your $LOL:</span>
+                          <span className="font-semibold">{lolBalance.toLocaleString()}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-lg p-6 border border-purple-400/30">
+                    <div className="text-center">
+                      <div className="animate-pulse text-gray-300">Loading pricing...</div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Rarity Info */}
                 <div className="bg-black/30 rounded-lg p-4 space-y-2 text-sm">

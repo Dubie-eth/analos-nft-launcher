@@ -174,6 +174,113 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Featured: Los Bros NFT Launch */}
+      <section className="py-16 bg-gradient-to-br from-purple-900/30 via-pink-900/30 to-orange-900/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl p-8 md:p-12 border-2 border-purple-400/30 backdrop-blur-sm">
+            
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              
+              {/* Left: Image Preview */}
+              <div className="md:w-1/2">
+                <div className="aspect-square bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                  <div className="text-center text-white p-8">
+                    <div className="text-8xl mb-4">🎨</div>
+                    <div className="text-3xl font-bold mb-2">Los Bros</div>
+                    <div className="text-xl text-purple-200">2,222 Unique PFPs</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Info */}
+              <div className="md:w-1/2 space-y-6">
+                <div>
+                  <div className="inline-block bg-yellow-400/20 border border-yellow-400 rounded-full px-4 py-1 text-yellow-300 text-sm font-semibold mb-4">
+                    🔥 FEATURED LAUNCH
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Los Bros NFT Collection
+                  </h2>
+                  <p className="text-lg text-gray-300 mb-6">
+                    2,222 unique generative PFPs launching on Analos blockchain. Over 10,000 possible trait combinations with dynamic rarity system.
+                  </p>
+                </div>
+
+                {/* Pricing Tiers */}
+                <div className="bg-black/40 rounded-xl p-6 space-y-3">
+                  <h3 className="text-xl font-bold text-white mb-4">💎 Whitelist Pricing</h3>
+                  
+                  <div className="flex justify-between items-center p-3 bg-yellow-900/30 border border-yellow-400/30 rounded-lg">
+                    <div>
+                      <div className="text-yellow-300 font-semibold">🎖️ Team</div>
+                      <div className="text-xs text-gray-400">50 mints</div>
+                    </div>
+                    <div className="text-green-400 font-bold">FREE</div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-green-900/30 border border-green-400/30 rounded-lg">
+                    <div>
+                      <div className="text-green-300 font-semibold">🎁 Community (1M+ $LOL)</div>
+                      <div className="text-xs text-gray-400">500 mints • {profileNFTStats.whitelistEligible} eligible</div>
+                    </div>
+                    <div className="text-green-400 font-bold">290 LOS</div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-blue-900/30 border border-blue-400/30 rounded-lg">
+                    <div>
+                      <div className="text-blue-300 font-semibold">💎 Early (100k+ $LOL)</div>
+                      <div className="text-xs text-gray-400">150 mints</div>
+                    </div>
+                    <div className="text-blue-400 font-bold">2,100 LOS</div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-purple-900/30 border border-purple-400/30 rounded-lg">
+                    <div>
+                      <div className="text-purple-300 font-semibold">🌍 Public Sale</div>
+                      <div className="text-xs text-gray-400">1,522 mints</div>
+                    </div>
+                    <div className="text-white font-bold">4,200.69 LOS</div>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link 
+                    href="/mint"
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-xl text-center"
+                  >
+                    🎨 Mint Los Bro NFT
+                  </Link>
+                  <Link 
+                    href="/marketplace"
+                    className="flex-1 bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-lg font-bold text-lg transition-all text-center"
+                  >
+                    🏪 View Marketplace
+                  </Link>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-4 pt-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{profileNFTStats.minted}</div>
+                    <div className="text-xs text-gray-400">Minted</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{profileNFTStats.remaining}</div>
+                    <div className="text-xs text-gray-400">Remaining</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-400">69%</div>
+                    <div className="text-xs text-gray-400">Rare+</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* LOL Token Holder Benefits */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
