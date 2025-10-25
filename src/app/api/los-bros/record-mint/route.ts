@@ -56,13 +56,13 @@ export async function POST(request: NextRequest) {
         username: `losbros_${losBrosTokenId}`, // Generate placeholder username
         display_name: `Los Bros #${losBrosTokenId}`,
         bio: `Los Bros #${losBrosTokenId} - ${losBrosRarity || 'COMMON'} rarity`,
+        referral_code: `LOSBROS${losBrosTokenId.toString().slice(0, 1)}`, // Generate referral code
         los_bros_token_id: losBrosTokenId,
         los_bros_rarity: losBrosRarity || 'COMMON',
         los_bros_rarity_score: rarityScore || 0,
         los_bros_traits: traits || [],
         transaction_signature: signature,
         metadata_uri: metadataUri,
-        image_url: `/api/los-bros/generate-image?tokenId=${losBrosTokenId}`,
         // Tier tracking
         los_bros_tier: losBrosTier || 'PUBLIC',
         los_bros_discount_percent: losBrosDiscountPercent || 0,

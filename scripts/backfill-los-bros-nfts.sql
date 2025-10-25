@@ -1,7 +1,7 @@
 -- Backfill Los Bros NFTs that were minted but not recorded
 -- Run this in Supabase SQL Editor
 
--- Los Bros #917
+-- Insert all 3 Los Bros in one query
 INSERT INTO profile_nfts (
   mint_address,
   wallet_address,
@@ -15,9 +15,10 @@ INSERT INTO profile_nfts (
   los_bros_final_price,
   los_bros_discount_percent,
   lol_balance_at_mint,
-  image_url,
   created_at
-) VALUES (
+) VALUES 
+-- Los Bros #917
+(
   '6KzfgpHcv6VUewc1gpz4XYLNgns2iTbzUJDzoqmPvK4k',
   '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
   'losbros_917',
@@ -30,28 +31,10 @@ INSERT INTO profile_nfts (
   0,
   100,
   1140000,
-  '/api/los-bros/generate-image?tokenId=917',
   NOW()
-)
-ON CONFLICT (mint_address) DO NOTHING;
-
+),
 -- Los Bros #53
-INSERT INTO profile_nfts (
-  mint_address,
-  wallet_address,
-  username,
-  display_name,
-  bio,
-  los_bros_token_id,
-  los_bros_rarity,
-  los_bros_rarity_score,
-  los_bros_tier,
-  los_bros_final_price,
-  los_bros_discount_percent,
-  lol_balance_at_mint,
-  image_url,
-  created_at
-) VALUES (
+(
   '2YcXRwznszVihzB43p6qgYvEaCybTsTHq9afXuMSd3Tc',
   '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
   'losbros_53',
@@ -64,7 +47,22 @@ INSERT INTO profile_nfts (
   0,
   100,
   1140000,
-  '/api/los-bros/generate-image?tokenId=53',
+  NOW()
+),
+-- Los Bros #1327
+(
+  '91Ypgh19Qf2rzm9ekGxNaTZYVsbnJGuW6D8ehGZWpcKg',
+  '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW',
+  'losbros_1327',
+  'Los Bros #1327',
+  'Los Bros #1327 - COMMON rarity',
+  '1327',
+  'COMMON',
+  7.4,
+  'TEAM',
+  0,
+  100,
+  1140000,
   NOW()
 )
 ON CONFLICT (mint_address) DO NOTHING;
