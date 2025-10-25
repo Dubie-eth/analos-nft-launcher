@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { ExternalLink, User, Tag, DollarSign, ShoppingCart, X } from 'lucide-react';
+import { ExternalLink, User, Tag, DollarSign, ShoppingCart, X, Send } from 'lucide-react';
 import Link from 'next/link';
+import NFTTransferModal from './NFTTransferModal';
 
 interface CleanMarketplaceCardProps {
   nft: any;
@@ -24,6 +25,7 @@ export default function CleanMarketplaceCard({
   const [loading, setLoading] = useState(false);
   const [showListModal, setShowListModal] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [listPrice, setListPrice] = useState('');
   const [offerPrice, setOfferPrice] = useState('');
 
@@ -233,31 +235,33 @@ export default function CleanMarketplaceCard({
 
         {/* Marketplace Actions */}
         {connected && (
-          <div className="pt-3 border-t border-white/10 flex gap-2">
-            {isOwner ? (
-              // Owner actions
-              <>
-                {isListed ? (
-                  <button
-                    onClick={handleDelist}
-                    disabled={loading}
-                    className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <X className="w-4 h-4" />
-                    {loading ? 'Delisting...' : 'Delist'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowListModal(true)}
-                    disabled={loading}
-                    className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Tag className="w-4 h-4" />
-                    List for Sale
-                  </button>
-                )}
-              </>
-            ) : (
+          <div className="pt-3 border-t border-white/10 space-y-2">
+            {/* Primary Actions Row */}
+            <div className="flex gap-2">
+              {isOwner ? (
+                // Owner actions
+                <>
+                  {isListed ? (
+                    <button
+                      onClick={handleDelist}
+                      disabled={loading}
+                      className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <X className="w-4 h-4" />
+                      {loading ? 'Delisting...' : 'Delist'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowListModal(true)}
+                      disabled={loading}
+                      className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Tag className="w-4 h-4" />
+                      List for Sale
+                    </button>
+                  )}
+                </>
+              ) : (
               // Non-owner actions
               <>
                 {isListed ? (
@@ -280,9 +284,35 @@ export default function CleanMarketplaceCard({
                 )}
               </>
             )}
+            </div>
+            
+            {/* Transfer Button (Owner Only) */}
+            {isOwner && (
+              <button
+                onClick={() => setShowTransferModal(true)}
+                disabled={loading}
+                className="w-full bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Transfer NFT
+              </button>
+            )}
           </div>
         )}
       </div>
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <NFTTransferModal
+          nft={nft}
+          isOpen={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          onTransferComplete={() => {
+            setShowTransferModal(false);
+            onMarketplaceAction?.();
+          }}
+        />
+      )}
 
       {/* List Modal */}
       {showListModal && (

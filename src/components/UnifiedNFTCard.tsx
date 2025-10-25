@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { Send } from 'lucide-react';
+import NFTTransferModal from './NFTTransferModal';
 
 interface UnifiedNFTCardProps {
   nft: any;
@@ -18,6 +20,8 @@ export default function UnifiedNFTCard({
   showActions = true,
   compact = false
 }: UnifiedNFTCardProps) {
+  const [showTransferModal, setShowTransferModal] = useState(false);
+
   const shortenAddress = (address: string) => {
     if (!address) return '';
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
@@ -160,6 +164,14 @@ export default function UnifiedNFTCard({
               📄 View Details
             </Link>
             
+            <button
+              onClick={() => setShowTransferModal(true)}
+              className="w-full bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/50 text-blue-300 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Transfer NFT
+            </button>
+            
             <Link
               href={`/explorer/mints?search=${nft.mint || nft.mint_address}`}
               className="block w-full text-center bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/50 text-cyan-300 py-2 rounded-lg text-sm font-semibold transition-all"
@@ -169,6 +181,20 @@ export default function UnifiedNFTCard({
           </div>
         )}
       </div>
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <NFTTransferModal
+          nft={nft}
+          isOpen={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          onTransferComplete={() => {
+            setShowTransferModal(false);
+            // Refresh page or reload NFTs
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }
