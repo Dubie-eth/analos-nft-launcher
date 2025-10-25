@@ -6,6 +6,7 @@ import { X, AlertTriangle, Shield, Wallet, FileText, Lock, ExternalLink } from '
 export default function WalletSafetyDisclaimer() {
   const [isVisible, setIsVisible] = useState(false);
   const [hasAccepted, setHasAccepted] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
 
   useEffect(() => {
     // Check if user has already accepted the disclaimer
@@ -291,8 +292,9 @@ export default function WalletSafetyDisclaimer() {
                 <input
                   type="checkbox"
                   id="understand-risks"
+                  checked={isChecked}
+                  onChange={(e) => setIsChecked(e.target.checked)}
                   className="w-5 h-5 rounded border-gray-400 text-purple-600 focus:ring-purple-500"
-                  required
                 />
                 <span className="text-gray-300 text-sm">
                   I understand the risks and will use a burner wallet
@@ -301,7 +303,7 @@ export default function WalletSafetyDisclaimer() {
               <button
                 onClick={handleAccept}
                 className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!document.getElementById('understand-risks')?.['checked']}
+                disabled={!isChecked}
               >
                 I Accept - Proceed to Platform
               </button>
