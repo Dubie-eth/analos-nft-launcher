@@ -1,6 +1,12 @@
+// ============================================================================
+// ANALOS NAME SERVICE (ANS) - SOLANA PLAYGROUND VERSION
+// ============================================================================
+// Copy this entire file into Solana Playground's lib.rs
+// This version is optimized for Playground compatibility
+// ============================================================================
+
 use anchor_lang::prelude::*;
 
-// This will be replaced with your actual program ID after deployment
 declare_id!("11111111111111111111111111111111");
 
 #[program]
@@ -8,7 +14,6 @@ pub mod analos_name_service {
     use super::*;
 
     /// Register a new profile with username
-    /// This atomically reserves the username and creates the profile registry
     pub fn register_profile(
         ctx: Context<RegisterProfile>,
         username: String,
@@ -17,8 +22,8 @@ pub mod analos_name_service {
         tier: u8,
     ) -> Result<()> {
         // Validate username
-        validate_username(&username)?;
-
+        require!(username.len() >= 3 && username.len() <= 20, ErrorCode::InvalidUsernameFormat);
+        
         let username_lower = username.to_lowercase();
         let clock = Clock::get()?;
 
@@ -50,9 +55,7 @@ pub mod analos_name_service {
         username_reg.last_transferred_at = clock.unix_timestamp;
         username_reg.is_available = false;
 
-        msg!("✅ ANS Profile registered: @{} → {}", username_lower, ctx.accounts.user_wallet.key());
-        msg!("📍 Profile PDA: {}", ctx.accounts.profile_registry.key());
-        msg!("📍 Username PDA: {}", ctx.accounts.username_registry.key());
+        msg!("✅ ANS Profile registered: @{}", username_lower);
 
         Ok(())
     }
@@ -75,17 +78,13 @@ pub mod analos_name_service {
         // Update fields
         if let Some(mint) = los_bros_mint {
             profile.los_bros_mint = Some(mint);
-            msg!("Updated Los Bros mint: {}", mint);
         }
 
         if let Some(tier) = new_tier {
             profile.tier = tier;
-            msg!("Updated tier: {}", tier);
         }
 
         profile.updated_at = clock.unix_timestamp;
-
-        msg!("✅ ANS Profile updated: @{}", profile.username);
 
         Ok(())
     }
@@ -109,34 +108,7 @@ pub mod analos_name_service {
         // Release username
         username_reg.is_available = true;
 
-        msg!("✅ ANS Profile burned, username released: @{}", username_reg.username);
-
-        Ok(())
-    }
-
-    /// Transfer username to new wallet (requires both signatures)
-    pub fn transfer_username(ctx: Context<TransferUsername>) -> Result<()> {
-        let old_profile = &mut ctx.accounts.old_profile_registry;
-        let new_profile = &mut ctx.accounts.new_profile_registry;
-        let username_reg = &mut ctx.accounts.username_registry;
-        let clock = Clock::get()?;
-
-        // Verify current owner
-        require!(
-            old_profile.wallet == ctx.accounts.current_owner.key(),
-            ErrorCode::UnauthorizedOwner
-        );
-
-        // Mark old profile as inactive
-        old_profile.is_active = false;
-        old_profile.updated_at = clock.unix_timestamp;
-
-        // Update username registry
-        username_reg.owner = ctx.accounts.new_owner.key();
-        username_reg.profile_registry = new_profile.key();
-        username_reg.last_transferred_at = clock.unix_timestamp;
-
-        msg!("✅ ANS Username transferred: @{} → {}", username_reg.username, ctx.accounts.new_owner.key());
+        msg!("✅ ANS Username released: @{}", username_reg.username);
 
         Ok(())
     }
@@ -155,7 +127,7 @@ pub struct RegisterProfile<'info> {
     #[account(
         init,
         payer = user_wallet,
-        space = 8 + 1 + 32 + 4 + 20 + 32 + 1 + 32 + 1 + 8 + 8 + 1,
+        space = 8 + 1 + 32 + 24 + 32 + 33 + 1 + 8 + 8 + 1,
         seeds = [b"profile", user_wallet.key().as_ref()],
         bump
     )]
@@ -164,7 +136,7 @@ pub struct RegisterProfile<'info> {
     #[account(
         init,
         payer = user_wallet,
-        space = 8 + 1 + 4 + 20 + 32 + 32 + 8 + 8 + 1,
+        space = 8 + 1 + 24 + 32 + 32 + 8 + 8 + 1,
         seeds = [b"username", username.to_lowercase().as_bytes()],
         bump
     )]
@@ -175,7 +147,6 @@ pub struct RegisterProfile<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateProfile<'info> {
-    #[account(mut)]
     pub user_wallet: Signer<'info>,
 
     #[account(
@@ -188,7 +159,6 @@ pub struct UpdateProfile<'info> {
 
 #[derive(Accounts)]
 pub struct BurnProfile<'info> {
-    #[account(mut)]
     pub user_wallet: Signer<'info>,
 
     #[account(
@@ -206,93 +176,32 @@ pub struct BurnProfile<'info> {
     pub username_registry: Account<'info, UsernameRegistry>,
 }
 
-#[derive(Accounts)]
-pub struct TransferUsername<'info> {
-    pub current_owner: Signer<'info>,
-    pub new_owner: Signer<'info>,
-
-    #[account(
-        mut,
-        seeds = [b"profile", current_owner.key().as_ref()],
-        bump
-    )]
-    pub old_profile_registry: Account<'info, ProfileRegistry>,
-
-    #[account(
-        mut,
-        seeds = [b"profile", new_owner.key().as_ref()],
-        bump
-    )]
-    pub new_profile_registry: Account<'info, ProfileRegistry>,
-
-    #[account(
-        mut,
-        seeds = [b"username", username_registry.username.as_bytes()],
-        bump
-    )]
-    pub username_registry: Account<'info, UsernameRegistry>,
-}
-
 // ============================================================================
 // ACCOUNTS
 // ============================================================================
 
-/// Profile Registry Account
-/// PDA: seeds = [b"profile", wallet_pubkey]
 #[account]
 pub struct ProfileRegistry {
-    /// Version for upgradability
-    pub version: u8,
-    
-    /// Owner wallet address
-    pub wallet: Pubkey,
-    
-    /// Username (lowercase, 3-20 chars)
-    pub username: String,
-    
-    /// Profile NFT mint address
-    pub profile_nft_mint: Pubkey,
-    
-    /// Los Bros NFT mint (optional)
-    pub los_bros_mint: Option<Pubkey>,
-    
-    /// Tier (0=basic, 1=common, 2=rare, 3=epic, 4=legendary)
-    pub tier: u8,
-    
-    /// Mint timestamp
-    pub created_at: i64,
-    
-    /// Last update timestamp
-    pub updated_at: i64,
-    
-    /// Is active (false if burned)
-    pub is_active: bool,
+    pub version: u8,                    // 1
+    pub wallet: Pubkey,                 // 32
+    pub username: String,               // 4 + 20 = 24
+    pub profile_nft_mint: Pubkey,       // 32
+    pub los_bros_mint: Option<Pubkey>,  // 1 + 32 = 33
+    pub tier: u8,                       // 1
+    pub created_at: i64,                // 8
+    pub updated_at: i64,                // 8
+    pub is_active: bool,                // 1
 }
 
-/// Username Registry Account
-/// PDA: seeds = [b"username", username_bytes]
 #[account]
 pub struct UsernameRegistry {
-    /// Version for upgradability
-    pub version: u8,
-    
-    /// Username (lowercase)
-    pub username: String,
-    
-    /// Current owner wallet
-    pub owner: Pubkey,
-    
-    /// Profile registry PDA
-    pub profile_registry: Pubkey,
-    
-    /// Registration timestamp
-    pub registered_at: i64,
-    
-    /// Last transfer timestamp
-    pub last_transferred_at: i64,
-    
-    /// Is available (false if reserved)
-    pub is_available: bool,
+    pub version: u8,                    // 1
+    pub username: String,               // 4 + 20 = 24
+    pub owner: Pubkey,                  // 32
+    pub profile_registry: Pubkey,       // 32
+    pub registered_at: i64,             // 8
+    pub last_transferred_at: i64,       // 8
+    pub is_available: bool,             // 1
 }
 
 // ============================================================================
@@ -304,49 +213,10 @@ pub enum ErrorCode {
     #[msg("Username is already taken")]
     UsernameAlreadyTaken,
     
-    #[msg("Invalid username format (3-20 chars, alphanumeric + underscore only)")]
+    #[msg("Invalid username format (3-20 chars)")]
     InvalidUsernameFormat,
-    
-    #[msg("Username must start with a letter")]
-    UsernameMustStartWithLetter,
     
     #[msg("Not the profile owner")]
     UnauthorizedOwner,
-    
-    #[msg("Profile is not active")]
-    ProfileNotActive,
-}
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/// Validate username format
-fn validate_username(username: &str) -> Result<()> {
-    let len = username.len();
-    
-    // Length check
-    require!(
-        len >= 3 && len <= 20,
-        ErrorCode::InvalidUsernameFormat
-    );
-
-    // Character check (alphanumeric + underscore only)
-    for c in username.chars() {
-        require!(
-            c.is_ascii_alphanumeric() || c == '_',
-            ErrorCode::InvalidUsernameFormat
-        );
-    }
-
-    // Must start with letter
-    if let Some(first) = username.chars().next() {
-        require!(
-            first.is_ascii_alphabetic(),
-            ErrorCode::UsernameMustStartWithLetter
-        );
-    }
-
-    Ok(())
 }
 
