@@ -91,7 +91,7 @@ export default function LosBrosCollectionPage() {
     try {
       // Mint Los Bros NFT
       const { losBrosMintingService } = await import('@/lib/los-bros-minting');
-      const result = await losBrosMintingService.mintLosBrosNFT(
+      const result = await losBrosMintingService.mintLosBros(
         publicKey,
         signTransaction,
         sendTransaction
