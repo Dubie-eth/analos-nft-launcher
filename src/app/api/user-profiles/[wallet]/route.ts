@@ -45,12 +45,26 @@ export async function GET(
       .eq('wallet_address', wallet)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching user profile:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch user profile' },
-        { status: 500 }
-      );
+    // Gracefully handle errors (table might not exist or profile not found)
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No profile found (not an error)
+        console.log('ℹ️ No profile found for wallet:', wallet);
+        return NextResponse.json({
+          wallet,
+          exists: false,
+          message: 'No profile found for this wallet'
+        });
+      }
+      
+      // Other error (table doesn't exist, etc.)
+      console.warn('⚠️ Error fetching user profile (non-critical):', error);
+      return NextResponse.json({
+        wallet,
+        exists: false,
+        message: 'Profile not available',
+        error: error.message
+      });
     }
 
     if (!profile) {
@@ -59,8 +73,7 @@ export async function GET(
           wallet,
           exists: false,
           message: 'No profile found for this wallet'
-        },
-        { status: 404 }
+        }
       );
     }
 
