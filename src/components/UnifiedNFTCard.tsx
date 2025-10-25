@@ -133,7 +133,7 @@ export default function UnifiedNFTCard({
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Price:</span>
                 <span className="text-green-400 font-bold">
-                  {nft.floorPrice.toFixed(2)} LOS
+                  {(nft.floorPrice || 0).toFixed(2)} LOS
                 </span>
               </div>
             )}
