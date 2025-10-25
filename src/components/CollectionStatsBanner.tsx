@@ -137,7 +137,9 @@ export default function CollectionStatsBanner({
               <div>
                 <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
                   {name}
-                  <Shield className="w-6 h-6 text-blue-400" title="Verified Collection" />
+                  <span title="Verified Collection">
+                    <Shield className="w-6 h-6 text-blue-400" />
+                  </span>
                 </h1>
                 {description && (
                   <p className="text-gray-300 text-lg max-w-2xl">{description}</p>
