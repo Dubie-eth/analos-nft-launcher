@@ -31,12 +31,17 @@ jobs:
             ~/.local/share/solana
           key: ${{ runner.os }}-solana-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install Solana CLI
+      - name: Install Solana CLI & BPF SDK
         run: |
-          sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+          # Retry installation with timeout
+          for i in {1..3}; do
+            curl --retry 3 --retry-delay 2 -sSfL https://release.solana.com/v1.18.26/install -o /tmp/solana-install.sh && break || sleep 5
+          done
+          sh /tmp/solana-install.sh
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
           solana --version
+          # Install BPF SDK
           solana-install init 1.18.26
 
       - name: Install Anchor CLI
