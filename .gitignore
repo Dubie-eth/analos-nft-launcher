@@ -38,3 +38,11 @@ next-env.d.ts
 
 # Archive folder - old unused files
 .archive/
+
+# 🔒 SECURITY: Never commit private keys or sensitive keypairs
+.secure-keypairs/
+*keypair*.json
+*private-key*
+*secret-key*
+*.pem
+*.key

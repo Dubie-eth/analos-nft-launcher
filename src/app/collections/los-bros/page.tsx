@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import Tooltip from '@/components/Tooltip';
 import Link from 'next/link';
 
 export default function LosBrosCollectionPage() {
@@ -235,43 +236,66 @@ export default function LosBrosCollectionPage() {
         {allocations.length > 0 && (
           <div className="mb-12 bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-white">📊 Live Mint Allocations</h2>
-              <button
-                onClick={handleManualRefresh}
-                disabled={refreshing}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                  refreshing 
-                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                    : 'bg-cyan-600 hover:bg-cyan-700 text-white'
-                }`}
+              <Tooltip 
+                content="These counters show live mint counts for each tier. They automatically update every 15 seconds, or you can manually refresh them."
+                position="bottom"
               >
-                <svg 
-                  className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+                <h2 className="text-2xl font-bold text-white cursor-help">📊 Live Mint Allocations</h2>
+              </Tooltip>
+              <Tooltip 
+                content="Manually refresh the allocation counters and recently minted NFTs. Limited to once every 5 seconds to prevent spam."
+                position="left"
+              >
+                <button
+                  onClick={handleManualRefresh}
+                  disabled={refreshing}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                    refreshing 
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                  }`}
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                  />
-                </svg>
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
+                  <svg 
+                    className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                    />
+                  </svg>
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </Tooltip>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {allocations.map((alloc: any) => (
-                <div key={alloc.tier} className="bg-black/40 rounded-lg p-4 border-2 border-cyan-400/30">
-                  <div className={`text-lg font-bold mb-2 ${
-                    alloc.tier === 'TEAM' ? 'text-yellow-300' :
-                    alloc.tier === 'COMMUNITY' ? 'text-green-300' :
-                    alloc.tier === 'EARLY' ? 'text-blue-300' :
-                    'text-purple-300'
-                  }`}>
-                    {alloc.tier}
-                  </div>
+              {allocations.map((alloc: any) => {
+                const tierDescriptions: Record<string, string> = {
+                  TEAM: "Reserved for team members and founders. Free mints with 100% discount.",
+                  COMMUNITY: "For holders of 1M+ $LOL tokens. Free mints (only pay platform fee) after 72-hour holding period.",
+                  EARLY: "For holders of 100k+ $LOL tokens. 50% discount after 72-hour holding period.",
+                  PUBLIC: "Open to everyone! No token requirements, full price. Price increases 6.9% with each mint."
+                };
+                
+                return (
+                  <Tooltip 
+                    key={alloc.tier}
+                    content={tierDescriptions[alloc.tier] || `${alloc.tier} tier allocation`}
+                    position="top"
+                  >
+                    <div className="bg-black/40 rounded-lg p-4 border-2 border-cyan-400/30 cursor-help">
+                      <div className={`text-lg font-bold mb-2 ${
+                        alloc.tier === 'TEAM' ? 'text-yellow-300' :
+                        alloc.tier === 'COMMUNITY' ? 'text-green-300' :
+                        alloc.tier === 'EARLY' ? 'text-blue-300' :
+                        'text-purple-300'
+                      }`}>
+                        {alloc.tier}
+                      </div>
                   <div className="text-2xl font-bold text-white mb-1">
                     {alloc.minted_count || alloc.live_minted_count || 0} / {alloc.total_allocated}
                   </div>
@@ -287,7 +311,9 @@ export default function LosBrosCollectionPage() {
                     />
                   </div>
                 </div>
-              ))}
+                  </Tooltip>
+                );
+              })}
             </div>
           </div>
         )}
