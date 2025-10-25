@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Search, Filter } from 'lucide-react';
+import UnifiedNFTCard from '@/components/UnifiedNFTCard';
 
 export default function MintsExplorerPage() {
   const [mints, setMints] = useState<any[]>([]);

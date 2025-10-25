@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import Link from 'next/link';
 import SimpleProfileEditor from '@/components/SimpleProfileEditor';
+import UnifiedNFTCard from '@/components/UnifiedNFTCard';
 
 export default function ProfilePage() {
   const { publicKey, connected } = useWallet();
@@ -247,42 +248,13 @@ export default function ProfilePage() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {myNFTs.map((nft, index) => (
-                    <div key={index} className="bg-white/5 rounded-xl overflow-hidden border border-white/10 hover:border-purple-400/50 transition-all">
-                      <div className="aspect-square bg-gradient-to-br from-purple-800 to-blue-800 relative">
-                        {nft.image_url ? (
-                          <img 
-                            src={nft.image_url} 
-                            alt={nft.display_name || 'NFT'} 
-                            className="w-full h-full object-cover"
-                            style={{ imageRendering: nft.los_bros_token_id ? 'pixelated' : 'auto' }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-4xl">
-                            🎨
-                          </div>
-                        )}
-                        {nft.los_bros_rarity && (
-                          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                            {nft.los_bros_rarity}
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-white font-bold text-lg mb-1">
-                          {nft.display_name || nft.username || 'Unnamed NFT'}
-                        </h3>
-                        {nft.los_bros_token_id && (
-                          <p className="text-xs text-gray-400 mb-2">
-                            Los Bro #{nft.los_bros_token_id.slice(0, 8)}...
-                          </p>
-                        )}
-                        {nft.los_bros_rarity_score && (
-                          <div className="text-sm text-purple-400">
-                            Rarity Score: {nft.los_bros_rarity_score.toFixed(1)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <UnifiedNFTCard
+                      key={nft.mint || index}
+                      nft={nft}
+                      showOwner={false}
+                      showPrice={false}
+                      showActions={true}
+                    />
                   ))}
                 </div>
               )}
@@ -293,9 +265,9 @@ export default function ProfilePage() {
         {activeTab === 'activity' && (
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-6">📊 Recent Activity</h2>
-            <div className="text-center py-12 text-gray-400">
-              <div className="text-6xl mb-4">📊</div>
-              <p>Activity tracking coming soon!</p>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">⏱️</div>
+              <p className="text-gray-400">Activity tracking coming soon!</p>
             </div>
           </div>
         )}
