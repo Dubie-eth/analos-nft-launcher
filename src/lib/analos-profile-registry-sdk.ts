@@ -208,7 +208,7 @@ export class AnalosProfileRegistrySDK {
       }
 
       // Account exists, check if it's marked as available
-      const data = UsernameRegistryData.deserialize(accountInfo.data);
+      const data = deserializeUsernameRegistry(accountInfo.data);
       return data.isAvailable;
     } catch (error) {
       console.error('Error checking username:', error);
@@ -247,7 +247,7 @@ export class AnalosProfileRegistrySDK {
         return null;
       }
 
-      const data = UsernameRegistryData.deserialize(accountInfo.data);
+      const data = deserializeUsernameRegistry(accountInfo.data);
       return data.owner;
     } catch (error) {
       console.error('Error fetching wallet by username:', error);
@@ -333,21 +333,20 @@ function deserializeProfileRegistry(data: Buffer): ProfileRegistryData {
   return profile;
 }
 
-class UsernameRegistryData {
-  version!: number;
-  username!: string;
-  owner!: PublicKey;
-  profileRegistry!: PublicKey;
-  registeredAt!: number;
-  lastTransferredAt!: number;
-  isAvailable!: boolean;
-
-  static deserialize(data: Buffer): UsernameRegistryData {
-    // Simple deserialization (you'd use borsh in production)
-    const username = new UsernameRegistryData();
-    // TODO: Implement proper borsh deserialization
-    return username;
-  }
+// Helper function for username registry deserialization
+function deserializeUsernameRegistry(data: Buffer): UsernameRegistryData {
+  // Simple deserialization (you'd use borsh in production)
+  // TODO: Implement proper borsh deserialization
+  const username: UsernameRegistryData = {
+    version: 1,
+    username: '',
+    owner: PublicKey.default,
+    profileRegistry: PublicKey.default,
+    registeredAt: 0,
+    lastTransferredAt: 0,
+    isAvailable: false,
+  };
+  return username;
 }
 
 // Export singleton
