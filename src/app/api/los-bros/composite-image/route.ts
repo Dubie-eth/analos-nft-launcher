@@ -131,13 +131,19 @@ function generateCompositeHTML(tokenId: string, traits: any[]): string {
       image-rendering: pixelated;
       image-rendering: -moz-crisp-edges;
       image-rendering: crisp-edges;
+      font-size: 0;
+      line-height: 0;
+    }
+    .layer::before,
+    .layer::after {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div id="container">
-    ${layers.map((layer, index) => `
-      <img src="${layer}" class="layer" alt="Layer ${index}" loading="eager" />
+    ${layers.map((layer) => `
+      <img src="${layer}" class="layer" alt="" />
     `).join('')}
   </div>
 </body>
