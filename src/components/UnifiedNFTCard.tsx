@@ -110,7 +110,9 @@ export default function UnifiedNFTCard({
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">Rarity Score:</span>
                 <span className="text-white font-bold">
-                  {(nft.los_bros_rarity_score || nft.rarityScore).toFixed(1)}
+                  {typeof (nft.los_bros_rarity_score || nft.rarityScore) === 'number' 
+                    ? (nft.los_bros_rarity_score || nft.rarityScore).toFixed(1)
+                    : (nft.los_bros_rarity_score || nft.rarityScore)}
                 </span>
               </div>
             )}
