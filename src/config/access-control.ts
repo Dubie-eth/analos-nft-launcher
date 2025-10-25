@@ -282,6 +282,14 @@ export const PAGE_ACCESS: PageAccess[] = [
     requiredLevel: 'public',
     publicAccess: true,
     requiresWallet: false
+  },
+  {
+    path: '/collections/los-bros',
+    name: 'Los Bros Collection',
+    description: 'Los Bros NFT Collection - Mint and Gallery',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
   }
 ];
 
