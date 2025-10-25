@@ -329,8 +329,8 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
             <span className="text-gray-400 text-sm">Floor</span>
             <div className="text-right">
               <div className="text-white font-semibold">{formatPrice(nft.floorPrice)}</div>
-              {!showUSD && (
-                <div className="text-gray-400 text-xs">${(nft.floorPrice * 0.0018).toFixed(2)}</div>
+              {!showUSD && nft.floorPrice && (
+                <div className="text-gray-400 text-xs">${((nft.floorPrice || 0) * 0.0018).toFixed(2)}</div>
               )}
             </div>
           </div>
@@ -340,8 +340,8 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
             <span className="text-gray-400 text-sm">Volume</span>
             <div className="text-right">
               <div className="text-white font-semibold">{formatPrice(nft.volume)}</div>
-              {!showUSD && (
-                <div className="text-gray-400 text-xs">${(nft.volume * 0.0018).toFixed(2)}</div>
+              {!showUSD && nft.volume && (
+                <div className="text-gray-400 text-xs">${((nft.volume || 0) * 0.0018).toFixed(2)}</div>
               )}
             </div>
           </div>
@@ -351,8 +351,8 @@ const ProfileNFTDisplay: React.FC<ProfileNFTDisplayProps> = ({
             <span className="text-gray-400 text-sm">Market Cap</span>
             <div className="text-right">
               <div className="text-white font-semibold">{formatPrice(nft.marketCap)}</div>
-              {!showUSD && (
-                <div className="text-gray-400 text-xs">${(nft.marketCap * 0.0018).toFixed(2)}</div>
+              {!showUSD && nft.marketCap && (
+                <div className="text-gray-400 text-xs">${((nft.marketCap || 0) * 0.0018).toFixed(2)}</div>
               )}
             </div>
           </div>
