@@ -147,15 +147,15 @@ export default function MintPage() {
         await fetch('/api/los-bros/record-mint', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mintAddress: result.mintAddress,
-            walletAddress: publicKey.toString(),
-            tokenId: result.tokenId,
-            rarityTier: result.rarityTier,
-            rarityScore: result.rarityScore,
-            traits: result.traits,
-            signature: result.signature,
-            imageUrl: result.imageUrl,
+        body: JSON.stringify({
+          mintAddress: result.mintAddress,
+          walletAddress: publicKey.toString(),
+          losBrosTokenId: result.mintAddress, // Use mint address as token ID
+          rarityTier: result.rarityTier,
+          rarityScore: result.rarityScore,
+          traits: result.traits,
+          signature: result.signature,
+          imageUrl: `/api/los-bros/generate-image?tokenId=${result.mintAddress}`,
             metadataUri: result.metadataUri
           })
         });
