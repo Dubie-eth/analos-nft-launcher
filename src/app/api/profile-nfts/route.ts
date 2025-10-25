@@ -92,7 +92,13 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('❌ Error fetching Profile NFTs:', error);
-      throw error;
+      return NextResponse.json({
+        success: true,
+        nfts: [],
+        total: 0,
+        pagination: { limit, offset, total: 0, hasMore: false },
+        message: 'No Profile NFTs found'
+      });
     }
 
     console.log(`✅ Fetched ${profileNFTs?.length || 0} Profile NFTs from database`);
