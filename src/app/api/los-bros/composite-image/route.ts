@@ -17,12 +17,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get NFT traits from database
+    // Get NFT traits and metadata from database
     const supabase = getSupabaseAdmin();
     // @ts-ignore - Supabase types don't include Los Bros columns yet
     const { data: nft, error } = await (supabase as any)
       .from('profile_nfts')
-      .select('los_bros_traits, los_bros_token_id, mint_address')
+      .select('los_bros_traits, los_bros_token_id, mint_address, nft_metadata')
       .eq('los_bros_token_id', tokenId)
       .single();
 
@@ -30,6 +30,14 @@ export async function GET(request: NextRequest) {
       console.log(`⚠️ NFT #${tokenId} not found in database, using fallback SVG`);
       // Fallback to SVG if not in database
       return generateFallbackSVG(tokenId);
+    }
+
+    // Check if NFT is revealed (default to true for backward compatibility)
+    const isRevealed = nft.nft_metadata?.is_revealed !== false;
+    
+    if (!isRevealed) {
+      console.log(`🔒 NFT #${tokenId} is not revealed, showing placeholder`);
+      return generatePlaceholderHTML(tokenId);
     }
 
     const traits = nft.los_bros_traits as any[];
@@ -149,6 +157,116 @@ function generateCompositeHTML(tokenId: string, traits: any[]): string {
 </body>
 </html>
   `;
+}
+
+/**
+ * Placeholder HTML for unrevealed NFTs
+ */
+function generatePlaceholderHTML(tokenId: string): NextResponse {
+  const hue1 = (parseInt(tokenId) * 137) % 360;
+  const hue2 = (hue1 + 60) % 360;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 500px;
+      height: 500px;
+      background: linear-gradient(135deg, hsl(${hue1}, 70%, 20%), hsl(${hue2}, 70%, 20%));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Arial', sans-serif;
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .mystery-box {
+      width: 300px;
+      height: 300px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+    
+    .lock-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+    
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .token-id {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      opacity: 0.7;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+    
+    .reveal-text {
+      position: absolute;
+      bottom: 30px;
+      font-size: 14px;
+      opacity: 0.6;
+      animation: blink 1.5s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 0.6; }
+      51%, 100% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mystery-box">
+    <div class="lock-icon">🔒</div>
+    <div class="title">LOS BROS</div>
+    <div class="token-id">#${tokenId}</div>
+    <div class="subtitle">Not Yet Revealed</div>
+  </div>
+  <div class="reveal-text">Awaiting reveal by collection founder</div>
+</body>
+</html>
+  `;
+
+  return new NextResponse(html, {
+    headers: {
+      'Content-Type': 'text/html',
+      'Cache-Control': 'public, max-age=300', // 5 minutes cache for unrevealed
+    },
+  });
 }
 
 /**

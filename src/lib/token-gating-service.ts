@@ -13,17 +13,8 @@ const LOL_TOKEN_MINT = new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomr
 const WHITELIST_THRESHOLD = 1_000_000; // 1 million $LOL tokens for free mint
 const DISCOUNT_THRESHOLD = 100_000; // 100k $LOL tokens for 50% discount
 
-// TEMPORARY: Hardcoded whitelist while RPC is unstable
-// Remove this once RPC is reliable
-const HARDCODED_WHITELIST: { [key: string]: number } = {
-  // Wallet address (lowercase) → $LOL balance
-  'fv1npnbwojat55endmquwrly6taac2mzswappyohup9': 1_140_000, // Your wallet with 1.14M $LOL
-  '86ok6fa5mkweaquzpr6w1wvkajku7zpdba7l2m3rmhpw': 1_140_000, // Admin wallet (TEAM)
-  '89fmjapcvaosmnf5fhcoeedv9vkuvrjh8xlnicbtcnt5m': 1_140_000, // Deployer wallet (TEAM)
-  'giscdqzp3k48yqehb3c4bwaqe6sg9d6s8yxvt4uj1an4': 1_140_000, // Community wallet 1
-  '2w6t7xhk2ekbn6trqrebj3wxibrmrb52bykqkb6uaksw': 1_140_000, // Community wallet 2
-  // Add more whitelisted wallets here as needed
-};
+// REMOVED: Hardcoded whitelist - now using pure on-chain balance checks
+// All tier eligibility is determined dynamically from actual token holdings
 
 export interface TokenGatingResult {
   eligible: boolean;
@@ -45,31 +36,8 @@ export class TokenGatingService {
    * Check if user is eligible for free/discounted mint based on $LOL token holdings
    */
   async checkEligibility(walletAddress: string): Promise<TokenGatingResult> {
-    // PRIORITY CHECK: Hardcoded whitelist (while RPC is unstable)
-    const normalizedWallet = walletAddress.toLowerCase();
-    if (HARDCODED_WHITELIST[normalizedWallet]) {
-      const balance = HARDCODED_WHITELIST[normalizedWallet];
-      console.log('✅ Found in HARDCODED whitelist:', walletAddress);
-      console.log('💰 Hardcoded balance:', balance.toLocaleString(), '$LOL');
-      
-      if (balance >= WHITELIST_THRESHOLD) {
-        return {
-          eligible: true,
-          tokenBalance: balance,
-          discount: 100,
-          reason: `🎉 Whitelisted with ${balance.toLocaleString()} $LOL tokens! Free mint unlocked!`,
-          tier: 'free'
-        };
-      } else if (balance >= DISCOUNT_THRESHOLD) {
-        return {
-          eligible: true,
-          tokenBalance: balance,
-          discount: 50,
-          reason: `✨ Whitelisted with ${balance.toLocaleString()} $LOL tokens! 50% discount applied!`,
-          tier: 'discounted'
-        };
-      }
-    }
+    // PURE ON-CHAIN BALANCE CHECK - NO HARDCODED WALLETS
+    console.log('🔍 Checking $LOL balance on-chain for:', walletAddress);
     
     try {
       const userPublicKey = new PublicKey(walletAddress);

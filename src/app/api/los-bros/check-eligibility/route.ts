@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     const allocationData = allocation?.[0] || null;
 
-    // Check if user already minted
+    // Check if user already minted (per tier!)
     const { data: existingMints, error: mintError } = await supabase
       .from('profile_nfts')
       .select('mint_address, los_bros_tier, mint_date')
@@ -94,15 +94,31 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Error checking existing mints:', mintError);
     }
 
-    const hasMinted = (existingMints || []).length > 0;
-    const mintCount = (existingMints || []).length;
+    // Count mints PER TIER (not total mints)
+    const allMints = existingMints || [];
+    const tierMints = allMints.filter((m: any) => m.los_bros_tier === pricing.tier);
+    const tierMintCount = tierMints.length;
 
     // Get mint limits from config
     const { LOS_BROS_PRICING } = await import('@/config/los-bros-pricing');
     const mintLimit = LOS_BROS_PRICING.MINT_LIMITS_PER_WALLET[pricing.tier as keyof typeof LOS_BROS_PRICING.MINT_LIMITS_PER_WALLET] || 1;
     
-    // Check if wallet has reached mint limit for this tier
-    const hasReachedLimit = mintCount >= mintLimit;
+    // Check if wallet has reached mint limit FOR THIS SPECIFIC TIER
+    const hasReachedLimit = tierMintCount >= mintLimit;
+
+    // Show breakdown of mints per tier
+    const mintsByTier = {
+      TEAM: allMints.filter((m: any) => m.los_bros_tier === 'TEAM').length,
+      COMMUNITY: allMints.filter((m: any) => m.los_bros_tier === 'COMMUNITY').length,
+      EARLY: allMints.filter((m: any) => m.los_bros_tier === 'EARLY').length,
+      PUBLIC: allMints.filter((m: any) => m.los_bros_tier === 'PUBLIC').length,
+    };
+    
+    console.log('📊 Mints by tier for this wallet:', mintsByTier);
+    console.log(`🎯 Current tier (${pricing.tier}): ${tierMintCount}/${mintLimit}`);
+
+    const hasMinted = allMints.length > 0;
+    const totalMintCount = allMints.length;
 
     // Determine eligibility - MUST meet holding period for discounts/free mints
     const isEligible = 
@@ -136,18 +152,20 @@ export async function POST(request: NextRequest) {
       } : null,
       tokenBalance: tokenCheck.tokenBalance,
       hasMinted,
-      mintCount,
+      totalMintCount,
+      tierMintCount,
       mintLimit,
       hasReachedLimit,
+      mintsByTier,
       existingMints: (existingMints || []) as any[],
       message: !isEligible ? (
-        hasReachedLimit ? `❌ You've reached the mint limit for ${pricing.tier} tier (${mintCount}/${mintLimit})` :
+        hasReachedLimit ? `❌ You've reached the mint limit for ${pricing.tier} tier (${tierMintCount}/${mintLimit})` :
         !pricing.holdingPeriodMet ? `⏰ Must hold $LOL for 72 hours (currently ${pricing.holdingPeriodHours.toFixed(1)}h)` :
         !allocationData?.is_available ? `❌ ${pricing.tier} tier allocation is full or inactive` :
         tokenCheck.tokenBalance < (allocationData?.requires_lol || 0) ? 
           `❌ Insufficient $LOL tokens (need ${(allocationData?.requires_lol || 0).toLocaleString()})` :
         '❌ Not eligible for this tier'
-      ) : `✅ Eligible for ${pricing.tier} tier mint! (${mintCount}/${mintLimit} used)`,
+      ) : `✅ Eligible for ${pricing.tier} tier mint! (${tierMintCount}/${mintLimit} used, ${totalMintCount} total)`,
     };
 
     console.log('✅ Eligibility check complete:', response);

@@ -6,6 +6,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import Link from 'next/link';
 import SimpleProfileEditor from '@/components/SimpleProfileEditor';
 import UnifiedNFTCard from '@/components/UnifiedNFTCard';
+import CollectionAdminPanel from '@/components/CollectionAdminPanel';
 
 export default function ProfilePage() {
   const { publicKey, connected } = useWallet();
@@ -14,7 +15,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [myNFTs, setMyNFTs] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'profile' | 'nfts' | 'activity'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'nfts' | 'activity' | 'admin'>('profile');
+  
+  // Collection founder wallet
+  const COLLECTION_FOUNDER = '86oK6fa5mKWEAQuZpR6W1wVKajKu7ZpDBa7L2M3RMhpW';
+  const isFounder = publicKey?.toString() === COLLECTION_FOUNDER;
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -218,6 +223,20 @@ export default function ProfilePage() {
           >
             📊 Activity
           </button>
+          
+          {/* Collection Admin Tab - Only visible to founder */}
+          {isFounder && (
+            <button
+              onClick={() => setActiveTab('admin')}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all border-2 ${
+                activeTab === 'admin'
+                  ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white border-orange-400'
+                  : 'bg-orange-900/20 text-orange-300 hover:bg-orange-900/40 border-orange-600/50'
+              }`}
+            >
+              ⚙️ Collection Admin
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -270,6 +289,11 @@ export default function ProfilePage() {
               <p className="text-gray-400">Activity tracking coming soon!</p>
             </div>
           </div>
+        )}
+
+        {/* Collection Admin Panel - Only visible to founder */}
+        {activeTab === 'admin' && isFounder && (
+          <CollectionAdminPanel />
         )}
       </div>
     </div>

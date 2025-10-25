@@ -18,6 +18,24 @@ interface CollectionStatsBannerProps {
   };
 }
 
+interface CollectionSettings {
+  socials: {
+    twitter?: string;
+    telegram?: string;
+    website?: string;
+    discord?: string;
+  };
+  media: {
+    logo_url?: string;
+    banner_url?: string;
+  };
+  verification: {
+    is_verified: boolean;
+    verified_by?: string;
+    verified_at?: string;
+  };
+}
+
 interface CollectionStats {
   totalSupply: number;
   totalMinted: number;
@@ -43,10 +61,12 @@ export default function CollectionStatsBanner({
   socials
 }: CollectionStatsBannerProps) {
   const [stats, setStats] = useState<CollectionStats | null>(null);
+  const [settings, setSettings] = useState<CollectionSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCollectionStats();
+    fetchCollectionSettings();
     // Refresh stats every 30 seconds
     const interval = setInterval(() => fetchCollectionStats(true), 30000);
     return () => clearInterval(interval);
@@ -64,6 +84,21 @@ export default function CollectionStatsBanner({
       console.error('Error fetching collection stats:', error);
     } finally {
       if (!silent) setLoading(false);
+    }
+  };
+
+  const fetchCollectionSettings = async () => {
+    try {
+      const response = await fetch(`/api/admin/collection-settings?collectionId=${collectionId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSettings(data.settings);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not fetch collection settings (using defaults):', error);
     }
   };
 
@@ -97,10 +132,10 @@ export default function CollectionStatsBanner({
     <div className="relative overflow-hidden">
       {/* Banner Background */}
       <div className="absolute inset-0">
-        {bannerImage ? (
+        {(settings?.media?.banner_url || bannerImage) ? (
           <div className="w-full h-full relative">
             <Image 
-              src={bannerImage} 
+              src={settings?.media?.banner_url || bannerImage || ''} 
               alt={name}
               fill
               className="object-cover"
@@ -118,11 +153,11 @@ export default function CollectionStatsBanner({
         {/* Top Section - Logo, Name, Description, Socials */}
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           {/* Logo */}
-          {logoImage && (
+          {(settings?.media?.logo_url || logoImage) && (
             <div className="flex-shrink-0">
               <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-white/20 shadow-2xl bg-black/50">
                 <Image 
-                  src={logoImage} 
+                  src={settings?.media?.logo_url || logoImage || ''} 
                   alt={name}
                   width={128}
                   height={128}
@@ -138,9 +173,11 @@ export default function CollectionStatsBanner({
               <div>
                 <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
                   {name}
-                  <span title="Verified Collection">
-                    <Shield className="w-6 h-6 text-blue-400" />
-                  </span>
+                  {settings?.verification?.is_verified && (
+                    <span title="Verified Collection">
+                      <Shield className="w-6 h-6 text-blue-400" />
+                    </span>
+                  )}
                 </h1>
                 {description && (
                   <p className="text-gray-300 text-lg max-w-2xl">{description}</p>
@@ -148,11 +185,11 @@ export default function CollectionStatsBanner({
               </div>
 
               {/* Socials */}
-              {socials && (
+              {(settings?.socials || socials) && (
                 <div className="flex gap-3">
-                  {socials.twitter && (
+                  {(settings?.socials?.twitter || socials?.twitter) && (
                     <a 
-                      href={socials.twitter}
+                      href={settings?.socials?.twitter || socials?.twitter}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/10 hover:bg-white/20 p-3 rounded-lg transition-colors"
@@ -162,9 +199,9 @@ export default function CollectionStatsBanner({
                       </svg>
                     </a>
                   )}
-                  {socials.telegram && (
+                  {(settings?.socials?.telegram || socials?.telegram) && (
                     <a 
-                      href={socials.telegram}
+                      href={settings?.socials?.telegram || socials?.telegram}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/10 hover:bg-white/20 p-3 rounded-lg transition-colors"
@@ -175,9 +212,9 @@ export default function CollectionStatsBanner({
                       </svg>
                     </a>
                   )}
-                  {socials.discord && (
+                  {(settings?.socials?.discord || socials?.discord) && (
                     <a 
-                      href={socials.discord}
+                      href={settings?.socials?.discord || socials?.discord}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/10 hover:bg-white/20 p-3 rounded-lg transition-colors"
@@ -187,9 +224,9 @@ export default function CollectionStatsBanner({
                       </svg>
                     </a>
                   )}
-                  {socials.website && (
+                  {(settings?.socials?.website || socials?.website) && (
                     <a 
-                      href={socials.website}
+                      href={settings?.socials?.website || socials?.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-white/10 hover:bg-white/20 p-3 rounded-lg transition-colors flex items-center gap-2 text-white text-sm font-semibold"
