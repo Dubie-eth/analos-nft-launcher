@@ -19,10 +19,10 @@ CREATE INDEX IF NOT EXISTS idx_profile_nfts_los_bros_tier
 ON profile_nfts(los_bros_tier) 
 WHERE los_bros_tier IS NOT NULL;
 
--- Add index for Los Bros collection queries
-CREATE INDEX IF NOT EXISTS idx_profile_nfts_collection 
-ON profile_nfts(los_bros_collection_id) 
-WHERE los_bros_collection_id IS NOT NULL;
+-- Add index for Los Bros token ID queries
+CREATE INDEX IF NOT EXISTS idx_profile_nfts_los_bros_token 
+ON profile_nfts(los_bros_token_id) 
+WHERE los_bros_token_id IS NOT NULL;
 
 COMMENT ON COLUMN profile_nfts.los_bros_tier IS 'Whitelist tier at time of mint: TEAM, EARLY, COMMUNITY, or PUBLIC';
 COMMENT ON COLUMN profile_nfts.los_bros_discount_percent IS 'Discount percentage applied (0-100)';
