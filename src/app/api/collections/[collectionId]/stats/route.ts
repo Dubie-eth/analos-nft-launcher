@@ -38,9 +38,9 @@ export async function GET(
 
     // Filter listings by collection type
     // For now, assume all listings (we'll need to add collection type to listings table)
-    const activeListings = listings || [];
+    const activeListings: any[] = listings || [];
     const floorPrice = activeListings.length > 0 
-      ? Math.min(...activeListings.map(l => l.list_price))
+      ? Math.min(...activeListings.map((l: any) => l.list_price))
       : 0;
 
     // Get recent sales (last 24 hours)
