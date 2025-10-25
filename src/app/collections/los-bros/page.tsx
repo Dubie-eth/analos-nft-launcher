@@ -103,27 +103,39 @@ export default function LosBrosCollectionPage() {
 
       console.log('✅ Los Bros NFT minted!', result);
 
-      // Record in database
-      await fetch('/api/los-bros/record-mint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mintAddress: result.mintAddress,
-          walletAddress: publicKey.toString(),
-          losBrosTokenId: result.mintAddress,
-          losBrosRarity: result.rarityTier,
-          rarityScore: result.rarityScore,
-          traits: result.traits,
-          signature: result.signature,
-          metadataUri: result.metadataUri,
-          // Include tier info if available
-          losBrosTier: pricing?.tier,
-          losBrosDiscountPercent: pricing?.discount,
-          losBrosFinalPrice: pricing?.finalPrice,
-          losBrosPlatformFee: pricing?.platformFee,
-          lolBalanceAtMint: pricing?.tokenBalance,
-        }),
-      });
+      // Record in database (critical for Recently Minted display)
+      try {
+        const recordResponse = await fetch('/api/los-bros/record-mint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mintAddress: result.mintAddress,
+            walletAddress: publicKey.toString(),
+            losBrosTokenId: result.mintAddress,
+            losBrosRarity: result.rarityTier,
+            rarityScore: result.rarityScore,
+            traits: result.traits,
+            signature: result.signature,
+            metadataUri: result.metadataUri,
+            // Include tier info if available
+            losBrosTier: pricing?.tier,
+            losBrosDiscountPercent: pricing?.discount,
+            losBrosFinalPrice: pricing?.finalPrice,
+            losBrosPlatformFee: pricing?.platformFee,
+            lolBalanceAtMint: pricing?.tokenBalance,
+          }),
+        });
+
+        const recordResult = await recordResponse.json();
+        
+        if (recordResult.success) {
+          console.log('✅ Mint recorded in database:', recordResult);
+        } else {
+          console.error('❌ Failed to record mint in database:', recordResult.error);
+        }
+      } catch (dbError: any) {
+        console.error('❌ Database recording error:', dbError);
+      }
 
       // Show reveal modal
       setMintedNFT(result);
