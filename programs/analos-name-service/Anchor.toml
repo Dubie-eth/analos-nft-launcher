@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-analos_profile_registry = "11111111111111111111111111111111"
+analos_name_service = "11111111111111111111111111111111"
 
 [registry]
 url = "https://api.apr.dev"

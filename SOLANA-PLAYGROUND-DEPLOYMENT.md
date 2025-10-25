@@ -1,6 +1,6 @@
 # 🎮 SOLANA PLAYGROUND DEPLOYMENT GUIDE
 
-## 📋 Step-by-Step: Deploy Analos Profile Registry
+## 📋 Step-by-Step: Deploy Analos Name Service (ANS)
 
 ### **Complete Code for Solana Playground**
 
@@ -11,13 +11,13 @@
 1. Go to: **https://beta.solpg.io/**
 2. Click "**Create New Project**"
 3. Select "**Anchor**" framework
-4. Name: `analos-profile-registry`
+4. Name: `analos-name-service`
 
 ---
 
 ## 📝 **STEP 2: Replace `lib.rs` with This Code**
 
-Click on `programs/analos-profile-registry/src/lib.rs` and replace with:
+Click on `programs/analos-name-service/src/lib.rs` and replace with:
 
 ```rust
 use anchor_lang::prelude::*;
@@ -25,7 +25,7 @@ use anchor_lang::prelude::*;
 declare_id!("11111111111111111111111111111111");
 
 #[program]
-pub mod analos_profile_registry {
+pub mod analos_name_service {
     use super::*;
 
     /// Register a new profile with username
@@ -66,7 +66,7 @@ pub mod analos_profile_registry {
         username_reg.last_transferred_at = clock.unix_timestamp;
         username_reg.is_available = false;
 
-        msg!("✅ Profile registered: @{} → {}", username_lower, ctx.accounts.user_wallet.key());
+        msg!("✅ ANS Profile registered: @{} → {}", username_lower, ctx.accounts.user_wallet.key());
 
         Ok(())
     }
@@ -111,7 +111,7 @@ pub mod analos_profile_registry {
         profile.updated_at = clock.unix_timestamp;
         username_reg.is_available = true;
 
-        msg!("✅ Username released: @{}", username_reg.username);
+        msg!("✅ ANS Username released: @{}", username_reg.username);
 
         Ok(())
     }
@@ -299,12 +299,12 @@ Program Id: AbC123...xyz789
 ### **Download IDL:**
 1. In Playground, click **"IDL"** tab
 2. Click **"Download"** or copy the JSON
-3. Save as: `analos-profile-registry.json`
+3. Save as: `analos-name-service.json`
 
 ### **Download Binary:**
 1. In file explorer (left sidebar)
 2. Navigate to: `target/deploy/`
-3. Find: `analos_profile_registry.so`
+3. Find: `analos_name_service.so`
 4. Right-click → **"Download"**
 
 ---
@@ -325,8 +325,8 @@ solana balance
 
 # 4. Deploy the binary
 solana program deploy \
-  --program-id ./target/deploy/analos_profile_registry-keypair.json \
-  ./target/deploy/analos_profile_registry.so
+  --program-id ./target/deploy/analos_name_service-keypair.json \
+  ./target/deploy/analos_name_service.so
 
 # 5. Save the Program ID that's printed!
 ```
@@ -339,14 +339,14 @@ After deploying to Analos, update these files with your **actual program ID**:
 
 ### **1. Update Rust Code:**
 ```rust
-// programs/analos-profile-registry-anchor/src/lib.rs
+// programs/analos-name-service/src/lib.rs
 declare_id!("YOUR_ANALOS_PROGRAM_ID_HERE");
 ```
 
 ### **2. Update JavaScript SDK:**
 ```typescript
-// src/lib/analos-profile-registry-sdk.ts
-export const PROFILE_REGISTRY_PROGRAM_ID = new PublicKey('YOUR_ANALOS_PROGRAM_ID_HERE');
+// src/lib/analos-name-service-sdk.ts
+export const ANS_PROGRAM_ID = new PublicKey('YOUR_ANALOS_PROGRAM_ID_HERE');
 ```
 
 ### **3. Update Config:**
@@ -354,7 +354,7 @@ export const PROFILE_REGISTRY_PROGRAM_ID = new PublicKey('YOUR_ANALOS_PROGRAM_ID
 // src/config/analos-programs.ts
 export const ANALOS_PROGRAMS = {
   // ... existing programs
-  PROFILE_REGISTRY: new PublicKey('YOUR_ANALOS_PROGRAM_ID_HERE'),
+  ANS: new PublicKey('YOUR_ANALOS_PROGRAM_ID_HERE'),
 }
 ```
 
@@ -369,13 +369,13 @@ In Solana Playground, you can test with this script:
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { AnalosProfileRegistry } from "../target/types/analos_profile_registry";
+import { AnalosNameService } from "../target/types/analos_name_service";
 
-describe("analos-profile-registry", () => {
+describe("analos-name-service", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.AnalosProfileRegistry as Program<AnalosProfileRegistry>;
+  const program = anchor.workspace.AnalosNameService as Program<AnalosNameService>;
 
   it("Registers a profile with username", async () => {
     const username = "testuser";
@@ -440,17 +440,17 @@ describe("analos-profile-registry", () => {
 After successful build and deployment:
 
 1. **Binary** 📁
-   - `target/deploy/analos_profile_registry.so`
+   - `target/deploy/analos_name_service.so`
    - Size: ~50-100 KB
    - Use this to deploy to Analos mainnet
 
 2. **IDL** 📄
-   - `target/idl/analos_profile_registry.json`
+   - `target/idl/analos_name_service.json`
    - Contains all type definitions
    - Use this for JavaScript integration
 
 3. **Keypair** 🔑
-   - `target/deploy/analos_profile_registry-keypair.json`
+   - `target/deploy/analos_name_service-keypair.json`
    - Program ID keypair
    - **KEEP THIS SECURE!**
 
@@ -469,9 +469,9 @@ solana balance
 
 # Deploy with the Playground keypair
 solana program deploy \
-  --program-id ./target/deploy/analos_profile_registry-keypair.json \
+  --program-id ./target/deploy/analos_name_service-keypair.json \
   --keypair ~/.config/solana/id.json \
-  ./target/deploy/analos_profile_registry.so
+  ./target/deploy/analos_name_service.so
 
 # Output will show your Program ID
 # Example: Program Id: AbC123...xyz789
@@ -501,7 +501,7 @@ solana program deploy \
 ```json
 {
   "version": "0.1.0",
-  "name": "analos_profile_registry",
+  "name": "analos_name_service",
   "instructions": [
     {
       "name": "registerProfile",
@@ -579,7 +579,7 @@ solana program deploy \
 ### **CLI Deployment to Analos:**
 ```bash
 solana config set --url https://rpc.analos.io
-solana program deploy ./analos_profile_registry.so
+solana program deploy ./analos_name_service.so
 ```
 
 ### **Update Your Code:**

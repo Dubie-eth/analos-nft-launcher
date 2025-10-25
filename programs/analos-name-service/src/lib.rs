@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 declare_id!("11111111111111111111111111111111");
 
 #[program]
-pub mod analos_profile_registry {
+pub mod analos_name_service {
     use super::*;
 
     /// Register a new profile with username
@@ -50,7 +50,7 @@ pub mod analos_profile_registry {
         username_reg.last_transferred_at = clock.unix_timestamp;
         username_reg.is_available = false;
 
-        msg!("✅ Profile registered: @{} → {}", username_lower, ctx.accounts.user_wallet.key());
+        msg!("✅ ANS Profile registered: @{} → {}", username_lower, ctx.accounts.user_wallet.key());
         msg!("📍 Profile PDA: {}", ctx.accounts.profile_registry.key());
         msg!("📍 Username PDA: {}", ctx.accounts.username_registry.key());
 
@@ -85,7 +85,7 @@ pub mod analos_profile_registry {
 
         profile.updated_at = clock.unix_timestamp;
 
-        msg!("✅ Profile updated: @{}", profile.username);
+        msg!("✅ ANS Profile updated: @{}", profile.username);
 
         Ok(())
     }
@@ -109,7 +109,7 @@ pub mod analos_profile_registry {
         // Release username
         username_reg.is_available = true;
 
-        msg!("✅ Profile burned, username released: @{}", username_reg.username);
+        msg!("✅ ANS Profile burned, username released: @{}", username_reg.username);
 
         Ok(())
     }
@@ -136,7 +136,7 @@ pub mod analos_profile_registry {
         username_reg.profile_registry = new_profile.key();
         username_reg.last_transferred_at = clock.unix_timestamp;
 
-        msg!("✅ Username transferred: @{} → {}", username_reg.username, ctx.accounts.new_owner.key());
+        msg!("✅ ANS Username transferred: @{} → {}", username_reg.username, ctx.accounts.new_owner.key());
 
         Ok(())
     }
@@ -245,7 +245,7 @@ pub struct ProfileRegistry {
     pub version: u8,
     
     /// Owner wallet address
-    pub user_wallet: Pubkey,
+    pub wallet: Pubkey,
     
     /// Username (lowercase, 3-20 chars)
     pub username: String,
@@ -270,7 +270,7 @@ pub struct ProfileRegistry {
 }
 
 impl ProfileRegistry {
-    pub const INIT_SPACE: usize = 1 + 32 + 32 + 32 + 33 + 1 + 8 + 8 + 1;
+    pub const INIT_SPACE: usize = 1 + 32 + (4 + 20) + 32 + (1 + 32) + 1 + 8 + 8 + 1;
 }
 
 /// Username Registry Account
@@ -300,7 +300,7 @@ pub struct UsernameRegistry {
 }
 
 impl UsernameRegistry {
-    pub const INIT_SPACE: usize = 1 + 32 + 32 + 32 + 8 + 8 + 1;
+    pub const INIT_SPACE: usize = 1 + (4 + 20) + 32 + 32 + 8 + 8 + 1;
 }
 
 // ============================================================================

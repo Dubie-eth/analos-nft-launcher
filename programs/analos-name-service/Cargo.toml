@@ -1,12 +1,13 @@
 [package]
-name = "analos-profile-registry"
+name = "analos-name-service"
 version = "1.0.0"
-description = "Analos Profile NFT Registry - SNS-style username system"
+description = "Analos Name Service (ANS) - SNS-style username registry for Analos blockchain"
 edition = "2021"
+authors = ["Analos Team"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "analos_profile_registry"
+name = "analos_name_service"
 
 [features]
 no-entrypoint = []
