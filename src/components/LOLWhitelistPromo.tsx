@@ -79,9 +79,11 @@ const LOLWhitelistPromo: React.FC = () => {
           balanceFormatted: 'TEAM MEMBER',
           isWhitelisted: true,
           whitelistPosition: 0,
-          eligibleForDiscount: true,
-          discountPercent: 100,
-          finalPrice: 0
+          tier: 'supporter',
+          benefits: ['50 FREE Los Bros mints', 'No platform fee', 'Team allocation'],
+          freeMintsAvailable: 50,
+          discountPercentage: 100,
+          isPublicLaunch: false
         });
         console.log('🎖️ Team wallet detected:', publicKey.toString());
         return;
