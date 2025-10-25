@@ -91,11 +91,11 @@ export default function LosBrosCollectionPage() {
     try {
       // Mint Los Bros NFT
       const { losBrosMintingService } = await import('@/lib/los-bros-minting');
-      const result = await losBrosMintingService.mintLosBros(
-        publicKey,
+      const result = await losBrosMintingService.mintLosBros({
+        wallet: publicKey.toString(),
         signTransaction,
         sendTransaction
-      );
+      });
 
       if (!result.success) {
         throw new Error(result.error || 'Mint failed');
