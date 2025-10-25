@@ -18,7 +18,10 @@ const DISCOUNT_THRESHOLD = 100_000; // 100k $LOL tokens for 50% discount
 const HARDCODED_WHITELIST: { [key: string]: number } = {
   // Wallet address (lowercase) → $LOL balance
   'fv1npnbwojat55endmquwrly6taac2mzswappyohup9': 1_140_000, // Your wallet with 1.14M $LOL
-  '86ok6fa5mkweaquzpr6w1wvkajku7zpdba7l2m3rmhpw': 1_140_000, // Admin wallet
+  '86ok6fa5mkweaquzpr6w1wvkajku7zpdba7l2m3rmhpw': 1_140_000, // Admin wallet (TEAM)
+  '89fmjapcvaosmnf5fhcoeedv9vkuvrjh8xlnicbtcnt5m': 1_140_000, // Deployer wallet (TEAM)
+  'giscdqzp3k48yqehb3c4bwaqe6sg9d6s8yxvt4uj1an4': 1_140_000, // Community wallet 1
+  '2w6t7xhk2ekbn6trqrebj3wxibrmrb52bykqkb6uaksw': 1_140_000, // Community wallet 2
   // Add more whitelisted wallets here as needed
 };
 

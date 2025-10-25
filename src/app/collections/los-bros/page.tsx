@@ -132,6 +132,30 @@ export default function LosBrosCollectionPage() {
       return;
     }
 
+    // CRITICAL: Validate tier and pricing before minting
+    if (!pricing || !pricing.tier) {
+      alert('❌ Pricing not loaded. Please refresh and try again.');
+      return;
+    }
+
+    // CRITICAL: For FREE/DISCOUNTED tiers, verify the balance was properly detected
+    if (pricing.tier === 'COMMUNITY' && (!pricing.tokenBalance || pricing.tokenBalance < 1_000_000)) {
+      alert('❌ COMMUNITY tier requires 1M+ $LOL balance. Balance check failed. Please refresh.');
+      console.error('❌ COMMUNITY tier validation failed:', pricing);
+      return;
+    }
+
+    if (pricing.tier === 'EARLY' && (!pricing.tokenBalance || pricing.tokenBalance < 100_000)) {
+      alert('❌ EARLY tier requires 100k+ $LOL balance. Balance check failed. Please refresh.');
+      console.error('❌ EARLY tier validation failed:', pricing);
+      return;
+    }
+
+    // Log the tier being used for this mint
+    console.log('🎯 Minting with tier:', pricing.tier);
+    console.log('💰 Token balance:', pricing.tokenBalance);
+    console.log('💵 Final price:', pricing.finalPrice);
+
     setLoading(true);
 
     try {
