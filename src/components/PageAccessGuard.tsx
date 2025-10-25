@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { pageAccessService } from '@/lib/database/page-access-service';
 import { PAGE_ACCESS, ADMIN_WALLETS } from '@/config/access-control';
 
 interface PageAccessGuardProps {
@@ -104,22 +103,24 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
 
         // Get page configuration from database for additional checks (skip for admin wallets)
         try {
-          const pageConfig = await pageAccessService.getPageAccessConfig(pathname);
+          // Use API route instead of direct service call (fixes 406 error)
+          const response = await fetch(`/api/page-access/${encodeURIComponent(pathname)}`);
           
-          if (pageConfig && pageConfig.isLocked) {
-            console.log(`🚫 Page ${pathname} is locked in database, redirecting to beta signup`);
-            router.push(`/beta-signup?locked_page=${encodeURIComponent(pathname)}&message=${encodeURIComponent(pageConfig.customMessage || 'This page is currently locked. Please sign up for beta access.')}`);
-            return;
+          if (response.ok) {
+            const pageConfig = await response.json();
+            
+            if (pageConfig && pageConfig.is_locked) {
+              console.log(`🚫 Page ${pathname} is locked in database, redirecting to beta signup`);
+              router.push(`/beta-signup?locked_page=${encodeURIComponent(pathname)}&message=${encodeURIComponent(pageConfig.custom_message || 'This page is currently locked. Please sign up for beta access.')}`);
+              return;
+            }
+          } else if (response.status === 404) {
+            // Page config doesn't exist in DB, use static config only
+            console.log(`📝 No database config for ${pathname}, using static config`);
           }
         } catch (dbError: any) {
           // If database check fails, log but continue (graceful degradation)
           console.warn('⚠️ Database access check failed, continuing anyway:', dbError);
-          
-          // Check if it's a Supabase configuration error
-          if (dbError?.message?.includes('Supabase is not configured')) {
-            console.error('❌ SUPABASE NOT CONFIGURED! Please create a .env.local file with your Supabase credentials.');
-            console.error('📋 See env-template.txt for the required environment variables.');
-          }
         }
 
         // Page is accessible, allow access

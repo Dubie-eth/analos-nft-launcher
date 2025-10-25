@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 /**
  * GET /api/los-bros/allocations
  * Returns current allocation status for all tiers
  */
 export async function GET(request: NextRequest) {
+  // Lazy initialize Supabase client at runtime (not build time)
+  const supabase = getSupabaseAdmin();
   try {
     console.log('📊 Fetching Los Bros allocation status...');
 

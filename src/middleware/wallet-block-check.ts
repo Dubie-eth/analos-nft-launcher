@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 export async function checkWalletBlock(walletAddress: string): Promise<boolean> {
+  // Lazy initialize Supabase client at runtime (not build time)
+  const supabase = getSupabaseAdmin();
   try {
     const { data, error } = await supabase
       .from('blocked_wallets')
@@ -28,6 +25,8 @@ export async function checkWalletBlock(walletAddress: string): Promise<boolean> 
 }
 
 export async function getBlockReason(walletAddress: string): Promise<string | null> {
+  // Lazy initialize Supabase client at runtime (not build time)
+  const supabase = getSupabaseAdmin();
   try {
     const { data, error } = await supabase
       .from('blocked_wallets')

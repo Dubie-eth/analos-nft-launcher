@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PublicKey } from '@solana/web3.js';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 /**
  * POST /api/los-bros/check-eligibility
  * Check user's tier eligibility and allocation availability
  */
 export async function POST(request: NextRequest) {
+  // Lazy initialize Supabase client at runtime (not build time)
+  const supabase = getSupabaseAdmin();
   try {
     const body = await request.json();
     const { walletAddress } = body;
