@@ -8,10 +8,10 @@ import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ wallet: string }> }
+  { params }: { params: { wallet: string } }
 ) {
   try {
-    const { wallet } = await params;
+    const { wallet } = params;
 
     if (!wallet) {
       return NextResponse.json(
