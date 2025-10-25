@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
 
     // Insert into profile_nfts table (Los Bros NFTs are stored here)
     // @ts-ignore - Supabase generated types don't include Los Bros columns yet
-    const { data, error } = await supabase
-      .from('profile_nfts')
+    const { data, error } = await (supabase
+      .from('profile_nfts') as any)
       .insert({
         mint_address: mintAddress,
         wallet_address: walletAddress,
