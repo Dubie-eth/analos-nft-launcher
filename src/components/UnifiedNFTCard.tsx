@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Send } from 'lucide-react';
+import { Send, History, ChevronDown, ChevronUp } from 'lucide-react';
 import NFTTransferModal from './NFTTransferModal';
+import NFTTransferHistory from './NFTTransferHistory';
 
 interface UnifiedNFTCardProps {
   nft: any;
@@ -21,6 +22,7 @@ export default function UnifiedNFTCard({
   compact = false
 }: UnifiedNFTCardProps) {
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showTransferHistory, setShowTransferHistory] = useState(false);
 
   const shortenAddress = (address: string) => {
     if (!address) return '';
@@ -178,6 +180,26 @@ export default function UnifiedNFTCard({
             >
               🔍 View in Explorer
             </Link>
+
+            {/* Transfer History Toggle */}
+            <button
+              onClick={() => setShowTransferHistory(!showTransferHistory)}
+              className="w-full bg-gray-600/30 hover:bg-gray-600/50 border border-gray-400/50 text-gray-300 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              <History className="w-4 h-4" />
+              Transfer History
+              {showTransferHistory ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
+        )}
+
+        {/* Transfer History Expandable Section */}
+        {showActions && showTransferHistory && (
+          <div className="mt-2 pt-2 border-t border-white/10">
+            <NFTTransferHistory 
+              nftMint={nft.mint || nft.mint_address}
+              tokenId={nft.los_bros_token_id || nft.tokenId}
+            />
           </div>
         )}
       </div>

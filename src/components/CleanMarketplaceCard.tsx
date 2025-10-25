@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { ExternalLink, User, Tag, DollarSign, ShoppingCart, X, Send } from 'lucide-react';
+import { ExternalLink, User, Tag, DollarSign, ShoppingCart, X, Send, ChevronDown, ChevronUp, History } from 'lucide-react';
 import Link from 'next/link';
 import NFTTransferModal from './NFTTransferModal';
+import NFTTransferHistory from './NFTTransferHistory';
 
 interface CleanMarketplaceCardProps {
   nft: any;
@@ -26,6 +27,7 @@ export default function CleanMarketplaceCard({
   const [showListModal, setShowListModal] = useState(false);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showTransferHistory, setShowTransferHistory] = useState(false);
   const [listPrice, setListPrice] = useState('');
   const [offerPrice, setOfferPrice] = useState('');
 
@@ -297,6 +299,26 @@ export default function CleanMarketplaceCard({
                 Transfer NFT
               </button>
             )}
+          </div>
+        )}
+
+        {/* Transfer History Toggle */}
+        <button
+          onClick={() => setShowTransferHistory(!showTransferHistory)}
+          className="w-full mt-2 pt-2 border-t border-white/10 flex items-center justify-center gap-2 text-gray-400 hover:text-purple-400 transition-colors py-2 text-sm"
+        >
+          <History className="w-4 h-4" />
+          <span>Transfer History</span>
+          {showTransferHistory ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        {/* Transfer History Expandable Section */}
+        {showTransferHistory && (
+          <div className="mt-2 pt-2 border-t border-white/10">
+            <NFTTransferHistory 
+              nftMint={nft.mintAddress || nft.mint_address || nft.id}
+              tokenId={nft.los_bros_token_id || nft.tokenId}
+            />
           </div>
         )}
       </div>

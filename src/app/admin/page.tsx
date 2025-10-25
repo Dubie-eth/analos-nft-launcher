@@ -36,6 +36,7 @@ import BatchMintAdmin from '@/components/BatchMintAdmin';
 import AdminProfileManager from '@/components/AdminProfileManager';
 import TreasuryManager from '@/components/TreasuryManager';
 import LegalAcceptanceLog from '@/components/LegalAcceptanceLog';
+import TransferHistoryDashboard from '@/components/TransferHistoryDashboard';
 
 interface CollectionStats {
   name: string;
