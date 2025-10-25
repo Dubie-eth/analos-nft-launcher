@@ -505,14 +505,23 @@ export default function ProfilePage() {
                 
                 if (enrichedProfile) {
                   console.log('✅ Enriched Profile NFT with database data');
-                  setUserProfileNFT(enrichedProfile);
+                  setUserProfileNFT({
+                    ...enrichedProfile,
+                    collection: 'Analos Profile NFTs'
+                  } as UserNFT);
                 } else {
                   // Use blockchain data only
-                  setUserProfileNFT(profileNFT);
+                  setUserProfileNFT({
+                    ...profileNFT,
+                    collection: 'Analos Profile NFTs'
+                  });
                 }
               } catch (enrichError) {
                 console.warn('⚠️  Could not enrich with database, using blockchain data:', enrichError);
-                setUserProfileNFT(profileNFT);
+                setUserProfileNFT({
+                  ...profileNFT,
+                  collection: 'Analos Profile NFTs'
+                });
               }
             } else {
               // No Profile NFT found in blockchain API, try blockchain-first fetcher
@@ -522,7 +531,10 @@ export default function ProfilePage() {
                 
                 if (blockchainProfile) {
                   console.log('✅ Found Profile NFT via blockchain-first fetcher');
-                  setUserProfileNFT(blockchainProfile);
+                  setUserProfileNFT({
+                    ...blockchainProfile,
+                    collection: 'Analos Profile NFTs'
+                  } as UserNFT);
                 }
               } catch (fetchError) {
                 console.error('❌ Blockchain-first fetch failed:', fetchError);
