@@ -267,10 +267,10 @@ SELECT
   los_bros_discount_percent,
   los_bros_final_price,
   lol_balance_at_mint,
-  mint_date
+  created_at
 FROM profile_nfts
 WHERE los_bros_token_id IS NOT NULL
-ORDER BY mint_date DESC
+ORDER BY created_at DESC
 LIMIT 10;
 
 -- =====================================================
