@@ -400,8 +400,20 @@ export default function LosBrosCollectionPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mintedNFTs.map((nft: any, index: number) => (
-                <div key={nft.mint_address || index} className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl overflow-hidden border-2 border-cyan-400/30 hover:border-cyan-400 transition-all hover:scale-105">
+              {mintedNFTs.map((nft: any, index: number) => {
+                // Check if this is the official PFP
+                const isOfficialPFP = nft.nft_metadata?.is_official_pfp === true || nft.nft_metadata?.is_official_pfp === 'true';
+                const isLocked = nft.nft_metadata?.locked === true || nft.nft_metadata?.locked === 'true';
+                
+                return (
+                <div 
+                  key={nft.mint_address || index} 
+                  className={`bg-gradient-to-br rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${
+                    isOfficialPFP 
+                      ? 'from-yellow-900/50 to-orange-900/50 border-yellow-400 shadow-lg shadow-yellow-400/50 ring-2 ring-yellow-400 ring-offset-2 ring-offset-purple-900' 
+                      : 'from-purple-900/50 to-blue-900/50 border-cyan-400/30 hover:border-cyan-400'
+                  }`}
+                >
                   
                   {/* NFT Image */}
                   <div className="aspect-square bg-black/20 relative">
@@ -416,8 +428,16 @@ export default function LosBrosCollectionPage() {
                       }}
                     />
                     
+                    {/* Official PFP Badge - Top Priority */}
+                    {isOfficialPFP && (
+                      <div className="absolute top-2 left-2 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-lg animate-pulse flex items-center space-x-1">
+                        <span>🔒</span>
+                        <span>OFFICIAL PFP</span>
+                      </div>
+                    )}
+                    
                     {/* Rarity Badge */}
-                    {nft.los_bros_rarity && (
+                    {nft.los_bros_rarity && !isOfficialPFP && (
                       <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-bold ${
                         nft.los_bros_rarity === 'LEGENDARY' ? 'bg-yellow-400 text-black' :
                         nft.los_bros_rarity === 'EPIC' ? 'bg-purple-500 text-white' :
@@ -478,6 +498,16 @@ export default function LosBrosCollectionPage() {
                       🔍 View in Mints Explorer
                     </a>
 
+                    {/* Locked Status Message */}
+                    {isLocked && (
+                      <div className="bg-yellow-900/30 border border-yellow-400/50 rounded-lg p-3 text-center">
+                        <p className="text-yellow-300 text-xs font-semibold mb-1">🔒 This NFT is Locked</p>
+                        <p className="text-yellow-200/70 text-xs">
+                          {nft.nft_metadata?.locked_reason || 'Cannot be listed or traded'}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Metadata Link */}
                     {nft.metadata_uri && (
                       <a
@@ -491,7 +521,8 @@ export default function LosBrosCollectionPage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
