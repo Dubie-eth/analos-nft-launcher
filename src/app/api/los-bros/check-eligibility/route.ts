@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Check allocation availability for this tier
-    const { data: allocation, error: allocError } = await supabase
+    const { data: allocation, error: allocError } = await (supabase as any)
       .rpc('check_los_bros_allocation', {
         p_tier: pricing.tier,
         p_wallet_address: walletAddress,
