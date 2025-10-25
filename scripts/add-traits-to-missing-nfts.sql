@@ -12,7 +12,7 @@ SET
     {"trait_type": "Clothes", "value": "pink_hero"},
     {"trait_type": "Mouth", "value": "smile_grin"},
     {"trait_type": "Eyes", "value": "glowing_neon"},
-    {"trait_type": "Hat", "value": "cap_red"}
+    {"trait_type": "Hat", "value": "cap_snapback"}
   ]'::jsonb,
   los_bros_rarity = 'COMMON',
   los_bros_rarity_score = 7.2
@@ -27,7 +27,7 @@ SET
     {"trait_type": "Clothes", "value": "cyan_stripe"},
     {"trait_type": "Mouth", "value": "smile_cute"},
     {"trait_type": "Eyes", "value": "laser_blue"},
-    {"trait_type": "Hat", "value": "beanie_blue"}
+    {"trait_type": "Hat", "value": "beanie_striped"}
   ]'::jsonb,
   los_bros_rarity = 'RARE',
   los_bros_rarity_score = 45.8
@@ -42,7 +42,7 @@ SET
     {"trait_type": "Clothes", "value": "orange_hoodie"},
     {"trait_type": "Mouth", "value": "smile_smirk"},
     {"trait_type": "Eyes", "value": "normal_hazel"},
-    {"trait_type": "Hat", "value": "cap_black"}
+    {"trait_type": "Hat", "value": "cap_baseball"}
   ]'::jsonb,
   los_bros_rarity = 'COMMON',
   los_bros_rarity_score = 6.5

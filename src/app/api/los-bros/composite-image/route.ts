@@ -69,13 +69,12 @@ function generateCompositeHTML(tokenId: string, traits: any[]): string {
     'Clothes': 'Clothes',
     'Mouth': 'Mouth',
     'Eyes': 'Eyes',
-    'Hat': 'Hats',
-    'Accessory': 'Eyes', // Some accessories might be in Eyes folder
-    'Special': 'Special'
+    'Hat': 'Hats'
   };
   
-  // Build image layers in correct order
-  const layerOrder = ['Background', 'Body', 'Clothes', 'Mouth', 'Eyes', 'Hat', 'Accessory', 'Special'];
+  // Build image layers in correct order (bottom to top)
+  // Background → Body → Clothes → Mouth → Eyes → Hat
+  const layerOrder = ['Background', 'Body', 'Clothes', 'Mouth', 'Eyes', 'Hat'];
   
   const layers = layerOrder
     .map(traitType => {
