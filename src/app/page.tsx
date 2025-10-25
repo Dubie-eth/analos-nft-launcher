@@ -181,78 +181,76 @@ const HomePage: React.FC = () => {
             
             <div className="flex flex-col md:flex-row items-center gap-8">
               
-              {/* Left: Featured Los Bro Image */}
+              {/* Left: Featured Los Bro PFP - Full Pixel Art */}
               <div className="md:w-1/2">
-                <div className="aspect-square bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900 rounded-2xl overflow-hidden shadow-2xl border-4 border-purple-400/50 relative group">
-                  {/* Dynamic Los Bro PFP Display */}
-                  <div className="absolute inset-0 flex items-center justify-center p-8">
-                    <div className="relative w-full h-full">
-                      {/* Matrix-style background effect */}
-                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-                      
-                      {/* Featured Los Bro Display - Pixel Art Style */}
-                      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
-                        {/* Pixel Art Profile Card */}
-                        <div className="bg-gradient-to-br from-cyan-600 via-purple-600 to-pink-600 rounded-xl p-6 border-4 border-cyan-400 shadow-2xl" style={{imageRendering: 'pixelated'}}>
-                          {/* Pixel Art Los Bro Character */}
-                          <div className="mb-4 relative">
-                            {/* Cap with LOL text */}
-                            <div className="text-center mb-2">
-                              <div className="inline-block bg-gradient-to-r from-cyan-400 to-white px-4 py-2 rounded-sm border-2 border-black">
-                                <span className="font-black text-black text-2xl tracking-wider" style={{fontFamily: 'monospace'}}>LOL</span>
-                              </div>
-                            </div>
-                            {/* Head with gradient */}
-                            <div className="w-32 h-32 mx-auto bg-gradient-to-br from-cyan-400 via-blue-500 to-pink-500 rounded-lg border-4 border-black relative">
-                              {/* Yellow square eyes */}
-                              <div className="absolute top-1/3 left-1/4 w-6 h-6 bg-yellow-400 border-2 border-black">
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-black"></div>
-                              </div>
-                              <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-yellow-400 border-2 border-black">
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-black"></div>
-                              </div>
-                              {/* Mouth */}
-                              <div className="absolute bottom-1/4 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-black"></div>
-                            </div>
-                          </div>
-                          
-                          <div className="text-2xl font-bold text-white mb-2 font-mono tracking-widest" style={{textShadow: '2px 2px 0px rgba(0,0,0,0.5)'}}>
-                            LOS BROS
-                          </div>
-                          <div className="text-sm text-cyan-300 font-mono mb-2 font-bold">#VAPORWAVE PFPs</div>
-                          <div className="text-xs text-pink-200 mb-4">PIXEL ART • ANALOS CHAIN</div>
-                          
-                          {/* Stats with pixel style */}
-                          <div className="grid grid-cols-2 gap-3 text-xs">
-                            <div className="bg-black/70 rounded-none p-2 border-2 border-cyan-400">
-                              <div className="text-cyan-300 font-mono">SUPPLY</div>
-                              <div className="text-white font-bold text-lg">2,222</div>
-                            </div>
-                            <div className="bg-black/70 rounded-none p-2 border-2 border-pink-400">
-                              <div className="text-pink-300 font-mono">TRAITS</div>
-                              <div className="text-white font-bold text-lg">10K+</div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Pixel Badge */}
-                        <div className="mt-4 bg-gradient-to-r from-cyan-400 to-pink-400 border-2 border-black px-6 py-2 text-black text-sm font-black animate-pulse" style={{imageRendering: 'pixelated'}}>
-                          ⚡ FEATURED DROP
+                <div className="aspect-square rounded-2xl overflow-hidden shadow-2xl border-4 border-cyan-400 relative group" style={{imageRendering: 'pixelated'}}>
+                  {/* Vaporwave Horizontal Striped Background (matching actual PFP) */}
+                  <div className="absolute inset-0" style={{
+                    background: 'repeating-linear-gradient(0deg, #00BFFF 0px, #00BFFF 12px, #87CEEB 12px, #87CEEB 24px, #FF1493 24px, #FF1493 36px, #BA55D3 36px, #BA55D3 48px, #4B0082 48px, #4B0082 60px)'
+                  }}></div>
+                  
+                  {/* Pixel Art Los Bro Character */}
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center p-8">
+                    
+                    {/* Baseball Cap with LOL */}
+                    <div className="mb-3">
+                      <div className="bg-white px-6 py-3 border-4 border-black inline-block" style={{imageRendering: 'pixelated'}}>
+                        <div className="text-4xl font-black text-black tracking-wider" style={{fontFamily: 'monospace'}}>
+                          LOL
                         </div>
                       </div>
-                      
-                      {/* Decorative Elements */}
-                      <div className="absolute top-2 left-2 text-green-400 text-xs font-mono opacity-50">
-                        &gt; LOADING...
+                      <div className="w-24 h-3 bg-cyan-400 border-4 border-black mx-auto -mt-1"></div>
+                    </div>
+                    
+                    {/* Head with vaporwave gradient */}
+                    <div className="w-48 h-48 bg-gradient-to-br from-cyan-400 via-blue-500 to-pink-500 border-4 border-black relative mb-4">
+                      {/* Yellow square eyes */}
+                      <div className="absolute top-16 left-10 w-10 h-10 bg-yellow-400 border-4 border-black">
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-black"></div>
                       </div>
-                      <div className="absolute bottom-2 right-2 text-green-400 text-xs font-mono opacity-50">
-                        ANALOS.IO
+                      <div className="absolute top-16 right-10 w-10 h-10 bg-yellow-400 border-4 border-black">
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-black"></div>
                       </div>
+                      {/* Simple mouth line */}
+                      <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-16 h-2 bg-black"></div>
+                    </div>
+                    
+                    {/* Pink/Purple Jacket */}
+                    <div className="w-56 h-20 bg-gradient-to-r from-pink-500 to-purple-500 border-4 border-black relative">
+                      {/* Checkered zipper down middle */}
+                      <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-6 flex flex-col">
+                        <div className="h-5 bg-white border border-black"></div>
+                        <div className="h-5 bg-blue-400 border border-black"></div>
+                        <div className="h-5 bg-white border border-black"></div>
+                        <div className="h-5 bg-blue-400 border border-black"></div>
+                      </div>
+                      {/* White/cyan shoulder stripes */}
+                      <div className="absolute top-0 left-4 w-8 h-full bg-white border-2 border-black"></div>
+                      <div className="absolute top-0 left-12 w-4 h-full bg-cyan-400"></div>
+                      <div className="absolute top-0 right-4 w-8 h-full bg-white border-2 border-black"></div>
+                      <div className="absolute top-0 right-12 w-4 h-full bg-cyan-400"></div>
+                    </div>
+                    
+                    {/* Los Bros Title */}
+                    <div className="mt-6 text-center">
+                      <div className="text-4xl font-black text-white mb-1" style={{
+                        textShadow: '3px 3px 0px rgba(138, 43, 226, 0.8), -1px -1px 0px rgba(0,0,0,0.5)',
+                        fontFamily: 'monospace',
+                        letterSpacing: '0.15em'
+                      }}>
+                        LOS BROS
+                      </div>
+                      <div className="text-sm text-cyan-300 font-bold">#VAPORWAVE • 2,222 SUPPLY</div>
                     </div>
                   </div>
                   
-                  {/* Hover Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  {/* Pixel Badge */}
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-cyan-400 via-pink-400 to-cyan-400 border-4 border-black px-8 py-3 animate-pulse">
+                    <span className="text-black text-lg font-black tracking-wider" style={{fontFamily: 'monospace'}}>⚡ LIVE NOW ⚡</span>
+                  </div>
+                  
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-cyan-400/20 via-purple-400/20 to-pink-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>
 

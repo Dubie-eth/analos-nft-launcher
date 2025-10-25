@@ -39,9 +39,39 @@ export async function POST(request: NextRequest) {
     const { tokenGatingService } = await import('@/lib/token-gating-service');
     const tokenCheck = await tokenGatingService.checkEligibility(walletAddress);
 
-    // Calculate tier based on holdings
-    const { calculateLosBrosPricing, TEAM_WALLETS } = await import('@/config/los-bros-pricing');
-    const pricing = calculateLosBrosPricing(walletAddress, tokenCheck.tokenBalance || 0);
+    // Check holding period (anti-bot measure)
+    let holdingPeriodHours = 0;
+    try {
+      const holdingResponse = await fetch(`${request.nextUrl.origin}/api/los-bros/check-holding-period`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress }),
+      });
+      
+      if (holdingResponse.ok) {
+        const holdingData = await holdingResponse.json();
+        holdingPeriodHours = holdingData.holdingPeriodHours || 0;
+        console.log(`⏰ Token holding period: ${holdingPeriodHours.toFixed(1)} hours`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not check holding period:', error);
+    }
+
+    // Get current mint count for dynamic pricing
+    const { data: mintCountData } = await supabase
+      .from('profile_nfts')
+      .select('mint_address', { count: 'exact', head: true });
+    
+    const currentMintCount = mintCountData || 0;
+
+    // Calculate tier based on holdings, holding period, and current mint count
+    const { calculateLosBrosPricing } = await import('@/config/los-bros-pricing');
+    const pricing = calculateLosBrosPricing(
+      walletAddress, 
+      tokenCheck.tokenBalance || 0,
+      holdingPeriodHours,
+      currentMintCount as number
+    );
 
     // Check allocation availability for this tier
     const { data: allocation, error: allocError } = await supabase
@@ -70,10 +100,11 @@ export async function POST(request: NextRequest) {
     const hasMinted = (existingMints || []).length > 0;
     const mintCount = (existingMints || []).length;
 
-    // Determine eligibility
+    // Determine eligibility - MUST meet holding period for discounts/free mints
     const isEligible = 
       allocationData?.is_available && 
       !hasMinted &&
+      pricing.holdingPeriodMet && // Anti-bot: Must hold tokens for 72 hours
       (pricing.tier === 'TEAM' || 
        pricing.tier === 'PUBLIC' || 
        tokenCheck.tokenBalance >= (allocationData?.requires_lol || 0));
@@ -89,6 +120,8 @@ export async function POST(request: NextRequest) {
         platformFee: pricing.platformFee,
         isFree: pricing.isFree,
         message: pricing.message,
+        holdingPeriodMet: pricing.holdingPeriodMet,
+        holdingPeriodHours: pricing.holdingPeriodHours,
       },
       allocation: allocationData ? {
         allocated: allocationData.allocated,
@@ -103,6 +136,7 @@ export async function POST(request: NextRequest) {
       existingMints: existingMints || [],
       message: !isEligible ? (
         hasMinted ? '❌ You have already minted a Los Bro NFT' :
+        !pricing.holdingPeriodMet ? `⏰ Must hold $LOL for 72 hours (currently ${pricing.holdingPeriodHours.toFixed(1)}h)` :
         !allocationData?.is_available ? `❌ ${pricing.tier} tier allocation is full or inactive` :
         tokenCheck.tokenBalance < (allocationData?.requires_lol || 0) ? 
           `❌ Insufficient $LOL tokens (need ${(allocationData?.requires_lol || 0).toLocaleString()})` :

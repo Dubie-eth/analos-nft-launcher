@@ -4,8 +4,10 @@ import { PublicKey } from '@solana/web3.js';
 // ======================================================
 
 export const LOS_BROS_PRICING = {
-  // Base price for public sale
-  BASE_PRICE: 4200.69, // LOS
+  // Dynamic pricing - starts low, increases with each mint
+  STARTING_PRICE: 4200.69, // LOS
+  MAX_PRICE: 42000.69, // LOS
+  PRICE_INCREMENT_PERCENT: 6.9, // Increases by 6.9% with each mint
   CURRENCY: 'LOS',
   
   // Platform fee (covers storage, IPFS, infrastructure)
@@ -13,6 +15,9 @@ export const LOS_BROS_PRICING = {
   
   // Total supply
   TOTAL_SUPPLY: 2222,
+  
+  // Anti-bot: Minimum holding period for free/discounted mints
+  MIN_HOLDING_PERIOD_HOURS: 72, // Must hold $LOL for 72 hours
   
   // Whitelist allocations
   ALLOCATIONS: {
@@ -40,6 +45,18 @@ export const TEAM_WALLETS = [
   // Add more team wallets here
 ];
 
+// Calculate dynamic price based on mints
+export function calculateDynamicPrice(mintedCount: number): number {
+  const { STARTING_PRICE, MAX_PRICE, PRICE_INCREMENT_PERCENT } = LOS_BROS_PRICING;
+  
+  // Price increases by 6.9% with each mint
+  const incrementMultiplier = Math.pow(1 + (PRICE_INCREMENT_PERCENT / 100), mintedCount);
+  const dynamicPrice = STARTING_PRICE * incrementMultiplier;
+  
+  // Cap at max price
+  return Math.min(dynamicPrice, MAX_PRICE);
+}
+
 // Calculate pricing based on user's $LOL holdings
 export interface LosBrosPricing {
   tier: 'TEAM' | 'EARLY' | 'COMMUNITY' | 'PUBLIC';
@@ -49,15 +66,20 @@ export interface LosBrosPricing {
   platformFee: number;
   isFree: boolean;
   tokenBalance: number;
+  holdingPeriodMet: boolean;
+  holdingPeriodHours: number;
   message: string;
 }
 
 export function calculateLosBrosPricing(
   walletAddress: string,
-  lolBalance: number
+  lolBalance: number,
+  holdingPeriodHours: number = 0,
+  currentMintCount: number = 0
 ): LosBrosPricing {
-  const basePrice = LOS_BROS_PRICING.BASE_PRICE;
+  const basePrice = calculateDynamicPrice(currentMintCount);
   const platformFeePercent = LOS_BROS_PRICING.PLATFORM_FEE_PERCENT;
+  const holdingPeriodMet = holdingPeriodHours >= LOS_BROS_PRICING.MIN_HOLDING_PERIOD_HOURS;
   
   // Check if team wallet
   if (TEAM_WALLETS.includes(walletAddress)) {
@@ -69,13 +91,32 @@ export function calculateLosBrosPricing(
       platformFee: 0,
       isFree: true,
       tokenBalance: lolBalance,
+      holdingPeriodMet: true, // Team always passes
+      holdingPeriodHours,
       message: '🎖️ Team Allocation - FREE Mint!',
     };
   }
   
-  // Check if 1M+ $LOL holder (Community tier)
+  // Check if 1M+ $LOL holder (Community tier) - MUST meet holding period
   if (lolBalance >= LOS_BROS_PRICING.LOL_TOKEN.COMMUNITY_THRESHOLD) {
     const platformFee = basePrice * (platformFeePercent / 100);
+    
+    // Anti-bot: Check holding period
+    if (!holdingPeriodMet) {
+      return {
+        tier: 'COMMUNITY',
+        basePrice: basePrice,
+        discount: 0,
+        finalPrice: basePrice,
+        platformFee: basePrice * (platformFeePercent / 100),
+        isFree: false,
+        tokenBalance: lolBalance,
+        holdingPeriodMet: false,
+        holdingPeriodHours,
+        message: `⏰ Hold $LOL for ${LOS_BROS_PRICING.MIN_HOLDING_PERIOD_HOURS}h to unlock free mint (${holdingPeriodHours.toFixed(1)}h so far)`,
+      };
+    }
+    
     return {
       tier: 'COMMUNITY',
       basePrice: basePrice,
@@ -84,15 +125,32 @@ export function calculateLosBrosPricing(
       platformFee: platformFee,
       isFree: false, // Not completely free, pays platform fee
       tokenBalance: lolBalance,
+      holdingPeriodMet: true,
+      holdingPeriodHours,
       message: `🎁 Community Holder (${lolBalance.toLocaleString()} $LOL) - FREE Mint! Only pay ${platformFee.toFixed(2)} LOS platform fee`,
     };
   }
   
-  // Check if 100k+ $LOL holder (Early Supporter tier)
+  // Check if 100k+ $LOL holder (Early Supporter tier) - MUST meet holding period
   if (lolBalance >= LOS_BROS_PRICING.LOL_TOKEN.EARLY_SUPPORTER_THRESHOLD) {
     const discountedPrice = basePrice * 0.5; // 50% off
     const platformFee = discountedPrice * (platformFeePercent / 100);
-    const finalPrice = discountedPrice + platformFee;
+    
+    // Anti-bot: Check holding period for discount
+    if (!holdingPeriodMet) {
+      return {
+        tier: 'EARLY',
+        basePrice: basePrice,
+        discount: 0,
+        finalPrice: basePrice,
+        platformFee: basePrice * (platformFeePercent / 100),
+        isFree: false,
+        tokenBalance: lolBalance,
+        holdingPeriodMet: false,
+        holdingPeriodHours,
+        message: `⏰ Hold $LOL for ${LOS_BROS_PRICING.MIN_HOLDING_PERIOD_HOURS}h to unlock 50% discount (${holdingPeriodHours.toFixed(1)}h so far)`,
+      };
+    }
     
     return {
       tier: 'EARLY',
@@ -102,13 +160,14 @@ export function calculateLosBrosPricing(
       platformFee: platformFee,
       isFree: false,
       tokenBalance: lolBalance,
+      holdingPeriodMet: true,
+      holdingPeriodHours,
       message: `💎 Early Supporter (${lolBalance.toLocaleString()} $LOL) - 50% OFF!`,
     };
   }
   
-  // Public sale (no discount)
+  // Public sale (no discount) - Dynamic pricing
   const platformFee = basePrice * (platformFeePercent / 100);
-  const finalPrice = basePrice + platformFee;
   
   return {
     tier: 'PUBLIC',
@@ -118,7 +177,9 @@ export function calculateLosBrosPricing(
     platformFee: platformFee,
     isFree: false,
     tokenBalance: lolBalance,
-    message: '🌍 Public Sale - Full Price',
+    holdingPeriodMet: true, // Not required for public sale
+    holdingPeriodHours,
+    message: `🌍 Public Sale - ${basePrice.toFixed(2)} LOS (Price increases with each mint)`,
   };
 }
 
