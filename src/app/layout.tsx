@@ -7,6 +7,7 @@ import AccessControlManager from '@/components/AccessControlManager'
 import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
 import DebugAccessInfo from '@/components/DebugAccessInfo'
 import WalletSafetyDisclaimer from '@/components/WalletSafetyDisclaimer'
+import LegalDisclaimerBanner from '@/components/LegalDisclaimerBanner'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { SupabaseProvider } from '@/lib/supabase-provider'
 import PageAccessGuard from '@/components/PageAccessGuard'
@@ -68,6 +69,9 @@ export default function RootLayout({
               
               {/* Wallet Safety Disclaimer - Shows on first visit */}
               <WalletSafetyDisclaimer />
+              
+              {/* Legal Disclaimer Banner - Entertainment Only */}
+              <LegalDisclaimerBanner />
             </SecureWalletProvider>
           </SupabaseProvider>
         </ThemeProvider>
