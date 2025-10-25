@@ -206,7 +206,7 @@ export class LosBrosMintingService {
       // Generate random token ID between 1-2222
       const tokenId = Math.floor(Math.random() * LOS_BROS_COLLECTION.maxSupply) + 1;
       const name = `${LOS_BROS_COLLECTION.name} #${tokenId}`;
-      console.log(`🎲 Random Token ID: #${tokenId} (1-${LOS_BROS_COLLECTION.maxSupply})`;
+      console.log(`🎲 Random Token ID: #${tokenId} (1-${LOS_BROS_COLLECTION.maxSupply})`);
 
       // Upload metadata to IPFS
       const metadataUri = await this.uploadMetadataToIPFS(
