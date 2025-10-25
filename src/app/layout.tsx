@@ -6,6 +6,7 @@ import ClientNavigation from '@/components/ClientNavigation'
 import AccessControlManager from '@/components/AccessControlManager'
 import CustomerServiceBotProvider from '@/components/CustomerServiceBotProvider'
 import DebugAccessInfo from '@/components/DebugAccessInfo'
+import WalletSafetyDisclaimer from '@/components/WalletSafetyDisclaimer'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { SupabaseProvider } from '@/lib/supabase-provider'
 import PageAccessGuard from '@/components/PageAccessGuard'
@@ -64,6 +65,9 @@ export default function RootLayout({
               
               {/* Debug Access Info Panel (Ctrl+Shift+D to toggle) */}
               <DebugAccessInfo />
+              
+              {/* Wallet Safety Disclaimer - Shows on first visit */}
+              <WalletSafetyDisclaimer />
             </SecureWalletProvider>
           </SupabaseProvider>
         </ThemeProvider>
