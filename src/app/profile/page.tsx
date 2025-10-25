@@ -1,2594 +1,291 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { ANALOS_PROGRAMS, ANALOS_RPC_URL } from '@/config/analos-programs';
-// import CompleteProfileManager from '@/components/CompleteProfileManager'; // Temporarily disabled to fix build
-import PublicProfileDisplay from '@/components/PublicProfileDisplay';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import Link from 'next/link';
 import SimpleProfileEditor from '@/components/SimpleProfileEditor';
-import NFTCard from '@/components/NFTCard';
-import ProfileNFTDisplay from '@/components/ProfileNFTDisplay';
-import { getFreshExample } from '@/lib/wallet-examples';
-import { tokenGatingService } from '@/lib/token-gating-service';
-
-interface UserNFT {
-  mint: string;
-  collection: string;
-  name: string;
-  image: string;
-  price?: number;
-  rarity?: string;
-  description?: string;
-  attributes?: Array<{
-    trait_type: string;
-    value: string;
-  }>;
-}
-
-interface UserCollection {
-  name: string;
-  symbol: string;
-  description: string;
-  image: string;
-  floorPrice: number;
-  volume24h: number;
-  totalSupply: number;
-  ownedCount: number;
-}
-
-interface CreatorReward {
-  id: string;
-  reward_type: string;
-  amount: number;
-  token_symbol: string;
-  status: string;
-  created_at: string;
-  saved_collections: {
-    collection_name: string;
-    collection_symbol: string;
-  };
-}
-
-interface RewardsSummary {
-  total_claimable: number;
-  total_claimed: number;
-  pending_rewards: number;
-}
 
 export default function ProfilePage() {
-  const { publicKey, connected, disconnect, signTransaction, sendTransaction } = useWallet();
-  const { connection } = useConnection();
+  const { publicKey, connected } = useWallet();
   const [solBalance, setSolBalance] = useState(0);
-  const [uiNFTs, setUiNFTs] = useState<UserNFT[]>([]);
-  const [uiCollections, setUiCollections] = useState<UserCollection[]>([]);
-  const [rewards, setRewards] = useState<CreatorReward[]>([]);
-  const [rewardsSummary, setRewardsSummary] = useState<RewardsSummary>({
-    total_claimable: 0,
-    total_claimed: 0,
-    pending_rewards: 0
-  });
+  const [losBalance, setLosBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [claiming, setClaiming] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my-nfts' | 'overview' | 'collections' | 'rewards' | 'activity' | 'update-profile'>('my-nfts');
-  const [exampleData, setExampleData] = useState<any>(null);
-  const [pageAccessConfig, setPageAccessConfig] = useState<any>(null);
-  const [isPublicAccess, setIsPublicAccess] = useState(false);
-  const [useSimpleEditor, setUseSimpleEditor] = useState(true);
-  const [profilePricing, setProfilePricing] = useState<{
-    tier: string;
-    price: number;
-    currency: string;
-    discount?: number;
-    finalPrice?: number;
-    isFree?: boolean;
-    tokenBalance?: number;
-    discountReason?: string;
-  } | null>(null);
-  const [username, setUsername] = useState('');
-  const [userProfileNFT, setUserProfileNFT] = useState<UserNFT | null>(null);
-  const [mintNumber, setMintNumber] = useState<number | null>(null);
-  const [currentCardBackground, setCurrentCardBackground] = useState(0);
-  const [showReveal, setShowReveal] = useState(false);
-  const [revealedNFT, setRevealedNFT] = useState<UserNFT | null>(null);
-  
-  // Los Bros integration state
-  const [selectedLosBros, setSelectedLosBros] = useState<any | null>(null);
-  const [useLosBros, setUseLosBros] = useState(false);
-  const [mintWithLosBros, setMintWithLosBros] = useState(false);
-  
-  // Social links state
-  const [discordHandle, setDiscordHandle] = useState('');
-  const [telegramHandle, setTelegramHandle] = useState('');
-  const [revealAnimation, setRevealAnimation] = useState<'cover' | 'dripping' | 'revealed'>('cover');
-  const [lastTxSignature, setLastTxSignature] = useState<string | null>(null);
-  const [lastMintAddress, setLastMintAddress] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [myNFTs, setMyNFTs] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'profile' | 'nfts' | 'activity'>('profile');
 
-  // Baseball card background examples for users to preview
-  const cardBackgrounds = [
-    {
-      name: 'Matrix Green',
-      gradient: 'from-green-900 to-black',
-      accent: 'green',
-      pattern: 'matrix',
-      description: 'Classic matrix green with animated digital rain',
-      textColor: 'text-green-400',
-      borderColor: 'border-green-400',
-      rarity: 'Common',
-      animated: true,
-      matrixColor: 'green'
-    },
-    {
-      name: 'Cyber Blue',
-      gradient: 'from-blue-900 to-black',
-      accent: 'blue',
-      pattern: 'matrix',
-      description: 'Cyberpunk blue matrix with neon drips',
-      textColor: 'text-blue-400',
-      borderColor: 'border-blue-400',
-      rarity: 'Common',
-      animated: true,
-      matrixColor: 'blue'
-    },
-    {
-      name: 'Neon Purple',
-      gradient: 'from-purple-900 to-black',
-      accent: 'purple',
-      pattern: 'matrix',
-      description: 'Electric purple matrix with glowing effects',
-      textColor: 'text-purple-400',
-      borderColor: 'border-purple-400',
-      rarity: 'Rare',
-      animated: true,
-      matrixColor: 'purple'
-    },
-    {
-      name: 'Crimson Red',
-      gradient: 'from-red-900 to-black',
-      accent: 'red',
-      pattern: 'matrix',
-      description: 'Intense red matrix with fire-like drips',
-      textColor: 'text-red-400',
-      borderColor: 'border-red-400',
-      rarity: 'Rare',
-      animated: true,
-      matrixColor: 'red'
-    },
-    {
-      name: 'Electric Yellow',
-      gradient: 'from-yellow-900 to-black',
-      accent: 'yellow',
-      pattern: 'matrix',
-      description: 'High-voltage yellow matrix with lightning',
-      textColor: 'text-yellow-400',
-      borderColor: 'border-yellow-400',
-      rarity: 'Epic',
-      animated: true,
-      matrixColor: 'yellow'
-    },
-    {
-      name: 'Ice Cyan',
-      gradient: 'from-cyan-900 to-black',
-      accent: 'cyan',
-      pattern: 'matrix',
-      description: 'Frozen cyan matrix with ice crystal effects',
-      textColor: 'text-cyan-400',
-      borderColor: 'border-cyan-400',
-      rarity: 'Epic',
-      animated: true,
-      matrixColor: 'cyan'
-    },
-    {
-      name: 'Holographic',
-      gradient: 'from-pink-900 via-purple-900 to-blue-900',
-      accent: 'rainbow',
-      pattern: 'matrix',
-      description: 'Holographic matrix with rainbow effects',
-      textColor: 'text-pink-400',
-      borderColor: 'border-pink-400',
-      rarity: 'Legendary',
-      animated: true,
-      matrixColor: 'rainbow'
-    },
-    {
-      name: 'Analos Cosmic',
-      gradient: 'from-purple-900 via-blue-900 to-indigo-900',
-      accent: 'cosmic',
-      pattern: 'matrix',
-      description: 'Ultra-Rare Analos Cosmic with animated space matrix',
-      textColor: 'text-purple-400',
-      borderColor: 'border-purple-400',
-      rarity: 'Ultra-Rare',
-      animated: true,
-      matrixColor: 'cosmic',
-      backgroundImage: '/images/backgrounds/analos-cosmic.gif'
-    },
-    {
-      name: 'LOS Drip',
-      gradient: 'from-indigo-900 via-purple-900 to-pink-900',
-      accent: 'galaxy',
-      pattern: 'matrix',
-      description: 'Ultra-Rare LOS Drip with animated nebula matrix and liquid effects',
-      textColor: 'text-indigo-400',
-      borderColor: 'border-indigo-400',
-      rarity: 'Ultra-Rare',
-      animated: true,
-      matrixColor: 'galaxy',
-      backgroundImage: '/images/backgrounds/los-drip.gif'
-    },
-    {
-      name: 'Blockchain Aurora',
-      gradient: 'from-green-900 via-blue-900 to-purple-900',
-      accent: 'aurora',
-      pattern: 'matrix',
-      description: 'Ultra-Rare Blockchain Aurora with animated rainbow matrix',
-      textColor: 'text-green-400',
-      borderColor: 'border-green-400',
-      rarity: 'Ultra-Rare',
-      animated: true,
-      matrixColor: 'aurora',
-      backgroundImage: '/images/backgrounds/blockchain-aurora.gif'
-    },
-    {
-      name: 'Void Black',
-      gradient: 'from-black to-gray-900',
-      accent: 'void',
-      pattern: 'matrix',
-      description: 'Void black matrix with white digital rain',
-      textColor: 'text-white',
-      borderColor: 'border-white',
-      rarity: 'Legendary',
-      animated: true,
-      matrixColor: 'white'
-    }
-  ];
-  const [usernameStatus, setUsernameStatus] = useState<{
-    checking: boolean;
-    available: boolean | null;
-    message: string;
-  }>({ checking: false, available: null, message: '' });
-  
-  // Profile form fields
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [bannerUrl, setBannerUrl] = useState('');
-  const [twitterHandle, setTwitterHandle] = useState('');
-  const [website, setWebsite] = useState('');
-  const [discord, setDiscord] = useState('');
-  const [github, setGithub] = useState('');
-  const [telegram, setTelegram] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
-
-  // Handle image upload
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // For now, create a local URL (in production, you'd upload to IPFS or a CDN)
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      if (type === 'avatar') {
-        setAvatarUrl(result);
-      } else {
-        setBannerUrl(result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Check username availability
-  const checkUsername = async (username: string) => {
-    if (!username.trim()) {
-      setUsernameStatus({ checking: false, available: null, message: '' });
-      return;
-    }
-
-    setUsernameStatus({ checking: true, available: null, message: 'Checking...' });
-
-    try {
-      const response = await fetch(`/api/profile-nft/check-username?username=${encodeURIComponent(username)}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setUsernameStatus({
-          checking: false,
-          available: data.available,
-          message: data.message
-        });
-      } else {
-        setUsernameStatus({
-          checking: false,
-          available: false,
-          message: data.error || 'Invalid username'
-        });
-      }
-    } catch (error) {
-      console.error('Error checking username:', error);
-      setUsernameStatus({
-        checking: false,
-        available: null,
-        message: 'Failed to check username'
-      });
-    }
-  };
-
-  // Fetch pricing for Profile NFT with token gating discount
-  const fetchProfilePricing = async (username: string) => {
-    if (!username.trim() || username.length < 3) {
-      setProfilePricing(null);
-      return;
-    }
-    
-    if (!publicKey) {
-      // If wallet not connected, show base pricing only
-      try {
-        const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setProfilePricing({
-            tier: data.tier,
-            price: data.totalPrice || data.price,
-            currency: data.currency
-          });
-        } else {
-          setProfilePricing(null);
-        }
-      } catch (error) {
-        console.error('Error fetching pricing:', error);
-        setProfilePricing(null);
-      }
-      return;
-    }
-    
-    try {
-      console.log('💰 Checking pricing with token discounts...');
-      
-      // Get pricing with token gating discount applied
-      const pricingWithDiscount = await tokenGatingService.getPricingWithDiscount(
-        username,
-        publicKey.toString()
-      );
-
-      console.log('✅ Pricing with discount:', pricingWithDiscount);
-
-      setProfilePricing({
-        tier: pricingWithDiscount.tier,
-        price: pricingWithDiscount.basePrice,
-        finalPrice: pricingWithDiscount.finalPrice,
-        currency: pricingWithDiscount.currency,
-        discount: pricingWithDiscount.discount,
-        isFree: pricingWithDiscount.isFree,
-        tokenBalance: pricingWithDiscount.tokenBalance,
-        discountReason: pricingWithDiscount.discountReason
-      });
-    } catch (error) {
-      console.error('Error fetching pricing with discounts:', error);
-      
-      // Fallback to API pricing without discounts
-      try {
-        const response = await fetch(`/api/pricing?username=${encodeURIComponent(username)}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setProfilePricing({
-            tier: data.tier,
-            price: data.totalPrice || data.price,
-            currency: data.currency
-          });
-        } else {
-          setProfilePricing(null);
-        }
-      } catch (fallbackError) {
-        console.error('Error with fallback pricing:', fallbackError);
-        setProfilePricing(null);
-      }
-    }
-  };
-
-  // Fetch current mint count
-  const fetchMintCount = async () => {
-    try {
-      // Use the correct API route
-      const response = await fetch('/api/profile-nft/mint-counter');
-      const data = await response.json();
-
-      if (data.success) {
-        // Prefer nextMintNumber if provided; fallback to currentMintNumber
-        const nextNum =
-          typeof data.nextMintNumber === 'number'
-            ? data.nextMintNumber
-            : typeof data.currentMintNumber === 'number'
-            ? (data.currentMintNumber as number)
-            : 1;
-        setMintNumber(nextNum);
-      }
-    } catch (error) {
-      console.error('Error fetching mint count:', error);
-    }
-  };
-
-  // Trigger NFT reveal animation
-  const triggerReveal = (nft: UserNFT, txSignature?: string, mintAddress?: string) => {
-    setRevealedNFT(nft);
-    setLastTxSignature(txSignature || null);
-    setLastMintAddress(mintAddress || null);
-    setShowReveal(true);
-    setRevealAnimation('cover');
-    
-    // Start the reveal sequence
-    setTimeout(() => {
-      setRevealAnimation('dripping');
-    }, 1000);
-    
-    setTimeout(() => {
-      setRevealAnimation('revealed');
-    }, 3000);
-  };
-
-  // Check page access configuration and load user data
   useEffect(() => {
-    const checkPageAccessAndLoadData = async () => {
-      try {
-        // Check page access first
-        const response = await fetch('/api/page-access/profile');
-        let publicAccess = false;
-        
-        if (response.ok) {
-          const config = await response.json();
-          setPageAccessConfig(config);
-          publicAccess = config.publicAccess && !config.isLocked;
-          setIsPublicAccess(publicAccess);
-        } else {
-        // Default to requiring wallet if we can't check
-        setIsPublicAccess(false);
-      }
+    if (connected && publicKey) {
+      loadProfileData();
+      loadBalances();
+      loadUserNFTs();
+    }
+  }, [connected, publicKey]);
 
-    // Generate fresh example data each time
-    setExampleData(getFreshExample(publicKey?.toString()));
+  const loadProfileData = async () => {
+    if (!publicKey) return;
     
-      // If public access is allowed and no wallet connected, show public view
-        if (publicAccess && (!publicKey || !connected)) {
-        setLoading(false);
-        return;
+    try {
+      const response = await fetch(`/api/user-profiles/${publicKey.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data);
       }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // If wallet is required but not connected, show connect prompt
-        if (!publicAccess && (!publicKey || !connected)) {
-        setLoading(false);
-        return;
-      }
-
-        // Load LOS balance (using SOL balance for now, will be updated to LOS token)
-        const balance = await connection.getBalance(publicKey);
-        setSolBalance(balance / LAMPORTS_PER_SOL);
-
-        console.log('🔍 Loading user NFTs from API...');
-        
-        // Load user NFTs from API
-        try {
-          const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
-          if (nftsResponse.ok) {
-            const contentType = nftsResponse.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              const nftsData = await nftsResponse.json();
-              
-              if (nftsData.nfts && nftsData.nfts.length > 0) {
-                console.log(`✅ Loaded ${nftsData.nfts.length} NFTs from blockchain`);
-            
-            const mappedNFTs = nftsData.nfts.map((nft: any) => ({
-              mint: nft.mint,
-              collection: nft.collectionName || 'Unknown Collection',
-              name: nft.name || 'Unnamed NFT',
-              image: nft.uri || '/api/placeholder/400/400',
-              collectionAddress: nft.collectionAddress,
-              description: nft.description,
-              attributes: nft.attributes || []
-            }));
-            
-            // Find Profile NFT (symbol is 'PROFILE')
-            const profileNFT = mappedNFTs.find((nft: any) => 
-              nft.name.includes('@') || 
-              nft.description?.includes('Profile NFT') ||
-              nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
-            );
-            
-            if (profileNFT) {
-              console.log('🎭 Found Profile NFT from blockchain API:', profileNFT.name);
-              
-              // Enrich with database data if available
-              try {
-                const { profileNFTFetcher } = await import('@/lib/profile-nft-fetcher');
-                const enrichedProfile = await profileNFTFetcher.getUserProfileNFT(publicKey.toString());
-                
-                if (enrichedProfile) {
-                  console.log('✅ Enriched Profile NFT with database data');
-                  setUserProfileNFT({
-                    ...enrichedProfile,
-                    collection: 'Analos Profile NFTs'
-                  } as UserNFT);
-                } else {
-                  // Use blockchain data only
-                  setUserProfileNFT({
-                    ...profileNFT,
-                    collection: 'Analos Profile NFTs'
-                  });
-                }
-              } catch (enrichError) {
-                console.warn('⚠️  Could not enrich with database, using blockchain data:', enrichError);
-                setUserProfileNFT({
-                  ...profileNFT,
-                  collection: 'Analos Profile NFTs'
-                });
-              }
-            } else {
-              // No Profile NFT found in blockchain API, try blockchain-first fetcher
-              try {
-                const { profileNFTFetcher } = await import('@/lib/profile-nft-fetcher');
-                const blockchainProfile = await profileNFTFetcher.getUserProfileNFT(publicKey.toString());
-                
-                if (blockchainProfile) {
-                  console.log('✅ Found Profile NFT via blockchain-first fetcher');
-                  setUserProfileNFT({
-                    ...blockchainProfile,
-                    collection: 'Analos Profile NFTs'
-                  } as UserNFT);
-                }
-              } catch (fetchError) {
-                console.error('❌ Blockchain-first fetch failed:', fetchError);
-              }
-            }
-            
-                setUiNFTs(mappedNFTs);
-              } else {
-                console.log('ℹ️ No NFTs found for this wallet');
-                setUiNFTs([]);
-                setUserProfileNFT(null);
-              }
-            }
-          }
-          
-          // Fetch current mint count for preview
-          fetchMintCount();
-        } catch (error) {
-          console.error('❌ Error loading NFTs:', error);
-          setUiNFTs([]);
-        }
-
-        // Load collections from blockchain
-        console.log('📦 Loading collections from blockchain...');
-        const collectionProgramId = ANALOS_PROGRAMS.NFT_LAUNCHPAD_CORE;
-        console.log('🔗 NFT Launchpad Program:', collectionProgramId.toString());
-
-        try {
-          const collectionAccounts = await connection.getProgramAccounts(collectionProgramId);
-          console.log('✅ Loaded', collectionAccounts.length, 'collections from blockchain');
-          
-          // Process collections (this would need to be implemented based on your program structure)
-          setUiCollections([]);
-        } catch (error) {
-          console.error('❌ Error loading collections:', error);
-          setUiCollections([]);
-        }
-
-        // Load saved collections
-        const collectionsResponse = await fetch(`/api/collections/save?userWallet=${publicKey.toString()}`);
-        const collectionsData = await collectionsResponse.json();
-        
-        if (collectionsData.success) {
-          setUiCollections(collectionsData.collections.map((col: any) => ({
-            name: col.collection_name,
-            symbol: col.collection_symbol,
-            description: col.description,
-            image: '/default-collection.png',
-            floorPrice: 0,
-            volume24h: 0,
-            totalSupply: col.total_supply,
-            ownedCount: 0
-          })));
-        }
-
-        // Load creator rewards
-        const rewardsResponse = await fetch(`/api/rewards?userWallet=${publicKey.toString()}`);
-        const rewardsData = await rewardsResponse.json();
-        
-        if (rewardsData.success) {
-          setRewards(rewardsData.rewards);
-          setRewardsSummary(rewardsData.summary);
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error('❌ Error checking page access or loading user data:', error);
-        setLoading(false);
-      }
-    };
-
-    checkPageAccessAndLoadData();
-  }, [publicKey, connected]);
-
-  // Show loading state while checking page access
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show connect wallet prompt only if wallet is required and not connected
-  if (!isPublicAccess && !connected) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Connect Your Wallet</h1>
-          <p className="text-gray-300 mb-8">Please connect your wallet to view your profile</p>
-        </div>
-      </div>
-    );
-  }
-
-  const handleClaimRewards = async () => {
+  const loadBalances = async () => {
     if (!publicKey) return;
 
-    setClaiming(true);
     try {
-      const claimableRewards = rewards.filter(r => r.status === 'claimable');
-      const rewardIds = claimableRewards.map(r => r.id);
+      // Load SOL balance
+      const connection = new (await import('@solana/web3.js')).Connection(
+        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://rpc.analos.io',
+        'confirmed'
+      );
+      const balance = await connection.getBalance(publicKey);
+      setSolBalance(balance / LAMPORTS_PER_SOL);
 
-      const response = await fetch('/api/rewards/claim', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userWallet: publicKey.toString(),
-          rewardIds: rewardIds,
-          txSignature: 'placeholder-tx-signature' // In real implementation, this would be the actual transaction signature
-        }),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        alert(`Successfully claimed ${result.totalClaimed} tokens!`);
-        // Reload data
-        window.location.reload();
-      } else {
-        alert(`Error: ${result.error}`);
-      }
+      // Load LOS balance
+      const { tokenGatingService } = await import('@/lib/token-gating-service');
+      const tokenCheck = await tokenGatingService.checkEligibility(publicKey.toString());
+      setLosBalance(tokenCheck.tokenBalance || 0);
     } catch (error) {
-      console.error('Error claiming rewards:', error);
-      alert('Failed to claim rewards');
-    } finally {
-      setClaiming(false);
+      console.error('Error loading balances:', error);
     }
   };
 
-  const tabs = connected ? [
-    { id: 'my-nfts', label: `My NFTs (${uiNFTs.length})`, icon: '🎨' },
-    { id: 'collections', label: `Collections (${uiCollections.length})`, icon: '📦' },
-    ...(userProfileNFT ? [{ id: 'update-profile', label: 'Update Profile', icon: '🔄' }] : []),
-    { id: 'rewards', label: `Rewards (${rewards.length})`, icon: '💰' },
-    { id: 'activity', label: 'Activity', icon: '📊' }
-  ] : [
-    { id: 'overview', label: 'Community Overview', icon: '⭐' },
-    { id: 'my-nfts', label: 'Public NFTs', icon: '🎨' },
-    { id: 'collections', label: 'Public Collections', icon: '📦' },
-    { id: 'activity', label: 'Public Activity', icon: '📊' }
-  ];
+  const loadUserNFTs = async () => {
+    if (!publicKey) return;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-4 sm:py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-4">
-            🎨 Your Profile
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-            Manage your profile, showcase your NFTs, and connect with the community
+    try {
+      const response = await fetch(`/api/user-nfts/${publicKey.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMyNFTs(data.nfts || []);
+      }
+    } catch (error) {
+      console.error('Error loading NFTs:', error);
+    }
+  };
+
+  const handleProfileSaved = (profile: any) => {
+    setUserProfile(profile);
+    loadProfileData(); // Reload to get latest
+  };
+
+  if (!connected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 text-center max-w-md">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h2>
+          <p className="text-gray-300 mb-6">
+            Please connect your wallet to view and edit your profile.
           </p>
         </div>
+      </div>
+    );
+  }
 
-        {/* Wallet Info Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20 mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">
-                  {connected ? (
-                    userProfileNFT?.name ? 
-                      userProfileNFT.name.charAt(1).toUpperCase() : // Skip @ symbol
-                      publicKey?.toString().slice(0, 2).toUpperCase()
-                  ) : '👤'}
-                </span>
-              </div>
-              <div>
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-                  {connected ? (
-                    userProfileNFT ? (
-                      <span className="flex items-center gap-2">
-                        {userProfileNFT.name}
-                        <span className="text-green-400 text-base">✓</span>
-                      </span>
-                    ) : (
-                      'Your Profile'
-                    )
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      {/* Profile Header with Banner */}
+      <div className="relative">
+        {/* Banner */}
+        <div 
+          className="h-64 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600"
+          style={{
+            backgroundImage: userProfile?.banner_url ? `url(${userProfile.banner_url})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        >
+          <div className="absolute inset-0 bg-black/30"></div>
+        </div>
+
+        {/* Profile Info Overlay */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative -mt-20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
+              {/* Profile Picture */}
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600">
+                  {userProfile?.avatar_url ? (
+                    <img 
+                      src={userProfile.avatar_url} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    'Public Profile View'
-                  )}
-                </h2>
-                <div className="text-xs sm:text-sm text-gray-300 space-y-1">
-                  {connected ? (
-                    <>
-                      {userProfileNFT && (
-                        <div className="text-blue-400 font-semibold">
-                          {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Tier')?.value?.toUpperCase()} Tier Profile
-                        </div>
-                      )}
-                      <div className="break-all">Wallet: {publicKey?.toString().slice(0, 6)}...{publicKey?.toString().slice(-6)}</div>
-                      <div>LOS Balance: {solBalance.toFixed(4)} LOS</div>
-                      <div>Member Since: {new Date().toLocaleDateString()}</div>
-                    </>
-                  ) : (
-                    <>
-                      <div>Connect your wallet to view your personal profile</div>
-                      <div>Public access enabled - view community profiles</div>
-                    </>
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-white">
+                      👤
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-            {connected && (
-              <button
-                onClick={disconnect}
-                className="px-4 py-2 sm:px-6 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors text-sm sm:text-base w-full sm:w-auto"
-              >
-                Disconnect Wallet
-              </button>
-            )}
-          </div>
-        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
-            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🎨</div>
-            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{uiNFTs.length}</div>
-            <div className="text-xs sm:text-sm text-gray-300">Total NFTs</div>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
-            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">📦</div>
-            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">{uiCollections.length}</div>
-            <div className="text-xs sm:text-sm text-gray-300">Collections Created</div>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
-            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💎</div>
-            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">$0</div>
-            <div className="text-xs sm:text-sm text-gray-300">Total Spent</div>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 text-center">
-            <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">⭐</div>
-            <div className="text-lg sm:text-xl md:text-2xl font-bold text-white">None</div>
-            <div className="text-xs sm:text-sm text-gray-300">Favorite Collection</div>
-          </div>
-        </div>
-
-        {/* Profile NFT Showcase - Only show if user has a Profile NFT */}
-        {connected && userProfileNFT && (
-          <div className="mb-6 sm:mb-8">
-            <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-purple-500/30">
-              <div className="text-center mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
-                  🎭 Your Profile NFT
-                </h2>
-                <p className="text-sm sm:text-base text-gray-300">
-                  Your unique identity on the Analos platform
+              {/* Username and Stats */}
+              <div className="flex-1 pb-4">
+                <h1 className="text-3xl font-bold text-white mb-2">
+                  {userProfile?.username ? `@${userProfile.username}` : 'Set Your Username'}
+                </h1>
+                <p className="text-gray-300 mb-4">
+                  {userProfile?.bio || 'Edit your profile to add a bio'}
                 </p>
+
+                {/* Quick Stats */}
+                <div className="flex flex-wrap gap-4">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
+                    <div className="text-sm text-gray-400">SOL Balance</div>
+                    <div className="text-lg font-bold text-white">{solBalance.toFixed(4)}</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
+                    <div className="text-sm text-gray-400">$LOL Balance</div>
+                    <div className="text-lg font-bold text-yellow-400">{losBalance.toLocaleString()}</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
+                    <div className="text-sm text-gray-400">NFTs Owned</div>
+                    <div className="text-lg font-bold text-purple-400">{myNFTs.length}</div>
+                  </div>
+                </div>
               </div>
+
+              {/* Quick Actions */}
+              <div className="flex gap-3">
+                <Link
+                  href="/collections/los-bros"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+                >
+                  🎨 Mint Los Bro
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'profile'
+                ? 'bg-purple-600 text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            ✏️ Edit Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('nfts')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'nfts'
+                ? 'bg-purple-600 text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            🖼️ My NFTs ({myNFTs.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('activity')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'activity'
+                ? 'bg-purple-600 text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            📊 Activity
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'profile' && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <SimpleProfileEditor 
+              onProfileSaved={handleProfileSaved}
+            />
+          </div>
+        )}
+
+        {activeTab === 'nfts' && (
+          <div className="space-y-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <h2 className="text-2xl font-bold text-white mb-6">🖼️ My NFT Collection</h2>
               
-              <div className="max-w-md mx-auto">
-                <ProfileNFTDisplay
-                  nft={{
-                    id: userProfileNFT.mint,
-                    name: userProfileNFT.name,
-                    image: userProfileNFT.image,
-                    description: userProfileNFT.description || 'Profile NFT',
-                    owner: publicKey?.toString() || 'Unknown',
-                    mintNumber: parseInt(userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '0'),
-                    floorPrice: userProfileNFT.price || 0,
-                    volume: 0,
-                    marketCap: 0,
-                    topOffer: 0,
-                    floorChange1d: 0,
-                    volumeChange1d: 0,
-                    sales1d: 0,
-                    listed: 0,
-                    listedPercentage: 0,
-                    owners: 1,
-                    ownersPercentage: 100,
-                    lastSale: {
-                      price: userProfileNFT.price || 0,
-                      time: new Date().toISOString()
-                    },
-                    attributes: {
-                      background: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Background')?.value || 'Matrix Drip',
-                      rarity: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Rarity')?.value || 'Common',
-                      tier: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Tier')?.value || 'Basic',
-                      core: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Core')?.value || 'Standard',
-                      dripGrade: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Drip Grade')?.value || 'C',
-                      dripScore: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Drip Score')?.value || '50',
-                      earring: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Earring')?.value || 'None',
-                      eyeColor: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Eye Color')?.value || 'Default',
-                      eyes: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Eyes')?.value || 'Standard',
-                      faceDecoration: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Face Decoration')?.value || 'None',
-                      glasses: userProfileNFT.attributes?.find(attr => attr.trait_type === 'Glasses')?.value || 'None'
-                    },
-                    verified: true,
-                    chain: 'Analos'
-                  }}
-                  onViewDetails={(nftId) => {
-                    window.open(`https://explorer.analos.io/address/${userProfileNFT.mint}`, '_blank');
-                  }}
-                />
-              </div>
+              {myNFTs.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🎨</div>
+                  <p className="text-gray-400 mb-6">No NFTs yet. Start by minting a Los Bro!</p>
+                  <Link
+                    href="/collections/los-bros"
+                    className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg font-bold transition-all"
+                  >
+                    🎨 Mint Los Bro NFT
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {myNFTs.map((nft, index) => (
+                    <div key={index} className="bg-white/5 rounded-xl overflow-hidden border border-white/10 hover:border-purple-400/50 transition-all">
+                      <div className="aspect-square bg-gradient-to-br from-purple-800 to-blue-800 relative">
+                        {nft.image_url ? (
+                          <img 
+                            src={nft.image_url} 
+                            alt={nft.display_name || 'NFT'} 
+                            className="w-full h-full object-cover"
+                            style={{ imageRendering: nft.los_bros_token_id ? 'pixelated' : 'auto' }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl">
+                            🎨
+                          </div>
+                        )}
+                        {nft.los_bros_rarity && (
+                          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                            {nft.los_bros_rarity}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-white font-bold text-lg mb-1">
+                          {nft.display_name || nft.username || 'Unnamed NFT'}
+                        </h3>
+                        {nft.los_bros_token_id && (
+                          <p className="text-xs text-gray-400 mb-2">
+                            Los Bro #{nft.los_bros_token_id.slice(0, 8)}...
+                          </p>
+                        )}
+                        {nft.los_bros_rarity_score && (
+                          <div className="text-sm text-purple-400">
+                            Rarity Score: {nft.los_bros_rarity_score.toFixed(1)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2 border border-white/20 mb-6 sm:mb-8">
-          <nav className="flex flex-wrap justify-center gap-1 sm:gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`
-                  flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all duration-200 text-xs sm:text-sm md:text-base
-                  ${activeTab === tab.id 
-                    ? 'bg-white text-gray-900 shadow-lg' 
-                    : 'text-white hover:bg-white/10'
-                  }
-                `}
-              >
-                <span className="text-sm sm:text-base">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="space-y-6 sm:space-y-8">
-          {activeTab === 'my-nfts' && !userProfileNFT && (
-            <div className="space-y-6 sm:space-y-8">
-              {/* Profile Card Preview Section */}
-              <div className="bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-pink-600/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-purple-500/30">
-                <div className="text-center mb-4 sm:mb-6">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
-                    🎭 Create Your Profile NFT
-                  </h2>
-                  <p className="text-sm sm:text-base text-gray-300">
-                    Set up your blockchain profile and mint your unique NFT
-                  </p>
-                </div>
-
-                <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-                  {/* Profile Card Preview */}
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
-                      <h3 className="text-lg sm:text-xl font-semibold text-white">Your Profile Card Preview</h3>
-                      <button className="px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm sm:text-base">
-                        Standard Edition
-                      </button>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-purple-900/30 via-blue-900/30 to-pink-900/30 rounded-xl p-4 border border-purple-400/50">
-                      <p className="text-sm text-purple-300 mb-4">
-                        This is a preview of your standard profile card. Upon minting, you may receive an ultra-rare Matrix variant! 🎆
-                      </p>
-                      
-                      {/* Blind Mint Information */}
-                      <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-4 border border-yellow-500/30 mb-4">
-                        <h4 className="text-yellow-300 font-semibold mb-2">🎲 Blind Mint Information</h4>
-                        <div className="text-sm text-yellow-200 space-y-1">
-                          <p>• <strong>Matrix Variants:</strong> Animated digital rain with cyberpunk effects</p>
-                          <p>• <strong>Epic Cards:</strong> Advanced matrix patterns with glowing borders</p>
-                          <p>• <strong>Ultra-Rare:</strong> Analos Cosmic, LOS Drip, and Blockchain Aurora with animated GIF backgrounds</p>
-                          <p>• <strong>Legendary:</strong> Exclusive holographic and void effects</p>
-                        </div>
-                      </div>
-                      
-                      {/* Profile Card Preview */}
-                      <div className="space-y-3 sm:space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                          <h3 className="text-lg sm:text-xl font-semibold text-white">Your Profile Card Preview</h3>
-                          <div className="flex flex-wrap gap-1 sm:gap-2">
-                            {cardBackgrounds.map((bg, index) => (
-                              <button
-                                key={index}
-                                onClick={() => setCurrentCardBackground(index)}
-                                className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                                  currentCardBackground === index
-                                    ? 'bg-white text-black'
-                                    : 'bg-gray-700 text-white hover:bg-gray-600 border border-gray-600'
-                                }`}
-                              >
-                                {bg.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        {/* Baseball Card Design */}
-                        <div className="relative max-w-sm mx-auto">
-                          <div className={`bg-gradient-to-br ${cardBackgrounds[currentCardBackground].gradient} rounded-lg p-3 sm:p-4 shadow-2xl border-4 ${cardBackgrounds[currentCardBackground].borderColor} transform hover:scale-105 transition-all duration-300 relative overflow-hidden ${cardBackgrounds[currentCardBackground].animated ? `matrix-background matrix-${cardBackgrounds[currentCardBackground].matrixColor}` : ''}`}>
-                            {/* Custom Background Image */}
-                            {cardBackgrounds[currentCardBackground].backgroundImage && (
-                              <div className="absolute inset-0 opacity-20">
-                                <img src={cardBackgrounds[currentCardBackground].backgroundImage} alt="Card Background" className="w-full h-full object-cover" />
-                              </div>
-                            )}
-                            
-                            {/* Card Border Pattern */}
-                            <div className="absolute inset-1 border-2 border-black rounded-md z-10"></div>
-                            
-                            {/* Rarity Badge */}
-                            <div className={`absolute top-2 right-2 z-20 px-2 py-1 rounded text-xs font-bold ${
-                              cardBackgrounds[currentCardBackground].rarity === 'Ultra-Rare' ? 'bg-pink-500 text-white' :
-                              cardBackgrounds[currentCardBackground].rarity === 'Legendary' ? 'bg-purple-500 text-white' :
-                              cardBackgrounds[currentCardBackground].rarity === 'Epic' ? 'bg-blue-500 text-white' :
-                              cardBackgrounds[currentCardBackground].rarity === 'Rare' ? 'bg-green-500 text-white' :
-                              'bg-gray-500 text-white'
-                            }`}>
-                              {cardBackgrounds[currentCardBackground].rarity}
-                            </div>
-                            
-                            {/* Banner Image */}
-                            {bannerUrl && (
-                              <div className="relative mb-3 rounded-md overflow-hidden z-10">
-                                <img src={bannerUrl} alt="Banner" className="w-full h-16 object-cover" />
-                                <div className="absolute inset-0 bg-black/20"></div>
-                              </div>
-                            )}
-                            
-                            {/* Card Header */}
-                            <div className="text-center mb-3 relative z-10">
-                              <h3 className={`text-sm font-bold ${cardBackgrounds[currentCardBackground].textColor} mb-1`}>ANALOS PROFILE CARDS</h3>
-                              <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-70`}>2024 Series</p>
-                            </div>
-                            
-                            {/* Profile Section */}
-                            <div className="text-center mb-3 relative z-10">
-                              <div className="relative inline-block mb-2">
-                                <div className={`w-16 h-16 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full flex items-center justify-center text-xl font-bold ${cardBackgrounds[currentCardBackground].textColor} overflow-hidden mx-auto border-2 border-black`}>
-                                  {avatarUrl ? (
-                                    <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                                  ) : (
-                                    <span>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>
-                                  )}
-                                </div>
-                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center border border-white">
-                                  <span className="text-white text-xs font-bold">
-                                    {userProfileNFT ? 
-                                      userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1' : 
-                                      (mintNumber ? mintNumber : '?')
-                                    }
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <h4 className={`text-sm font-bold ${cardBackgrounds[currentCardBackground].textColor} mb-1`}>{displayName || 'Your Name'}</h4>
-                              <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-80 mb-1`}>@{username || 'username'}</p>
-                              {bio && (
-                                <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-70 leading-tight`}>{bio}</p>
-                              )}
-                            </div>
-                            
-                            {/* Stats Section */}
-                            <div className="bg-white/80 rounded border border-black p-2 mb-3 relative z-10">
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div className="text-center">
-                                  <p className="font-bold text-black">REFERRAL</p>
-                                  <p className="font-bold text-black">{username ? username.toUpperCase() : 'USER'}</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-bold text-black">TIER</p>
-                                  <p className="font-bold text-black">{cardBackgrounds[currentCardBackground].name.toUpperCase()}</p>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Card Footer */}
-                            <div className="text-center relative z-10">
-                              <p className={`text-xs ${cardBackgrounds[currentCardBackground].textColor} opacity-60`}>launchonlos.fun • Analos</p>
-                            </div>
-                            
-                            {/* Matrix Animation Overlay */}
-                            {cardBackgrounds[currentCardBackground].animated && (
-                              <div className="absolute inset-0 z-0">
-                                {Array.from({ length: 20 }).map((_, i) => (
-                                  <div
-                                    key={i}
-                                    className="matrix-char"
-                                    style={{
-                                      left: `${Math.random() * 100}%`,
-                                      animationDelay: `${Math.random() * 4}s`,
-                                      animationDuration: `${3 + Math.random() * 2}s`
-                                    }}
-                                  >
-                                    {String.fromCharCode(0x30A0 + Math.random() * 96)}
-                                  </div>
-                                ))}
-                                {Array.from({ length: 10 }).map((_, i) => (
-                                  <div
-                                    key={`drip-${i}`}
-                                    className="matrix-drip"
-                                    style={{
-                                      left: `${Math.random() * 100}%`,
-                                      animationDelay: `${Math.random() * 2}s`,
-                                      height: `${20 + Math.random() * 30}px`
-                                    }}
-                                  ></div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Background Description */}
-                          <div className="mt-3 text-center">
-                            <p className="text-sm text-gray-300">{cardBackgrounds[currentCardBackground].description}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Profile Configuration */}
-                  <div className="space-y-4 sm:space-y-6">
-                    <h3 className="text-lg sm:text-xl font-semibold text-white">Profile Configuration</h3>
-                    
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-                      <div className="space-y-3 sm:space-y-4">
-                        {/* Basic Information */}
-                        <div className="bg-black/30 rounded-lg p-4">
-                          <h4 className="text-white font-semibold mb-3">📝 Basic Information</h4>
-                      
-                          {/* Username */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Username *
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Enter your username"
-                              value={username}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setUsername(value);
-                                // Check both username availability and pricing
-                                if (value.trim()) {
-                                  checkUsername(value);
-                                  fetchProfilePricing(value);
-                                } else {
-                                  setUsernameStatus({ checking: false, available: null, message: '' });
-                                  setProfilePricing(null);
-                                }
-                              }}
-                              className={`w-full px-3 py-3 sm:py-2 bg-black/50 border ${
-                                usernameStatus.available === true ? 'border-green-500' :
-                                usernameStatus.available === false ? 'border-red-500' :
-                                'border-gray-600'
-                              } rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none text-base`}
-                            />
-                            {/* Username availability status */}
-                            {usernameStatus.message && (
-                              <div className={`text-xs mt-1 flex items-center gap-1 ${
-                                usernameStatus.checking ? 'text-gray-400' :
-                                usernameStatus.available ? 'text-green-400' :
-                                'text-red-400'
-                              }`}>
-                                {usernameStatus.checking && <span>⏳</span>}
-                                {usernameStatus.available === true && <span>✅</span>}
-                                {usernameStatus.available === false && <span>❌</span>}
-                                <span>{usernameStatus.message}</span>
-                              </div>
-                            )}
-                            {/* Username length validation */}
-                            {username && username.length < 3 && (
-                              <div className="text-xs mt-1 text-red-400 flex items-center gap-1">
-                                <span>❌</span>
-                                <span>Username must be at least 3 characters long</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Display Name */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Display Name
-                            </label>
-                            <input
-                              type="text"
-                              value={displayName}
-                              onChange={(e) => setDisplayName(e.target.value)}
-                              placeholder="Enter your display name"
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                            />
-                          </div>
-
-                          {/* Bio */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Bio
-                            </label>
-                            <textarea
-                              value={bio}
-                              onChange={(e) => setBio(e.target.value)}
-                              placeholder="Tell us about yourself..."
-                              rows={3}
-                              maxLength={500}
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none"
-                            />
-                            <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
-                          </div>
-                        </div>
-
-                        {/* Social Links - NEW! */}
-                        <div className="bg-black/30 rounded-lg p-4">
-                          <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
-                          <p className="text-xs text-gray-400 mb-3">Add your social handles to display on your profile card</p>
-                      
-                          {/* Discord */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              💬 Discord Handle
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="username#1234"
-                              value={discordHandle}
-                              onChange={(e) => setDiscordHandle(e.target.value)}
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                            />
-                            <p className="text-xs text-gray-400 mt-1">Your Discord username with discriminator</p>
-                          </div>
-
-                          {/* Telegram */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              ✈️ Telegram Handle
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="@username"
-                              value={telegramHandle}
-                              onChange={(e) => setTelegramHandle(e.target.value)}
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                            />
-                            <p className="text-xs text-gray-400 mt-1">Your Telegram username (with @)</p>
-                          </div>
-                        </div>
-
-                        {/* Profile Images */}
-                        <div className="bg-black/30 rounded-lg p-4 mb-4">
-                          <h4 className="text-white font-semibold mb-3">🖼️ Profile Images</h4>
-                      
-                          {/* Profile Picture */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Profile Picture
-                            </label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleImageUpload(e, 'avatar')}
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                            />
-                            {avatarUrl && (
-                              <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border-2 border-blue-500 mx-auto">
-                                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Banner Image */}
-                          <div className="mb-3">
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                              Banner Image
-                            </label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleImageUpload(e, 'banner')}
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                            />
-                            {bannerUrl && (
-                              <div className="mt-2 w-24 h-12 rounded overflow-hidden border-2 border-blue-500 mx-auto">
-                                <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Social Links */}
-                        <div className="bg-black/30 rounded-lg p-4 mb-4">
-                          <h4 className="text-white font-semibold mb-3">🔗 Social Links (Optional)</h4>
-                      
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {/* Twitter */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Twitter
-                              </label>
-                              <input
-                                type="text"
-                                value={twitterHandle}
-                                onChange={(e) => setTwitterHandle(e.target.value)}
-                                placeholder="@username"
-                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-
-                            {/* Website */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Website
-                              </label>
-                              <input
-                                type="url"
-                                value={website}
-                                onChange={(e) => setWebsite(e.target.value)}
-                                placeholder="https://yourwebsite.com"
-                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-
-                            {/* Discord */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Discord
-                              </label>
-                              <input
-                                type="text"
-                                value={discord}
-                                onChange={(e) => setDiscord(e.target.value)}
-                                placeholder="username#1234"
-                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-
-                            {/* GitHub */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                GitHub
-                              </label>
-                              <input
-                                type="text"
-                                value={github}
-                                onChange={(e) => setGithub(e.target.value)}
-                                placeholder="username"
-                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-
-                            {/* Telegram */}
-                            <div>
-                              <label className="block text-sm font-medium text-gray-300 mb-1">
-                                Telegram
-                              </label>
-                              <input
-                                type="text"
-                                value={telegram}
-                                onChange={(e) => setTelegram(e.target.value)}
-                                placeholder="@username"
-                                className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Privacy Option */}
-                        <div className="bg-black/30 rounded-lg p-4 mb-4">
-                          <h4 className="text-white font-semibold mb-3">🔒 Privacy Settings</h4>
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              id="isAnonymous"
-                              checked={isAnonymous}
-                              onChange={(e) => setIsAnonymous(e.target.checked)}
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <label htmlFor="isAnonymous" className="text-sm text-gray-300">
-                              Keep profile anonymous (hide social links from public view)
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Los Bros Mint Toggle - NEW! */}
-                        <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-400/30">
-                          <h4 className="text-white font-semibold mb-3">🎨 Choose Your Profile Style</h4>
-                          
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* Standard Option */}
-                            <button
-                              onClick={() => setMintWithLosBros(false)}
-                              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                !mintWithLosBros
-                                  ? 'border-green-400 bg-green-900/20 shadow-lg shadow-green-900/50'
-                                  : 'border-gray-600 bg-gray-800/40 hover:border-gray-400'
-                              }`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="text-3xl">🎭</div>
-                                <div className="flex-1">
-                                  <h5 className="text-lg font-bold text-white mb-1">
-                                    Standard Profile
-                                  </h5>
-                                  <p className="text-sm text-gray-300">
-                                    Matrix-style card with your username and socials
-                                  </p>
-                                  {!mintWithLosBros && (
-                                    <div className="mt-2 text-green-400 text-sm font-medium flex items-center gap-1">
-                                      <span>✓</span>
-                                      <span>Selected</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </button>
-                            
-                            {/* Los Bros Option */}
-                            <button
-                              onClick={() => setMintWithLosBros(true)}
-                              className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                mintWithLosBros
-                                  ? 'border-purple-400 bg-purple-900/20 shadow-lg shadow-purple-900/50'
-                                  : 'border-gray-600 bg-gray-800/40 hover:border-gray-400'
-                              }`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="text-3xl">🎨</div>
-                                <div className="flex-1">
-                                  <h5 className="text-lg font-bold text-white mb-1">
-                                    With Los Bros PFP
-                                  </h5>
-                                  <p className="text-sm text-gray-300">
-                                    Mint Los Bros NFT + Profile together!
-                                  </p>
-                                  {mintWithLosBros && (
-                                    <div className="mt-2 text-purple-400 text-sm font-medium flex items-center gap-1">
-                                      <span>✓</span>
-                                      <span>Selected</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </button>
-                          </div>
-                          
-                          {/* Los Bros Info Banner */}
-                          {mintWithLosBros && (
-                            <div className="mt-4 p-4 bg-purple-900/30 rounded-lg border border-purple-400/30">
-                              <p className="text-purple-200 text-sm font-medium mb-2">
-                                ✨ You'll mint 2 NFTs together:
-                              </p>
-                              <ul className="text-sm text-purple-300 space-y-1 ml-4">
-                                <li>• Los Bros PFP with random traits (7 categories)</li>
-                                <li>• Profile NFT with Los Bros as your image</li>
-                                <li>• Rarity: Legendary/Epic/Rare/Common</li>
-                                <li>• Same price - {profilePricing?.isFree ? 'FREE for you!' : 'one mint cost'}</li>
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="bg-black/30 rounded-lg p-4">
-                          <h4 className="text-white font-semibold mb-2">💰 Dynamic Pricing</h4>
-                      
-                          {profilePricing ? (
-                            <div className="text-sm text-gray-300">
-                              <div className="flex justify-between">
-                                <span>Username:</span>
-                                <span className="text-blue-400">{username}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Tier:</span>
-                                <span className="text-yellow-400">{profilePricing.tier}</span>
-                              </div>
-                              
-                              {profilePricing.tokenBalance !== undefined && profilePricing.tokenBalance > 0 && (
-                                <div className="my-2 p-2 bg-blue-900/30 border border-blue-400/30 rounded">
-                                  <div className="flex items-center gap-2 text-blue-300 text-xs mb-1">
-                                    <span>🪙 $LOL Balance:</span>
-                                    <span className="font-semibold">{profilePricing.tokenBalance.toLocaleString()}</span>
-                                  </div>
-                                  {profilePricing.discountReason && (
-                                    <p className="text-xs text-blue-200">{profilePricing.discountReason}</p>
-                                  )}
-                                </div>
-                              )}
-
-                              {profilePricing.discount && profilePricing.discount > 0 ? (
-                                <>
-                                  <div className="flex justify-between text-gray-400 line-through">
-                                    <span>Base Price:</span>
-                                    <span>{profilePricing.price} {profilePricing.currency}</span>
-                                  </div>
-                                  <div className="flex justify-between text-green-400">
-                                    <span>Discount ({profilePricing.discount}%):</span>
-                                    <span>-{Math.floor(profilePricing.price * profilePricing.discount / 100)} {profilePricing.currency}</span>
-                                  </div>
-                                  <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
-                                    <span>Final Price:</span>
-                                    <span className={profilePricing.isFree ? "text-green-400 text-lg" : "text-green-400"}>
-                                      {profilePricing.isFree ? "FREE! 🎉" : `${profilePricing.finalPrice} ${profilePricing.currency}`}
-                                    </span>
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="flex justify-between font-semibold text-white border-t border-gray-600 pt-2 mt-2">
-                                  <span>Total Cost:</span>
-                                  <span className="text-green-400">{profilePricing.price} {profilePricing.currency}</span>
-                                </div>
-                              )}
-                              
-                              <div className="text-xs text-gray-400 mt-1">
-                                (Includes 6.9% platform fee)
-                              </div>
-                              
-                              {(!profilePricing.tokenBalance || profilePricing.tokenBalance === 0) && (
-                                <div className="mt-2 p-2 bg-yellow-900/20 border border-yellow-400/30 rounded">
-                                  <p className="text-xs text-yellow-300">
-                                    💡 Hold 100k+ $LOL tokens for 50% off, or 1M+ for FREE mint!
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-sm text-gray-400">
-                              <p>Enter your username to see pricing</p>
-                              <div className="mt-2 text-xs">
-                                <p>• 3-digit names: 16,035 LOS (Ultra Premium)</p>
-                                <p>• 4-digit names: 6,414 LOS (Premium)</p>
-                                <p>• 5+ digit names: 2,673 LOS (Standard)</p>
-                                <p className="text-yellow-400 mt-2">💡 Hold $LOL tokens for discounts!</p>
-                                <p className="text-red-400 mt-1">• Usernames under 3 characters are not allowed</p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <button
-                          onClick={async () => {
-                            if (!username.trim()) {
-                              alert('Please enter a username first');
-                              return;
-                            }
-                            
-                            if (!profilePricing) {
-                              alert('Please check pricing first');
-                              return;
-                            }
-
-                            if (!publicKey || !signTransaction || !sendTransaction) {
-                              alert('Please connect your wallet first');
-                              return;
-                            }
-
-                            // Check if username is available
-                            if (usernameStatus.available === false) {
-                              alert('❌ This username is already taken. Please choose a different one.');
-                              return;
-                            }
-
-                            if (usernameStatus.available !== true) {
-                              alert('⏳ Please wait for username availability check to complete.');
-                              return;
-                            }
-
-                            try {
-                              // Dynamically import the minting services
-                              const { profileNFTMintingService } = await import('@/lib/profile-nft-minting');
-
-                              const costMessage = profilePricing?.isFree 
-                                ? '🎉 FREE MINT (1M+ $LOL tokens held)!' 
-                                : profilePricing?.discount && profilePricing.discount > 0
-                                ? `Cost: ${profilePricing.finalPrice} ${profilePricing.currency} (${profilePricing.discount}% discount applied!)`
-                                : `Cost: ${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'}`;
-
-                              // CRITICAL CHECKS BEFORE MINTING
-                              
-                              // 0. Check if user already has a Profile NFT
-                              if (userProfileNFT) {
-                                alert('❌ You already have a Profile NFT! You can only mint ONE Profile NFT per wallet.\n\nYou can update your existing Profile NFT in the "Update Profile" tab.');
-                                return;
-                              }
-                              
-                              // 1. Check if wallet already used free mint
-                              if (profilePricing?.isFree) {
-                                try {
-                                  const freeMintCheck = await fetch(`/api/whitelist/check-free-mint?wallet=${publicKey.toString()}`);
-                                  if (freeMintCheck.ok) {
-                                    const { hasUsedFreeMint } = await freeMintCheck.json();
-                                    if (hasUsedFreeMint) {
-                                      alert('❌ You have already used your FREE mint! Each wallet can only mint one Profile NFT for free.');
-                                      return;
-                                    }
-                                  }
-                                } catch (checkError) {
-                                  console.warn('⚠️ Could not verify free mint usage:', checkError);
-                                  // Continue anyway if database check fails (don't block user)
-                                }
-                              }
-
-                              // 2. Double-check username is still available
-                              const usernameRecheck = await fetch(`/api/profile-nft/check-username?username=${encodeURIComponent(username)}`);
-                              if (usernameRecheck.ok) {
-                                const recheckData = await usernameRecheck.json();
-                                if (!recheckData.available) {
-                                  alert(`❌ Username "@${username}" was just taken by someone else! Please choose a different username.`);
-                                  return;
-                                }
-                              }
-
-                              // NEW: Dual-Mint Support - Variables to track Los Bros mint
-                              let losBrosResult = null;
-
-                              // STEP 1: Mint Los Bros NFT if selected
-                              if (mintWithLosBros) {
-                                alert(`🎨 Step 1/2: Minting Los Bros NFT...\n\nGenerating random traits and rarity!\n\nThis will require wallet approval.`);
-                                
-                                const { losBrosMintingService } = await import('@/lib/los-bros-minting');
-                                
-                                losBrosResult = await losBrosMintingService.mintLosBros({
-                                  wallet: publicKey.toString(),
-                                  signTransaction,
-                                  sendTransaction
-                                });
-                                
-                                if (!losBrosResult.success) {
-                                  alert(`❌ Los Bros mint failed: ${losBrosResult.error}\n\nPlease try again.`);
-                                  return;
-                                }
-                                
-                                // Record Los Bros mint in database
-                                try {
-                                  const losBrosRecordResponse = await fetch('/api/los-bros/record-mint', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      mintAddress: losBrosResult.mintAddress,
-                                      walletAddress: publicKey.toString(),
-                                      losBrosTokenId: losBrosResult.mintAddress,
-                                      rarityTier: losBrosResult.rarityTier,
-                                      rarityScore: losBrosResult.rarityScore,
-                                      traits: losBrosResult.traits || [],
-                                      signature: losBrosResult.signature,
-                                      imageUrl: `/api/los-bros/generate-image?tokenId=${losBrosResult.mintAddress}`,
-                                      metadataUri: losBrosResult.metadataUri
-                                    })
-                                  });
-                                  
-                                  if (losBrosRecordResponse.ok) {
-                                    const losBrosRecordData = await losBrosRecordResponse.json();
-                                    console.log('✅ Los Bros NFT mint recorded in database:', losBrosRecordData);
-                                  } else {
-                                    console.warn('⚠️ Failed to record Los Bros mint in database (non-fatal)');
-                                  }
-                                } catch (error) {
-                                  console.error('Failed to record Los Bros mint:', error);
-                                }
-                                
-                                alert(`✅ Los Bros NFT minted!\n\n🏆 Rarity: ${losBrosResult.rarityTier}\n📊 Score: ${losBrosResult.rarityScore}\n🎨 Mint: ${losBrosResult.mintAddress?.slice(0, 8)}...\n\n🎭 Step 2/2: Minting Profile NFT...`);
-                              } else {
-                                alert(`🎭 Minting Profile NFT for @${username}...\n\nThis will require wallet approval.\n\n${costMessage}`);
-                              }
-
-                              // STEP 2: Mint Profile NFT (with or without Los Bros data)
-                              console.log('🔧 WHITELIST FIX v2.1: Using finalPrice for transaction');
-                              console.log('📊 Base Price:', profilePricing?.price);
-                              console.log('💰 Final Price (after discount):', profilePricing?.finalPrice);
-                              console.log('🎁 Is Free:', profilePricing?.isFree);
-                              console.log('📉 Discount:', profilePricing?.discount, '%');
-                              console.log('🎨 Los Bros Mint:', mintWithLosBros);
-                              if (losBrosResult) {
-                                console.log('🎨 Los Bros Token ID:', losBrosResult.mintAddress);
-                                console.log('🏆 Los Bros Rarity:', losBrosResult.rarityTier);
-                              }
-                              
-                              const result = await profileNFTMintingService.mintProfileNFT({
-                                wallet: publicKey.toString(),
-                                username: username,
-                                price: profilePricing?.finalPrice ?? profilePricing?.price ?? 0,
-                                tier: profilePricing?.tier || 'basic',
-                                discount: profilePricing?.discount || 0,
-                                isFree: profilePricing?.isFree || false,
-                                signTransaction: signTransaction,
-                                sendTransaction: sendTransaction
-                              });
-
-                              if (result.success) {
-                                // Register the username as taken
-                                try {
-                                  await fetch('/api/profile-nft/check-username', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      username: username,
-                                      mint: result.mintAddress,
-                                      owner: publicKey.toString()
-                                    })
-                                  });
-                                } catch (error) {
-                                  console.error('Failed to register username:', error);
-                                }
-
-                                // Record mint in database for explorer/marketplace
-                                try {
-                                  const recordResponse = await fetch('/api/profile-nft/record-mint', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                      mintAddress: result.mintAddress,
-                                      walletAddress: publicKey.toString(),
-                                      username: username,
-                                      displayName: username,
-                                      tier: profilePricing?.tier || 'basic',
-                                      price: profilePricing?.finalPrice || profilePricing?.price || 0,
-                                      isFree: profilePricing?.isFree || false,
-                                      signature: result.signature,
-                                      imageUrl: result.metadataUri,
-                                      metadataUri: result.metadataUri,
-                                      // NEW: Los Bros data
-                                      losBrosTokenId: losBrosResult?.mintAddress || null,
-                                      losBrosRarity: losBrosResult?.rarityTier || null,
-                                      // NEW: Social links
-                                      discordHandle: discordHandle || null,
-                                      telegramHandle: telegramHandle || null
-                                    })
-                                  });
-                                  
-                                  if (recordResponse.ok) {
-                                    const recordData = await recordResponse.json();
-                                    console.log('✅ Profile NFT mint recorded in database:', recordData);
-                                  } else {
-                                    console.warn('⚠️ Failed to record mint in database (non-fatal)');
-                                  }
-                                } catch (error) {
-                                  console.error('Failed to record mint:', error);
-                                  // Non-fatal - continue anyway
-                                }
-
-                                // Mark free mint as used (if this was a free mint)
-                                if (profilePricing?.isFree) {
-                                  try {
-                                    const freeMintResponse = await fetch('/api/whitelist/mark-free-mint-used', {
-                                      method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({
-                                        walletAddress: publicKey.toString(), // Changed from 'wallet' to 'walletAddress'
-                                        usedAt: new Date().toISOString()
-                                      })
-                                    });
-                                    
-                                    if (freeMintResponse.ok) {
-                                      console.log('✅ Free mint marked as used for wallet:', publicKey.toString());
-                                    } else {
-                                      const errorData = await freeMintResponse.json();
-                                      console.warn('⚠️ Failed to mark free mint:', errorData);
-                                    }
-                                  } catch (error) {
-                                    console.error('Failed to mark free mint as used:', error);
-                                  }
-                                }
-
-                                // Increment mint count
-                                try {
-                                  await fetch('/api/profile-nft/mint-counter', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ increment: 1 })
-                                  });
-                                  // Update local mint count
-                                  setMintNumber(prev => prev ? prev + 1 : 1);
-                                } catch (error) {
-                                  console.error('Failed to update mint count:', error);
-                                }
-
-                                // Create the revealed NFT object with dynamic image
-                                const profileImageUrl = `/api/profile-nft/generate-image?username=${encodeURIComponent(username)}&tier=${profilePricing?.tier || 'basic'}&displayName=${encodeURIComponent(displayName || username)}&referralCode=${username.toUpperCase().slice(0, 8)}&losBrosTokenId=${losBrosResult?.mintAddress || ''}&discordHandle=${encodeURIComponent(discordHandle || '')}&telegramHandle=${encodeURIComponent(telegramHandle || '')}`;
-                                
-                                const newNFT = {
-                                  mint: result.mintAddress,
-                                  collection: 'Analos Profile Cards',
-                                  name: `@${username}`,
-                                  image: profileImageUrl, // Use generated profile card
-                                  description: `Profile NFT for @${username} - ${profilePricing?.tier || 'basic'} tier${losBrosResult ? ` with ${losBrosResult.rarityTier} Los Bros` : ''}`,
-                                  attributes: [
-                                    { trait_type: 'Username', value: username },
-                                    { trait_type: 'Display Name', value: displayName || username },
-                                    { trait_type: 'Edition', value: mintNumber?.toString() || '1' },
-                                    { trait_type: 'Tier', value: profilePricing?.tier || 'basic' },
-                                    { trait_type: 'Bio', value: bio || '' },
-                                    { trait_type: 'Twitter', value: twitterHandle || '' },
-                                    { trait_type: 'Website', value: website || '' },
-                                    { trait_type: 'Discord', value: discordHandle || '' },
-                                    { trait_type: 'GitHub', value: github || '' },
-                                    { trait_type: 'Telegram', value: telegramHandle || '' },
-                                    { trait_type: 'Anonymous', value: isAnonymous ? 'true' : 'false' },
-                                    // Los Bros data if available
-                                    ...(losBrosResult ? [
-                                      { trait_type: 'Los Bros', value: 'Yes' },
-                                      { trait_type: 'Los Bros Rarity', value: losBrosResult.rarityTier },
-                                      { trait_type: 'Los Bros Score', value: losBrosResult.rarityScore.toString() },
-                                      { trait_type: 'Los Bros Mint', value: losBrosResult.mintAddress }
-                                    ] : [])
-                                  ]
-                                };
-
-                                // Immediately reflect minted NFT in UI
-                                setUserProfileNFT(newNFT as any);
-
-                                // Trigger the reveal animation
-                                triggerReveal(newNFT, result.signature, result.mintAddress);
-                                
-                                // Reset form
-                                setUsername('');
-                                setProfilePricing(null);
-                                setUsernameStatus({ checking: false, available: null, message: '' });
-                                
-                                // Refresh NFTs after a short delay
-                                setTimeout(async () => {
-                                  try {
-                                    const nftsResponse = await fetch(`/api/user-nfts/${publicKey.toString()}`);
-                                    if (nftsResponse.ok) {
-                                      const contentType = nftsResponse.headers.get('content-type');
-                                      if (contentType && contentType.includes('application/json')) {
-                                        const nftsData = await nftsResponse.json();
-                                        
-                                        if (nftsData.nfts && nftsData.nfts.length > 0) {
-                                      const mappedNFTs = nftsData.nfts.map((nft: any) => ({
-                                        mint: nft.mint,
-                                        collection: nft.collectionName || 'Unknown Collection',
-                                        name: nft.name || 'Unnamed NFT',
-                                        image: nft.uri || '/api/placeholder/400/400',
-                                        collectionAddress: nft.collectionAddress,
-                                        description: nft.description,
-                                        attributes: nft.attributes || []
-                                      }));
-                                      
-                                      // Find Profile NFT
-                                      const profileNFT = mappedNFTs.find((nft: any) => 
-                                        nft.name.includes('@') || 
-                                        nft.description?.includes('Profile NFT') ||
-                                        nft.attributes?.some((attr: any) => attr.trait_type === 'Type' && attr.value === 'Profile NFT')
-                                      );
-                                      
-                                      if (profileNFT) {
-                                        setUserProfileNFT(profileNFT);
-                                      }
-                                      
-                                      setUiNFTs(mappedNFTs);
-                                        }
-                                      }
-                                    }
-                                  } catch (error) {
-                                    console.error('Error refreshing NFTs:', error);
-                                  }
-                                }, 3000);
-                              } else {
-                                alert(`❌ Error: ${result.message}\n\n${result.error || ''}`);
-                              }
-                            } catch (error: any) {
-                              console.error('Minting error:', error);
-                              alert(`❌ Failed to mint Profile NFT.\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again.`);
-                            }
-                          }}
-                          disabled={!username.trim() || username.length < 3 || !profilePricing || usernameStatus.available !== true || userProfileNFT !== null}
-                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed text-sm sm:text-base"
-                        >
-                          {userProfileNFT ? '✅ Already Minted - Go to "Update Profile"' :
-                          !username.trim() ? '⚡ Enter Username First' :
-                          username.length < 3 ? '❌ Username Too Short (Min 3 chars)' :
-                          usernameStatus.available === false ? '❌ Username Taken' :
-                          usernameStatus.checking ? '⏳ Checking...' :
-                          usernameStatus.available !== true ? '⏳ Check Availability' :
-                          !profilePricing ? '⚡ Check Pricing First' :
-                          `⚡ Mint Profile NFT (${profilePricing?.price || 'Unknown'} ${profilePricing?.currency || 'LOS'})`}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-              </div>
-
-              {/* Profile NFT Status */}
-              <div className="mt-8 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-xl p-6 border border-green-500/30">
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-white mb-2">🎉 Ready to Create Your Profile NFT?</h3>
-                  <p className="text-gray-300 mb-4">
-                    Your profile NFT will be your unique identity in the Analos ecosystem. 
-                    It's more than just an NFT - it's your digital passport to exclusive features and community benefits.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button
-                      onClick={() => {
-                        // TODO: Implement profile NFT minting
-                        alert('Profile NFT minting coming soon!');
-                      }}
-                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                      🚀 Start Minting
-                    </button>
-                    <button
-                      onClick={() => {
-                        // TODO: Show more info about profile NFTs
-                        alert('Learn more about Profile NFTs coming soon!');
-                      }}
-                      className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200"
-                    >
-                      📚 Learn More
-                    </button>
-                  </div>
-                </div>
-              </div>
-              </div>
+        {activeTab === 'activity' && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <h2 className="text-2xl font-bold text-white mb-6">📊 Recent Activity</h2>
+            <div className="text-center py-12 text-gray-400">
+              <div className="text-6xl mb-4">📊</div>
+              <p>Activity tracking coming soon!</p>
             </div>
-          )}
-
-          {/* NFT Reveal Animation */}
-          {showReveal && revealedNFT && (
-            <div
-              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-start justify-center p-4 py-8 overflow-y-auto"
-              onClick={() => {
-                setShowReveal(false);
-                setRevealAnimation('cover');
-                setRevealedNFT(null);
-              }}
-            >
-              <div
-                className="relative max-w-md w-full"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Close (X) button */}
-                <button
-                  aria-label="Close reveal"
-                  className="absolute -top-2 -right-2 z-50 bg-gray-800/80 hover:bg-gray-700 text-white rounded-full p-2 border border-gray-600"
-                  onClick={() => {
-                    setShowReveal(false);
-                    setRevealAnimation('cover');
-                    setRevealedNFT(null);
-                  }}
-                >
-                  ✕
-                </button>
-                {/* Reveal Card Container */}
-                <div className="relative">
-                  {/* Cover Card */}
-                  {revealAnimation === 'cover' && (
-                    <div className="bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-2xl p-6 shadow-2xl border-2 border-gray-600 transform scale-110 transition-all duration-500">
-                      <div className="text-center">
-                        <div className="w-24 h-24 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center text-3xl font-bold text-gray-400 mx-auto mb-4">
-                          🎭
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-300 mb-2">MYSTERY CARD</h3>
-                        <p className="text-gray-400 text-sm">Preparing your reveal...</p>
-                        <div className="mt-4 flex justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Dripping Animation */}
-                  {revealAnimation === 'dripping' && (
-                    <div className="relative">
-                      {/* Matrix Drips */}
-                      <div className="absolute inset-0 z-20">
-                        <div className="absolute top-0 left-1/4 w-1 h-20 bg-green-400 animate-pulse"></div>
-                        <div className="absolute top-0 left-1/2 w-1 h-16 bg-green-400 animate-pulse delay-200"></div>
-                        <div className="absolute top-0 left-3/4 w-1 h-24 bg-green-400 animate-pulse delay-500"></div>
-                        <div className="absolute top-0 right-1/4 w-1 h-18 bg-green-400 animate-pulse delay-300"></div>
-                        <div className="absolute top-0 right-1/3 w-1 h-22 bg-green-400 animate-pulse delay-700"></div>
-                      </div>
-                      
-                      {/* Revealing Card */}
-                      <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50 transform scale-105 transition-all duration-1000">
-                        <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
-                        
-                        {/* Card Header */}
-                        <div className="text-center mb-4 relative z-10">
-                          <div className="flex items-center justify-center mb-2">
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
-                              <span className="text-white text-sm font-bold">A</span>
-                            </div>
-                            <h3 className="text-lg font-bold text-white">ANALOS</h3>
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2">
-                              <span className="text-white text-sm font-bold">♠</span>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-300">PROFILE CARDS</p>
-                        </div>
-                        
-                        {/* Profile Section */}
-                        <div className="text-center mb-4 relative z-10">
-                          <div className="relative inline-block mb-3">
-                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-green-400">
-                              {revealedNFT.image ? (
-                                <img src={revealedNFT.image} alt="Profile" className="w-full h-full object-cover" />
-                              ) : (
-                                <span>{revealedNFT.name ? revealedNFT.name.charAt(0).toUpperCase() : 'U'}</span>
-                              )}
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-800 rounded-full flex items-center justify-center border border-green-400">
-                              <span className="text-white text-xs font-bold">
-                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <h4 className="text-lg font-bold text-white mb-1">{revealedNFT.name || 'Your Name'}</h4>
-                          <p className="text-gray-300 text-sm mb-2">@{revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'username'}</p>
-                        </div>
-                        
-                        {/* Referral Code Section */}
-                        <div className="bg-green-900/50 border border-green-400/50 rounded-lg p-3 mb-4 relative z-10">
-                          <div className="text-center">
-                            <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
-                            <p className="text-xl font-bold text-green-300">
-                              {revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Card Footer */}
-                        <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">
-                            <a
-                              href="https://launchonlos.fun"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline hover:text-white"
-                            >
-                              launchonlos.fun
-                            </a>
-                            {' '}
-                            • Analos
-                          </p>
-                        </div>
-                        
-                        {/* Background Pattern Overlay */}
-                        <div className="absolute inset-0 opacity-10">
-                          <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Fully Revealed Card with Traits */}
-                  {revealAnimation === 'revealed' && (
-                    <div className="space-y-3 sm:space-y-4">
-                      {/* Main Card */}
-                      <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50 transform scale-100 transition-all duration-1000">
-                        <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
-                        
-                        {/* Card Header */}
-                        <div className="text-center mb-4 relative z-10">
-                          <div className="flex items-center justify-center mb-2">
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
-                              <span className="text-white text-sm font-bold">A</span>
-                            </div>
-                            <h3 className="text-lg font-bold text-white">ANALOS</h3>
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2">
-                              <span className="text-white text-sm font-bold">♠</span>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-300">PROFILE CARDS</p>
-                        </div>
-                        
-                        {/* Profile Section */}
-                        <div className="text-center mb-4 relative z-10">
-                          <div className="relative inline-block mb-3">
-                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-green-400">
-                              {revealedNFT.image ? (
-                                <img src={revealedNFT.image} alt="Profile" className="w-full h-full object-cover" />
-                              ) : (
-                                <span>{revealedNFT.name ? revealedNFT.name.charAt(0).toUpperCase() : 'U'}</span>
-                              )}
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-800 rounded-full flex items-center justify-center border border-green-400">
-                              <span className="text-white text-xs font-bold">
-                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <h4 className="text-lg font-bold text-white mb-1">{revealedNFT.name || 'Your Name'}</h4>
-                          <p className="text-gray-300 text-sm mb-2">@{revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'username'}</p>
-                        </div>
-                        
-                        {/* Referral Code Section */}
-                        <div className="bg-green-900/50 border border-green-400/50 rounded-lg p-3 mb-4 relative z-10">
-                          <div className="text-center">
-                            <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
-                            <p className="text-xl font-bold text-green-300">
-                              {revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Card Footer */}
-                        <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">launchonlos.fun • Analos</p>
-                        </div>
-                        
-                        {/* Background Pattern Overlay */}
-                        <div className="absolute inset-0 opacity-10">
-                          <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
-                        </div>
-                      </div>
-
-                      {/* Transaction Details */}
-                      {(lastTxSignature || lastMintAddress) && (
-                        <div className="bg-black/30 rounded-lg p-3 border border-green-500/30 mb-4">
-                          {lastTxSignature && (
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <span className="text-gray-300">Transaction</span>
-                              <button
-                                className="text-green-400 underline truncate max-w-[60%] text-left"
-                                onClick={() => window.open(`https://explorer.analos.io/tx/${lastTxSignature}`, '_blank')}
-                              >
-                                {lastTxSignature}
-                              </button>
-                            </div>
-                          )}
-                          {lastMintAddress && (
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-300">Mint</span>
-                              <button
-                                className="text-green-400 underline truncate max-w-[60%] text-left"
-                                onClick={() => window.open(`https://explorer.analos.io/address/${lastMintAddress}`, '_blank')}
-                              >
-                                {lastMintAddress}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Traits and Rarity Display */}
-                      <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30">
-                        <h4 className="text-lg font-bold text-white mb-3 text-center">🎉 Your Revealed Traits</h4>
-                        
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          <div className="bg-black/30 rounded-lg p-3">
-                            <div className="text-center">
-                              <p className="text-xs text-gray-400 mb-1">USERNAME</p>
-                              <p className="text-lg font-bold text-green-400">
-                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="bg-black/30 rounded-lg p-3">
-                            <div className="text-center">
-                              <p className="text-xs text-gray-400 mb-1">TIER</p>
-                              <p className="text-lg font-bold text-blue-400">
-                                {revealedNFT.attributes?.find(attr => attr.trait_type === 'Tier')?.value?.toUpperCase() || 'BASIC'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <h5 className="text-white font-semibold text-sm">Profile Traits:</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {revealedNFT.attributes?.filter(attr => 
-                              attr.value && 
-                              attr.value !== '' && 
-                              attr.value !== 'false' &&
-                              !['Username', 'Tier', 'Anonymous', 'Edition'].includes(attr.trait_type)
-                            ).slice(0, 6).map((attr, idx) => (
-                              <span 
-                                key={idx}
-                                className="px-2 py-1 bg-green-600/30 text-green-300 rounded text-xs border border-green-500/30"
-                              >
-                                {attr.trait_type}: {typeof attr.value === 'string' && attr.value.length > 20 ? attr.value.slice(0, 20) + '...' : attr.value}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Close Button */}
-                      <button
-                        onClick={() => {
-                          setShowReveal(false);
-                          setRevealAnimation('cover');
-                          setRevealedNFT(null);
-                        }}
-                        className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
-                      >
-                        ✨ Awesome! Close Reveal
-                      </button>
-
-                      {/* Mobile quick links so users can proceed after success */}
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
-                        <a
-                          href="/profile"
-                          className="text-center px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm"
-                        >
-                          View Profile
-                        </a>
-                        <a
-                          href="/marketplace"
-                          className="text-center px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
-                        >
-                          Marketplace
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'update-profile' && userProfileNFT && (
-            <div className="space-y-6 sm:space-y-8">
-              {/* Update Profile Section */}
-              <div className="bg-gradient-to-r from-green-600/20 via-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-8 border-2 border-green-500/30">
-                <div className="text-center mb-6">
-                  <h2 className="text-3xl font-bold text-white mb-2">
-                    🔄 Update Your Profile NFT
-                  </h2>
-                  <p className="text-gray-300">
-                    Modify your Profile NFT information for a small platform fee
-                  </p>
-                </div>
-
-                <div className="grid lg:grid-cols-2 gap-8">
-                  {/* Current Profile Display */}
-                  <div className="space-y-3 sm:space-y-4">
-                    <h3 className="text-xl font-semibold text-white">Current Profile</h3>
-                    
-                    <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-xl p-6 border border-purple-500/30">
-                      {/* Current Playing Card Design */}
-                      <div className="bg-gradient-to-br from-green-900 via-black to-green-800 rounded-2xl p-6 shadow-2xl border-2 border-green-500/50">
-                        {/* Card Border Pattern */}
-                        <div className="absolute inset-2 border border-green-400/30 rounded-xl"></div>
-                        
-                        {/* Card Header */}
-                        <div className="text-center mb-4 relative z-10">
-                          <div className="flex items-center justify-center mb-2">
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-2">
-                              <span className="text-white text-sm font-bold">A</span>
-                            </div>
-                            <h3 className="text-lg font-bold text-white">ANALOS</h3>
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center ml-2">
-                              <span className="text-white text-sm font-bold">♠</span>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-300">PROFILE CARDS</p>
-                        </div>
-                        
-                        {/* Profile Section */}
-                        <div className="text-center mb-4 relative z-10">
-                          <div className="relative inline-block mb-3">
-                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-2xl font-bold text-white overflow-hidden mx-auto border-2 border-green-400">
-                              {userProfileNFT.image ? (
-                                <img src={userProfileNFT.image} alt="Profile" className="w-full h-full object-cover" />
-                              ) : (
-                                <span>{userProfileNFT.name ? userProfileNFT.name.charAt(0).toUpperCase() : 'P'}</span>
-                              )}
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-800 rounded-full flex items-center justify-center border border-green-400">
-                              <span className="text-white text-xs font-bold">
-                                {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Edition')?.value || '1'}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <h4 className="text-lg font-bold text-white mb-1">{userProfileNFT.name || 'Profile NFT'}</h4>
-                          <p className="text-gray-300 text-sm mb-2">{userProfileNFT.description || 'No description'}</p>
-                        </div>
-                        
-                        {/* Referral Code Section */}
-                        <div className="bg-green-900/50 border border-green-400/50 rounded-lg p-3 mb-4 relative z-10">
-                          <div className="text-center">
-                            <p className="text-xs font-semibold text-gray-300 mb-1">REFERRAL CODE</p>
-                            <p className="text-xl font-bold text-green-300">
-                              {userProfileNFT.attributes?.find(attr => attr.trait_type === 'Username')?.value || 'USER'}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Card Footer */}
-                        <div className="text-center relative z-10">
-                          <p className="text-xs text-gray-400">
-                            <a
-                              href="https://launchonlos.fun"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="underline hover:text-white"
-                            >
-                              launchonlos.fun
-                            </a>
-                            {' '}
-                            • Analos
-                          </p>
-                        </div>
-                        
-                        {/* Background Pattern Overlay */}
-                        <div className="absolute inset-0 opacity-10">
-                          <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-transparent"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Update Form */}
-                  <div className="space-y-4 sm:space-y-6">
-                    <h3 className="text-xl font-semibold text-white">Update Information</h3>
-                    
-                    <div className="bg-black/30 rounded-lg p-6">
-                      <div className="space-y-3 sm:space-y-4">
-                        {/* Display Name */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Display Name</label>
-                          <input
-                            type="text"
-                            value={displayName}
-                            onChange={(e) => setDisplayName(e.target.value)}
-                            placeholder="Your display name"
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                          />
-                        </div>
-
-                        {/* Bio */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
-                          <textarea
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                            placeholder="Tell us about yourself..."
-                            rows={3}
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                          />
-                        </div>
-
-                        {/* Profile Picture */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">Profile Picture URL</label>
-                          <input
-                            type="url"
-                            value={avatarUrl}
-                            onChange={(e) => setAvatarUrl(e.target.value)}
-                            placeholder="https://example.com/your-image.jpg"
-                            className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                          />
-                        </div>
-
-                        {/* Social Links */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Twitter</label>
-                            <input
-                              type="text"
-                              value={twitterHandle}
-                              onChange={(e) => setTwitterHandle(e.target.value)}
-                              placeholder="@username"
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Website</label>
-                            <input
-                              type="url"
-                              value={website}
-                              onChange={(e) => setWebsite(e.target.value)}
-                              placeholder="https://yourwebsite.com"
-                              className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Platform Fee Info */}
-                        <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
-                          <h4 className="text-green-400 font-semibold mb-2">💰 Platform Fee</h4>
-                          <p className="text-sm text-gray-300 mb-2">Update fee: 1.0 LOS</p>
-                          <p className="text-xs text-gray-400">
-                            This fee covers the cost of updating your Profile NFT metadata on-chain.
-                          </p>
-                        </div>
-
-                        {/* Update Button */}
-                        <button
-                          onClick={async () => {
-                            if (!publicKey || !signTransaction || !sendTransaction) {
-                              alert('Please connect your wallet first');
-                              return;
-                            }
-
-                            try {
-                              // Call the profile update API
-                              const response = await fetch('/api/profile-nft/update', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  mintAddress: userProfileNFT.mint,
-                                  updates: {
-                                    displayName,
-                                    bio,
-                                    avatarUrl,
-                                    twitterHandle,
-                                    website,
-                                    discord,
-                                    github,
-                                    telegram,
-                                    isAnonymous
-                                  }
-                                })
-                              });
-
-                              const result = await response.json();
-
-                              if (result.success) {
-                                alert('✅ Profile updated successfully!\n\nYour Profile NFT has been updated with the new information.');
-                                
-                                // Refresh the profile data
-                                window.location.reload();
-                              } else {
-                                alert(`❌ Failed to update profile.\n\nError: ${result.error}`);
-                              }
-                            } catch (error: any) {
-                              console.error('Update error:', error);
-                              alert(`❌ Failed to update profile.\n\nError: ${error.message || 'Unknown error'}`);
-                            }
-                          }}
-                          className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105"
-                        >
-                          🔄 Update Profile NFT (1.0 LOS)
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'overview' && (
-            <PublicProfileDisplay
-              userWallet={publicKey?.toString() || ''}
-              className="profile-display"
-            />
-          )}
-
-          {activeTab === 'my-nfts' && userProfileNFT && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-white">My NFTs</h2>
-                <button
-                  onClick={() => {
-                    // Reload NFTs
-                    if (publicKey) {
-                      fetch(`/api/user-nfts/${publicKey.toString()}`)
-                        .then(res => {
-                          const contentType = res.headers.get('content-type');
-                          if (res.ok && contentType && contentType.includes('application/json')) {
-                            return res.json();
-                          }
-                          return null;
-                        })
-                        .then(data => {
-                          if (data && data.nfts && data.nfts.length > 0) {
-                            setUiNFTs(data.nfts.map((nft: any) => ({
-                              mint: nft.mint,
-                              collection: nft.collectionName || 'Unknown Collection',
-                              name: nft.name || 'Unnamed NFT',
-                              image: nft.uri || '/api/placeholder/400/400',
-                              collectionAddress: nft.collectionAddress,
-                              description: nft.description
-                            })));
-                          }
-                        })
-                        .catch(error => console.error('Error refreshing NFTs:', error));
-                    }
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors text-sm"
-                >
-                  🔄 Refresh
-                </button>
-              </div>
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-300">Loading your NFTs...</p>
-                </div>
-              ) : uiNFTs.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {uiNFTs.map((nft) => (
-                    <NFTCard
-                      key={nft.mint}
-                      nft={{
-                        mint: nft.mint,
-                        name: nft.name,
-                        image: nft.image,
-                        collectionName: nft.collection,
-                        collectionAddress: (nft as any).collectionAddress,
-                        description: (nft as any).description
-                      }}
-                      showListButton={true}
-                      onListed={() => {
-                        alert('NFT has been listed! View it on the marketplace.');
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🎨</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No NFTs Yet</h3>
-                  <p className="text-gray-300 mb-4">Start collecting NFTs to see them here!</p>
-                  <p className="text-gray-400 text-sm">
-                    NFTs you mint or purchase will appear here. Make sure you've minted from a collection!
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'collections' && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">My Collections</h2>
-              {uiCollections.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {uiCollections.map((collection, index) => (
-                    <div key={index} className="bg-white/5 rounded-lg overflow-hidden border border-white/10">
-                      <img 
-                        src={collection.image} 
-                        alt={collection.name}
-                        className="w-full h-32 object-cover"
-                      />
-                      <div className="p-4">
-                        <h3 className="text-white font-semibold mb-1">{collection.name}</h3>
-                        <p className="text-gray-300 text-sm mb-2">{collection.description}</p>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-300">
-                            {collection.ownedCount} owned
-                          </span>
-                          <span className="text-white font-medium">
-                            ${collection.floorPrice.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📦</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No Collections Yet</h3>
-                  <p className="text-gray-300">Create your first collection to get started!</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'rewards' && (
-            <div className="space-y-4 sm:space-y-6">
-              {/* Rewards Summary */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">💰 Creator Rewards</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-green-400 mb-2">
-                      {rewardsSummary.total_claimable.toFixed(2)}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-300">Claimable (LOS)</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">
-                      {rewardsSummary.total_claimed.toFixed(2)}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-300">Total Claimed (LOS)</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl sm:text-3xl font-bold text-orange-400 mb-2">
-                      {rewardsSummary.pending_rewards.toFixed(2)}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-300">Pending (LOS)</div>
-                  </div>
-                </div>
-                
-                {rewardsSummary.total_claimable > 0 && (
-                  <div className="text-center">
-                    <button
-                      onClick={handleClaimRewards}
-                      disabled={claiming}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 sm:px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                    >
-                      {claiming ? 'Claiming...' : `Claim ${rewardsSummary.total_claimable.toFixed(2)} LOS`}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Rewards List */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <h3 className="text-xl font-bold text-white mb-4">Rewards History</h3>
-                {rewards.length > 0 ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    {rewards.map((reward) => (
-                      <div key={reward.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                              <span className="text-2xl">💰</span>
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-white capitalize">
-                                {reward.reward_type.replace('_', ' ')} Reward
-                              </h4>
-                              <p className="text-sm text-gray-300">
-                                From: {reward.saved_collections.collection_name}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-white">
-                              {reward.amount.toFixed(4)} {reward.token_symbol}
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              reward.status === 'claimable' 
-                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300'
-                                : reward.status === 'claimed'
-                                ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300'
-                                : 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300'
-                            }`}>
-                              {reward.status}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 text-xs text-gray-400">
-                          Created: {new Date(reward.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-4">💰</div>
-                    <h4 className="text-lg font-semibold text-white mb-2">No Rewards Yet</h4>
-                    <p className="text-gray-300">Rewards will appear here when your collections generate sales and fees.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'activity' && (
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold text-white mb-6">Activity History</h2>
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📊</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Activity Yet</h3>
-                <p className="text-gray-300">Your activity history will appear here as you interact with the platform.</p>
-              </div>
-            </div>
-          )}
-
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
