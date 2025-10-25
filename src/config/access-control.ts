@@ -155,10 +155,10 @@ export const PAGE_ACCESS: PageAccess[] = [
     name: 'NFT Marketplace',
     description: 'Buy and sell NFTs',
     requiredLevel: 'public',
-    requiresWallet: true,
+    requiresWallet: false,
     isLocked: false,
-    publicAccess: false,
-    customMessage: 'Connect your wallet to access the marketplace'
+    publicAccess: true,
+    customMessage: 'Browse the marketplace freely'
   },
   {
     path: '/launch-collection',
@@ -173,10 +173,11 @@ export const PAGE_ACCESS: PageAccess[] = [
     path: '/explorer',
     name: 'Explorer',
     description: 'Explore collections and NFTs',
-    requiredLevel: 'beta_user',
-    requiresWallet: true,
-    isLocked: true,
-    customMessage: 'Connect your wallet to explore collections'
+    requiredLevel: 'public',
+    requiresWallet: false,
+    isLocked: false,
+    publicAccess: true,
+    customMessage: 'Explore all NFT mints'
   },
   {
     path: '/swap',
