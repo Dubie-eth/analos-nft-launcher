@@ -40,7 +40,7 @@ export default function SecureWalletProvider({ children }: SecureWalletProviderP
   const wallets = useMemo(
     () => [
       new SolflareWalletAdapter(),
-      // Backpack uses Standard Wallet API, so it's detected automatically
+      // Backpack and other Standard Wallet API wallets are auto-detected
       // Phantom removed - doesn't support custom RPCs yet
     ],
     []

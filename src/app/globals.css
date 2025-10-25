@@ -133,6 +133,38 @@ textarea::placeholder {
 
     /* Global form element fixes only - no page-specific styles */
 
+    /* Wallet adapter button fixes - prevent text wrapping */
+    .wallet-adapter-button,
+    .wallet-adapter-button-trigger,
+    button[class*="wallet"] {
+      white-space: nowrap !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1.2 !important;
+      min-height: 40px !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+      width: auto !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Wallet adapter modal improvements for Backpack and other wallets */
+    .wallet-adapter-modal-wrapper {
+      z-index: 9999 !important;
+    }
+
+    .wallet-adapter-modal-list {
+      max-height: 400px !important;
+      overflow-y: auto !important;
+    }
+
+    .wallet-adapter-modal-list-more {
+      display: block !important;
+    }
+
     /* Wallet address and text overflow fixes */
     .wallet-address {
       word-break: break-all;

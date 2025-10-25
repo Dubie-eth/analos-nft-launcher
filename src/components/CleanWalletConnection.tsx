@@ -78,15 +78,20 @@ export default function CleanWalletConnection({
             border-radius: 0.5rem !important;
             transition: all 0.2s ease-in-out !important;
             border: none !important;
-            display: flex !important;
+            display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             gap: 0.5rem !important;
             white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
             cursor: pointer !important;
             outline: none !important;
             position: relative !important;
-            overflow: hidden !important;
+            line-height: 1.2 !important;
+            min-height: 40px !important;
+            width: auto !important;
+            flex-shrink: 0 !important;
           }
           
           .clean-wallet-button:hover {
