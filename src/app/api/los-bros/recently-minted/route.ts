@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 Fetching ${limit} recently minted Los Bros NFTs...`);
 
-    // Get recently minted Los Bros NFTs
+    // Get recently minted Los Bros NFTs (only query columns that exist)
     const { data: nfts, error } = await supabase
       .from('profile_nfts')
       .select(`
@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
         username,
         display_name,
         los_bros_token_id,
-        los_bros_rarity,
         los_bros_tier,
         los_bros_final_price,
         los_bros_discount_percent,
@@ -34,12 +33,10 @@ export async function GET(request: NextRequest) {
         image_url,
         metadata_uri,
         transaction_signature,
-        mint_date,
-        created_at,
-        rarity_score
+        created_at
       `)
       .not('los_bros_token_id', 'is', null)
-      .order('mint_date', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error) {
