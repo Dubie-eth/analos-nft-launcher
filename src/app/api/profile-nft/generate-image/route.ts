@@ -80,8 +80,36 @@ function generateProfileCardSVG(data: ProfileCardData): string {
   const referralColor = '#ff6b6b';
   const verifiedColor = '#4ecdc4';
 
-  // Truncate bio if too long
-  const truncatedBio = bio.length > 80 ? bio.substring(0, 77) + '...' : bio;
+  // Wrap bio text into multiple lines (max 3 lines, ~35 chars per line)
+  const wrapText = (text: string, maxCharsPerLine: number = 35, maxLines: number = 3): string[] => {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      if (testLine.length > maxCharsPerLine && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+        if (lines.length >= maxLines - 1) break;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine && lines.length < maxLines) {
+      lines.push(currentLine);
+    }
+    
+    // Add ellipsis if text was truncated
+    if (lines.length >= maxLines && words.length > lines.join(' ').split(' ').length) {
+      lines[lines.length - 1] = lines[lines.length - 1].substring(0, maxCharsPerLine - 3) + '...';
+    }
+    
+    return lines;
+  };
+
+  const bioLines = bio ? wrapText(bio, 35, 3) : [];
 
   return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -136,8 +164,8 @@ function generateProfileCardSVG(data: ProfileCardData): string {
       <!-- Twitter Handle -->
       ${twitterHandle ? `<text x="200" y="270" text-anchor="middle" fill="${verifiedColor}" font-family="Arial, sans-serif" font-size="14">🐦 @${twitterHandle}</text>` : ''}
       
-      <!-- Bio -->
-      ${bio ? `<text x="200" y="300" text-anchor="middle" fill="${secondaryTextColor}" font-family="Arial, sans-serif" font-size="12" text-align="center">${truncatedBio}</text>` : ''}
+      <!-- Bio (Multi-line, centered, word-wrapped) -->
+      ${bioLines.map((line, i) => `<text x="200" y="${290 + (i * 16)}" text-anchor="middle" fill="${secondaryTextColor}" font-family="Arial, sans-serif" font-size="12">${line}</text>`).join('\n      ')}
       
       <!-- Referral Code Section -->
       <rect x="60" y="340" width="280" height="80" rx="15" ry="15" fill="url(#accentGradient)"/>
@@ -146,11 +174,11 @@ function generateProfileCardSVG(data: ProfileCardData): string {
       <text x="200" y="410" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12">Use this code to get started!</text>
       
       <!-- Wallet Address -->
-      <text x="200" y="460" text-anchor="middle" fill="${secondaryTextColor}" font-family="monospace" font-size="10">${wallet}</text>
+      <text x="200" y="460" text-anchor="middle" fill="${secondaryTextColor}" font-family="monospace" font-size="10">${wallet.slice(0, 4)}...${wallet.slice(-4)}</text>
       
       <!-- Platform Info -->
       <text x="200" y="480" text-anchor="middle" fill="${secondaryTextColor}" font-family="Arial, sans-serif" font-size="12">Official Profile Card</text>
-      <text x="200" y="495" text-anchor="middle" fill="${secondaryTextColor}" font-family="Arial, sans-serif" font-size="12">Minted on Analos • NFT #1</text>
+      <text x="200" y="495" text-anchor="middle" fill="${secondaryTextColor}" font-family="Arial, sans-serif" font-size="12">Minted on Analos • launchonlos.fun</text>
       
       <!-- Bottom Border -->
       <rect x="40" y="560" width="320" height="4" fill="url(#accentGradient)"/>
