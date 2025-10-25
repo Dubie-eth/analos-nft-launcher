@@ -548,14 +548,9 @@ export default function LosBrosCollectionPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-300">Token ID:</span>
-                  <a 
-                    href={getExplorerUrl(mintedNFT.mintAddress)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:text-cyan-300 font-mono underline"
-                  >
-                    {shortenAddress(mintedNFT.mintAddress)}
-                  </a>
+                  <span className="text-white font-mono font-bold">
+                    {mintedNFT.tokenId || shortenAddress(mintedNFT.mintAddress)}
+                  </span>
                 </div>
               </div>
 
