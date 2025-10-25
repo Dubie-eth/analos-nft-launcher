@@ -1567,12 +1567,12 @@ export default function ProfilePage() {
                                     body: JSON.stringify({
                                       mintAddress: losBrosResult.mintAddress,
                                       walletAddress: publicKey.toString(),
-                                      tokenId: losBrosResult.tokenId,
+                                      losBrosTokenId: losBrosResult.mintAddress,
                                       rarityTier: losBrosResult.rarityTier,
                                       rarityScore: losBrosResult.rarityScore,
                                       traits: losBrosResult.traits || [],
                                       signature: losBrosResult.signature,
-                                      imageUrl: losBrosResult.imageUrl,
+                                      imageUrl: `/api/los-bros/generate-image?tokenId=${losBrosResult.mintAddress}`,
                                       metadataUri: losBrosResult.metadataUri
                                     })
                                   });
