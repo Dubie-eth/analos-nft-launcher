@@ -14,37 +14,37 @@ interface ProfileNFT {
   image: string;
   description: string;
   owner: string;
-  mintNumber: number;
-  floorPrice: number;
-  volume: number;
-  marketCap: number;
-  topOffer: number;
-  floorChange1d: number;
-  volumeChange1d: number;
-  sales1d: number;
-  listed: number;
-  listedPercentage: number;
-  owners: number;
-  ownersPercentage: number;
-  lastSale: {
+  mintNumber?: number;
+  floorPrice?: number;
+  volume?: number;
+  marketCap?: number;
+  topOffer?: number;
+  floorChange1d?: number;
+  volumeChange1d?: number;
+  sales1d?: number;
+  listed?: number;
+  listedPercentage?: number;
+  owners?: number;
+  ownersPercentage?: number;
+  lastSale?: {
     price: number;
     time: string;
   } | null;
-  attributes: {
-    background: string;
-    rarity: string;
-    tier: string;
-    core: string;
-    dripGrade: string;
-    dripScore: string;
-    earring: string;
-    eyeColor: string;
-    eyes: string;
-    faceDecoration: string;
-    glasses: string;
+  attributes?: {
+    background?: string;
+    rarity?: string;
+    tier?: string;
+    core?: string;
+    dripGrade?: string;
+    dripScore?: string;
+    earring?: string;
+    eyeColor?: string;
+    eyes?: string;
+    faceDecoration?: string;
+    glasses?: string;
   };
-  verified: boolean;
-  chain: string;
+  verified?: boolean;
+  chain?: string;
 }
 
 const MarketplacePage: React.FC = () => {
@@ -100,8 +100,8 @@ const MarketplacePage: React.FC = () => {
   };
 
   const filteredNFTs = profileNFTs.filter(nft => 
-    nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    nft.description.toLowerCase().includes(searchTerm.toLowerCase())
+    nft.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    nft.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatPrice = (price: number | null | undefined) => {
