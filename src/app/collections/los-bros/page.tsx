@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import Tooltip from '@/components/Tooltip';
 import Link from 'next/link';
+import CollectionStatsBanner from '@/components/CollectionStatsBanner';
 
 export default function LosBrosCollectionPage() {
   const { publicKey, connected, signTransaction, sendTransaction } = useWallet();
@@ -206,31 +207,22 @@ export default function LosBrosCollectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header with Featured Image */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-6">
-            <div className="w-64 h-64 rounded-2xl overflow-hidden shadow-2xl border-4 border-cyan-400">
-              <img 
-                src="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreibvzv6vs7x6nybnf6sabncen57t4zvdixgdaqo4swmijy2dm7lfkm"
-                alt="Los Bros Collection"
-                className="w-full h-full object-cover"
-                style={{imageRendering: 'pixelated'}}
-              />
-            </div>
-          </div>
-          
-          <h1 className="text-5xl font-bold text-white mb-4 font-mono tracking-wider">
-            LOS BROS
-          </h1>
-          <p className="text-xl text-cyan-300 font-bold mb-2">#VAPORWAVE PFPs on ANALOS</p>
-          <p className="text-gray-300 max-w-2xl mx-auto">
-            2,222 unique pixel art PFPs with over 10,000 trait combinations. 
-            Dynamic pricing starts at 4,200.69 LOS and increases 6.9% with each mint.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      {/* Collection Stats Banner */}
+      <CollectionStatsBanner
+        collectionId="los-bros"
+        name="LOS BROS"
+        description="2,222 unique pixel art PFPs with over 10,000 trait combinations. #VAPORWAVE on ANALOS."
+        bannerImage="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreih6zcd4y4fhyp2zu77ugduxbw5j647oqxz64x3l23vctycs36rddm"
+        logoImage="https://cyan-bewildered-ape-960.mypinata.cloud/ipfs/bafkreibvzv6vs7x6nybnf6sabncen57t4zvdixgdaqo4swmijy2dm7lfkm"
+        socials={{
+          twitter: "https://twitter.com/analos",
+          discord: "https://discord.gg/analos",
+          website: "https://onlyanal.fun"
+        }}
+      />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Live Allocations */}
         {allocations.length > 0 && (
