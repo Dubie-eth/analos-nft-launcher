@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, Shield, Wallet, FileText, Lock, ExternalLink } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import Link from 'next/link';
 
 export default function WalletSafetyDisclaimer() {
   const { publicKey } = useWallet();
