@@ -29,7 +29,7 @@ interface ProfileNFT {
   lastSale: {
     price: number;
     time: string;
-  };
+  } | null;
   attributes: {
     background: string;
     rarity: string;
