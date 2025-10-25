@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 
-const supabase = getSupabaseAdmin();
-
 const WHITELIST_LIMIT = 100;
 
 export async function GET(req: NextRequest) {
+  const supabase = getSupabaseAdmin();
   try {
     const { searchParams } = new URL(req.url);
     const walletAddress = searchParams.get('wallet');
@@ -74,6 +73,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = getSupabaseAdmin();
   try {
     const body = await req.json();
     const { walletAddress } = body;

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 
-const supabase = getSupabaseAdmin();
-
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabase = getSupabaseAdmin();
   try {
     const body = await req.json();
     const { username, bio, email, socials, privacyLevel, allowDataExport, allowAnalytics } = body;

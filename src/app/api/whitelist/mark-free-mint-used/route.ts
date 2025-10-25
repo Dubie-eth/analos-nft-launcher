@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/client';
 
-const supabase = getSupabaseAdmin();
-
 export async function POST(req: NextRequest) {
+  const supabase = getSupabaseAdmin();
   try {
     const body = await req.json();
     const { walletAddress, usedAt } = body;
