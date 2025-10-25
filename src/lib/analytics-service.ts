@@ -99,7 +99,7 @@ export class AnalyticsService {
             .from('saved_collections')
             .select('collection_address');
           
-          totalCollections = (collections?.length || 0) + 1; // +1 for Profile NFT collection
+          totalCollections = (collections?.length || 0) + 2; // +1 for Profile NFT collection, +1 for Los Bros
 
         } catch (dbError) {
           console.warn('⚠️ Error fetching database analytics:', dbError);
@@ -187,6 +187,56 @@ export class AnalyticsService {
               collectionConfig: 'ProfileNFTCollection',
               address: 'ProfileNFTCollection',
               recentMints
+            });
+          }
+
+          // Get Los Bros NFT Collection stats
+          try {
+            const { data: losBrosNFTs } = await (supabaseAdmin as any)
+              .from('profile_nfts')
+              .select('*')
+              .not('los_bros_token_id', 'is', null);
+
+            if (losBrosNFTs) {
+              const now = Date.now();
+              const last24h = now - 24 * 60 * 60 * 1000;
+              const recentLosBrosMints = losBrosNFTs.filter((nft: any) =>
+                new Date(nft.created_at).getTime() >= last24h
+              ).length;
+
+              const totalSupply = 2222;
+              const currentSupply = losBrosNFTs.length;
+              const mintedPercentage = (currentSupply / totalSupply) * 100;
+
+              collections.push({
+                name: 'Los Bros NFT Collection',
+                totalSupply: totalSupply,
+                currentSupply: currentSupply,
+                mintedPercentage: mintedPercentage,
+                mintPriceUSD: 4200.69, // Starting price in LOS (approximate)
+                isActive: true,
+                mintingEnabled: true,
+                programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD_CORE.toString(),
+                collectionConfig: 'LosBrosCollection',
+                address: 'LosBrosCollection',
+                recentMints: recentLosBrosMints
+              });
+            }
+          } catch (losBrosError) {
+            console.warn('⚠️ Error fetching Los Bros stats:', losBrosError);
+            // Add placeholder with 0 mints
+            collections.push({
+              name: 'Los Bros NFT Collection',
+              totalSupply: 2222,
+              currentSupply: 0,
+              mintedPercentage: 0,
+              mintPriceUSD: 4200.69,
+              isActive: true,
+              mintingEnabled: true,
+              programId: ANALOS_PROGRAMS.NFT_LAUNCHPAD_CORE.toString(),
+              collectionConfig: 'LosBrosCollection',
+              address: 'LosBrosCollection',
+              recentMints: 0
             });
           }
 
