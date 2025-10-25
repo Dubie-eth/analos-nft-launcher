@@ -17,8 +17,8 @@ export default function LosBrosCollectionPage() {
 
   // Fetch recently minted NFTs
   useEffect(() => {
-    fetchMintedNFTs();
-    const interval = setInterval(fetchMintedNFTs, 15000); // Refresh every 15s
+    fetchMintedNFTs(); // Initial fetch
+    const interval = setInterval(() => fetchMintedNFTs(true), 15000); // Silent refresh every 15s
     return () => clearInterval(interval);
   }, []);
 
@@ -31,12 +31,12 @@ export default function LosBrosCollectionPage() {
 
   // Fetch allocations (refresh every 15s to show live counts)
   useEffect(() => {
-    fetchAllocations();
-    const interval = setInterval(fetchAllocations, 15000); // Refresh every 15s
+    fetchAllocations(); // Initial fetch
+    const interval = setInterval(() => fetchAllocations(true), 15000); // Silent refresh every 15s
     return () => clearInterval(interval);
   }, []);
 
-  const fetchMintedNFTs = async () => {
+  const fetchMintedNFTs = async (silent = false) => {
     try {
       const response = await fetch('/api/los-bros/recently-minted');
       const data = await response.json();
@@ -44,9 +44,13 @@ export default function LosBrosCollectionPage() {
         setMintedNFTs(data.nfts || []);
       }
     } catch (error) {
-      console.error('Error fetching minted NFTs:', error);
+      if (!silent) {
+        console.error('Error fetching minted NFTs:', error);
+      }
     } finally {
-      setLoadingNFTs(false);
+      if (!silent) {
+        setLoadingNFTs(false);
+      }
     }
   };
 
@@ -70,15 +74,23 @@ export default function LosBrosCollectionPage() {
     }
   };
 
-  const fetchAllocations = async () => {
+  const fetchAllocations = async (silent = false) => {
     try {
+      if (!silent) {
+        console.log('📊 Fetching allocation counts...');
+      }
       const response = await fetch('/api/los-bros/allocations');
       const data = await response.json();
       if (data.success) {
         setAllocations(data.allocations || []);
+        if (!silent) {
+          console.log('✅ Allocations loaded');
+        }
       }
     } catch (error) {
-      console.error('Error fetching allocations:', error);
+      if (!silent) {
+        console.error('Error fetching allocations:', error);
+      }
     }
   };
 
