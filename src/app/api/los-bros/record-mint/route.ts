@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         display_name: `Los Bros #${losBrosTokenId}`,
         bio: `Los Bros #${losBrosTokenId} - ${losBrosRarity || 'COMMON'} rarity`,
         referral_code: `LOSBROS${losBrosTokenId.toString().slice(0, 1)}`, // Generate referral code
+        nft_metadata: {}, // Empty metadata object
         los_bros_token_id: losBrosTokenId,
         los_bros_rarity: losBrosRarity || 'COMMON',
         los_bros_rarity_score: rarityScore || 0,
