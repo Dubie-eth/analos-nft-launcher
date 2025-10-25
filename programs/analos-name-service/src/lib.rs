@@ -155,7 +155,7 @@ pub struct RegisterProfile<'info> {
     #[account(
         init,
         payer = user_wallet,
-        space = 8 + ProfileRegistry::INIT_SPACE,
+        space = 8 + 1 + 32 + 4 + 20 + 32 + 1 + 32 + 1 + 8 + 8 + 1,
         seeds = [b"profile", user_wallet.key().as_ref()],
         bump
     )]
@@ -164,7 +164,7 @@ pub struct RegisterProfile<'info> {
     #[account(
         init,
         payer = user_wallet,
-        space = 8 + UsernameRegistry::INIT_SPACE,
+        space = 8 + 1 + 4 + 20 + 32 + 32 + 8 + 8 + 1,
         seeds = [b"username", username.to_lowercase().as_bytes()],
         bump
     )]
@@ -273,10 +273,6 @@ pub struct ProfileRegistry {
     pub is_active: bool,
 }
 
-impl ProfileRegistry {
-    pub const INIT_SPACE: usize = 1 + 32 + (4 + 20) + 32 + (1 + 32) + 1 + 8 + 8 + 1;
-}
-
 /// Username Registry Account
 /// PDA: seeds = [b"username", username_bytes]
 #[account]
@@ -301,10 +297,6 @@ pub struct UsernameRegistry {
     
     /// Is available (false if reserved)
     pub is_available: bool,
-}
-
-impl UsernameRegistry {
-    pub const INIT_SPACE: usize = 1 + (4 + 20) + 32 + 32 + 8 + 8 + 1;
 }
 
 // ============================================================================
