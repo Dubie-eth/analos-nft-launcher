@@ -42,7 +42,9 @@ jobs:
 
       - name: Build Program
         run: |
-          anchor build --program-name analos_name_service
+          anchor build
+          ls -la target/deploy/ || echo "No target/deploy directory"
+          ls -la target/idl/ || echo "No target/idl directory"
 
       - name: Get Program Info
         id: program_info
