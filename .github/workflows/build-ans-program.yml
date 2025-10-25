@@ -1,0 +1,117 @@
+name: Build ANS Program
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'programs/analos-name-service/**'
+      - '.github/workflows/build-ans-program.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Cache Solana Tools
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/solana
+            ~/.local/share/solana
+          key: ${{ runner.os }}-solana-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Solana CLI
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Install Anchor CLI
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+          avm install 0.29.0
+          avm use 0.29.0
+
+      - name: Build Program
+        run: |
+          anchor build --program-name analos_name_service
+
+      - name: Get Program Info
+        id: program_info
+        run: |
+          echo "program_size=$(stat -f%z target/deploy/analos_name_service.so || stat -c%s target/deploy/analos_name_service.so)" >> $GITHUB_OUTPUT
+          echo "commit_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "build_date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Upload Program Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: analos-name-service-program
+          path: |
+            target/deploy/analos_name_service.so
+            target/idl/analos_name_service.json
+          retention-days: 90
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ans-v1.0.${{ github.run_number }}
+          name: Analos Name Service v1.0.${{ github.run_number }}
+          body: |
+            🎯 **Analos Name Service (ANS) Program Build**
+            
+            📦 **Program Binary**: `analos_name_service.so`
+            📊 **Size**: ${{ steps.program_info.outputs.program_size }} bytes
+            🔨 **Commit**: ${{ steps.program_info.outputs.commit_sha }}
+            📅 **Built**: ${{ steps.program_info.outputs.build_date }}
+            
+            ## 🚀 Deploy to Analos:
+            ```bash
+            # Download the .so file from this release
+            
+            # Configure for Analos
+            solana config set --url https://rpc.analos.io
+            
+            # Deploy with flags
+            solana program deploy analos_name_service.so \
+              --with-compute-unit-price 1000 \
+              --max-sign-attempts 100 \
+              --use-quic
+            ```
+            
+            ## 📋 After Deployment:
+            1. Save the Program ID
+            2. Update `src/config/analos-programs.ts` with new Program ID
+            3. Update `programs/analos-name-service/src/lib.rs` `declare_id!` macro
+            
+            ---
+            **Built with ❤️ for Analos**
+          files: |
+            target/deploy/analos_name_service.so
+            target/idl/analos_name_service.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🎯 **ANS Program built successfully!**\n\n📦 Download the artifacts to deploy to Analos.\n\n**Size**: ${{ steps.program_info.outputs.program_size }} bytes'
+            })
+
