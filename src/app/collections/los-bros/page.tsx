@@ -29,9 +29,11 @@ export default function LosBrosCollectionPage() {
     }
   }, [connected, publicKey]);
 
-  // Fetch allocations
+  // Fetch allocations (refresh every 15s to show live counts)
   useEffect(() => {
     fetchAllocations();
+    const interval = setInterval(fetchAllocations, 15000); // Refresh every 15s
+    return () => clearInterval(interval);
   }, []);
 
   const fetchMintedNFTs = async () => {
