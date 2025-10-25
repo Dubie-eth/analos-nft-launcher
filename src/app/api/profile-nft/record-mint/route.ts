@@ -118,16 +118,16 @@ export async function POST(request: NextRequest) {
     // If Los Bros mint, update allocation count
     if (losBrosTier && losBrosTokenId) {
       try {
-        const { error: allocError } = await supabase
-          .rpc('record_los_bros_mint', {
-            p_wallet_address: walletAddress,
-            p_mint_address: mintAddress,
-            p_tier: losBrosTier,
-            p_lol_balance: lolBalanceAtMint || 0,
-            p_final_price: losBrosFinalPrice || 0,
-            p_discount: losBrosDiscountPercent || 0,
-            p_platform_fee: losBrosPlatformFee || 0
-          } as any);
+        // @ts-ignore - Supabase RPC function not in generated types yet
+        const { error: allocError } = await supabase.rpc('record_los_bros_mint', {
+          p_wallet_address: walletAddress,
+          p_mint_address: mintAddress,
+          p_tier: losBrosTier,
+          p_lol_balance: lolBalanceAtMint || 0,
+          p_final_price: losBrosFinalPrice || 0,
+          p_discount: losBrosDiscountPercent || 0,
+          p_platform_fee: losBrosPlatformFee || 0
+        });
 
         if (allocError) {
           console.error('⚠️ Error updating allocation count:', allocError);
