@@ -142,7 +142,17 @@ export default function SimpleProfileEditor({
     if (!candidate) return false;
 
     try {
-      const response = await fetch(`/api/blockchain-profiles/validate-username/${candidate}`);
+      // Use simpler query parameter API instead of dynamic route
+      const response = await fetch(`/api/username/validate?username=${encodeURIComponent(candidate)}`);
+      
+      // Check if response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('❌ API returned non-JSON response (likely 404)');
+        setError('Username validation unavailable. Please try again.');
+        return false;
+      }
+      
       const data = await response.json();
 
       // Handle network/server errors gracefully
