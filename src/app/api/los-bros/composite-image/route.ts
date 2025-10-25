@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
   try {
     // Get NFT traits from database
     const supabase = getSupabaseAdmin();
-    const { data: nft, error } = await supabase
+    // @ts-ignore - Supabase types don't include Los Bros columns yet
+    const { data: nft, error } = await (supabase as any)
       .from('profile_nfts')
       .select('los_bros_traits, los_bros_token_id, mint_address')
       .eq('los_bros_token_id', tokenId)
