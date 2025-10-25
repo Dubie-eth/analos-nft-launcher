@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
         website: 'https://launchonlos.fun'
       },
       media: {
-        logo_url: null,
-        banner_url: null
+        logo_url: null as string | null,
+        banner_url: null as string | null
       },
       verification: {
         is_verified: true,
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       reveal_settings: {
         auto_reveal: true,
         reveal_delay_hours: 0,
-        placeholder_image: null
+        placeholder_image: null as string | null
       }
     };
 
