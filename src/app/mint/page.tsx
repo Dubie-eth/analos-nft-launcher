@@ -216,15 +216,36 @@ export default function MintPage() {
         {/* Main Mint Section */}
         <div className="grid lg:grid-cols-2 gap-8">
           
-          {/* Left: Preview */}
+          {/* Left: Preview with Los Bros PFP Style */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
             <h2 className="text-2xl font-bold text-white mb-4">🎲 Random Generation</h2>
-            <div className="aspect-square bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg mb-4 flex items-center justify-center">
-              <div className="text-center text-white">
-                <div className="text-6xl mb-4">❓</div>
-                <div className="text-xl font-bold">Mystery Los Bro</div>
-                <div className="text-sm text-gray-200 mt-2">Revealed after mint!</div>
+            <div className="aspect-square bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900 rounded-lg mb-4 flex items-center justify-center border-2 border-purple-400/30 relative overflow-hidden group">
+              {/* Matrix-style background */}
+              <div className="absolute inset-0 bg-black/40"></div>
+              
+              {/* Featured Los Bro PFP Card */}
+              <div className="relative z-10 text-center text-white p-6">
+                <div className="bg-gradient-to-br from-purple-900/90 to-blue-900/90 rounded-xl p-6 border-2 border-green-400/50 shadow-2xl">
+                  <div className="text-6xl mb-4 filter drop-shadow-lg">❓</div>
+                  <div className="text-xl font-bold mb-2 font-mono tracking-wider">MYSTERY BRO</div>
+                  <div className="text-sm text-green-400 font-mono mb-2">#????</div>
+                  <div className="text-sm text-purple-200">Revealed after mint!</div>
+                </div>
+                <div className="mt-4 bg-yellow-400/20 border border-yellow-400 rounded-full px-4 py-1 text-yellow-300 text-xs font-semibold animate-pulse">
+                  Your Unique Los Bro Awaits
+                </div>
               </div>
+              
+              {/* Decorative corners */}
+              <div className="absolute top-2 left-2 text-green-400 text-xs font-mono opacity-50">
+                &gt; GENERATING...
+              </div>
+              <div className="absolute bottom-2 right-2 text-green-400 text-xs font-mono opacity-50">
+                LOSBROS
+              </div>
+              
+              {/* Hover glow */}
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             
             <div className="space-y-2 text-sm text-gray-300">

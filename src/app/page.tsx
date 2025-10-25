@@ -181,14 +181,57 @@ const HomePage: React.FC = () => {
             
             <div className="flex flex-col md:flex-row items-center gap-8">
               
-              {/* Left: Image Preview */}
+              {/* Left: Featured Los Bro Image */}
               <div className="md:w-1/2">
-                <div className="aspect-square bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                  <div className="text-center text-white p-8">
-                    <div className="text-8xl mb-4">🎨</div>
-                    <div className="text-3xl font-bold mb-2">Los Bros</div>
-                    <div className="text-xl text-purple-200">2,222 Unique PFPs</div>
+                <div className="aspect-square bg-gradient-to-br from-purple-900 via-blue-900 to-pink-900 rounded-2xl overflow-hidden shadow-2xl border-4 border-purple-400/50 relative group">
+                  {/* Dynamic Los Bro PFP Display */}
+                  <div className="absolute inset-0 flex items-center justify-center p-8">
+                    <div className="relative w-full h-full">
+                      {/* Matrix-style background effect */}
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                      
+                      {/* Featured Los Bro Display */}
+                      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center">
+                        {/* Profile Card Style */}
+                        <div className="bg-gradient-to-br from-purple-900/90 to-blue-900/90 rounded-xl p-6 border-2 border-green-400/50 shadow-2xl">
+                          <div className="text-6xl mb-4 filter drop-shadow-lg">🎨</div>
+                          <div className="text-3xl font-bold text-white mb-2 font-mono tracking-wider">
+                            LOS BROS
+                          </div>
+                          <div className="text-sm text-green-400 font-mono mb-2">#FEATURED</div>
+                          <div className="text-lg text-purple-200 mb-4">LEGENDARY TIER</div>
+                          
+                          {/* Stats */}
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div className="bg-black/50 rounded p-2 border border-purple-400/30">
+                              <div className="text-gray-400">Supply</div>
+                              <div className="text-white font-bold">2,222</div>
+                            </div>
+                            <div className="bg-black/50 rounded p-2 border border-green-400/30">
+                              <div className="text-gray-400">Traits</div>
+                              <div className="text-green-400 font-bold">10K+</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Rarity Badge */}
+                        <div className="mt-4 bg-yellow-400/20 border border-yellow-400 rounded-full px-4 py-1 text-yellow-300 text-sm font-semibold animate-pulse">
+                          ⭐ Featured Collection
+                        </div>
+                      </div>
+                      
+                      {/* Decorative Elements */}
+                      <div className="absolute top-2 left-2 text-green-400 text-xs font-mono opacity-50">
+                        &gt; LOADING...
+                      </div>
+                      <div className="absolute bottom-2 right-2 text-green-400 text-xs font-mono opacity-50">
+                        ANALOS.IO
+                      </div>
+                    </div>
                   </div>
+                  
+                  {/* Hover Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </div>
 
