@@ -386,7 +386,7 @@ function ListingModal({ nft, onClose, onSuccess }: any) {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/marketplace/list', {
+      const response = await fetch('/api/marketplace/listings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
