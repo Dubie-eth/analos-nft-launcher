@@ -8,10 +8,13 @@ import { getSupabaseAdmin } from '@/lib/supabase/client';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { wallet: string } }
+  { params }: { params: Promise<{ wallet: string }> }
 ) {
   try {
-    const { wallet } = params;
+    console.log('🔍 API called, awaiting params...');
+    const { wallet } = await params;
+
+    console.log('🔍 Wallet from params:', wallet);
 
     if (!wallet) {
       return NextResponse.json(
@@ -23,7 +26,9 @@ export async function GET(
     console.log('🔍 Fetching all NFTs for wallet:', wallet);
 
     // Initialize Supabase at runtime (lazy initialization)
+    console.log('🔍 Initializing Supabase...');
     const supabase = getSupabaseAdmin();
+    console.log('✅ Supabase initialized');
 
     // Fetch ALL NFTs from database (Profile NFTs + Los Bros)
     const { data: allNFTs, error } = await supabase
