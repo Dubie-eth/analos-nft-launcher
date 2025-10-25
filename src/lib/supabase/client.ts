@@ -38,6 +38,12 @@ if (typeof window !== 'undefined') {
     localStorage.removeItem('supabase.auth.token');
     localStorage.removeItem('sb-analos-supabase-auth-token');
     localStorage.removeItem('analos-supabase-auth-v4');
+    // Clear any other potential auth keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('supabase') || key.includes('auth')) {
+        localStorage.removeItem(key);
+      }
+    });
   } catch (e) {
     // Ignore errors
   }
@@ -91,7 +97,13 @@ function createSupabaseClient() {
           detectSessionInUrl: false,
           flowType: 'pkce'
         },
-    global: { headers: { 'x-client-type': 'user', 'x-instance-id': 'analos-singleton' } }
+    global: { 
+      headers: { 
+        'x-client-type': 'user', 
+        'x-instance-id': 'analos-singleton',
+        'x-singleton-check': 'true'
+      } 
+    }
   });
 
   // Store globally to prevent multiple instances

@@ -87,6 +87,14 @@ export const PAGE_ACCESS: PageAccess[] = [
     requiresWallet: false
   },
   {
+    path: '/disclaimer',
+    name: 'Legal Disclaimer',
+    description: 'Legal disclaimer and terms of service',
+    requiredLevel: 'public',
+    publicAccess: true,
+    requiresWallet: false
+  },
+  {
     path: '/create-collection',
     name: 'Create Collection',
     description: 'NFT collection creation wizard',

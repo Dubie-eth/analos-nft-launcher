@@ -87,6 +87,27 @@ export default function WalletSafetyDisclaimer() {
 
           {/* Content */}
           <div className="p-6 space-y-6">
+            {/* Legal Disclaimer Link */}
+            <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-5">
+              <div className="flex items-start space-x-3">
+                <FileText className="w-6 h-6 text-orange-400 flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="text-xl font-bold text-orange-300 mb-2">📜 Legal Disclaimer</h3>
+                  <p className="text-orange-100 leading-relaxed mb-3">
+                    Before proceeding, please read our comprehensive legal disclaimer covering entertainment-only use, 
+                    risk warnings, and terms of service.
+                  </p>
+                  <Link 
+                    href="/disclaimer" 
+                    className="inline-flex items-center space-x-2 text-orange-300 hover:text-orange-200 font-semibold transition-colors"
+                  >
+                    <span>📜 Read Full Legal Disclaimer</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             {/* Experimental Platform Warning */}
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5">
               <div className="flex items-start space-x-3">

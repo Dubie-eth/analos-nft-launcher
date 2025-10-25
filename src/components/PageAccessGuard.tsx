@@ -43,6 +43,7 @@ export default function PageAccessGuard({ children }: PageAccessGuardProps) {
           pathname === '/how-it-works' ||
           pathname === '/faq' ||
           pathname === '/features' ||
+          pathname === '/disclaimer' ||
           pathname.startsWith('/api/') ||
           pathname.startsWith('/_next/')
         ) {
