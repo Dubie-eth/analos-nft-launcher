@@ -12,19 +12,25 @@ export async function POST(request: NextRequest) {
     const {
       mintAddress,
       walletAddress,
-      tokenId,
-      rarityTier,
+      losBrosTokenId,
+      losBrosRarity,
       rarityScore,
       traits,
       signature,
-      imageUrl,
-      metadataUri
+      metadataUri,
+      losBrosTier,
+      losBrosDiscountPercent,
+      losBrosFinalPrice,
+      losBrosPlatformFee,
+      lolBalanceAtMint
     } = body;
 
-    if (!mintAddress || !walletAddress || !tokenId) {
+    console.log('📝 Los Bros mint record request:', body);
+
+    if (!mintAddress || !walletAddress || !losBrosTokenId) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: mintAddress, walletAddress, tokenId'
+        error: 'Missing required fields: mintAddress, walletAddress, losBrosTokenId'
       }, { status: 400 });
     }
 
@@ -40,21 +46,27 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    // Insert Los Bros NFT record
-    const { data, error } = await (supabase
-      .from('los_bros_nfts') as any)
+    // Insert into profile_nfts table (Los Bros NFTs are stored here)
+    const { data, error } = await supabase
+      .from('profile_nfts')
       .insert({
         mint_address: mintAddress,
         wallet_address: walletAddress,
-        token_id: tokenId,
-        rarity_tier: rarityTier || 'COMMON',
-        rarity_score: rarityScore || 0,
-        traits: traits || [],
+        los_bros_token_id: losBrosTokenId,
+        los_bros_rarity: losBrosRarity || 'COMMON',
+        los_bros_rarity_score: rarityScore || 0,
+        los_bros_traits: traits || [],
         transaction_signature: signature,
-        image_url: imageUrl,
         metadata_uri: metadataUri,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        image_url: `/api/los-bros/generate-image?tokenId=${losBrosTokenId}`,
+        // Tier tracking
+        los_bros_tier: losBrosTier || 'PUBLIC',
+        los_bros_discount_percent: losBrosDiscountPercent || 0,
+        los_bros_final_price: losBrosFinalPrice || 0,
+        los_bros_platform_fee: losBrosPlatformFee || 0,
+        lol_balance_at_mint: lolBalanceAtMint || 0,
+        // Timestamps
+        created_at: new Date().toISOString()
       })
       .select();
 
@@ -67,7 +79,31 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log(`✅ Los Bros NFT mint recorded: ${tokenId} - ${rarityTier} (${mintAddress})`);
+    // Update allocation count using RPC function
+    if (losBrosTier) {
+      try {
+        // @ts-ignore - Supabase RPC function
+        const { error: allocError } = await supabase.rpc('record_los_bros_mint', {
+          p_wallet_address: walletAddress,
+          p_mint_address: mintAddress,
+          p_tier: losBrosTier,
+          p_lol_balance: lolBalanceAtMint || 0,
+          p_final_price: losBrosFinalPrice || 0,
+          p_discount: losBrosDiscountPercent || 0,
+          p_platform_fee: losBrosPlatformFee || 0
+        });
+
+        if (allocError) {
+          console.error('⚠️ Error updating allocation count:', allocError);
+        } else {
+          console.log(`✅ Los Bros allocation updated for ${losBrosTier} tier`);
+        }
+      } catch (allocUpdateError) {
+        console.error('⚠️ Exception updating allocation:', allocUpdateError);
+      }
+    }
+
+    console.log(`✅ Los Bros NFT mint recorded: ${losBrosTokenId} - ${losBrosRarity} (${mintAddress})`);
 
     return NextResponse.json({
       success: true,
