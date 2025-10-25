@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
           id: nft.mint_address,
           mint: nft.mint_address,
           name: `Los Bros #${nft.los_bros_token_id}`,
+          los_bros_token_id: nft.los_bros_token_id,
           image: `/api/los-bros/composite-image?tokenId=${nft.los_bros_token_id}`,
           description: `Los Bros #${nft.los_bros_token_id} - ${nft.los_bros_rarity} rarity PFP`,
           collection: 'Los Bros',
@@ -66,6 +67,7 @@ export async function GET(request: NextRequest) {
           rarityScore: nft.los_bros_rarity_score,
           tier: nft.los_bros_tier,
           traits: nft.los_bros_traits || [],
+          hasTraits: Array.isArray(nft.los_bros_traits) && nft.los_bros_traits.length > 0,
           owner: nft.wallet_address,
           floorPrice: 0, // TODO: Add floor price logic
           volume: 0, // TODO: Add volume tracking

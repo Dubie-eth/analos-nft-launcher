@@ -95,20 +95,22 @@ export default function CleanMarketplaceCard({
 
       {/* NFT Image */}
       <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-purple-900 to-blue-900 cursor-pointer" onClick={() => onViewDetails?.(nft.id)}>
-        {isLosBros && nft.traits ? (
-          // Use iframe for trait-based composite images
+        {isLosBros ? (
+          // Use iframe for Los Bros composite images
           <iframe
             src={displayImage}
             className="w-full h-full border-0"
             style={{ imageRendering: 'pixelated' }}
             title={nft.name}
+            sandbox="allow-same-origin"
           />
         ) : (
-          // Use regular img for Profile NFTs or fallback
+          // Use regular img for Profile NFTs
           <img
             src={displayImage}
             alt={nft.name}
             className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+            style={{ imageRendering: 'pixelated' }}
             onError={(e) => {
               if (!imageError) {
                 setImageError(true);
