@@ -14,6 +14,8 @@ export default function LosBrosCollectionPage() {
   const [allocations, setAllocations] = useState<any[]>([]);
   const [showReveal, setShowReveal] = useState(false);
   const [mintedNFT, setMintedNFT] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<number>(0);
 
   // Fetch recently minted NFTs
   useEffect(() => {
@@ -91,6 +93,34 @@ export default function LosBrosCollectionPage() {
       if (!silent) {
         console.error('Error fetching allocations:', error);
       }
+    }
+  };
+
+  const handleManualRefresh = async () => {
+    const now = Date.now();
+    const RATE_LIMIT_MS = 5000; // 5 seconds between manual refreshes
+    
+    // Rate limiting check
+    if (now - lastRefresh < RATE_LIMIT_MS) {
+      const remainingSeconds = Math.ceil((RATE_LIMIT_MS - (now - lastRefresh)) / 1000);
+      alert(`⏰ Please wait ${remainingSeconds} seconds before refreshing again`);
+      return;
+    }
+
+    setRefreshing(true);
+    setLastRefresh(now);
+    
+    try {
+      // Refresh both allocations and minted NFTs
+      await Promise.all([
+        fetchAllocations(),
+        fetchMintedNFTs()
+      ]);
+      console.log('✅ Manual refresh complete');
+    } catch (error) {
+      console.error('❌ Error during manual refresh:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -204,7 +234,33 @@ export default function LosBrosCollectionPage() {
         {/* Live Allocations */}
         {allocations.length > 0 && (
           <div className="mb-12 bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-4">📊 Live Mint Allocations</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-white">📊 Live Mint Allocations</h2>
+              <button
+                onClick={handleManualRefresh}
+                disabled={refreshing}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                  refreshing 
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                    : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                }`}
+              >
+                <svg 
+                  className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                  />
+                </svg>
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {allocations.map((alloc: any) => (
                 <div key={alloc.tier} className="bg-black/40 rounded-lg p-4 border-2 border-cyan-400/30">
