@@ -38,7 +38,7 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
-          cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli --locked --force
+          cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 anchor-cli --force
 
       - name: Build Program
         run: |
