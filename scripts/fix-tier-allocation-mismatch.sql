@@ -106,9 +106,9 @@ BEGIN
     WHERE a.tier = ac.tier;
     
     -- Set to 0 for tiers with no mints
-    UPDATE los_bros_allocations
+    UPDATE los_bros_allocations a
     SET minted_count = 0
-    WHERE tier NOT IN (
+    WHERE a.tier NOT IN (
         SELECT DISTINCT los_bros_tier
         FROM profile_nfts
         WHERE los_bros_token_id IS NOT NULL
