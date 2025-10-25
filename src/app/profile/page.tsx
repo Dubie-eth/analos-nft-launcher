@@ -64,10 +64,12 @@ export default function ProfilePage() {
     if (!publicKey) return;
 
     try {
-      const response = await fetch(`/api/user-nfts/${publicKey.toString()}`);
+      // Use unified API to get both Profile NFTs and Los Bros NFTs
+      const response = await fetch(`/api/user-nfts-unified/${publicKey.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setMyNFTs(data.nfts || []);
+        console.log(`✅ Loaded ${data.nfts?.length || 0} NFTs (${data.profileNFTs?.length || 0} Profile + ${data.losBrosNFTs?.length || 0} Los Bros)`);
       }
     } catch (error) {
       console.error('Error loading NFTs:', error);
