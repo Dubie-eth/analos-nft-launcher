@@ -66,13 +66,24 @@ export default function ProfilePage() {
     try {
       // Use unified API to get both Profile NFTs and Los Bros NFTs
       const response = await fetch(`/api/user-nfts-unified/${publicKey.toString()}`);
+      
       if (response.ok) {
-        const data = await response.json();
-        setMyNFTs(data.nfts || []);
-        console.log(`✅ Loaded ${data.nfts?.length || 0} NFTs (${data.profileNFTs?.length || 0} Profile + ${data.losBrosNFTs?.length || 0} Los Bros)`);
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          setMyNFTs(data.nfts || []);
+          console.log(`✅ Loaded ${data.nfts?.length || 0} NFTs (${data.profileNFTs?.length || 0} Profile + ${data.losBrosNFTs?.length || 0} Los Bros)`);
+        } else {
+          console.error('❌ API returned HTML instead of JSON');
+          setMyNFTs([]);
+        }
+      } else {
+        console.error(`❌ API error: ${response.status} ${response.statusText}`);
+        setMyNFTs([]);
       }
     } catch (error) {
       console.error('Error loading NFTs:', error);
+      setMyNFTs([]);
     }
   };
 
