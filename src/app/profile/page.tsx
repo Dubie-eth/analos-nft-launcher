@@ -65,8 +65,8 @@ export default function ProfilePage() {
     if (!publicKey) return;
 
     try {
-      // Use unified API to get both Profile NFTs and Los Bros NFTs
-      const response = await fetch(`/api/user-nfts-unified/${publicKey.toString()}`);
+      // Use query param version for Vercel compatibility
+      const response = await fetch(`/api/user-nfts?wallet=${publicKey.toString()}`);
       
       if (response.ok) {
         const contentType = response.headers.get('content-type');
