@@ -51,7 +51,7 @@ export async function GET(
       .gte('created_at', oneDayAgo);
 
     const sales24h = sales?.length || 0;
-    const volume24h = sales?.reduce((sum, sale) => sum + sale.sale_price, 0) || 0;
+    const volume24h = sales?.reduce((sum: number, sale: any) => sum + sale.sale_price, 0) || 0;
     const avgSalePrice = sales24h > 0 ? volume24h / sales24h : 0;
 
     // Get total volume (all-time)
@@ -59,7 +59,7 @@ export async function GET(
       .from('marketplace_sales')
       .select('sale_price');
 
-    const volumeTotal = allSales?.reduce((sum, sale) => sum + sale.sale_price, 0) || 0;
+    const volumeTotal = allSales?.reduce((sum: number, sale: any) => sum + sale.sale_price, 0) || 0;
 
     // Calculate market cap (floor price * total minted)
     const marketCap = floorPrice * (totalMinted || 0);
