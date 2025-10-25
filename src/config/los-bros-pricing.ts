@@ -27,6 +27,14 @@ export const LOS_BROS_PRICING = {
     PUBLIC: 1522,       // Everyone else - Full price
   },
   
+  // Mint limits per wallet per phase
+  MINT_LIMITS_PER_WALLET: {
+    TEAM: 10,           // Team can mint up to 10 each
+    EARLY: 1,           // Early supporters limited to 1 (100k+ $LOL)
+    COMMUNITY: 3,       // Community holders limited to 3 (1M+ $LOL)
+    PUBLIC: 2,          // Public limited to 2 per wallet
+  },
+  
   // $LOL Token for whitelist verification
   LOL_TOKEN: {
     MINT: new PublicKey('ANAL2R8pvMvd4NLmesbJgFjNxbTC13RDwQPbwSBomrQ6'),

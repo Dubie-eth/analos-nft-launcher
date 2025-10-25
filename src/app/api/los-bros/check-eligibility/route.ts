@@ -97,10 +97,17 @@ export async function POST(request: NextRequest) {
     const hasMinted = (existingMints || []).length > 0;
     const mintCount = (existingMints || []).length;
 
+    // Get mint limits from config
+    const { LOS_BROS_PRICING } = await import('@/config/los-bros-pricing');
+    const mintLimit = LOS_BROS_PRICING.MINT_LIMITS_PER_WALLET[pricing.tier as keyof typeof LOS_BROS_PRICING.MINT_LIMITS_PER_WALLET] || 1;
+    
+    // Check if wallet has reached mint limit for this tier
+    const hasReachedLimit = mintCount >= mintLimit;
+
     // Determine eligibility - MUST meet holding period for discounts/free mints
     const isEligible = 
       allocationData?.is_available && 
-      !hasMinted &&
+      !hasReachedLimit && // Check per-wallet mint limit
       pricing.holdingPeriodMet && // Anti-bot: Must hold tokens for 72 hours
       (pricing.tier === 'TEAM' || 
        pricing.tier === 'PUBLIC' || 
@@ -130,15 +137,17 @@ export async function POST(request: NextRequest) {
       tokenBalance: tokenCheck.tokenBalance,
       hasMinted,
       mintCount,
+      mintLimit,
+      hasReachedLimit,
       existingMints: (existingMints || []) as any[],
       message: !isEligible ? (
-        hasMinted ? '❌ You have already minted a Los Bro NFT' :
+        hasReachedLimit ? `❌ You've reached the mint limit for ${pricing.tier} tier (${mintCount}/${mintLimit})` :
         !pricing.holdingPeriodMet ? `⏰ Must hold $LOL for 72 hours (currently ${pricing.holdingPeriodHours.toFixed(1)}h)` :
         !allocationData?.is_available ? `❌ ${pricing.tier} tier allocation is full or inactive` :
         tokenCheck.tokenBalance < (allocationData?.requires_lol || 0) ? 
           `❌ Insufficient $LOL tokens (need ${(allocationData?.requires_lol || 0).toLocaleString()})` :
         '❌ Not eligible for this tier'
-      ) : `✅ Eligible for ${pricing.tier} tier mint!`,
+      ) : `✅ Eligible for ${pricing.tier} tier mint! (${mintCount}/${mintLimit} used)`,
     };
 
     console.log('✅ Eligibility check complete:', response);
