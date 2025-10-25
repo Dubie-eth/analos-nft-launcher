@@ -14,6 +14,14 @@ interface WhitelistStats {
   whitelistLimit: number;
 }
 
+interface LosBrosAllocation {
+  tier: string;
+  total_allocated: number;
+  minted_count: number;
+  requires_lol: number;
+  is_active: boolean;
+}
+
 const LOLWhitelistPromo: React.FC = () => {
   const { connected, publicKey } = useWallet();
   const [whitelistStats, setWhitelistStats] = useState<WhitelistStats>({
@@ -24,10 +32,12 @@ const LOLWhitelistPromo: React.FC = () => {
     whitelistLimit: 100
   });
   const [lolStatus, setLolStatus] = useState<LOLTokenStatus | null>(null);
+  const [losBrosAllocations, setLosBrosAllocations] = useState<LosBrosAllocation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadWhitelistStats();
+    loadLosBrosAllocations();
     if (connected && publicKey) {
       loadLOLStatus();
     }
@@ -67,6 +77,20 @@ const LOLWhitelistPromo: React.FC = () => {
     }
   };
 
+  const loadLosBrosAllocations = async () => {
+    try {
+      const response = await fetch('/api/los-bros/allocations');
+      const data = await response.json();
+      
+      if (data.success && data.allocations) {
+        setLosBrosAllocations(data.allocations);
+        console.log('📊 Los Bros allocations loaded:', data.allocations);
+      }
+    } catch (error) {
+      console.error('Error loading Los Bros allocations:', error);
+    }
+  };
+
   const getProgressPercentage = () => {
     return Math.min((whitelistStats.freeMintsClaimed / whitelistStats.whitelistLimit) * 100, 100);
   };
@@ -95,49 +119,70 @@ const LOLWhitelistPromo: React.FC = () => {
     );
   }
 
+  const getTierIcon = (tier: string) => {
+    switch (tier) {
+      case 'TEAM': return '🎖️';
+      case 'COMMUNITY': return '🎁';
+      case 'EARLY': return '💎';
+      case 'PUBLIC': return '🌍';
+      default: return '🎨';
+    }
+  };
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case 'TEAM': return 'border-yellow-400 bg-yellow-900/20';
+      case 'COMMUNITY': return 'border-green-400 bg-green-900/20';
+      case 'EARLY': return 'border-blue-400 bg-blue-900/20';
+      case 'PUBLIC': return 'border-purple-400 bg-purple-900/20';
+      default: return 'border-gray-400 bg-gray-900/20';
+    }
+  };
+
+  const getTierName = (tier: string) => {
+    switch (tier) {
+      case 'TEAM': return 'Team';
+      case 'COMMUNITY': return 'Community (1M+ $LOL)';
+      case 'EARLY': return 'Early Supporters (100k+ $LOL)';
+      case 'PUBLIC': return 'Public Sale';
+      default: return tier;
+    }
+  };
+
+  const totalLosBrosMinted = losBrosAllocations.reduce((sum, alloc) => sum + alloc.minted_count, 0);
+  const totalLosBrosAllocated = losBrosAllocations.reduce((sum, alloc) => sum + alloc.total_allocated, 0);
+  const losBrosRemaining = totalLosBrosAllocated - totalLosBrosMinted;
+
   return (
     <div className="bg-gradient-to-r from-purple-900 via-blue-900 to-indigo-900 rounded-xl p-6 border border-gray-700 mb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-yellow-500/20 rounded-lg">
-            <Crown className="w-6 h-6 text-yellow-400" />
+          <div className="p-2 bg-cyan-500/20 rounded-lg">
+            <Crown className="w-6 h-6 text-cyan-400" />
           </div>
           <div>
             <h2 className="text-2xl font-bold text-white">
-              {whitelistStats.isPublicLaunch ? '🎉 Public Launch Active!' : '🎖️ LOL Token Holder Benefits'}
+              🎨 Los Bros NFT - Live Allocation Tracker
             </h2>
             <p className="text-gray-300">
-              {whitelistStats.isPublicLaunch 
-                ? 'Everyone can now mint! LOL holders still get special benefits.'
-                : 'Hold 1M+ LOL tokens for exclusive whitelist access'
-              }
+              Real-time whitelist tier availability with token gating & anti-bot protection
             </p>
           </div>
         </div>
-        <div className={`px-4 py-2 bg-gradient-to-r ${getStatusColor()} rounded-full`}>
-          <span className="text-white font-semibold text-sm">{getStatusText()}</span>
+        <div className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full">
+          <span className="text-white font-semibold text-sm">🔥 LIVE NOW</span>
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Overall Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-black/30 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <Users className="w-5 h-5 text-blue-400" />
-            <div>
-              <div className="text-2xl font-bold text-white">{whitelistStats.totalWhitelisted}</div>
-              <div className="text-sm text-gray-400">Whitelisted Wallets</div>
-            </div>
-          </div>
-        </div>
-        
         <div className="bg-black/30 rounded-lg p-4">
           <div className="flex items-center space-x-3">
             <Gift className="w-5 h-5 text-green-400" />
             <div>
-              <div className="text-2xl font-bold text-white">{whitelistStats.freeMintsClaimed}</div>
-              <div className="text-sm text-gray-400">Free Mints Claimed</div>
+              <div className="text-2xl font-bold text-white">{totalLosBrosMinted}</div>
+              <div className="text-sm text-gray-400">Los Bros Minted</div>
             </div>
           </div>
         </div>
@@ -146,34 +191,84 @@ const LOLWhitelistPromo: React.FC = () => {
           <div className="flex items-center space-x-3">
             <TrendingUp className="w-5 h-5 text-purple-400" />
             <div>
-              <div className="text-2xl font-bold text-white">{whitelistStats.whitelistSlotsRemaining}</div>
-              <div className="text-sm text-gray-400">Slots Remaining</div>
+              <div className="text-2xl font-bold text-white">{losBrosRemaining}</div>
+              <div className="text-sm text-gray-400">Remaining</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-black/30 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <Users className="w-5 h-5 text-blue-400" />
+            <div>
+              <div className="text-2xl font-bold text-white">{totalLosBrosAllocated}</div>
+              <div className="text-sm text-gray-400">Total Supply</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Tier Allocations */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white font-semibold">Free Mints Progress</span>
-          <span className="text-gray-400 text-sm">
-            {whitelistStats.freeMintsClaimed} / {whitelistStats.whitelistLimit} claimed
-          </span>
-        </div>
-        <div className="w-full bg-gray-700 rounded-full h-3">
-          <div 
-            className="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${getProgressPercentage()}%` }}
-          ></div>
-        </div>
-        <div className="text-center mt-2">
-          <span className="text-gray-400 text-sm">
-            {whitelistStats.isPublicLaunch 
-              ? '🎉 Public launch reached! Everyone can mint now!'
-              : `${whitelistStats.whitelistSlotsRemaining} slots left until public launch`
-            }
-          </span>
+        <h3 className="text-white font-semibold mb-4 flex items-center space-x-2">
+          <Star className="w-5 h-5 text-yellow-400" />
+          <span>Whitelist Tier Allocations</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {losBrosAllocations.map((allocation) => {
+            const percentMinted = allocation.total_allocated > 0 
+              ? (allocation.minted_count / allocation.total_allocated) * 100 
+              : 0;
+            const remaining = allocation.total_allocated - allocation.minted_count;
+
+            return (
+              <div 
+                key={allocation.tier}
+                className={`bg-black/40 rounded-lg p-4 border-2 ${getTierColor(allocation.tier)}`}
+              >
+                <div className="text-center mb-3">
+                  <div className="text-3xl mb-2">{getTierIcon(allocation.tier)}</div>
+                  <h4 className="text-white font-bold text-sm">{getTierName(allocation.tier)}</h4>
+                </div>
+                
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Allocated:</span>
+                    <span className="font-semibold text-white">{allocation.total_allocated}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Minted:</span>
+                    <span className="font-semibold text-cyan-400">{allocation.minted_count}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Remaining:</span>
+                    <span className="font-semibold text-green-400">{remaining}</span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="pt-2">
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-cyan-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${percentMinted}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-center mt-1 text-gray-400 text-xs">
+                      {percentMinted.toFixed(1)}% minted
+                    </div>
+                  </div>
+
+                  {allocation.requires_lol > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-600">
+                      <div className="text-center text-xs text-yellow-400">
+                        Requires {(allocation.requires_lol / 1000000).toFixed(allocation.requires_lol >= 1000000 ? 0 : 1)}M $LOL
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -183,29 +278,29 @@ const LOLWhitelistPromo: React.FC = () => {
         <div className="bg-black/20 rounded-lg p-4">
           <h3 className="text-white font-semibold mb-3 flex items-center space-x-2">
             <Star className="w-5 h-5 text-yellow-400" />
-            <span>LOL Token Holder Benefits</span>
+            <span>$LOL Token Holder Benefits</span>
           </h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-sm">
               <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-              <span className="text-gray-300">🆓 1 Free Profile NFT Mint per wallet</span>
+              <span className="text-gray-300">🆓 FREE Los Bros mints (1M+ $LOL holders)</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-              <span className="text-gray-300">💰 Pay only minting and hosting costs</span>
+              <span className="text-gray-300">💎 50% OFF for Early Supporters (100k+ $LOL)</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-              <span className="text-gray-300">⭐ Priority support and early access</span>
+              <span className="text-gray-300">🛡️ Anti-bot 72-hour holding period protection</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-              <span className="text-gray-300">🎨 Special supporter badge and backgrounds</span>
+              <span className="text-gray-300">⚡ Priority access before public sale</span>
             </div>
           </div>
         </div>
 
-        {/* Requirements */}
+        {/* How to Qualify */}
         <div className="bg-black/20 rounded-lg p-4">
           <h3 className="text-white font-semibold mb-3 flex items-center space-x-2">
             <Zap className="w-5 h-5 text-blue-400" />
@@ -216,24 +311,19 @@ const LOLWhitelistPromo: React.FC = () => {
               <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs">1</span>
               </div>
-              <span className="text-gray-300">Hold 1,000,000+ LOL tokens</span>
+              <span className="text-gray-300">Hold 100k+ or 1M+ $LOL tokens</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs">2</span>
               </div>
-              <span className="text-gray-300">Connect your wallet to check status</span>
+              <span className="text-gray-300">Hold for 72 hours (anti-bot protection)</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs">3</span>
               </div>
-              <span className="text-gray-300">
-                {whitelistStats.isPublicLaunch 
-                  ? 'Mint your free Profile NFT now!'
-                  : 'Get whitelisted for early access'
-                }
-              </span>
+              <span className="text-gray-300">Connect wallet and mint Los Bro NFT</span>
             </div>
           </div>
         </div>
@@ -279,16 +369,11 @@ const LOLWhitelistPromo: React.FC = () => {
       {/* Call to Action */}
       <div className="mt-6 text-center">
         <button
-          onClick={() => window.location.href = '/profile'}
-          className="px-8 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 mx-auto"
+          onClick={() => window.location.href = '/collections/los-bros'}
+          className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 mx-auto shadow-lg hover:shadow-xl"
         >
           <Gift className="w-5 h-5" />
-          <span>
-            {whitelistStats.isPublicLaunch 
-              ? 'Mint Your Profile NFT Now!' 
-              : 'Check Your LOL Status'
-            }
-          </span>
+          <span>🎨 Mint Los Bro NFT Now!</span>
         </button>
       </div>
     </div>
