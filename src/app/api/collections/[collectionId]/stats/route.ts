@@ -23,12 +23,12 @@ export async function GET(
     }
 
     // Get unique owners count
-    const { data: owners, error: ownersError } = await supabase
+    const { data: owners, error: ownersError } = await (supabase as any)
       .from('profile_nfts')
       .select('wallet_address')
       .not(isLosBros ? 'los_bros_token_id' : 'username', 'is', null);
 
-    const uniqueOwners = owners ? new Set(owners.map(o => o.wallet_address)).size : 0;
+    const uniqueOwners = owners ? new Set(owners.map((o: any) => o.wallet_address)).size : 0;
 
     // Get marketplace listings for floor price and listed count
     const { data: listings, error: listingsError } = await supabase
