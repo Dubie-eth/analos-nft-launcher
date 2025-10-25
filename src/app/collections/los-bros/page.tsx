@@ -345,7 +345,7 @@ export default function LosBrosCollectionPage() {
                   <div className="p-4 space-y-3">
                     <div>
                       <h3 className="text-lg font-bold text-white mb-1">
-                        Los Bros #{shortenAddress(nft.los_bros_token_id || nft.mint_address)}
+                        Los Bros #{nft.los_bros_token_id || shortenAddress(nft.mint_address)}
                       </h3>
                       <p className="text-sm text-gray-400">
                         Minted by @{nft.username || shortenAddress(nft.wallet_address)}
@@ -356,12 +356,12 @@ export default function LosBrosCollectionPage() {
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-400">Token ID:</span>
                       <a 
-                        href={getExplorerUrl(nft.los_bros_token_id || nft.mint_address)}
+                        href={getExplorerUrl(nft.mint_address)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-cyan-400 hover:text-cyan-300 font-mono underline"
                       >
-                        {shortenAddress(nft.los_bros_token_id || nft.mint_address)}
+                        {nft.los_bros_token_id || shortenAddress(nft.mint_address)}
                       </a>
                     </div>
 
