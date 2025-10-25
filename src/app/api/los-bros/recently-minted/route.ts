@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
         wallet_address,
         username,
         display_name,
+        los_bros_token_id,
         los_bros_tier,
         los_bros_final_price,
         los_bros_discount_percent,
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
         los_bros_rarity_score,
         los_bros_traits,
         transaction_signature,
+        metadata_uri,
         created_at
       `)
       .not('los_bros_tier', 'is', null)
