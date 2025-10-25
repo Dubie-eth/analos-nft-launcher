@@ -725,134 +725,263 @@ const HowItWorksPage: React.FC = () => {
             <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-lg p-8 text-white">
               <h2 className="text-3xl font-bold mb-4">📝 Whitelist System</h2>
               <p className="text-lg text-orange-100">
-                3-tier whitelist system with incremental pricing and supply limits for fair distribution.
+                Token-gated whitelist system with anti-bot protection and dynamic pricing for fair distribution.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 border-purple-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">1</div>
-                  <h3 className="text-xl font-bold text-purple-800">Early Birds</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Most exclusive tier</p>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Price:</span>
-                    <span className="font-semibold">20% discount</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Supply:</span>
-                    <span className="font-semibold">100 NFTs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Max per wallet:</span>
-                    <span className="font-semibold">2 NFTs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Duration:</span>
-                    <span className="font-semibold">24 hours</span>
-                  </div>
+            {/* Example: Los Bros NFT Collection */}
+            <div className="bg-gradient-to-r from-purple-900/20 via-pink-900/20 to-cyan-900/20 rounded-lg p-6 border-2 border-purple-400/30">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="text-3xl">🎨</div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Example: Los Bros NFT Collection</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Real-world implementation with $LOL token gating</p>
                 </div>
               </div>
+              
+              <div className="grid md:grid-cols-4 gap-6 mt-6">
+                {/* Team Tier */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-yellow-400 dark:border-yellow-500 shadow-lg">
+                  <div className="text-center mb-4">
+                    <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">🎖️</div>
+                    <h4 className="text-xl font-bold text-yellow-800 dark:text-yellow-400">Team</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Core team allocation</p>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Price:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">FREE</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Supply:</span>
+                      <span className="font-semibold">50 NFTs</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Requirement:</span>
+                      <span className="font-semibold text-yellow-600 dark:text-yellow-400">Whitelisted</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Holding Period:</span>
+                      <span className="font-semibold">None</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 border-blue-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">2</div>
-                  <h3 className="text-xl font-bold text-blue-800">Friends</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Community supporters</p>
+                {/* Community Tier */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-green-400 dark:border-green-500 shadow-lg">
+                  <div className="text-center mb-4">
+                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">🎁</div>
+                    <h4 className="text-xl font-bold text-green-800 dark:text-green-400">Community</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">1M+ $LOL holders</p>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Price:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">FREE*</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Supply:</span>
+                      <span className="font-semibold">500 NFTs</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Requirement:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">1M $LOL</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Holding Period:</span>
+                      <span className="font-semibold text-cyan-600 dark:text-cyan-400">72 hours</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">*Platform fee only (6.9%)</div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Price:</span>
-                    <span className="font-semibold">10% discount</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Supply:</span>
-                    <span className="font-semibold">200 NFTs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Max per wallet:</span>
-                    <span className="font-semibold">3 NFTs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Duration:</span>
-                    <span className="font-semibold">48 hours</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700 border-green-200">
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">3</div>
-                  <h3 className="text-xl font-bold text-green-800">Community</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">General community</p>
+                {/* Early Tier */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-blue-400 dark:border-blue-500 shadow-lg">
+                  <div className="text-center mb-4">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">💎</div>
+                    <h4 className="text-xl font-bold text-blue-800 dark:text-blue-400">Early Supporters</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">100k+ $LOL holders</p>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Price:</span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">50% OFF</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Supply:</span>
+                      <span className="font-semibold">150 NFTs</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Requirement:</span>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">100k $LOL</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Holding Period:</span>
+                      <span className="font-semibold text-cyan-600 dark:text-cyan-400">72 hours</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Price:</span>
-                    <span className="font-semibold">5% discount</span>
+
+                {/* Public Tier */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-purple-400 dark:border-purple-500 shadow-lg">
+                  <div className="text-center mb-4">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-3">🌍</div>
+                    <h4 className="text-xl font-bold text-purple-800 dark:text-purple-400">Public Sale</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Open to everyone</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Supply:</span>
-                    <span className="font-semibold">300 NFTs</span>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Starting Price:</span>
+                      <span className="font-semibold">4,200.69 LOS</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Supply:</span>
+                      <span className="font-semibold">1,522 NFTs</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Requirement:</span>
+                      <span className="font-semibold">None</span>
+                    </div>
+                    <div className="flex justify-between text-gray-800 dark:text-gray-300">
+                      <span>Dynamic Pricing:</span>
+                      <span className="font-semibold text-purple-600 dark:text-purple-400">+6.9%/mint</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Max per wallet:</span>
-                    <span className="font-semibold">5 NFTs</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Duration:</span>
-                    <span className="font-semibold">72 hours</span>
-                  </div>
+                  <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">Max: 42,000.69 LOS</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
-              <h3 className="text-xl font-bold mb-4">🔐 Merkle Proof Verification</h3>
+            {/* Anti-Bot Protection */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-cyan-400 dark:border-cyan-500 shadow-lg">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="text-3xl">🛡️</div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Anti-Bot Protection</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    72-hour $LOL token holding period required for free and discounted mints to prevent bot farming.
+                  </p>
+                </div>
+              </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3">How Whitelist Works</h4>
-                  <ol className="space-y-2 text-sm">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">How It Works</h4>
+                  <ol className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                     <li className="flex items-start space-x-2">
-                      <span className="text-purple-600 font-bold mt-1">1.</span>
-                      <span>Creator generates merkle tree from whitelist addresses</span>
+                      <span className="text-cyan-600 dark:text-cyan-400 font-bold mt-1">1.</span>
+                      <span>User acquires $LOL tokens</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-purple-600 font-bold mt-1">2.</span>
-                      <span>Merkle root is stored on-chain for verification</span>
+                      <span className="text-cyan-600 dark:text-cyan-400 font-bold mt-1">2.</span>
+                      <span>System tracks token account creation time</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-purple-600 font-bold mt-1">3.</span>
-                      <span>Users provide merkle proof when minting</span>
+                      <span className="text-cyan-600 dark:text-cyan-400 font-bold mt-1">3.</span>
+                      <span>Holding period must reach 72 hours for whitelist eligibility</span>
                     </li>
                     <li className="flex items-start space-x-2">
-                      <span className="text-purple-600 font-bold mt-1">4.</span>
-                      <span>Smart contract verifies proof on-chain</span>
+                      <span className="text-cyan-600 dark:text-cyan-400 font-bold mt-1">4.</span>
+                      <span>Real-time countdown displayed to user</span>
                     </li>
                   </ol>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-3">Benefits</h4>
-                  <ul className="space-y-2 text-sm">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Benefits</h4>
+                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                     <li className="flex items-center space-x-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Gas-efficient verification</span>
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>Prevents bot sniping of free/discounted mints</span>
                     </li>
                     <li className="flex items-center space-x-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Privacy-preserving (no address list on-chain)</span>
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>Rewards genuine community members</span>
                     </li>
                     <li className="flex items-center space-x-2">
-                      <span className="text-green-500">✓</span>
-                      <span>Tamper-proof whitelist</span>
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>On-chain verification (tamper-proof)</span>
                     </li>
                     <li className="flex items-center space-x-2">
-                      <span className="text-green-500">✓</span>
+                      <span className="text-green-500 dark:text-green-400">✓</span>
                       <span>Fair distribution mechanism</span>
                     </li>
                   </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Pricing System */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">📈 Dynamic Pricing (Optional Feature)</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">How Dynamic Pricing Works</h4>
+                  <ol className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <li className="flex items-start space-x-2">
+                      <span className="text-purple-600 dark:text-purple-400 font-bold mt-1">1.</span>
+                      <span>Starting price set by creator (e.g., 4,200.69 LOS)</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-purple-600 dark:text-purple-400 font-bold mt-1">2.</span>
+                      <span>Price increases by percentage with each mint (e.g., +6.9%)</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-purple-600 dark:text-purple-400 font-bold mt-1">3.</span>
+                      <span>Maximum price cap to protect buyers (e.g., 42,000.69 LOS)</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <span className="text-purple-600 dark:text-purple-400 font-bold mt-1">4.</span>
+                      <span>Real-time price display on mint page</span>
+                    </li>
+                  </ol>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Benefits</h4>
+                  <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <li className="flex items-center space-x-2">
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>Rewards early minters with lower prices</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>Creates urgency and excitement</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>Prevents floor dumping</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-green-500 dark:text-green-400">✓</span>
+                      <span>Price discovery through demand</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Customizable Whitelist Options */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-blue-800 dark:text-blue-300 mb-4">🎛️ Customizable for Creators</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🎨</div>
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-400 mb-2">Flexible Tiers</h4>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">
+                    Create 1-10 whitelist tiers with custom pricing
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🔐</div>
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-400 mb-2">Token Gating</h4>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">
+                    Gate access by any SPL token balance & holding period
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">⚡</div>
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-400 mb-2">On-Chain Verification</h4>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">
+                    All verification happens trustlessly on-chain
+                  </p>
                 </div>
               </div>
             </div>
@@ -1545,7 +1674,7 @@ const HowItWorksPage: React.FC = () => {
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6 sticky top-8">
-              <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white dark:text-white">How It Works</h2>
+              <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">How It Works</h2>
               <nav className="space-y-2">
                 {sections.map((section) => (
                   <button
