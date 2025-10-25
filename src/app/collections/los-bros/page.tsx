@@ -111,7 +111,7 @@ export default function LosBrosCollectionPage() {
           body: JSON.stringify({
             mintAddress: result.mintAddress,
             walletAddress: publicKey.toString(),
-            losBrosTokenId: result.mintAddress,
+            losBrosTokenId: result.tokenId || result.mintAddress, // Use tokenId, fallback to mintAddress
             losBrosRarity: result.rarityTier,
             rarityScore: result.rarityScore,
             traits: result.traits,

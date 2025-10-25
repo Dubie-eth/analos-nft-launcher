@@ -35,6 +35,7 @@ interface LosBrosMintOptions {
 interface LosBrosMintResult {
   success: boolean;
   mintAddress?: string;
+  tokenId?: number;
   signature?: string;
   traits?: LosBrosTrait[];
   rarityScore?: number;
@@ -329,6 +330,7 @@ export class LosBrosMintingService {
         return {
           success: true,
           mintAddress: mintKeypair.publicKey.toString(),
+          tokenId: tokenId,
           signature,
           traits,
           rarityScore,
