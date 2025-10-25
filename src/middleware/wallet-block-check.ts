@@ -28,7 +28,7 @@ export async function getBlockReason(walletAddress: string): Promise<string | nu
   // Lazy initialize Supabase client at runtime (not build time)
   const supabase = getSupabaseAdmin();
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('blocked_wallets')
       .select('reason')
       .eq('walletAddress', walletAddress)
