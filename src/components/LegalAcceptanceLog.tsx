@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FileText, RefreshCw, Download, Calendar, User, Globe, Monitor } from 'lucide-react';
+import { FileText, RefreshCw, Download, Calendar, User, Globe, Monitor, Shield } from 'lucide-react';
 
 interface LegalAcceptance {
   id: string;
